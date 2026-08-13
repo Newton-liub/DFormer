@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Local browser automation artifacts
+.playwright-mcp/
+
 # dataset
 MUseg/
 
