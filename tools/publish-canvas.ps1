@@ -1,12 +1,15 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [string]$Source = "doc",
+    [string]$Source = "doc/canvases",
     [string]$Destination,
-    [string]$ProjectRoot
+    [string]$ProjectRoot,
+    [switch]$AllowUnversioned
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+$versionPattern = '^(?<Version>(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))-(?<Name>[a-z0-9]+(?:-[a-z0-9]+)*)\.canvas\.tsx$'
 
 if (-not $ProjectRoot) {
     $ProjectRoot = Split-Path -Parent $PSScriptRoot
@@ -37,10 +40,33 @@ $canvasFiles = if ($sourceItem.PSIsContainer) {
 } else {
     @($sourceItem)
 }
+$canvasFiles = @($canvasFiles | Where-Object { $_.Name -like "*.canvas.tsx" } | Sort-Object Name)
 
-$canvasFiles = @($canvasFiles | Where-Object { $_.Name -like "*.canvas.tsx" })
 if ($canvasFiles.Count -eq 0) {
     throw "No .canvas.tsx files found under: $sourcePath"
+}
+
+$versionedFiles = @()
+foreach ($canvasFile in $canvasFiles) {
+    $nameMatch = [regex]::Match($canvasFile.Name, $versionPattern)
+    if (-not $nameMatch.Success) {
+        if (-not $AllowUnversioned) {
+            throw "Canvas filename must start with MAJOR.MINOR.PATCH: $($canvasFile.Name). Example: 0.0.2-weekly-progress.canvas.tsx"
+        }
+        Write-Warning "Publishing legacy unversioned Canvas: $($canvasFile.Name)"
+        continue
+    }
+
+    $versionedFiles += [PSCustomObject]@{
+        Version = $nameMatch.Groups["Version"].Value
+        File = $canvasFile
+    }
+}
+
+$duplicateVersions = @($versionedFiles | Group-Object Version | Where-Object { $_.Count -gt 1 })
+if ($duplicateVersions.Count -gt 0) {
+    $duplicates = ($duplicateVersions | ForEach-Object { $_.Name }) -join ", "
+    throw "Duplicate Canvas versions found: $duplicates"
 }
 
 if ($PSCmdlet.ShouldProcess($Destination, "Create Canvas destination")) {
@@ -49,8 +75,21 @@ if ($PSCmdlet.ShouldProcess($Destination, "Create Canvas destination")) {
 
 foreach ($canvasFile in $canvasFiles) {
     $target = Join-Path $Destination $canvasFile.Name
-    if ($PSCmdlet.ShouldProcess($target, "Publish $($canvasFile.Name)")) {
-        Copy-Item -LiteralPath $canvasFile.FullName -Destination $target -Force
+
+    if (Test-Path -LiteralPath $target) {
+        $sourceHash = (Get-FileHash -LiteralPath $canvasFile.FullName -Algorithm SHA256).Hash
+        $targetHash = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash
+
+        if ($sourceHash -eq $targetHash) {
+            Write-Host "Unchanged: $target"
+            continue
+        }
+
+        throw "Refusing to overwrite an existing Canvas version: $target. Increment the version number instead."
+    }
+
+    if ($PSCmdlet.ShouldProcess($target, "Publish versioned Canvas")) {
+        Copy-Item -LiteralPath $canvasFile.FullName -Destination $target
         Write-Host "Published: $($canvasFile.FullName) -> $target"
     }
 }

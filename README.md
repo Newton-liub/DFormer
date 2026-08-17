@@ -271,14 +271,27 @@ ps: The latency highly depends on the devices. It is recommended to compare the 
 
 ## Cursor Canvas 报告
 
-Canvas 源文件可以保存在 `doc/*.canvas.tsx` 中，并通过下面的脚本发布到当前工作区的 Cursor Canvas 目录：
+Canvas 采用“仓库源文件 + Cursor 受管副本”的方式保存：
 
-- 双击 `tools/publish-canvas.cmd`，发布 `doc` 下的全部 `.canvas.tsx` 文件。
-- 在项目根目录执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1`，效果相同。
-- 只发布单个文件时执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1 -Source doc/museg-dformer-data-review.canvas.tsx`。
-- 使用 `-WhatIf` 可以预览目标路径而不实际复制文件。
+- Git 管理的源文件放在 `doc/canvases/`；
+- 文件名必须使用 `MAJOR.MINOR.PATCH-<name>.canvas.tsx`，例如 `0.0.2-weekly-progress.canvas.tsx`；
+- 页面标题或显著元数据必须显示与文件名一致的版本号；
+- 已发布版本只读保留。修改 Canvas 时创建新版本，不覆盖或删除旧文件；
+- `doc/reports/report-index.json` 记录已用版本和下一个可用版本。
 
-脚本会根据当前项目路径自动计算 Cursor 受管目录，例如本项目对应 `C:\Users\<用户名>\.cursor\projects\d-0Project-DFormer\canvases`。`doc` 中的源文件继续由 Git 管理，受管目录中的副本仅用于 Cursor 预览。
+发布方式：
+
+- 双击 `tools/publish-canvas.cmd`，发布 `doc/canvases` 下的全部 Canvas；
+- 在项目根目录执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1`，效果相同；
+- 只发布单个文件时执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1 -Source doc/canvases/0.0.1-report-workflow-decision.canvas.tsx`；
+- 使用 `-WhatIf` 可以预览目标路径而不复制文件；
+- 只有迁移历史文件时才使用 `-AllowUnversioned`。
+
+发布脚本会校验版本前缀和版本唯一性。目标中已有同名同内容文件时跳过；同名但内容不同时拒绝覆盖，并要求提升版本号。脚本不会清理或删除已有 Canvas。
+
+脚本会根据当前项目路径自动计算 Cursor 受管目录，例如本项目对应 `C:\Users\<用户名>\.cursor\projects\d-0Project-DFormer\canvases`。受管副本仅用于 Cursor 预览，`doc/canvases/` 中的源文件是长期保存和审阅的依据。
+
+项目级汇报 Skill 位于 `.cursor/skills/research-progress-report/`。正式报告默认保存到 `doc/reports/`；需要组会展示或可视化布局时，再根据 Markdown 事实正文生成下一个版本的 Canvas。
 
 ## Reference
 You may want to cite:
