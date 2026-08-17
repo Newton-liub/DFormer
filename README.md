@@ -269,6 +269,17 @@ ps: The latency highly depends on the devices. It is recommended to compare the 
 > We invite all to contribute in making it more acessible and useful. If you have any questions or suggestions about our work, feel free to contact me via e-mail (bowenyin@mail.nankai.edu.cn) or raise an issue. 
 
 
+## Cursor Canvas 报告
+
+Canvas 源文件可以保存在 `doc/*.canvas.tsx` 中，并通过下面的脚本发布到当前工作区的 Cursor Canvas 目录：
+
+- 双击 `tools/publish-canvas.cmd`，发布 `doc` 下的全部 `.canvas.tsx` 文件。
+- 在项目根目录执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1`，效果相同。
+- 只发布单个文件时执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1 -Source doc/museg-dformer-data-review.canvas.tsx`。
+- 使用 `-WhatIf` 可以预览目标路径而不实际复制文件。
+
+脚本会根据当前项目路径自动计算 Cursor 受管目录，例如本项目对应 `C:\Users\<用户名>\.cursor\projects\d-0Project-DFormer\canvases`。`doc` 中的源文件继续由 Git 管理，受管目录中的副本仅用于 Cursor 预览。
+
 ## Reference
 You may want to cite:
 ```
