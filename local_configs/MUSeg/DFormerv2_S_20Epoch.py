@@ -14,6 +14,11 @@ C.train_source = osp.join(C.dataset_path, "train.txt")
 C.eval_source = osp.join(C.dataset_path, "test.txt")
 
 C.pretrained_model = "/root/rivermind-data/pretrained/DFormerv2_Small_pretrained.pth"
+C.optimizer = "AdamW"
+C.lr = 6e-5
+C.lr_power = 0.9
+C.momentum = 0.9
+C.weight_decay = 0.01
 C.batch_size = 2
 C.nepochs = 20
 C.niters_per_epoch = C.num_train_imgs // C.batch_size + 1
