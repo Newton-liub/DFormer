@@ -6,6 +6,7 @@ from utils.init_func import init_weight
 from utils.load_utils import load_pretrain
 from functools import partial
 
+from .losses.safe_masked_loss import safe_masked_mean
 from utils.engine.logger import get_logger
 import warnings
 
@@ -245,10 +246,10 @@ class EncoderDecoder(nn.Module):
         else:
             out = self.encode_decode(rgb, modal_x)
         if label is not None:
-            loss = self.criterion(out, label.long())[label.long() != self.cfg.background].mean()
+            target = label.long()
+            valid_mask = target != self.cfg.background
+            loss = safe_masked_mean(self.criterion(out, target), valid_mask)
             if self.aux_head:
-                loss += (
-                    self.aux_rate * self.criterion(aux_fm, label.long())[label.long() != self.cfg.background].mean()
-                )
+                loss += self.aux_rate * safe_masked_mean(self.criterion(aux_fm, target), valid_mask)
             return loss
         return out

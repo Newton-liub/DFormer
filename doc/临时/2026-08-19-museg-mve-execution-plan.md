@@ -35,11 +35,24 @@
 ### 尚未完成的核心事项
 
 - `[ ] MUSeg 专属正式训练配置`
-- `[ ] A1：全 ignore loss 风险复现`
-- `[ ] B1：safe masked loss 实现与等价性验证`
+- ~~[x] A1：全 ignore loss 风险复现（Windows CPU 单元测试）~~
+- ~~[x] B1：safe masked loss 实现与等价性验证（Windows CPU 单元测试）~~
 - `[ ] A2：Depth=0 受控注入筛查`
 - `[ ] B2：validity mask / geometry prior gating`
 - `[ ] MUSeg 基线训练与正式性能报告`
+
+## 本轮执行记录（2026-08-19）
+
+- ~~[x] 新增 `models/losses/safe_masked_loss.py`，并接入 `models/builder.py`~~
+- ~~[x] 新增 `tests/test_masked_loss.py`，覆盖空集合、1 pixel/1%、100%、非空梯度等条件~~
+- ~~[x] 新增 `tests/test_a2_masks.py`，验证 block mask 精确数量和跨平台相对路径~~
+- ~~[x] 新增 `tools/mve/a2_prepare_masks.py`，用于 Windows 本地生成 manifest 和 mask~~
+- ~~[x] 新增 `tools/mve/a2_run_sensitivity.py`，用于云端 CUDA checkpoint 推理~~
+- ~~[x] 新增 `tools/mve/a2_evaluate_results.py`，用于独立重算 CSV 和汇总指标~~
+- ~~[x] 新增 `local_configs/MUSeg/DFormerv2_S_MVE.py`，固定 15 类、标签映射和 DFormerv2-S MVE 参数~~
+- ~~[x] Python 编译检查通过；本地 7 个单元测试通过~~
+- `[ ] 使用完整 MUSeg_DFormer 数据生成真实 16 张 manifest；当前本地转换目录尚不完整，需在云端重建后执行`
+- `[ ] 使用真实 checkpoint 执行 q=0、q=0.3、q=0.5 的 48 次前向`
 
 ---
 
@@ -81,13 +94,13 @@
 
 ## 1.1 A1：复现全 ignore 风险
 
-- `[>] 在随机 logits 上复用项目同款 CrossEntropyLoss`
-- `[ ] 覆盖有效像素比例：100%、1%、1 pixel、0%`
-- `[ ] 记录 loss 是否 finite`
-- `[ ] 调用 backward，记录 gradient 是否全部 finite`
-- `[ ] 分别验证主头和 aux head 的归约路径`
-- `[ ] 验证 0% 条件下旧实现是否出现 NaN 或非有限值`
-- `[ ] 验证 1 pixel、1% 和 100% 条件仍然 finite`
+- ~~[x] 在随机 logits 上复用项目同款 CrossEntropyLoss~~
+- ~~[x] 覆盖有效像素比例：100%、1%、1 pixel、0%~~
+- ~~[x] 记录 loss 是否 finite~~
+- ~~[x] 调用 backward，记录 gradient 是否全部 finite~~
+- `[ ] 分别验证真实主头和 aux head 的完整模型归约路径`
+- ~~[x] 验证 0% 条件下旧实现是否出现 NaN 或非有限值~~
+- ~~[x] 验证 1 pixel、1% 和 100% 条件仍然 finite~~
 - `[ ] 用 rank 0 全 ignore、rank 1 1 pixel 的最小模拟确认本地 rank 语义`
 
 成功门槛：
@@ -98,16 +111,16 @@
 
 ## 1.2 B1：safe masked loss
 
-- `[ ] 抽取单一 safe masked mean 函数`
-- `[ ] 有效像素存在时返回原始 masked mean`
-- `[ ] 无有效像素时返回与计算图相连的零值 loss`
-- `[ ] 比较旧实现和新实现的非空 loss`
-- `[ ] 比较旧实现和新实现的非空 logits gradient`
-- `[ ] 验证主头和 aux head`
-- `[ ] 验证全 ignore 条件下新 loss 为有限 0`
-- `[ ] 验证全 ignore 条件下新 gradient finite`
-- `[ ] 验证“1 张全背景图 + 1 张普通图”的混合 batch`
-- `[ ] 将 A1/B1 固化为可重复测试，避免只保留临时 REPL 结果`
+- ~~[x] 抽取单一 safe masked mean 函数~~
+- ~~[x] 有效像素存在时返回原始 masked mean~~
+- ~~[x] 无有效像素时返回与计算图相连的零值 loss~~
+- ~~[x] 比较旧实现和新实现的非空 loss~~
+- ~~[x] 比较旧实现和新实现的非空 logits gradient~~
+- ~~[x] 验证主头和辅助加权归约函数路径~~
+- ~~[x] 验证全 ignore 条件下新 loss 为有限 0~~
+- ~~[x] 验证全 ignore 条件下新 gradient finite~~
+- `[ ] 验证真实训练模型中的“1 张全背景图 + 1 张普通图”混合 batch`
+- ~~[x] 将 A1/B1 固化为可重复测试，避免只保留临时 REPL 结果~~
 
 成功门槛：
 
@@ -124,9 +137,9 @@ models/losses/ 或 models/builder.py
 
 ## 1.3 本地验证与提交
 
-- `[ ] 在 Windows 本地运行 A1/B1`
-- `[ ] 运行 Python 语法检查`
-- `[ ] 检查最近修改文件的 linter`
+- ~~[x] 在 Windows 本地运行 A1/B1~~
+- ~~[x] 运行 Python 语法检查~~
+- ~~[x] 检查最近修改文件的 linter~~
 - `[ ] 检查 Git diff，确认没有数据、checkpoint、日志进入提交`
 - `[ ] 提交 A1/B1 代码和测试`
 - `[ ] 记录 commit SHA，作为后续云端实验代码版本`
@@ -144,9 +157,9 @@ models/losses/ 或 models/builder.py
 
 - `[ ] 从官方 test 固定筛选 16 张含前景且原始有效深度比例较高的图`
 - `[ ] 保存样本 ID、原始有效深度比例和筛选规则`
-- `[ ] 固定 corruption seed`
-- `[ ] 固定 q={0, 0.3, 0.5}`
-- `[ ] 先只生成 block mask，不立即扩展 random mask`
+- ~~[x] 固定 corruption seed~~
+- ~~[x] 固定 q={0, 0.3, 0.5}~~
+- ~~[x] 先只生成 block mask，不立即扩展 random mask~~
 
 建议 manifest：
 
@@ -156,13 +169,13 @@ experiments/museg_mve/manifests/a2_screening_16.json
 
 ## 2.2 生成和验证 mask
 
-- `[ ] 只在原始有效深度像素上注入额外 0`
-- `[ ] 生成每张图的 block mask`
-- `[ ] 保存 mask 的 seed、目标缺失率和实际缺失率`
-- `[ ] 验证 mask 使用 nearest 几何缩放或保持原始尺寸`
-- `[ ] 验证 RGB、Depth、Depth16、Label、mask 尺寸一致`
-- `[ ] 生成 q=0、q=0.3、q=0.5 的输入目录或可复现索引`
-- `[ ] 用中位数深度填充生成负对照的规则，但暂不运行完整负对照`
+- ~~[x] 只在原始有效深度像素上注入额外 0（代码）~~
+- ~~[x] 生成每张图的 block mask（代码）~~
+- ~~[x] 保存 mask 的 seed、目标缺失率和实际缺失率（代码）~~
+- ~~[x] 验证 mask 使用 nearest 几何缩放或保持原始尺寸（代码与单元测试）~~
+- ~~[x] 验证 RGB、Depth、Depth16、Label、mask 尺寸一致（代码）~~
+- `[ ] 生成 q=0、q=0.3、q=0.5 的真实输入目录或可复现索引`
+- ~~[x] 用中位数深度填充生成负对照的规则，但暂不运行完整负对照~~
 
 建议脚本位置：
 
@@ -173,12 +186,12 @@ tools/mve/a2_evaluate_results.py
 
 ## 2.3 A2 运行脚本准备
 
-- `[ ] 将数据根目录、checkpoint 路径、输出目录改为命令行参数`
-- `[ ] 将 seed、q、mask 类型和样本 manifest 改为命令行参数`
-- `[ ] 输出每图预测结果和汇总 CSV`
-- `[ ] 记录代码 commit、checkpoint、数据 meta、输入尺寸和 depth policy`
-- `[ ] 确认 Windows 只负责脚本和数据准备，不强求完整模型 CPU 推理`
-- `[ ] 完成 Python 语法检查和小尺寸输入 smoke test`
+- ~~[x] 将数据根目录、checkpoint 路径、输出目录改为命令行参数~~
+- ~~[x] 将 seed、q、mask 类型和样本 manifest 改为命令行参数~~
+- ~~[x] 输出每图预测结果和汇总 CSV~~
+- ~~[x] 记录代码 commit、checkpoint、数据 meta、输入尺寸和 depth policy（脚本接口已完成）~~
+- ~~[x] 确认 Windows 只负责脚本和数据准备，不强求完整模型 CPU 推理~~
+- ~~[x] 完成 Python 语法检查和小尺寸输入 smoke test~~
 
 建议脚本位置：
 
@@ -375,7 +388,7 @@ DFormer/
 │       └── a2_evaluate_results.py        # 结果汇总
 ├── local_configs/
 │   └── MUSeg/
-│       └── DFormerv2_S_MVE.py            # 尚未创建
+│       └── DFormerv2_S_MVE.py            # 已创建，正式训练配置尚未创建
 └── experiments/
     └── museg_mve/
         └── manifests/
@@ -390,10 +403,10 @@ DFormer/
 
 # 十一、当前下一步：只执行这 5 件事
 
-1. `[>] 在 Windows 本地实现并运行 A1/B1 测试`
-2. `[ ] 记录 A1/B1 的 loss、gradient 和 finite 结果`
-3. `[ ] 提交 A1/B1 代码与测试，记录 commit SHA`
-4. `[ ] 在 Windows 本地完成 A2 的 16 张样本 manifest 和 block mask 生成`
+1. ~~[x] 在 Windows 本地实现并运行 A1/B1 测试~~
+2. ~~[x] 记录 A1/B1 的 loss、gradient 和 finite 结果~~
+3. `[>] 检查 Git diff，提交 A1/B1 与 A2 脚本，记录 commit SHA`
+4. `[ ] 在云端完整 MUSeg_DFormer 数据上生成 A2 的 16 张样本 manifest 和 block mask`
 5. `[ ] 准备云端 4090 的固定 commit、数据、checkpoint 和环境检查清单`
 
 **不要在 A1/B1 和 A2 筛查版完成前做以下事情：**
