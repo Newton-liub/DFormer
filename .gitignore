@@ -11,6 +11,8 @@ doc/paper/
 
 # dataset
 MUseg/
+!local_configs/MUSeg/
+!local_configs/MUSeg/DFormerv2_S_MVE.py
 
 # C extensions
 *.so

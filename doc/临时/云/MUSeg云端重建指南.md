@@ -2,7 +2,7 @@
 
 > 用途：将本指南直接交给云端 AI 执行。
 >
-> 约束：本云端机器只同时运行一个项目，**不创建、不激活 Conda/venv 虚拟环境**，直接使用当前 `base` 环境。所有命令均在 DFormer 仓库根目录执行。
+> 约束：云端统一使用已有 Conda `py310` 环境，不创建新的 Conda/venv 虚拟环境。所有依赖安装、数据转换和后续模型运行都必须通过 `/usr/local/miniconda3/envs/py310/bin/python` 执行；所有命令均在 DFormer 仓库根目录执行。
 
 ---
 
@@ -10,8 +10,8 @@
 
 请按本文件顺序执行，不要跳过数据检查。执行过程中：
 
-1. 直接使用当前 Conda `base` 环境，不创建虚拟环境。
-2. 依赖只安装到当前 `base` 环境。
+1. 使用已有 Conda `py310` 环境，不创建新的虚拟环境。
+2. 依赖只安装到 `py310` 环境，不安装到系统 Python 或 Conda `base`。
 3. 不删除原始 MUSeg 数据，除非用户明确确认原始数据已备份。
 4. 不把数据集、checkpoint、日志和转换结果加入 Git。
 5. 修改代码前先读取相关文件；完成修改后运行语法检查和必要验证。
@@ -21,11 +21,19 @@
 推荐先执行：
 
 ```bash
-conda activate base
+source /usr/local/miniconda3/bin/activate py310
 cd /path/to/DFormer
+export PYTHON=/usr/local/miniconda3/envs/py310/bin/python
 ```
 
-如果当前已经在 `base` 环境，不需要重复激活。确认环境：
+非交互任务必须直接使用绝对路径 `$PYTHON`，不要依赖 SSH 会话是否自动加载 Conda：
+
+```bash
+$PYTHON --version
+$PYTHON -c "import sys; print(sys.executable)"
+```
+
+确认环境：
 
 ```bash
 which python
@@ -39,6 +47,7 @@ Windows 云端使用 PowerShell 时，将 `which python` 替换为：
 Get-Command python
 python --version
 ```
+
 
 ---
 
@@ -75,12 +84,12 @@ Test-Path tools/prepare_museg.py
 
 ---
 
-## 三、准备 base 环境依赖
+## 三、准备 py310 环境依赖
 
-项目当前没有单独的 `requirements.txt`、`environment.yml` 或 `pyproject.toml`。因此不要盲目安装一整套新环境，先检查 base 环境：
+项目当前没有单独的 `requirements.txt`、`environment.yml` 或 `pyproject.toml`。因此不要盲目安装一整套新环境，先检查已有 `py310` 环境：
 
 ```bash
-python - <<'PY'
+$PYTHON - <<'PY'
 import importlib.util
 
 packages = [
@@ -94,16 +103,10 @@ for package in packages:
 PY
 ```
 
-缺少转换脚本所需的包时，只在当前 `base` 环境安装：
+缺少转换脚本所需的包时，只安装到 `py310` 环境：
 
 ```bash
-conda install -y numpy opencv
-```
-
-若 Conda 源不可用，再使用：
-
-```bash
-python -m pip install numpy opencv-python
+$PYTHON -m pip install numpy opencv-python-headless
 ```
 
 转换脚本只需要 `Python`、`numpy`、`opencv-python`。训练所需的 PyTorch、CUDA 和其他依赖必须根据云端已有 GPU/CUDA 环境检查后再安装，不要为了转换数据更换现有 PyTorch 版本。
@@ -111,7 +114,7 @@ python -m pip install numpy opencv-python
 检查训练环境：
 
 ```bash
-python - <<'PY'
+$PYTHON - <<'PY'
 import torch
 print("torch:", torch.__version__)
 print("cuda available:", torch.cuda.is_available())
@@ -167,7 +170,7 @@ Get-Item ..\dataset\MUSeg\Experiment\DatasetSplit.zip
 如果云端数据集使用了其他绝对路径，可以通过参数显式传入，但不要修改脚本中的默认规则：
 
 ```bash
-python tools/prepare_museg.py \
+$PYTHON tools/prepare_museg.py \
   --source-root /data/dataset/MUSeg \
   --output-root /data/dataset/MUSeg_DFormer \
   --split-zip /data/dataset/MUSeg/Experiment/DatasetSplit.zip
@@ -188,7 +191,7 @@ ls -ld ../dataset/MUSeg ../dataset/MUSeg_DFormer
 推荐直接让转换脚本原子重建：
 
 ```bash
-python tools/prepare_museg.py --overwrite
+$PYTHON tools/prepare_museg.py --overwrite
 ```
 
 脚本会：
@@ -202,7 +205,7 @@ python tools/prepare_museg.py --overwrite
 
 ```bash
 rm -rf ../dataset/MUSeg_DFormer
-python tools/prepare_museg.py
+$PYTHON tools/prepare_museg.py
 ```
 
 执行 `rm -rf` 前必须再次确认路径确实是 `MUSeg_DFormer`，不能使用变量不明确的删除命令。
@@ -214,7 +217,7 @@ python tools/prepare_museg.py
 在 DFormer 仓库根目录执行：
 
 ```bash
-python tools/prepare_museg.py --overwrite
+$PYTHON tools/prepare_museg.py --overwrite
 ```
 
 默认参数：
@@ -273,7 +276,7 @@ cat ../dataset/MUSeg_DFormer/dataset_meta.json
 使用脚本内置验证再次检查已生成结果：
 
 ```bash
-python - <<'PY'
+$PYTHON - <<'PY'
 from pathlib import Path
 from tools.prepare_museg import collect_samples, load_split, verify_output
 
@@ -354,13 +357,20 @@ git status --short
 可以将以下内容直接发给云端 AI：
 
 ```text
-请在当前 DFormer 仓库根目录执行 MUSeg 数据重建，不创建任何虚拟环境，不运行 conda create、python -m venv 或 virtualenv，直接使用当前 Conda base 环境。
+请在当前 DFormer 仓库根目录执行 MUSeg 数据重建，使用已有 Conda `py310` 环境，不创建任何虚拟环境，不运行 conda create、python -m venv 或 virtualenv。
+
+先设置：
+
+```bash
+source /usr/local/miniconda3/bin/activate py310
+export PYTHON=/usr/local/miniconda3/envs/py310/bin/python
+```
 
 要求：
-1. 先检查当前 Python、PyTorch、numpy、cv2 和 CUDA；缺少转换脚本依赖时只安装到 base。
+1. 先检查 `$PYTHON`、PyTorch、numpy、cv2 和 CUDA；缺少转换脚本依赖时只安装到 `py310`。
 2. 原始数据位于仓库上一级 dataset/MUSeg，禁止删除或修改原始目录。
 3. 只使用仓库中的 tools/prepare_museg.py。
-4. 如果存在旧的 dataset/MUSeg_DFormer，使用 python tools/prepare_museg.py --overwrite 重建。
+4. 如果存在旧的 dataset/MUSeg_DFormer，使用 `$PYTHON tools/prepare_museg.py --overwrite` 重建。
 5. 不改变 depth-max-raw=13932，不改变官方 Experiment/DatasetSplit.zip，不改变目录命名。
 6. 转换后确认 RGB/Depth/Depth16/Label 各 3171 个，train/test 为 1595/1576。
 7. 确认 dataset_meta.json 记录统一映射 round(depth16 * 255 / 13932)。
@@ -368,7 +378,7 @@ git status --short
 9. 训练配置必须指向 dataset/MUSeg_DFormer，不得直接读取原始 MUSeg。
 10. 最后运行 git status，确保没有数据集、checkpoint 或大型产物进入 Git。
 
-完成后报告：执行命令、Python 环境、转换统计、验证结果和任何异常。
+完成后报告：执行命令、`py310` Python 环境、转换统计、验证结果和任何异常。
 ```
 
 ---

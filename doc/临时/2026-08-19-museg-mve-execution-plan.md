@@ -12,6 +12,7 @@
 - `~~[x] 已完成~~`：已有代码、数据、文档或验证证据支持，不重复执行。
 - `[ ] 未执行`：尚未完成，后续需要执行。
 - `[>] 当前阶段`：当前应优先处理的事项。
+- `[!] 纠正记录`：曾执行但不作为最终验收依据的失败或错误路径。
 - `阻断`：前置条件未满足时，不进入下一阶段。
 - 所有实验必须记录：代码 commit、配置、checkpoint、seed、样本 manifest、数据版本和输出位置。
 - 数据集、checkpoint、预测结果和训练日志不上传 GitHub；GitHub 只保存代码、配置、manifest 和结果摘要。
@@ -51,8 +52,17 @@
 - ~~[x] 新增 `tools/mve/a2_evaluate_results.py`，用于独立重算 CSV 和汇总指标~~
 - ~~[x] 新增 `local_configs/MUSeg/DFormerv2_S_MVE.py`，固定 15 类、标签映射和 DFormerv2-S MVE 参数~~
 - ~~[x] Python 编译检查通过；本地 7 个单元测试通过~~
-- `[ ] 使用完整 MUSeg_DFormer 数据生成真实 16 张 manifest；当前本地转换目录尚不完整，需在云端重建后执行`
+- ~~[x] 使用完整 MUSeg_DFormer 数据生成真实 16 张 A2 manifest；本地输出位于 `D:\0Project\mve_outputs\museg_a2_screening`，云端数据已按同一转换脚本重建~~
 - `[ ] 使用真实 checkpoint 执行 q=0、q=0.3、q=0.5 的 48 次前向`
+
+### 云端环境纠正记录
+
+- ~~[x] 确认云端运行环境为已有 Conda `py310`，绝对解释器为 `/usr/local/miniconda3/envs/py310/bin/python`，版本 `3.10.16`~~
+- ~~[x] `py310` 内安装 `opencv-python-headless`、`numpy`，任务 ID：`job-20260819T114211Z-66c39538`~~
+- ~~[x] 使用 `py310` 重建云端 `MUSeg_DFormer`，任务 ID：`job-20260819T114314Z-29ed975e`，状态 `Succeeded`~~
+- ~~[x] 云端验收：`sample_count=3171`、train/test=`1595/1576`、`max_raw=13932`、`observed_source_max_raw=13932`，四个模态目录均已生成~~
+- ~~[x] 修正 `doc/临时/云/MUSeg云端重建指南.md`，删除“base 环境”表述，统一改为 `py310`~~
+- `[!] 早期系统 Python 任务 `job-20260819T111314Z-a4549bc2` 因缺少 `cv2` 失败；系统级依赖安装任务曾被 `tzdata` 交互输入阻塞并取消。两项仅保留为排查证据，不作为最终环境依据。`
 
 ---
 
@@ -217,22 +227,23 @@ tools/mve/a2_evaluate_results.py
 
 ## 3.2 4090 实例环境
 
+- ~~[x] 云端已有 Conda `py310` 环境，使用 `/usr/local/miniconda3/envs/py310/bin/python`，不创建新虚拟环境~~
 - `[ ] 创建或选择 CUDA 与 PyTorch 兼容的 Linux 镜像`
-- `[ ] 确认 `nvidia-smi` 正常`
+- ~~[x] 确认 `nvidia-smi` 正常~~
 - `[ ] 确认 `torch.cuda.is_available()` 为 True`
 - `[ ] 确认 PyTorch、CUDA、mmcv/mmengine、timm 版本`
-- `[ ] 从 GitHub clone 或 checkout 固定 commit`
+- ~~[x] 从 GitHub checkout 固定 commit `d80ca4f3534c0cdf2dba77b77c9499dc7ccc6450`；MVE 配置当前仍为云端未跟踪手工副本~~
 - `[ ] 不直接迁移 Windows venv/conda 环境`
-- `[ ] 在云端重新安装与镜像兼容的依赖`
+- ~~[x] 在 `py310` 中安装数据转换依赖并完成脚本加载检查~~
 - `[ ] 记录 Python、PyTorch、CUDA、GPU 和依赖版本`
 
 ## 3.3 云端数据与 checkpoint
 
-- ~~[x] 已有云端 MUSeg 数据重建操作指南~~
-- `[ ] 挂载或下载原始 MUSeg 数据`
-- `[ ] 保留原始数据，不删除备份`
-- `[ ] 使用同一个 tools/prepare_museg.py 重建或确认 MUSeg_DFormer`
-- `[ ] 校验 dataset_meta.json`
+- ~~[x] 已有云端 MUSeg 数据重建操作指南，并已修正为 `py310` 环境~~
+- ~~[x] 挂载或确认原始 MUSeg 数据位于 `/root/rivermind-data/dataset/MUSeg`~~
+- ~~[x] 保留原始数据，不删除备份~~
+- ~~[x] 使用同一个 `tools/prepare_museg.py` 在 `py310` 中重建 `MUSeg_DFormer`~~
+- ~~[x] 校验 `dataset_meta.json`、模态目录和 train/test split~~
 - `[ ] 准备 DFormerv2-S checkpoint`
 - `[ ] 校验 checkpoint 文件大小和 SHA-256`
 - `[ ] 确认输出目录位于持久化磁盘`
@@ -405,9 +416,9 @@ DFormer/
 
 1. ~~[x] 在 Windows 本地实现并运行 A1/B1 测试~~
 2. ~~[x] 记录 A1/B1 的 loss、gradient 和 finite 结果~~
-3. `[>] 检查 Git diff，提交 A1/B1 与 A2 脚本，记录 commit SHA`
-4. `[ ] 在云端完整 MUSeg_DFormer 数据上生成 A2 的 16 张样本 manifest 和 block mask`
-5. `[ ] 准备云端 4090 的固定 commit、数据、checkpoint 和环境检查清单`
+3. `[>] 处理 Git 工作树：提交 A1/B1、A2 脚本、MVE 配置和文档改动后推送，记录最终 commit SHA`
+4. ~~[x] 在完整 MUSeg_DFormer 数据上生成 A2 的 16 张样本 manifest 和 block mask；本地输出位于 `D:\0Project\mve_outputs\museg_a2_screening`~~
+5. `[>] 云端 GPU 切换前仅保留固定 commit、py310 数据环境和转换数据；checkpoint 路径确认后再执行 A2 baseline 与 48 次前向`
 
 **不要在 A1/B1 和 A2 筛查版完成前做以下事情：**
 
