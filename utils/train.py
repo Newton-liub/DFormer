@@ -361,11 +361,12 @@ with Engine(custom_parser=parser) as engine:
                 )
 
             else:
-                sum_loss += loss
+                loss_value = loss.item()
+                sum_loss += loss_value
                 print_str = (
                     f"Epoch {epoch}/{config.nepochs} "
                     + f"Iter {idx + 1}/{config.niters_per_epoch}: "
-                    + f"lr={lr:.4e} loss={loss:.4f} total_loss={(sum_loss / (idx + 1)):.4f}"
+                    + f"lr={lr:.4e} loss={loss_value:.4f} total_loss={(sum_loss / (idx + 1)):.4f}"
                 )
 
             if ((idx + 1) % int((config.niters_per_epoch) * 0.1) == 0 or idx == 0) and (
@@ -518,6 +519,17 @@ with Engine(custom_parser=parser) as engine:
                 print("miou", miou, "best", best_miou)
             logger.info(f"Epoch {epoch} validation result: mIoU {miou}, best mIoU {best_miou}")
             eval_timer.stop()
+
+        checkpoint_step = int(getattr(config, "checkpoint_step", 0))
+        save_epoch_checkpoints = getattr(config, "save_epoch_checkpoints", False)
+        if save_epoch_checkpoints and checkpoint_step > 0 and (
+            epoch % checkpoint_step == 0 or epoch == config.nepochs
+        ) and ((engine.distributed and engine.local_rank == 0) or not engine.distributed):
+            os.makedirs(config.checkpoint_dir, exist_ok=True)
+            epoch_checkpoint = os.path.join(config.checkpoint_dir, f"epoch-{epoch}.pth")
+            engine.save_checkpoint(epoch_checkpoint)
+            if getattr(config, "save_latest_checkpoint", False):
+                engine.save_checkpoint(os.path.join(config.checkpoint_dir, "latest.pth"))
 
         eval_count = 0
         for i in range(engine.state.epoch + 1, config.nepochs + 1):

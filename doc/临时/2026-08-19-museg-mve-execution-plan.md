@@ -51,7 +51,10 @@
 - ~~[x] 新增 `tools/mve/a2_run_sensitivity.py`，用于云端 CUDA checkpoint 推理~~
 - ~~[x] 新增 `tools/mve/a2_evaluate_results.py`，用于独立重算 CSV 和汇总指标~~
 - ~~[x] 新增 `local_configs/MUSeg/DFormerv2_S_MVE.py`，固定 15 类、标签映射和 DFormerv2-S MVE 参数~~
-- ~~[x] Python 编译检查通过；本地 7 个单元测试通过~~
+- [>] 新增 `local_configs/MUSeg/DFormerv2_S_20Epoch.py`，固定云端单卡 20 epoch、预训练权重和持久化输出；待提交并完成云端 dry-run
+- [>] `utils/train.py` 已补充可配置的周期性与最终完整 checkpoint 保存；待提交和云端验证
+- [>] 新增 `tools/mve/run_museg_20epoch_screen.sh`，训练由 detached `screen` 会话承载，断开 SSH 不影响执行；日志和退出码写入持久化目录
+- ~~[x] Python 编译检查通过；本地 8 个单元测试通过~~
 - ~~[x] 使用完整 MUSeg_DFormer 数据生成真实 16 张 A2 manifest；本地输出位于 `D:\0Project\mve_outputs\museg_a2_screening`，云端数据已按同一转换脚本重建~~
 - `[ ] 使用真实 checkpoint 执行 q=0、q=0.3、q=0.5 的 48 次前向`
 
@@ -232,7 +235,7 @@ tools/mve/a2_evaluate_results.py
 - ~~[x] 确认 `nvidia-smi` 正常~~
 - `[ ] 确认 `torch.cuda.is_available()` 为 True`
 - `[ ] 确认 PyTorch、CUDA、mmcv/mmengine、timm 版本`
-- ~~[x] 从 GitHub checkout 固定 commit `d80ca4f3534c0cdf2dba77b77c9499dc7ccc6450`；MVE 配置当前仍为云端未跟踪手工副本~~
+- ~~[x] 云端已 fast-forward 到固定 commit `11c20fcf0e670aee764c17b84cdc96afbd9fe327`，MVE 配置已由 Git 跟踪且工作树干净~~
 - `[ ] 不直接迁移 Windows venv/conda 环境`
 - ~~[x] 在 `py310` 中安装数据转换依赖并完成脚本加载检查~~
 - `[ ] 记录 Python、PyTorch、CUDA、GPU 和依赖版本`
@@ -244,9 +247,10 @@ tools/mve/a2_evaluate_results.py
 - ~~[x] 保留原始数据，不删除备份~~
 - ~~[x] 使用同一个 `tools/prepare_museg.py` 在 `py310` 中重建 `MUSeg_DFormer`~~
 - ~~[x] 校验 `dataset_meta.json`、模态目录和 train/test split~~
-- `[ ] 准备 DFormerv2-S checkpoint`
-- `[ ] 校验 checkpoint 文件大小和 SHA-256`
-- `[ ] 确认输出目录位于持久化磁盘`
+- [>] 准备官方 DFormerv2-S ImageNet 预训练 backbone；固定 URL、大小和 SHA-256 已确认，待云端下载校验
+- [ ] 完成 MUSeg 20 epoch 训练并严格重载 `epoch-20.pth`
+- [ ] 使用 MUSeg 训练 checkpoint 完成 A2；禁止将 ImageNet 或 NYU/SUNRGBD 权重作为 baseline
+- [>] 确认训练和 A2 输出目录均位于 `/root/rivermind-data/mve_outputs`
 
 ---
 
@@ -399,7 +403,8 @@ DFormer/
 │       └── a2_evaluate_results.py        # 结果汇总
 ├── local_configs/
 │   └── MUSeg/
-│       └── DFormerv2_S_MVE.py            # 已创建，正式训练配置尚未创建
+│       ├── DFormerv2_S_MVE.py            # A2 模型定义，不加载 ImageNet 权重
+│       └── DFormerv2_S_20Epoch.py        # 云端单卡 20 epoch 训练配置
 └── experiments/
     └── museg_mve/
         └── manifests/
@@ -416,13 +421,12 @@ DFormer/
 
 1. ~~[x] 在 Windows 本地实现并运行 A1/B1 测试~~
 2. ~~[x] 记录 A1/B1 的 loss、gradient 和 finite 结果~~
-3. `[>] 处理 Git 工作树：提交 A1/B1、A2 脚本、MVE 配置和文档改动后推送，记录最终 commit SHA`
+3. `[>] 提交并推送 20 epoch 配置、checkpoint 保存逻辑和执行文档，记录最终 commit SHA`
 4. ~~[x] 在完整 MUSeg_DFormer 数据上生成 A2 的 16 张样本 manifest 和 block mask；本地输出位于 `D:\0Project\mve_outputs\museg_a2_screening`~~
-5. `[>] 云端 GPU 切换前仅保留固定 commit、py310 数据环境和转换数据；checkpoint 路径确认后再执行 A2 baseline 与 48 次前向`
+5. `[>] 云端同步精确 commit 后下载校验 ImageNet backbone，完成单 batch dry-run，再启动 MUSeg 20 epoch 训练；checkpoint 验收后按 q=0 → q=0.3/q=0.5 执行 48 个样本-条件前向`
 
-**不要在 A1/B1 和 A2 筛查版完成前做以下事情：**
+**本轮只执行 MUSeg 20 epoch MVE 训练与 16 图 A2 筛查，不扩展以下工作：**
 
-- 不进行完整 MUSeg 训练；
 - 不运行 64 张图的完整 sweep；
 - 不实现复杂 B2 validity mask；
 - 不进行 5 epoch B0/B2 微调；
