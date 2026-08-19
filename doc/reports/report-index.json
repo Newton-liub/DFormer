@@ -1,8 +1,33 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.3",
-  "latestFormalReport": null,
-  "reports": [],
+  "nextCanvasVersion": "0.0.5",
+  "latestFormalReport": {
+    "path": "doc/reports/2026-08-19-museg-minimum-validation-paths.md",
+    "periodStart": "2026-08-19",
+    "periodEnd": "2026-08-19",
+    "baseCommit": "ad6852e520eb4ea229251a81494da085dcf84592",
+    "status": "mve-design"
+  },
+  "reports": [
+    {
+      "path": "doc/reports/2026-08-19-museg-data-reproduction-update.md",
+      "topic": "museg-data-reproduction-update",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-19",
+      "baseCommit": "ad6852e520eb4ea229251a81494da085dcf84592",
+      "verification": "local-3171-sample-full-output-verification",
+      "status": "formal"
+    },
+    {
+      "path": "doc/reports/2026-08-19-museg-minimum-validation-paths.md",
+      "topic": "museg-minimum-validation-paths",
+      "periodStart": "2026-08-19",
+      "periodEnd": "2026-08-19",
+      "baseCommit": "ad6852e520eb4ea229251a81494da085dcf84592",
+      "verification": "evidence-and-decision-threshold-review",
+      "status": "formal-design"
+    }
+  ],
   "canvases": [
     {
       "version": "0.0.1",
@@ -21,6 +46,24 @@
       "relatedReport": "doc/museg-dformer-data-processing-review.md",
       "createdAt": "2026-08-17",
       "status": "reference"
+    },
+    {
+      "version": "0.0.3",
+      "name": "museg-data-reproduction-update",
+      "source": "doc/canvases/0.0.3-museg-data-reproduction-update.canvas.tsx",
+      "publishedFilename": "0.0.3-museg-data-reproduction-update.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-19-museg-data-reproduction-update.md",
+      "createdAt": "2026-08-19",
+      "status": "reference"
+    },
+    {
+      "version": "0.0.4",
+      "name": "museg-minimum-validation-paths",
+      "source": "doc/canvases/0.0.4-museg-minimum-validation-paths.canvas.tsx",
+      "publishedFilename": "0.0.4-museg-minimum-validation-paths.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-19-museg-minimum-validation-paths.md",
+      "createdAt": "2026-08-19",
+      "status": "current"
     }
   ]
 }

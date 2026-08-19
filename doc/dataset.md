@@ -42,7 +42,7 @@ MUSeg 是面向地下矿山场景的 RGB-D 语义分割数据集。本项目需�
 - RGB 图像为 JPG；
 - Depth 图像为 PNG，原始像素保存实际距离信息；
 - 语义标注包含类别 ID PNG、彩色 PNG 和 Labelme JSON；
-- 共 15 个矿下目标类别，实际训练前须以数据集提供的类别 ID 映射为准。
+- 共 15 个矿下前景类别；原始标签 `0` 为背景，`1–15` 按官方 `Label_ID.pdf` 顺序对应 15 个前景类别。
 
 同一采集组可能包含多个相似视角。生成训练集和测试集时应按采集组划分，避免同组样本跨集合造成数据泄漏。
 
@@ -83,7 +83,7 @@ RGB/sample_002.jpg
 - 不同矿井出现同名文件时，重命名后仍需保持三种数据一致；
 - `train.txt` 和 `test.txt` 中的样本数量与配置一致。
 
-## 接入前必须确认
+## 接入规则
 
 ### Depth
 
@@ -97,12 +97,31 @@ D_8=\operatorname{round}\left(D_{16}\times\frac{255}{13932}\right)
 
 ### Label
 
-当前 DFormer 配置中的 `gt_transform=True` 会对标签 ID 执行减 1。接入前必须检查 MUSeg 标签中的全部唯一值，并根据官方类别映射确定：
+MUSeg 原始类别 ID 的语义已经确认：
 
-- 类别数和类别名称；
-- 背景是否参与训练；
-- 是否存在忽略标签；
-- 是否需要启用 `gt_transform`；
-- 损失函数使用的 `ignore_index`。
+- `0`：background；
+- `1`：person；
+- `2`：cable；
+- `3`：tube；
+- `4`：indicator；
+- `5`：metal fixture；
+- `6`：container；
+- `7`：tools & materials；
+- `8`：door；
+- `9`：electrical equipment；
+- `10`：electronic equipment；
+- `11`：mining equipment；
+- `12`：anchoring equipment；
+- `13`：support equipment；
+- `14`：rescue equipment；
+- `15`：rail area。
 
-标签缩放只能使用最近邻插值，不能对类别 ID 做归一化或双线性插值。
+当前基线不训练背景类，因此使用：
+
+```python
+C.num_classes = 15
+C.gt_transform = True
+C.background = 255
+```
+
+`gt_transform=True` 对 uint8 标签执行减 1：原始背景 `0` 回绕为 `255`（ignore），原始前景 `1–15` 映射为训练 ID `0–14`。因此必须区分“原始 `0` 是 background”和“进入损失函数后该像素是 ignore=255”。标签缩放只能使用最近邻插值，不能对类别 ID 做归一化或双线性插值。

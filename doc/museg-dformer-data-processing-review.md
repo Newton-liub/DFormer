@@ -2,6 +2,7 @@
 
 > 用途：组会汇报、数据处理评审、新项目复现  
 > 审计日期：2026-08-17  
+> 状态修订：2026-08-19（标签语义、转换脚本与本地重建状态）
 > 审计对象：DFormer 仓库、MUSeg 3171 组数据、DFormerv2 原论文、MUSeg 数据集论文
 
 ## 1. 执行摘要
@@ -11,7 +12,7 @@
 当前处理方向可分成两部分评价：
 
 1. **把 MUSeg 原始 16-bit Depth 保存在 `Depth16/`，再通过固定的全数据集线性映射生成 8-bit `Depth/`，作为当前 DFormer 代码的输入：方向正确。**
-2. **当前工程尚未达到“可复现、可直接训练”的状态。** 数据已经转换，但仓库内没有转换脚本、审计脚本、MUSeg 专属配置，也没有记录映射参数来源；无效深度和全 ignore 标签还存在明确风险。
+2. **数据转换复现闭环已经完成，但训练闭环尚未完成。** 仓库已新增 `tools/prepare_museg.py`，本地已从官方六矿区原始目录重建 `MUSeg_DFormer`，并对 3171 组四模态、官方划分、标签 ID 和全部深度映射执行验证。当前仍缺 MUSeg 专属训练配置；无效深度和全背景样本还存在明确风险。
 
 当前 8-bit 深度不是简单截低 8 位，也不是逐图归一化。对全部 3,197,712,504 个像素核验后，现有数据精确满足：
 
@@ -30,8 +31,9 @@ D_8=\operatorname{round}\left(D_{16}\times\frac{255}{13932}\right)
 
 ### 1.3 当前状态判定
 
-- 已验证正确：数据数量、文件配对、原始深度保留、固定线性 16→8 映射、官方 train/test 样本无交集、采集组无交集。
-- 必须补齐：转换脚本、审计脚本、MUSeg 配置、类别 ID 映射证据、验证集策略、无效深度策略、全 ignore 样本处理、验证尺寸策略、RGB/BGR 明示。
+- 已验证正确：数据数量、文件配对、原始深度保留、固定线性 16→8 映射、官方 train/test 样本与采集组无交集、标签 `0=background`、`1–15=15` 个前景类别，以及训练映射 `0→255`、`1–15→0–14`。
+- 已完成工程化：确定性转换脚本、原子输出替换、`dataset_meta.json`、官方划分 SHA-256 记录、转换前源数据检查和转换后全量验证。
+- 仍需补齐：MUSeg 训练配置、验证集策略、无效深度策略、全背景样本处理、验证尺寸策略、RGB/BGR 明示。
 - 可选研究改进：有效深度 mask、直接 16-bit/float 深度输入、几何先验尺度校准、HHA 分支消融。
 
 ---
@@ -143,7 +145,7 @@ DFormerv2 论文第 5 页第 4.1 节明确：
 14. rescue equipment
 15. rail area
 
-但论文没有明确给出“数值 ID ↔ 类别名称”的顺序，也没有明确说明 background 与 ignore index。正式训练前必须以官方发布的映射文件或标注代码核验，不能仅按论文列举顺序猜测。
+本地官方 `Label_ID.pdf` 已确认原始标签语义和顺序：`0` 为 background，`1–15` 依次对应上述 15 个前景类别。当前基线不训练 background，故进入 DFormer 后使用 `0→255`（ignore）、`1–15→0–14`（15 个训练类别）。
 
 官方发布 train/test：
 
@@ -160,17 +162,17 @@ DFormerv2 论文第 5 页第 4.1 节明确：
 
 ## 3.1 当前数据目录
 
-当前数据位于仓库上一级：
+当前转换结果位于仓库上一级：
 
 ```text
-../dataset/MUSeg/
+../dataset/MUSeg_DFormer/
 ├── RGB/       # 3171 个 8-bit RGB JPEG
 ├── Depth/     # 3171 个 8-bit 单通道 PNG，当前 DFormer 输入
 ├── Depth16/   # 3171 个原始 16-bit 单通道 PNG
-├── HHA/       # 3171 个三通道 JPG
 ├── Label/     # 3171 个 8-bit 类别 ID PNG
 ├── train.txt  # 1595 行
-└── test.txt   # 1576 行
+├── test.txt   # 1576 行
+└── dataset_meta.json
 ```
 
 RGB、Depth、Depth16、Label 的主文件名集合完全一致，均为 1082×932（宽×高）。
@@ -303,7 +305,7 @@ Label 全数据唯一值严格为 0–15。像素占比：
 | 6 | 1.2068% | 14 | 5.4265% |
 | 7 | 6.9704% | 15 | 12.1885% |
 
-ID=0 占约 50.95%，与 MUSeg 论文“约一半像素属于已标注类别”的描述相符。当前 DFormer 新数据指南约定 `0=background/ignore，1..N=类别`，因此暂定：
+ID=0 占约 50.95%，与 MUSeg 论文“约一半像素属于已标注类别”的描述一致。官方 `Label_ID.pdf` 已确认原始 `0=background`、`1–15` 为按既定顺序排列的 15 个前景类别。当前基线不训练背景，因此配置确定为：
 
 ```python
 C.num_classes = 15
@@ -316,17 +318,17 @@ C.background = 255
 - 原始 0 → 255 ignore；
 - 原始 1..15 → 训练 ID 0..14。
 
-该方案在数值上自洽，但**类别名称顺序仍必须用 MUSeg 官方 ID 映射核验**。
+该映射已经确认：原始数据中的 `0` 语义是 background；只有经过 `gt_transform` 后，它才成为训练管线中的 ignore=255。
 
-### 全零标签
+### 全背景标签
 
-共有 11 张 Label 全部为 0：train 5 张、test 6 张。启用 `gt_transform` 后整张图全部变为 255 ignore。
+共有 11 张 Label 全部为原始 ID 0，即全背景图：train 5 张、test 6 张。启用 `gt_transform` 后整张图才会全部变为 255 ignore。
 
 训练端 `models/builder.py` 对有效像素做布尔筛选再 `.mean()`。若一个本地 batch 没有任何有效像素，空 tensor 的 `.mean()` 会得到 NaN。单个全 ignore 样本与有效样本在同一个 batch 时不会 NaN，但该样本没有监督梯度；batch size=1 或分布式某个 rank 恰好得到全 ignore batch 时有风险。
 
 必须选择并记录一种策略：
 
-1. 推荐基线：从训练和评估 split 排除 11 张全 ignore 图，并生成排除清单；
+1. 推荐基线：从训练和评估 split 排除 11 张全背景图，并生成排除清单；
 2. 或修改 `models/builder.py`：当 valid mask 为空时返回与 logits 图相连的零损失；
 3. 评估时同样跳过没有有效像素的样本。
 
@@ -356,86 +358,50 @@ C.background = 255
 
 ## 5.2 仓库代码侧现状
 
-当前仓库没有可确认的 MUSeg 功能代码改动：
+截至 2026-08-19，数据转换工程化已经落地：
 
-- 没有 `MUSeg` 专属 config；
-- 没有 16→8 转换脚本；
-- 没有数据审计脚本；
-- `train.sh`、`eval.sh`、`infer.sh` 仍指向 NYUDepthv2；
-- `dataset.md` 只有接入说明，不执行转换；
-- 当前 Git 工作树审计时为干净状态。
+- 已新增 `tools/prepare_museg.py`；
+- 脚本从官方六矿区原始目录收集 RGB、16-bit Depth 和 ID Label；
+- 固定使用 `depth_max_raw=13932` 生成 8-bit `Depth/`；
+- 保留官方 1595/1576 划分并记录 `DatasetSplit.zip` SHA-256；
+- 输出 `dataset_meta.json`；
+- 在临时目录中完成四模态集合、位深、尺寸、标签 ID、split 和逐像素映射验证后，再原子替换目标目录；
+- 本地 `../dataset/MUSeg_DFormer` 已完成 3171 组全量重建并通过验证。
 
-因此，现有 `Depth/` 虽然数学上可复现，但转换过程没有被版本控制。新项目若只拿到仓库，无法自动重建同样的数据。
+尚未完成：
+
+- 没有 `MUSeg` 专属训练 config；
+- `train.sh` 仍指向 NYUDepthv2；
+- 全背景 batch 的安全 loss、无效深度策略、RGB/BGR 和验证尺寸尚未落地。
+
+因此当前结论是：**数据转换已经可复现，训练链路仍未闭环。**
 
 ---
 
-## 6. 建议工程改动与文件职责
+## 6. 工程改动与后续文件职责
 
-以下是建议新增/修改的文件。它们是复现所需的目标设计，不代表当前仓库已经实现。
+以下区分已经实现的转换模块和仍待实施的训练模块。
 
-## 6.1 `tools/prepare_museg.py`（建议新增）
+## 6.1 `tools/prepare_museg.py`（已实现并验证）
 
-职责必须单一：把原始发布数据转换成 DFormer 数据目录。
+职责单一：把原始官方发布数据转换成 DFormer 数据目录。当前实现包括：
 
-应实现：
-
-- 复制/链接 RGB、Depth16、Label；
-- 统一文件名，检测重名；
+- 复制 RGB、Depth16、Label；
+- 统一文件名并检测跨矿区重名；
 - 使用固定 `depth_max_raw=13932` 生成 8-bit Depth；
-- 明确 `invalid_value=0` 和 invalid policy；
+- 明确 `invalid_value=0` 和 `preserve_zero` 策略；
 - 保留官方 split，不按图片随机划分；
-- 输出 `dataset_meta.json`，记录公式、参数、源数据版本、时间和文件数量；
-- 原子写入，避免中断后得到半成品。
+- 输出 `dataset_meta.json`，记录公式、参数、划分来源哈希和文件数量；
+- 原子写入，避免中断后得到半成品；
+- 转换后全量验证四模态、位深、尺寸、标签 ID、split 和深度量化公式。
 
-核心转换：
+核心转换由脚本中的 `quantize_depth()` 实现；不能用 `depth16.astype(np.uint8)`，也不能对每张图单独 min-max。
 
-```python
-from dataclasses import dataclass
-import numpy as np
+如果后续采用无效值填补，必须在量化前执行，并单独记录 valid mask 或处理参数。
 
+## 6.2 独立审计入口（可选增强）
 
-@dataclass(frozen=True)
-class DepthQuantization:
-    max_raw: int = 13932
-    invalid_raw: int = 0
-
-
-def quantize_depth(depth16: np.ndarray, spec: DepthQuantization) -> np.ndarray:
-    if depth16.dtype != np.uint16:
-        raise TypeError(f"expected uint16, got {depth16.dtype}")
-    if int(depth16.max()) > spec.max_raw:
-        raise ValueError("raw depth exceeds the calibrated global maximum")
-
-    scaled = np.rint(
-        depth16.astype(np.float64) * 255.0 / float(spec.max_raw)
-    )
-    return scaled.astype(np.uint8)
-```
-
-注意：不能用 `depth16.astype(np.uint8)`，也不能对每张图单独 min-max。
-
-如果采用无效值填补，必须在 `quantize_depth()` 前执行，并单独保存 valid mask 或处理参数。
-
-## 6.2 `tools/audit_museg.py`（建议新增）
-
-职责：只读验证数据，不负责转换。
-
-必须检查：
-
-- 四模态文件集合完全一致；
-- 数量为 3171；
-- 尺寸均为 1082×932；
-- RGB 8-bit 3 通道；
-- Depth 8-bit 单通道；
-- Depth16 16-bit 单通道；
-- Label 8-bit 单通道；
-- 全像素满足固定量化公式；
-- 标签唯一值是 0–15；
-- train/test 无样本交集、无采集组交集；
-- 索引无缺失、无重复；
-- 输出零深度率、饱和率、类别分布、全 ignore 样本清单。
-
-该脚本应以非零退出码报告失败，便于 CI 或数据准备流水线使用。
+当前 `tools/prepare_museg.py` 已内置可复用的 `verify_output()`，且只有全量验证通过才替换输出目录。若后续需要 CI 或只读复核命令，可再将该函数封装为独立 `tools/audit_museg.py`，但这已不是数据重建的阻塞项。
 
 ## 6.3 `local_configs/_base_/datasets/MUSeg.py`（建议新增）
 
@@ -445,7 +411,7 @@ def quantize_depth(depth16: np.ndarray, spec: DepthQuantization) -> np.ndarray:
 from .. import *
 
 C.dataset_name = "MUSeg"
-C.dataset_path = osp.join(C.root_dir, C.dataset_name)
+C.dataset_path = osp.join(C.root_dir, "MUSeg_DFormer")
 C.rgb_root_folder = osp.join(C.dataset_path, "RGB")
 C.rgb_format = ".jpg"
 C.x_root_folder = osp.join(C.dataset_path, "Depth")
@@ -456,6 +422,12 @@ C.gt_format = ".png"
 C.gt_transform = True
 C.background = 255
 C.num_classes = 15
+C.class_names = [
+    "person", "cable", "tube", "indicator", "metal fixture",
+    "container", "tools & materials", "door", "electrical equipment",
+    "electronic equipment", "mining equipment", "anchoring equipment",
+    "support equipment", "rescue equipment", "rail area",
+]
 C.num_train_imgs = 1595
 C.num_eval_imgs = 1576
 C.train_source = osp.join(C.dataset_path, "train.txt")
@@ -467,9 +439,8 @@ C.eval_crop_size = [480, 640]
 
 还必须补：
 
-- 经官方文件核验后的 `class_names` ID 顺序；
 - 明确 `rgb_mode`；
-- 训练中是否排除 5 张全 ignore 图；
+- 训练中是否排除 5 张全背景图；
 - validation 从 train 按组划分后的索引；
 - depth quantization metadata 路径。
 
@@ -604,7 +575,7 @@ def masked_mean_loss(pixel_loss, label, ignore_index):
 - `[PASS]` train/test 采集组交集为 0；
 - `[PASS]` 全 ignore 样本已排除或 loss 已安全处理；
 - `[PASS]` `rgb_mode`、eval resize/sliding、invalid depth policy 已写入配置和日志；
-- `[PASS]` 类别 ID 与名称顺序已有官方证据。
+- `[PASS]` 类别 ID 与名称顺序已由官方 `Label_ID.pdf` 确认。
 
 ---
 
@@ -635,12 +606,12 @@ B5 不能通过把 HHA 直接送入当前 DFormerv2 第一个 Depth 通道实现
 2. **已有改动**：保留 `Depth16/`，按全数据固定最大值 13932 生成 8-bit `Depth/`，并按官方组级 split 重组 3171 组数据。
 3. **为何合理**：DFormerv2 使用 patch 深度差；固定线性量化保留全局顺序与相对差，且兼容当前 loader 和预训练数值范围。
 4. **定量验证**：全部约 31.98 亿像素 100% 符合统一转换公式；不是截位，也不是逐图归一化；饱和像素极少。
-5. **尚存问题**：30.74% 原始零值是无效深度，但当前会被当成数值 0；11 张全 ignore 标签可能触发 NaN；代码和配置没有版本化；验证尺寸与 RGB/BGR 未明确。
-6. **下一步**：先补转换/审计脚本和 MUSeg config，建立 B0；再做无效深度填补/mask、16-bit float 和 RGB-only 消融。
+5. **尚存问题**：30.74% 原始零值是无效深度，但当前会被当成数值 0；11 张全背景图经 `gt_transform` 后成为全 ignore，可能触发 NaN；MUSeg 配置、验证尺寸与 RGB/BGR 未明确。
+6. **下一步**：新增 MUSeg config 并建立 B0；补全背景样本安全 loss，再做无效深度填补/mask、16-bit float 和 RGB-only 消融。
 
 一句话总结：
 
-> 当前“保留 16-bit 原始深度 + 固定全局线性量化为 8-bit 模型输入”的方向正确，但它目前只是数据结果正确，尚未完成工程复现闭环；无效深度语义是下一步最值得验证的模型问题。
+> 当前“保留 16-bit 原始深度 + 固定全局线性量化为 8-bit 模型输入”的数据复现闭环已经完成；下一阶段重点是 MUSeg 训练配置、全背景样本安全处理和无效深度策略。
 
 ---
 
@@ -662,7 +633,8 @@ B5 不能通过把 HHA 直接送入当前 DFormerv2 第一个 Depth 通道实现
 
 ### 当前代码
 
-- `figs/application_new_dataset/README.md`：新数据目录、8-bit 灰度深度和标签约定；
+- `tools/prepare_museg.py`：确定性转换、metadata、官方 split 校验和全量输出验证；
+- `doc/dataset.md`：转换目录、命令、深度公式和标签映射说明；
 - `utils/dataloader/RGBXDataset.py`：路径、读取 flag、通道、`gt_transform`；
 - `utils/dataloader/dataloader.py`：同步增强、插值、裁剪、Depth 归一化；
 - `utils/transforms.py`：`/255` 标准化；
@@ -681,4 +653,4 @@ B5 不能通过把 HHA 直接送入当前 DFormerv2 第一个 Depth 通道实现
 - 采集组交集：0；
 - Label ID：0–15；
 - 原始零深度率：30.7351%；
-- 全零标签：11 张。
+- 全背景标签：11 张（train 5、test 6），经 `gt_transform` 后成为全 ignore。
