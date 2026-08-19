@@ -1,20 +1,35 @@
 # MUSeg 数据集说明
 
-## 数据集位置
+## 数据集位置与转换
 
-本项目约定数据集统一放在仓库上一级的 `dataset` 目录中，MUSeg 的默认路径为：
+项目约定原始 MUSeg 和 DFormer 输入均放在仓库上一级的 `dataset` 目录：
 
 ```text
-DFormer/                 # 本仓库
-../dataset/MUSeg/        # MUSeg 数据集
+DFormer/                         # 本仓库
+../dataset/MUSeg/                # 官方原始数据，保持不变
+../dataset/MUSeg_DFormer/        # 脚本生成的 DFormer 输入
 ```
 
-相对于仓库根目录，配置路径应为：
+在仓库根目录运行：
+
+```bash
+python tools/prepare_museg.py
+```
+
+如果输出目录已经存在，并确认需要完整重建：
+
+```bash
+python tools/prepare_museg.py --overwrite
+```
+
+脚本固定使用全数据集映射 `round(depth16 * 255 / 13932)`，保留原始 16-bit 深度，并使用官方 `Experiment/DatasetSplit.zip` 生成 `train.txt` 和 `test.txt`。转换会先在临时目录完成全量验证，再替换目标目录；因此本地和云端应使用同一脚本与参数，不能分别计算量化范围。
+
+数据配置应指向转换结果：
 
 ```python
 C.root_dir = "../dataset"
 C.dataset_name = "MUSeg"
-C.dataset_path = osp.join(C.root_dir, C.dataset_name)
+C.dataset_path = osp.join(C.root_dir, "MUSeg_DFormer")
 ```
 
 ## 项目需要的数据集信息
@@ -36,18 +51,20 @@ MUSeg 是面向地下矿山场景的 RGB-D 语义分割数据集。本项目需�
 当前 DFormer 通用数据加载器要求 RGB、Depth 和 Label 使用相同主文件名，并通过 `train.txt` 和 `test.txt` 建立索引。整理后的目录应为：
 
 ```text
-../dataset/MUSeg/
+../dataset/MUSeg_DFormer/
 ├── RGB/
 │   ├── sample_001.jpg
 │   └── sample_002.jpg
-├── Depth/
+├── Depth/               # 全局线性量化后的 8-bit 输入
 │   ├── sample_001.png
 │   └── sample_002.png
+├── Depth16/             # 原始 16-bit 深度
 ├── Label/
 │   ├── sample_001.png
 │   └── sample_002.png
 ├── train.txt
-└── test.txt
+├── test.txt
+└── dataset_meta.json    # 映射参数、数据规模和划分来源哈希
 ```
 
 每个索引文件一行记录一个 RGB 相对路径：
@@ -70,7 +87,13 @@ RGB/sample_002.jpg
 
 ### Depth
 
-MUSeg 原始深度图保存实际距离，而当前 DFormer 加载器按 8 位灰度图读取深度。训练前需要统一把原始深度转换为项目使用的 8 位单通道 PNG，并保持“近处为 0、远处为 255”。转换范围必须根据 MUSeg 的深度单位和有效值范围确定，不能直接把 16 位深度图当作普通 8 位图使用。
+MUSeg 原始深度图保存实际距离，而当前 DFormer 加载器按 8 位灰度图读取深度。`tools/prepare_museg.py` 会保留原始深度到 `Depth16/`，并将所有样本统一转换为 8 位单通道 `Depth/`：
+
+\[
+D_8=\operatorname{round}\left(D_{16}\times\frac{255}{13932}\right)
+\]
+
+其中原始 `0` 作为无效深度保留为 `0`。禁止逐图、按训练集或按测试集分别计算 min-max，也不能直接把 16 位深度截断为 8 位。
 
 ### Label
 
