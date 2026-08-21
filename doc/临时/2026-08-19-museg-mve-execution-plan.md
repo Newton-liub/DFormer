@@ -7,8 +7,9 @@
 
 ## 一、统一实验与代码基线
 
-- 本机 `main`、GitHub `origin/main`、云端运行副本 `/root/DFormer`、云端数据盘仓库 `/root/rivermind-data/DFormer` 已统一到提交：
-  `5c134092d0126eb0430415ee0cebe7b2b2a19ed1`。
+- 本机 `main`、GitHub `origin/main`、云端运行副本 `/root/DFormer`、云端数据盘仓库 `/root/rivermind-data/DFormer` 当前已统一到提交：
+  `27437c1ddf5ae6c8f5da05b7ae94fc6b29fc80af`。
+- MVE 训练和 A2 执行时使用的历史代码基线为 `5c134092d0126eb0430415ee0cebe7b2b2a19ed1`；本次后续文档与状态整理已提交到 `27437c1`。
 - 本机下载的云端证据目录：`cloud/museg-epoch10-a2-20260821`，已加入 `.gitignore`，不上传 checkpoint、预测结果或数据。
 - 云端实际训练和 A2 使用的代码副本是 `/root/DFormer`；长期保存和后续同步使用 `/root/rivermind-data/DFormer`。
 - 云端当前实例为无卡运行状态（`GPU=0`），不在该状态启动 GPU 训练或推理。

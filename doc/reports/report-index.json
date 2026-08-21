@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.5",
   "latestFormalReport": {
-    "path": "doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md",
+    "path": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
     "periodStart": "2026-08-19",
     "periodEnd": "2026-08-21",
-    "baseCommit": "5c134092d0126eb0430415ee0cebe7b2b2a19ed1",
-    "status": "mve-audit-and-decision"
+    "baseCommit": "27437c1ddf5ae6c8f5da05b7ae94fc6b29fc80af",
+    "status": "cleanup-and-disposition"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
+      "topic": "museg-mve-cleanup-and-disposition",
+      "periodStart": "2026-08-19",
+      "periodEnd": "2026-08-21",
+      "baseCommit": "27437c1ddf5ae6c8f5da05b7ae94fc6b29fc80af",
+      "verification": "temporary-file-audit-three-repository-status-and-mve-disposition",
+      "status": "formal"
+    },
     {
       "path": "doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md",
       "topic": "museg-mve-a1-b1-a2-git-alignment",
