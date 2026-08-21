@@ -14,7 +14,8 @@
 - MVE 验证指标：epoch 10 全量验证 mIoU `20.49`。
 - 训练输出：`/root/rivermind-data/mve_outputs/museg_20epoch`。
 - A2 输出：`/root/rivermind-data/mve_outputs/museg_a2_screening`。
-- Git 基线：`11c20fcf0e670aee764c17b84cdc96afbd9fe327`；本次云端实际训练任务已使用包含 20 epoch 配置的工作树，但精确 commit 尚未回填。
+- GitHub / 本机 / 云端运行副本统一基线：`5c134092d0126eb0430415ee0cebe7b2b2a19ed1`；
+- 云端持久化仓库：`/root/rivermind-data/DFormer`；实际训练与 A2 运行副本：`/root/DFormer`；两者职责已区分。
 
 ## 二、预训练权重
 
@@ -38,12 +39,16 @@
 2. 云端仅允许 fast-forward 到该精确 commit，随后确认工作树干净。
 3. 下载固定版本预训练权重并校验大小、SHA-256。
 
-状态：**已完成（云端实际训练与 checkpoint 已验证；精确 commit 和历史任务记录仍待补录）**。
+状态：**已完成（本机、GitHub、云端运行副本已对齐；数据盘仓库随后已快进同步）**。
 
 任务记录：
 
-- 新 Git commit：`<待补录>`。
-- 权重下载任务：固定权重已用于训练，独立任务 ID `<待补录>`。
+- 对齐提交：`5c134092d0126eb0430415ee0cebe7b2b2a19ed1`；
+- 本机：`main` 与 `origin/main` 一致，工作树在排除本地 `cloud/` 证据目录后干净；
+- 云端运行副本：`/root/DFormer`，`main` 与 `origin/main` 一致，工作树干净；
+- 云端持久化仓库：`/root/rivermind-data/DFormer`，已通过 `git merge --ff-only origin/main` 同步到同一提交，工作树干净；
+- 证据包：`/root/rivermind-data/exports/museg-epoch10-a2-evidence-20260821.tar.gz`；
+- 证据包 SHA-256：`4d5da8a26974124d2cd3979c5166f40e12dbeae9a3f412a7d026649db492519d`。
 
 ### 阶段 2：单卡 dry-run
 
@@ -155,10 +160,12 @@ MVE 解释边界：A2 结果用于快速验证扰动实验流程和相对变化�
 
 以下产物已全部位于 `/root/rivermind-data` 且通过验收：
 
-- `screen-train.log`、`train.exit_code=0`、`epoch-10.pth`、`latest.pth`；
+- `screen-train.log`、`train.log`、`train.exit_code=0`、`epoch-10.pth`、`latest.pth`；
 - A2 manifest、三组 block mask、48 个预测、推理 CSV/summary；
 - 独立评估 CSV 与 summary；
-- 停止前 `nvidia-smi` 无运行中的计算进程。
+- 停止前 `nvidia-smi` 无运行中的计算进程；
+- 云端持久化项目仓库 `/root/rivermind-data/DFormer` 已快进到提交 `5c134092d0126eb0430415ee0cebe7b2b2a19ed1`；
+- 本机已下载证据包至 `cloud/museg-epoch10-a2-20260821`，该目录不纳入 Git。
 
 停止命令：
 
@@ -178,12 +185,12 @@ compshare --json instance stop cpod-1tyvjsiu6ahe --yes --timeout 600
 
 ## 四、完成判据
 
-- [ ] 云端检出并核对包含训练配置的新 commit，工作树干净（精确 commit 尚未补录）。
+- [x] 云端检出并核对包含训练配置的新 commit，工作树干净（统一提交 `5c134092d0126eb0430415ee0cebe7b2b2a19ed1`）。
 - [x] 固定预训练权重大小和 SHA-256 完全匹配。
 - [x] 单卡真实 batch dry-run 完成，loss 与梯度有限。
 - [x] epoch-10 MVE screening 训练产物成功，`epoch-10.pth` 与 `latest.pth` 可用；不宣称完成 20 epoch 正式训练。
 - [x] q=0 baseline 的 16 个条件完成。
 - [x] q=0.3/q=0.5 的 32 个条件完成；三组总计 48 个条件。
 - [x] 独立评估完成，结果写入持久化目录。
-- [x] 文档已回填任务 ID、路径和结果；代码 commit 仍待补录。
-- [x] 实例停止并确认状态。
+- [x] 文档已回填任务 ID、路径和结果；代码 commit 已补录。
+- [x] 实例停止并确认状态（原 MVE/A2 执行结束时）；后续审计使用的是无卡 `GPU=0` 的运行状态，不执行 GPU 实验。

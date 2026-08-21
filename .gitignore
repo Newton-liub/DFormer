@@ -178,6 +178,10 @@ datasets/SUN*
 datasets/*
 output*
 *_old*
+
+# Local cloud experiment evidence and downloaded artifacts
+cloud/
+
 .history
 *.ipynb
 pyrightconfig.json

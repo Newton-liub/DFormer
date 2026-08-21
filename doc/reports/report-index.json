@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.5",
   "latestFormalReport": {
-    "path": "doc/reports/2026-08-19-museg-minimum-validation-paths.md",
+    "path": "doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md",
     "periodStart": "2026-08-19",
-    "periodEnd": "2026-08-19",
-    "baseCommit": "ad6852e520eb4ea229251a81494da085dcf84592",
-    "status": "mve-design"
+    "periodEnd": "2026-08-21",
+    "baseCommit": "5c134092d0126eb0430415ee0cebe7b2b2a19ed1",
+    "status": "mve-audit-and-decision"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md",
+      "topic": "museg-mve-a1-b1-a2-git-alignment",
+      "periodStart": "2026-08-19",
+      "periodEnd": "2026-08-21",
+      "baseCommit": "5c134092d0126eb0430415ee0cebe7b2b2a19ed1",
+      "verification": "local-tests-cloud-artifact-and-git-alignment-audit",
+      "status": "formal"
+    },
     {
       "path": "doc/reports/2026-08-19-museg-data-reproduction-update.md",
       "topic": "museg-data-reproduction-update",
