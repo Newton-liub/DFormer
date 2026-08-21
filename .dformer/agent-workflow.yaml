@@ -1,0 +1,27 @@
+planning:
+  model: gpt0.1
+  agent: dformer-planner
+
+execution:
+  model: gpt-terra
+  agent: dformer-executor
+
+verification:
+  model: gpt-terra
+  agent: dformer-verifier
+
+subagents:
+  max_direct_children: 4
+  allow_nested_children: false
+  require_isolated_worktree_for_parallel_edits: true
+
+workflow:
+  require_plan_before_execution: true
+  auto_continue_after_plan: true
+  require_verification_after_execution: true
+  auto_commit: false
+
+compatibility:
+  existing_skills:
+    - .agents/skills/compshare-cli/SKILL.md
+    - .cursor/skills/research-progress-report/SKILL.md
