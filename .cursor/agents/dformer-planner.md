@@ -1,7 +1,7 @@
 ---
 name: dformer-planner
 description: 自动规划 DFormer 复杂代码、配置、数据处理、训练和实验任务；由 `dformer-plan-execute` 自动调用，使用复杂模型，只读并在执行前使用。
-model: gpt0.1
+model: gpt-5.6-sol
 readonly: true
 ---
 

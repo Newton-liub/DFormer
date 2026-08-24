@@ -5,9 +5,15 @@ description: 使用此 Skill 时，先用复杂模型规划，再自动用简单
 
 # DFormer 自动规划执行
 
-用户只需输入：
+## 明确调用方式
+
+在 Cursor 对话框中输入 `/dformer-plan-execute`，选择该 Skill 后紧跟任务描述；或发送：
 
 `使用 dformer-plan-execute：<任务>`
+
+为避免自动委派未触发，复杂任务应明确要求按顺序调用三个 Agent：
+
+`依次调用 dformer-planner、dformer-executor、dformer-verifier；每个阶段在结果中报告 Agent 名称、配置模型和实际模型。`
 
 收到后自动完成以下流程，不要求用户分别调用代理：
 
@@ -37,6 +43,16 @@ description: 使用此 Skill 时，先用复杂模型规划，再自动用简单
 
 涉及 CompShare GPU 云资源时继续遵守 `compshare-cli` 的 JSON、dry-run、授权和敏感信息规则。涉及阶段报告、Markdown 或 Canvas 时继续遵守 `research-progress-report` 的边界、证据和版本规则；更具体的现有 Skill 优先。
 
+## 云端工作目录与环境
+
+涉及云端执行、训练、验证、数据处理或实验命令时，统一使用以下配置：
+
+- 云端项目目录：`~/rivermind-data/DFormer#`；其中末尾的 `#` 是目录名的一部分。
+- 云端 Python 环境：`py310`。
+- 禁止使用云端根目录下的 `DFormer`（例如 `~/DFormer`）作为项目目录；不得把它与 `~/rivermind-data/DFormer#` 混用。
+- 执行云端命令前，先切换到 `~/rivermind-data/DFormer#`，并使用 `py310` 环境；命令、日志和结果路径应以该项目目录为基准。
+- 由于目录名包含 `#`，在 Shell 命令中应将路径整体加引号（例如 `cd '~/rivermind-data/DFormer#'`），避免 `#` 被解释为注释起始符。
+
 ## 模型切换
 
 实际模型写在三个代理文件的 `model` 字段中；`.dformer/agent-workflow.yaml` 是集中对照配置。更换模型时同步修改两处：
@@ -44,7 +60,7 @@ description: 使用此 Skill 时，先用复杂模型规划，再自动用简单
 - 复杂模型：`dformer-planner.md` 的 `model`；
 - 简单模型：`dformer-executor.md` 和 `dformer-verifier.md` 的 `model`。
 
-当前默认值为规划 `gpt0.1`，执行和验证 `gpt-terra`。
+当前默认值为规划 `gpt-5.6-sol`，执行和验证 `gpt-5.6-terra`。
 
 ## MUSeg 单卡 4090 固定知识
 

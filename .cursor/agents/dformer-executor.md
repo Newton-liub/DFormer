@@ -1,7 +1,7 @@
 ---
 name: dformer-executor
 description: 自动根据已生成的计划完整实施 DFormer 的代码、配置、数据处理、训练和验证任务；由 `dformer-plan-execute` 自动调用，使用简单模型。
-model: gpt-terra
+model: gpt-5.6-terra
 readonly: false
 ---
 

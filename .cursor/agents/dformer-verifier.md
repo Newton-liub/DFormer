@@ -1,7 +1,7 @@
 ---
 name: dformer-verifier
 description: 自动独立验证 DFormer 规划执行结果、代码修改、配置变更和实验证据；由 `dformer-plan-execute` 在执行后调用，使用简单模型。
-model: gpt-terra
+model: gpt-5.6-terra
 readonly: true
 ---
 
