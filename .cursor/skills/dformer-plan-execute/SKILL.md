@@ -11,16 +11,26 @@ description: 使用此 Skill 时，先用复杂模型规划，再自动用简单
 
 `使用 dformer-plan-execute：<任务>`
 
-为避免自动委派未触发，复杂任务应明确要求按顺序调用三个 Agent：
+本 Skill 只有在当前会话的 Task 工具明确暴露以下三个自定义代理时，才允许自动编排：
 
-`依次调用 dformer-planner、dformer-executor、dformer-verifier；每个阶段在结果中报告 Agent 名称、配置模型和实际模型。`
+- `dformer-planner`
+- `dformer-executor`
+- `dformer-verifier`
 
-收到后自动完成以下流程，不要求用户分别调用代理：
+## 运行前硬性检查
 
-1. 调用 `dformer-planner`，使用 `.cursor/agents/dformer-planner.md` 中配置的复杂模型，只读调查并生成计划。
-2. 将计划直接交给 `dformer-executor`，使用配置的简单模型完成代码、配置、测试和必要实验。
+1. 在开始调查或修改前，检查当前 Task 工具的可用自定义代理名称；不得仅依据 `.cursor/agents/*.md` 文件存在就认定代理可调用。
+2. 三个名称全部可用后，严格按 `dformer-planner` → `dformer-executor` → `dformer-verifier` 串行调用；每次 Task 调用必须使用对应的精确自定义代理名称。
+3. 禁止把 `generalPurpose`、`explore`、`shell` 或其他内置/通用代理包装成这三个 DFormer 代理；禁止在提示词中自称“规划代理/执行代理/验证代理”来替代命名代理。
+4. 任一名称不可用时立即停止，输出 `DFORMER_AGENT_UNAVAILABLE`、缺失名称和当前可用的代理类型。不得回退到父代理或通用子代理，不得声称已经使用 Terra。
+5. 每阶段只把 Task 启动元数据中的自定义代理名称作为“代理已正确加载”的证据。代理自行报告的名称或模型不是可靠证据。
+
+预检查通过后自动完成以下流程，不要求用户分别调用代理：
+
+1. 调用 `dformer-planner`，使用 `.cursor/agents/dformer-planner.md` 的配置只读调查并生成计划。
+2. 将计划直接交给 `dformer-executor` 完成代码、配置、测试和必要实验。
 3. 调用 `dformer-verifier` 独立验证实现和证据。
-4. 汇总修改文件、验证结果、未完成事项和风险。
+4. 汇总 Task 启动名称、修改文件、验证结果、未完成事项和风险。
 
 只有以下情况需要暂停并询问用户：任务目标无法判断、涉及破坏性资源操作、或计划需要超出用户授权范围的变更。普通代码任务不要在规划完成后再次询问确认。
 
@@ -53,14 +63,16 @@ description: 使用此 Skill 时，先用复杂模型规划，再自动用简单
 - 执行云端命令前，先切换到 `~/rivermind-data/DFormer#`，并使用 `py310` 环境；命令、日志和结果路径应以该项目目录为基准。
 - 由于目录名包含 `#`，在 Shell 命令中应将路径整体加引号（例如 `cd '~/rivermind-data/DFormer#'`），避免 `#` 被解释为注释起始符。
 
-## 模型切换
+## 模型配置与证据
 
-实际模型写在三个代理文件的 `model` 字段中；`.dformer/agent-workflow.yaml` 是集中对照配置。更换模型时同步修改两处：
+Cursor 实际读取三个 `.cursor/agents/*.md` 文件中的 `model` 字段；`.dformer/agent-workflow.yaml` 仅用于项目内集中对照，不会创建代理，也不会控制 Task 的模型路由。更换模型时同步修改两处：
 
 - 复杂模型：`dformer-planner.md` 的 `model`；
 - 简单模型：`dformer-executor.md` 和 `dformer-verifier.md` 的 `model`。
 
-当前默认值为规划 `gpt-5.6-sol`，执行和验证 `gpt-5.6-terra`。
+当前配置为规划 `gpt-5.6-sol`，执行和验证 `gpt-5.6-terra`。Cursor 可能因团队管理员限制、套餐限制或旧版请求制套餐未开启 Max Mode 而回退到兼容模型。最终模型应以 Cursor 的 Task 运行详情或用量记录为准；代理文本中的自报模型不得作为证据。
+
+若当前 Task 工具没有暴露命名自定义代理，修改 Skill 提示词或 `.dformer/agent-workflow.yaml` 无法强制切换模型。此时应重新加载 Cursor 窗口并新建会话后重试；仍不可用时，可用 `/dformer-executor` 或 `/dformer-verifier` 直接测试对应代理是否被 Cursor 注册。
 
 ## MUSeg 单卡 4090 固定知识
 

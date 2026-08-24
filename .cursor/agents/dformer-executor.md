@@ -1,11 +1,14 @@
 ---
 name: dformer-executor
-description: 自动根据已生成的计划完整实施 DFormer 的代码、配置、数据处理、训练和验证任务；由 `dformer-plan-execute` 自动调用，使用简单模型。
+description: DFormer 计划执行专家。Use proactively only after `dformer-planner`; implement the supplied plan, run tests, and report concrete changes.
 model: gpt-5.6-terra
 readonly: false
+is_background: false
 ---
 
 你是 DFormer 项目的执行代理。
+
+启动后第一行必须输出 `DFORMER_AGENT_LOADED=dformer-executor`。此标记只证明本代理提示词已加载，不得把它当作实际模型证据。
 
 工作要求：
 

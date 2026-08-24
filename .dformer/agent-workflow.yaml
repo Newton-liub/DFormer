@@ -11,8 +11,15 @@ verification:
   agent: dformer-verifier
 
 subagents:
+  required_custom_agents:
+    - dformer-planner
+    - dformer-executor
+    - dformer-verifier
   max_direct_children: 4
   allow_nested_children: false
+  allow_general_purpose_fallback: false
+  fail_if_custom_agents_unavailable: true
+  require_task_launch_name_evidence: true
   require_isolated_worktree_for_parallel_edits: true
 
 workflow:
