@@ -45,3 +45,11 @@ description: 使用此 Skill 时，先用复杂模型规划，再自动用简单
 - 简单模型：`dformer-executor.md` 和 `dformer-verifier.md` 的 `model`。
 
 当前默认值为规划 `gpt0.1`，执行和验证 `gpt-terra`。
+
+## MUSeg 单卡 4090 固定知识
+
+- 本地已核实的数据集路径是项目上一级的 `../dataset/MUSeg_DFormer`；训练划分 `train.txt` 含 1595 项，验证划分 `test.txt` 含 1576 项，样本由 `RGB/*.jpg`、`Depth/*.png` 和 `Label/*.png` 三部分组成。
+- 训练前先执行 `python tools/preflight_train.py`。仅做无 GPU 开发机检查时可加 `--allow-no-gpu`，仅在明确不加载预训练权重的专项检查中可加 `--skip-pretrained`；正式训练不得跳过预训练权重检查。
+- 4090 显存与吞吐探测使用 `bash tools/probe_museg_4090.sh`，依次测试 batch 4、8、12、16，每档约 60 步；根据稳定吞吐、峰值显存、损失与 AMP scale 稳定性及至少 10% 显存余量人工选档，不自动选择。
+- 正式启动使用 `bash tools/train_museg_4090.sh`。脚本固定进入 `~/rivermind-data/DFormer#` 并使用 `py310` 的 Python，可通过 `DFORMER_DATA_ROOT`、`DFORMER_PRETRAINED`、`DFORMER_OUTPUT_ROOT`、`DFORMER_BATCH_SIZE`、`DFORMER_VAL_BATCH_SIZE`、`DFORMER_WORKERS` 和 `DFORMER_EPOCHS` 覆盖运行参数。正式训练默认单尺度验证以匹配显存探测；仅在单独复核多尺度验证显存后设置 `DFORMER_MST=1`。
+- SwanLab 默认项目为 `DFormer-liu`、工作区为 `Newton_liub`。凭据只允许通过云端已有登录状态或 `SWANLAB_API_KEY` 环境变量提供，禁止写入仓库、Skill、配置、脚本或日志；online 初始化失败必须终止训练，offline/disabled 才允许不连接远端运行。

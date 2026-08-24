@@ -18,6 +18,7 @@ from utils.dataloader.dataloader import get_train_loader, get_val_loader
 from utils.dataloader.RGBXDataset import RGBXDataset
 from utils.engine.engine import Engine
 from utils.engine.logger import get_logger
+from utils.experiment_tracker import ExperimentTracker, build_run_name, gpu_safety_violation
 from utils.init_func import configure_optimizers, group_weight
 from utils.lr_policy import WarmUpPolyLR
 from utils.pyt_utils import all_reduce_tensor
@@ -30,10 +31,21 @@ parser.add_argument("--config", help="train config file path")
 parser.add_argument("--gpus", default=2, type=int, help="used gpu number")
 # parser.add_argument('-d', '--devices', default='0,1', type=str)
 parser.add_argument("-v", "--verbose", default=False, action="store_true")
-parser.add_argument("--epochs", default=0)
+parser.add_argument("--epochs", type=int, default=None, help="override config.nepochs")
+parser.add_argument("--batch-size", "--batch", dest="batch_size", type=int, default=None, help="override config.batch_size")
+parser.add_argument("--workers", "--worker", "--num-workers", dest="workers", type=int, default=None, help="override config.num_workers")
+parser.add_argument("--val-batch-size", "--val-batch", dest="val_batch_size", type=int, default=None, help="override validation batch size")
+parser.add_argument("--max-train-iters", type=int, default=None, help="stop normally after this many train steps")
+parser.add_argument("--log-interval", type=int, default=0, help="train metric interval in steps; 0 uses 10% of an epoch")
+parser.add_argument("--min-free-vram-gib", type=float, default=0.0, help="fail when free VRAM falls below GiB; 0 disables")
+parser.add_argument("--min-free-vram-ratio", type=float, default=0.0, help="fail when free/total VRAM falls below ratio; 0 disables")
+parser.add_argument("--swanlab-mode", choices=("disabled", "offline", "online"), default="disabled")
+parser.add_argument("--swanlab-project", default="DFormer-liu")
+parser.add_argument("--swanlab-workspace", default="Newton_liub")
+parser.add_argument("--swanlab-run-name", default=None)
 parser.add_argument("--show_image", "-s", default=False, action="store_true")
 parser.add_argument("--save_path", default=None)
-parser.add_argument("--checkpoint_dir")
+parser.add_argument("--checkpoint-dir", "--checkpoint_dir", dest="checkpoint_dir")
 parser.add_argument("--continue_fpath")
 parser.add_argument("--sliding", default=False, action=argparse.BooleanOptionalAction)
 parser.add_argument("--compile", default=False, action=argparse.BooleanOptionalAction)
@@ -83,6 +95,7 @@ class gpu_timer:
             self.first_call = False
         else:
             self.mean_time = self.beta * self.mean_time + (1 - self.beta) * elapsed
+        return elapsed
 
 
 def set_seed(seed):
@@ -107,10 +120,43 @@ def set_seed(seed):
     torch.use_deterministic_algorithms(True, warn_only=True)
 
 
-with Engine(custom_parser=parser) as engine:
+with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     args = parser.parse_args()
 
     config = getattr(import_module(args.config), "C")
+    if args.epochs is not None:
+        if args.epochs <= 0:
+            parser.error("--epochs must be positive")
+        original_nepochs = config.nepochs
+        terminal_eval_follows_nepochs = getattr(config, "checkpoint_start_epoch", None) == original_nepochs
+        config.nepochs = args.epochs
+        if terminal_eval_follows_nepochs:
+            config.checkpoint_start_epoch = config.nepochs
+    if args.batch_size is not None:
+        if args.batch_size <= 0:
+            parser.error("--batch-size must be positive")
+        config.batch_size = args.batch_size
+        config.niters_per_epoch = config.num_train_imgs // config.batch_size + 1
+    if args.workers is not None:
+        if args.workers < 0:
+            parser.error("--workers cannot be negative")
+        config.num_workers = args.workers
+    if args.val_batch_size is not None:
+        if args.val_batch_size <= 0:
+            parser.error("--val-batch-size must be positive")
+        config.val_batch_size = args.val_batch_size
+    if args.max_train_iters is not None and args.max_train_iters <= 0:
+        parser.error("--max-train-iters must be positive")
+    if args.log_interval < 0:
+        parser.error("--log-interval cannot be negative")
+    if args.min_free_vram_gib < 0:
+        parser.error("--min-free-vram-gib cannot be negative")
+    if not 0.0 <= args.min_free_vram_ratio <= 1.0:
+        parser.error("--min-free-vram-ratio must be between 0 and 1")
+    if args.checkpoint_dir:
+        config.checkpoint_dir = os.path.abspath(args.checkpoint_dir)
+        os.makedirs(config.checkpoint_dir, exist_ok=True)
+
     logger = get_logger(config.log_dir, config.log_file, rank=engine.local_rank)
     # check if pad_SUNRGBD is used correctly
     if args.pad_SUNRGBD and config.dataset_name != "SUNRGBD":
@@ -157,11 +203,15 @@ with Engine(custom_parser=parser) as engine:
         val_dl_factor = 1.5
 
     val_dl_factor = 1  # TODO: remove this line
+    default_val_batch_size = (
+        int(config.batch_size * val_dl_factor) if config.dataset_name != "SUNRGBD" else int(args.gpus)
+    )
+    val_batch_size = int(getattr(config, "val_batch_size", default_val_batch_size))
     val_loader, val_sampler = get_val_loader(
         engine,
         RGBXDataset,
         config,
-        val_batch_size=int(config.batch_size * val_dl_factor) if config.dataset_name != "SUNRGBD" else int(args.gpus),
+        val_batch_size=val_batch_size,
     )
     logger.info(f"val dataset len:{len(val_loader) * int(args.gpus)}")
 
@@ -176,6 +226,39 @@ with Engine(custom_parser=parser) as engine:
     logger.info("args parsed:")
     for k in args.__dict__:
         logger.info(k + ": " + str(args.__dict__[k]))
+
+    is_primary = (not engine.distributed) or engine.local_rank == 0
+    run_name = build_run_name(
+        config.dataset_name,
+        config.backbone,
+        explicit_name=args.swanlab_run_name,
+        repo_root=os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+    )
+    logger.info(f"experiment run name: {run_name}")
+    tracker.start(
+        mode=args.swanlab_mode,
+        is_primary=is_primary,
+        project=args.swanlab_project,
+        workspace=args.swanlab_workspace,
+        name=run_name,
+        log_dir=config.log_dir,
+        config={
+            "config_module": args.config,
+            "dataset": config.dataset_name,
+            "backbone": config.backbone,
+            "epochs": config.nepochs,
+            "batch_size": config.batch_size,
+            "val_batch_size": val_batch_size,
+            "workers": config.num_workers,
+            "optimizer": config.optimizer,
+            "learning_rate": config.lr,
+            "weight_decay": config.weight_decay,
+            "amp": args.amp,
+            "max_train_iters": args.max_train_iters,
+            "min_free_vram_gib": args.min_free_vram_gib,
+            "min_free_vram_ratio": args.min_free_vram_ratio,
+        },
+    )
 
     criterion = nn.CrossEntropyLoss(reduction="none", ignore_index=config.background)
 
@@ -284,6 +367,9 @@ with Engine(custom_parser=parser) as engine:
 
     if args.amp:
         scaler = torch.cuda.amp.GradScaler()
+    log_interval = args.log_interval or max(1, int(config.niters_per_epoch * 0.1))
+    train_steps_completed = 0
+    short_run_reached = False
     for epoch in range(engine.state.epoch, config.nepochs + 1):
         model = compiled_model
         model.train()
@@ -305,6 +391,19 @@ with Engine(custom_parser=parser) as engine:
         train_timer.start()
         for idx in range(config.niters_per_epoch):
             engine.update_iteration(epoch, idx)
+            current_idx = (epoch - 1) * config.niters_per_epoch + idx
+            global_step = current_idx + 1
+            lr = lr_policy.get_lr(current_idx)
+            for param_group in optimizer.param_groups:
+                param_group["lr"] = lr
+            next_train_step = train_steps_completed + 1
+            should_log = next_train_step == 1 or next_train_step % log_interval == 0
+            safety_monitoring = args.min_free_vram_gib > 0 or args.min_free_vram_ratio > 0
+            measure_step = should_log or safety_monitoring
+            if measure_step:
+                torch.cuda.synchronize()
+                step_started_at = time.perf_counter()
+                torch.cuda.reset_peak_memory_stats()
 
             # minibatch = dataloader.next()
             minibatch = next(dataloader)
@@ -321,6 +420,9 @@ with Engine(custom_parser=parser) as engine:
                     loss = model(imgs, modal_xs, gts)
             else:
                 loss = model(imgs, modal_xs, gts)
+
+            if measure_step and not bool(torch.isfinite(loss.detach()).all().item()):
+                raise FloatingPointError(f"non-finite loss at epoch {epoch}, iteration {idx + 1}")
 
             # reduce the whole loss over multi-gpu
             if engine.distributed:
@@ -345,11 +447,32 @@ with Engine(custom_parser=parser) as engine:
                         if param.grad is None:
                             logger.warning(f"{name} has no grad, please check")
 
-            current_idx = (epoch - 1) * config.niters_per_epoch + idx
-            lr = lr_policy.get_lr(current_idx)
-
-            for i in range(len(optimizer.param_groups)):
-                optimizer.param_groups[i]["lr"] = lr
+            telemetry_suffix = ""
+            if measure_step:
+                torch.cuda.synchronize()
+                step_seconds = time.perf_counter() - step_started_at
+                images_per_second = config.batch_size / step_seconds
+                max_memory_mb = torch.cuda.max_memory_allocated() / 1024**2
+                max_memory_reserved_mb = torch.cuda.max_memory_reserved() / 1024**2
+                free_vram_bytes, total_vram_bytes = torch.cuda.mem_get_info()
+                free_vram_mb = free_vram_bytes / 1024**2
+                total_vram_mb = total_vram_bytes / 1024**2
+                free_vram_ratio = free_vram_bytes / total_vram_bytes
+                safety_error = gpu_safety_violation(
+                    free_vram_bytes,
+                    total_vram_bytes,
+                    min_free_gib=args.min_free_vram_gib,
+                    min_free_ratio=args.min_free_vram_ratio,
+                )
+                if safety_error is not None:
+                    raise RuntimeError(f"GPU safety threshold violated at step {global_step}: {safety_error}")
+                amp_scale = scaler.get_scale() if args.amp else 1.0
+                telemetry_suffix = (
+                    f" step={step_seconds:.3f}s throughput={images_per_second:.2f} img/s"
+                    f" allocated={max_memory_mb:.0f} MiB reserved={max_memory_reserved_mb:.0f} MiB"
+                    f" free={free_vram_mb:.0f}/{total_vram_mb:.0f} MiB"
+                    f" free_ratio={free_vram_ratio:.3f} amp_scale={amp_scale:.1f}"
+                )
 
             if engine.distributed:
                 sum_loss += reduce_loss.item()
@@ -358,6 +481,7 @@ with Engine(custom_parser=parser) as engine:
                     + " Iter {}/{}:".format(idx + 1, config.niters_per_epoch)
                     + " lr=%.4e" % lr
                     + " loss=%.4f total_loss=%.4f" % (reduce_loss.item(), (sum_loss / (idx + 1)))
+                    + telemetry_suffix
                 )
 
             else:
@@ -367,17 +491,51 @@ with Engine(custom_parser=parser) as engine:
                     f"Epoch {epoch}/{config.nepochs} "
                     + f"Iter {idx + 1}/{config.niters_per_epoch}: "
                     + f"lr={lr:.4e} loss={loss_value:.4f} total_loss={(sum_loss / (idx + 1)):.4f}"
+                    + telemetry_suffix
                 )
 
-            if ((idx + 1) % int((config.niters_per_epoch) * 0.1) == 0 or idx == 0) and (
-                (engine.distributed and (engine.local_rank == 0)) or (not engine.distributed)
-            ):
+            train_steps_completed += 1
+            loss_value_for_log = reduce_loss.item() if engine.distributed else loss_value
+            if should_log and is_primary:
                 print(print_str)
+                tracker.log(
+                    {
+                        "train/loss": loss_value_for_log,
+                        "train/loss_mean": sum_loss / (idx + 1),
+                        "train/learning_rate": lr,
+                        "train/step_seconds": step_seconds,
+                        "train/images_per_second": images_per_second,
+                        "train/max_memory_mb": max_memory_mb,
+                        "train/max_memory_reserved_mb": max_memory_reserved_mb,
+                        "train/free_vram_mb": free_vram_mb,
+                        "train/total_vram_mb": total_vram_mb,
+                        "train/free_vram_ratio": free_vram_ratio,
+                        "train/amp_scale": amp_scale,
+                        "train/epoch": epoch,
+                    },
+                    step=global_step,
+                )
 
             del loss
+            if args.max_train_iters is not None and train_steps_completed >= args.max_train_iters:
+                short_run_reached = True
+                logger.info(f"short run reached --max-train-iters={args.max_train_iters}")
+                break
             # pbar.set_description(print_str, refresh=False)
         logger.info(print_str)
-        train_timer.stop()
+        train_epoch_seconds = train_timer.stop()
+        epoch_loss = sum_loss / (idx + 1)
+        if is_primary:
+            tracker.log(
+                {
+                    "train/epoch_loss": epoch_loss,
+                    "train/epoch_seconds": train_epoch_seconds,
+                },
+                step=global_step,
+            )
+        if short_run_reached:
+            logger.info("short run completed normally; validation and checkpoint saving were skipped")
+            break
 
         # if (engine.distributed and (engine.local_rank == 0)) or (
         #     not engine.distributed
@@ -518,6 +676,17 @@ with Engine(custom_parser=parser) as engine:
                     )
                 print("miou", miou, "best", best_miou)
             logger.info(f"Epoch {epoch} validation result: mIoU {miou}, best mIoU {best_miou}")
+            if is_primary:
+                tracker.log(
+                    {
+                        "validation/miou": float(miou),
+                        "validation/best_miou": float(best_miou),
+                        "validation/mean_accuracy": float(macc),
+                        "validation/mean_f1": float(mf1),
+                        "validation/epoch": epoch,
+                    },
+                    step=epoch * config.niters_per_epoch,
+                )
             eval_timer.stop()
 
         checkpoint_step = int(getattr(config, "checkpoint_step", 0))

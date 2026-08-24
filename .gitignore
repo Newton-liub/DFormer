@@ -186,6 +186,7 @@ cloud/
 *.ipynb
 pyrightconfig.json
 train*.sh
+!tools/train_museg_4090.sh
 eval*.sh
 infer*.sh
 .ruff_cache
