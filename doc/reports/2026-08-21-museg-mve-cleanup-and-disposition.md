@@ -127,24 +127,26 @@ DFormerv2 的 geometry prior 使用深度差异。项目中原始无效深度以
 
 `liu-test-exp` 是用户用于打开思路的草稿区，不属于本次项目清理范围。本次已恢复此前误删的 `liu-test-exp/对抗 copy.md`，并确认该目录没有工作树改动。后续不对该目录执行删除、重命名或内容整理。
 
-### 5.2 两次标注的云端执行流程不是两个文件
+### 5.2 后续临时计划清理
 
-用户消息中两次标注的是同一个路径：
+本报告生成时，以下两份临时文件分别承担总计划和云端执行流水职责：
 
-`doc/临时/云/MUSeg-20epoch-A2云端执行流程.md`
+- `doc/临时/2026-08-19-museg-mve-execution-plan.md`；
+- `doc/临时/云/MUSeg-20epoch-A2云端执行流程.md`。
 
-项目中实际只有这一份文件。它记录云端任务 ID、失败纠正、checkpoint、A2 结果和停止状态，属于必须保留的实验流水证据。
+其中需要长期保留的 A1/B1/A2 结论、任务结果、checkpoint 和停止状态已经写入本报告及 `doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md`。在 4090 正式训练准备完成后，上述临时计划已过时并被删除，避免新对话误用旧 commit、旧仓库路径和 epoch-10 screening 流程。
 
-### 5.3 `doc/临时` 下的两份 MVE 文档职责不同
+### 5.3 当前待执行入口
 
-- `doc/临时/2026-08-19-museg-mve-execution-plan.md`：当前总计划、问题—处理—证据逻辑链和后续决策门槛；
-- `doc/临时/云/MUSeg-20epoch-A2云端执行流程.md`：云端实际执行流水、任务 ID、输出路径和纠正记录。
+当前唯一待执行计划为：
 
-两者内容有交叉，但不是重复副本。删除其中任何一份都会损失计划边界或运行审计信息，因此本次不删除。
+`doc/临时/待执行/MUSeg-4090云端训练交接计划.md`
 
-### 5.4 清理结果
+该文件汇总已完成事项、无需重复的检查、当前项目基线、RTX 4090 batch 探测、SwanLab online 正式训练和结果验收步骤。历史结论继续以 `doc/reports/` 下的报告为证据，不再以临时计划作为审计入口。
 
-本次未删除任何仍有复现或审计价值的项目文件。清理范围外的 `liu-test-exp` 未发生变化；已恢复误删文件；当前 Git 工作树保持干净。该结果比强行删除相关实验文档更安全。
+### 5.4 清理边界
+
+`liu-test-exp` 仍不属于项目计划清理范围。本次只清理 `doc/临时` 中已经被报告吸收的旧计划和旧云端指南，不删除数据、checkpoint、本地 `cloud/` 证据或正式报告。
 
 ## 六、后续处置方案
 
@@ -175,10 +177,9 @@ DFormerv2 的 geometry prior 使用深度差异。项目中原始无效深度以
 ## 七、复现入口与证据路径
 
 - A1/B1 测试：`python -m unittest discover -s tests -p "test_*.py" -v`；
-- 总计划：`doc/临时/2026-08-19-museg-mve-execution-plan.md`；
-- 云端执行流水：`doc/临时/云/MUSeg-20epoch-A2云端执行流程.md`；
-- 综合分析报告：`doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md`；
-- 本报告：`doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`；
+- 当前待执行计划：`doc/临时/待执行/MUSeg-4090云端训练交接计划.md`；
+- 历史 A1/B1/A2 综合分析：`doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md`；
+- 历史清理与处置记录：`doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`；
 - 本地证据：`cloud/museg-epoch10-a2-20260821`；
 - 云端产物根目录：`/root/rivermind-data/mve_outputs`。
 

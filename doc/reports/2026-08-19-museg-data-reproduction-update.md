@@ -56,8 +56,8 @@
 ### 2.4 文档与云端交接
 
 - 状态：已完成并验证
-- 措施：修订 `doc/dataset.md` 和 `doc/museg-dformer-data-processing-review.md`；新增 `doc/云/MUSeg云端重建指南.md`，明确云端直接使用 base 环境、保留原始数据并使用同一脚本重建。
-- 结果与证据：文档已明确区分原始 background 与训练 ignore，并将转换脚本状态更新为已落地。
+- 措施：修订 `doc/dataset.md` 和 `doc/museg-dformer-data-processing-review.md`；当时另建云端重建临时指南，后续在数据验收完成并建立 4090 正式训练交接计划后已清理。
+- 结果与证据：稳定数据规则保留在 `doc/dataset.md`，文档已明确区分原始 background 与训练 ignore，并将转换脚本状态更新为已落地。
 
 ## 三、代码与配置改动
 
@@ -77,8 +77,8 @@
   - 将标签结论从暂定改为已确认；
   - 将全零标签图改称全背景图；
   - 将转换脚本状态更新为已实现并验证。
-- `doc/云/MUSeg云端重建指南.md`
-  - 提供 base 环境下的云端同步、重建、验收和 Git 数据保护流程。
+- 历史云端重建临时指南（后续已清理）
+  - 当时提供云端同步、重建、验收和 Git 数据保护流程；稳定规则现由 `doc/dataset.md` 承接。
 
 ## 四、验证结果
 
@@ -141,4 +141,4 @@ python tools/prepare_museg.py --overwrite
 - 原始输入：`../dataset/MUSeg`；
 - 转换输出：`../dataset/MUSeg_DFormer`。
 
-禁止删除原始 `MUSeg`，禁止分别为 train/test 计算量化范围，禁止把数据集、转换结果或 checkpoint 加入 Git。云端完整流程见 `doc/云/MUSeg云端重建指南.md`。
+禁止删除原始 `MUSeg`，禁止分别为 train/test 计算量化范围，禁止把数据集、转换结果或 checkpoint 加入 Git。稳定的数据重建规则见 `doc/dataset.md`；当前云端训练入口见 `doc/临时/待执行/MUSeg-4090云端训练交接计划.md`。

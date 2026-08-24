@@ -179,4 +179,4 @@ A1/B1 本地测试：
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-云端代码和结果路径见 `doc/临时/云/MUSeg-20epoch-A2云端执行流程.md`。新的执行总计划已同步更新为当前 A1/B1/A2 判定，不再把未执行的 20 epoch、64 图 A2 或 B2 写作已完成事项。
+历史云端 MVE/A2 的执行结论、任务记录和结果已归档在本报告及 `doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`。原 `doc/临时` 执行文档已在后续计划清理中合并删除；当前唯一待执行入口为 `doc/临时/待执行/MUSeg-4090云端训练交接计划.md`。
