@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.5",
+  "nextCanvasVersion": "0.0.6",
   "latestFormalReport": {
     "path": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
     "periodStart": "2026-08-19",
@@ -81,6 +81,15 @@
       "publishedFilename": "0.0.4-museg-minimum-validation-paths.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-19-museg-minimum-validation-paths.md",
       "createdAt": "2026-08-19",
+      "status": "reference"
+    },
+    {
+      "version": "0.0.5",
+      "name": "museg-mve-outcome-and-disposition",
+      "source": "doc/canvases/0.0.5-museg-mve-outcome-and-disposition.canvas.tsx",
+      "publishedFilename": "0.0.5-museg-mve-outcome-and-disposition.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
+      "createdAt": "2026-08-21",
       "status": "current"
     }
   ]
