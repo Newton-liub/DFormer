@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.8",
+  "nextCanvasVersion": "0.0.9",
   "latestFormalReport": {
     "path": "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md",
     "periodStart": "2026-08-25",
@@ -9,6 +9,15 @@
     "status": "stage-2-gate-b-signed"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-08-26-museg-stage05-seed1-prelaunch.md",
+      "topic": "museg-stage05-seed1-prelaunch",
+      "periodStart": "2026-08-25",
+      "periodEnd": "2026-08-26",
+      "baseCommit": "56544eacf83b535c49095d7b21060634f36fe1f3",
+      "verification": "stage04-gate-d-evidence-current-read-only-preflights-pass-no-training-no-official-test",
+      "status": "formal"
+    },
     {
       "path": "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md",
       "topic": "museg-stage-2-gate-b-auditable-training-pipeline",
@@ -126,6 +135,15 @@
       "publishedFilename": "0.0.7-museg-gate-b-auditable-training-pipeline.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md",
       "createdAt": "2026-08-25",
+      "status": "current"
+    },
+    {
+      "version": "0.0.8",
+      "name": "museg-stage05-seed1-prelaunch",
+      "source": "doc/canvases/0.0.8-museg-stage05-seed1-prelaunch.canvas.tsx",
+      "publishedFilename": "0.0.8-museg-stage05-seed1-prelaunch.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-26-museg-stage05-seed1-prelaunch.md",
+      "createdAt": "2026-08-26",
       "status": "current"
     }
   ]
