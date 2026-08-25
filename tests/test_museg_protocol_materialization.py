@@ -65,6 +65,13 @@ def _clean_repo(path: Path) -> str:
     return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=path, text=True).strip()
 
 
+def test_tracked_frozen_split_bytes_match_manifest() -> None:
+    root = museg_protocol.FROZEN_SPLIT_ROOT
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    for name, record in manifest["outputs"].items():
+        assert _sha(root / name) == record["sha256"]
+
+
 def test_tracked_template_is_not_a_runnable_protocol() -> None:
     with pytest.raises(ProtocolError, match="full 40-character"):
         load_protocol(materializer.TEMPLATE_PATH)

@@ -183,3 +183,7 @@ git -c core.whitespace=cr-at-eol diff --check
 - 不读取 official test，不用 official test 选择 batch、epoch、checkpoint 或任何研究参数。
 - 不提交数据、权重、protocol 物化产物、日志或运行证据。
 - 不在有卡 B1、preflight、batch 门禁 C、短训和恢复演练全部完成前进入阶段 05。
+
+### 11.8 云端协议物化前的跨平台冻结字节修复
+
+云端静态核验发现，`official-test.txt` 的冻结 SHA-256 对应原始 CRLF 字节，但该文件此前被 Git 作为普通文本规范化为 LF。Windows 的 `core.autocrlf=true` 会在检出时恢复 CRLF，因此本地测试未暴露问题；Linux 云端则检出 LF，导致“干净工作树”和“冻结哈希正确”无法同时成立。修复将该特定冻结文件标记为 `-text` 并按原始 CRLF 字节重新入库，同时增加直接比较跟踪文件与冻结 manifest 输出哈希的回归测试。修复后本地无卡验收为 `100 passed, 10 warnings`，其余 compile、Shell 语法和 diff whitespace 检查均通过；warning 仍全部是既有的 AMP API 弃用提示。
