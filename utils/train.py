@@ -1,8 +1,10 @@
 import argparse
 import datetime
 import os
+import platform
 import pprint
 import random
+import subprocess
 import time
 from importlib import import_module
 
@@ -14,17 +16,24 @@ from torch.nn.parallel import DistributedDataParallel
 from val_mm import evaluate, evaluate_msf
 
 from models.builder import EncoderDecoder as segmodel
+from tools.museg_protocol import write_json
 from utils.dataloader.dataloader import get_train_loader, get_val_loader
 from utils.dataloader.RGBXDataset import RGBXDataset
 from utils.engine.engine import Engine
 from utils.engine.logger import get_logger
-from utils.experiment_tracker import ExperimentTracker, build_run_name, gpu_safety_violation
+from utils.experiment_tracker import (
+    ExperimentTracker,
+    build_museg_run_config,
+    build_run_name,
+    gpu_safety_violation,
+)
 from utils.init_func import configure_optimizers, group_weight
 from utils.lr_policy import WarmUpPolyLR
 from utils.pyt_utils import all_reduce_tensor
 from utils.training_checkpoint import (
     CheckpointProtocol,
     build_split_metadata,
+    file_sha256,
     get_git_commit,
     optimizer_step_was_applied,
     prepare_output_directory,
@@ -65,11 +74,24 @@ parser.add_argument("--save-interval", type=int, default=None)
 parser.add_argument("--seed", type=int, default=None)
 parser.add_argument("--run-id", default=None)
 parser.add_argument("--output-dir", default=None)
-parser.add_argument(
-    "--expected-split-sha256",
-    default=None,
-    help="expected SHA-256 for train_source; val/test hashes come from explicit config metadata",
-)
+parser.add_argument("--protocol-id", default=None)
+parser.add_argument("--schedule-version", default=None)
+parser.add_argument("--protocol-manifest-sha256", default=None)
+parser.add_argument("--required-git-commit", default=None)
+parser.add_argument("--experiment-phase", choices=("qualification", "development", "official"), default=None)
+parser.add_argument("--train-source", default=None)
+parser.add_argument("--val-source", default=None)
+parser.add_argument("--test-source", default=None)
+parser.add_argument("--pretrained-model", default=None)
+parser.add_argument("--expected-split-sha256", default=None, help="legacy alias for expected train split SHA-256")
+parser.add_argument("--expected-train-split-sha256", default=None)
+parser.add_argument("--expected-val-split-sha256", default=None)
+parser.add_argument("--expected-test-split-sha256", default=None)
+parser.add_argument("--expected-train-samples", type=int, default=None)
+parser.add_argument("--expected-val-samples", type=int, default=None)
+parser.add_argument("--expected-test-samples", type=int, default=None)
+parser.add_argument("--resume-parent-run-id", default=None)
+parser.add_argument("--resume-checkpoint-sha256", default=None)
 parser.add_argument("--sliding", default=False, action=argparse.BooleanOptionalAction)
 parser.add_argument("--compile", default=False, action=argparse.BooleanOptionalAction)
 parser.add_argument("--compile_mode", default="default")
@@ -158,6 +180,16 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         config.seed = args.seed
     if args.run_id is not None:
         config.run_id = args.run_id
+    if args.experiment_phase is not None:
+        config.experiment_phase = args.experiment_phase
+    if args.train_source is not None:
+        config.train_source = os.path.abspath(args.train_source)
+    if args.val_source is not None:
+        config.val_source = os.path.abspath(args.val_source)
+    if args.test_source is not None:
+        config.test_source = os.path.abspath(args.test_source)
+    if args.pretrained_model is not None:
+        config.pretrained_model = os.path.abspath(args.pretrained_model)
 
     config.eval_interval = int(getattr(config, "eval_interval", 10))
     config.eval_start_epoch = int(getattr(config, "eval_start_epoch", 1))
@@ -177,12 +209,25 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     config.val_source = sources.val_source
     config.test_source = sources.test_source
     expected_split_sha256 = dict(getattr(config, "expected_split_sha256", {}))
-    if args.expected_split_sha256:
-        expected_split_sha256["train"] = args.expected_split_sha256
+    expected_split_samples = dict(getattr(config, "expected_split_samples", {}))
+    for role, value in (
+        ("train", args.expected_train_split_sha256 or args.expected_split_sha256),
+        ("val", args.expected_val_split_sha256),
+        ("test", args.expected_test_split_sha256),
+    ):
+        if value is not None:
+            expected_split_sha256[role] = value
+    for role, value in (
+        ("train", args.expected_train_samples),
+        ("val", args.expected_val_samples),
+        ("test", args.expected_test_samples),
+    ):
+        if value is not None:
+            expected_split_samples[role] = value
     split_metadata = build_split_metadata(
         sources,
         expected_sha256=expected_split_sha256,
-        expected_samples=getattr(config, "expected_split_samples", {}),
+        expected_samples=expected_split_samples,
         read_test_source=False,
     )
     config.num_train_imgs = split_metadata["train"]["samples"]
@@ -208,6 +253,37 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         parser.error("--min-free-vram-gib cannot be negative")
     if not 0.0 <= args.min_free_vram_ratio <= 1.0:
         parser.error("--min-free-vram-ratio must be between 0 and 1")
+    protocol_identity = (
+        args.protocol_id,
+        args.schedule_version,
+        args.protocol_manifest_sha256,
+        args.required_git_commit,
+    )
+    if any(protocol_identity) and not all(protocol_identity):
+        parser.error(
+            "--protocol-id, --schedule-version, --protocol-manifest-sha256, and --required-git-commit are required together"
+        )
+    if args.protocol_id:
+        repository = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        current_commit = get_git_commit(repository)
+        ancestry = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", args.required_git_commit, current_commit],
+            cwd=repository,
+            capture_output=True,
+        )
+        if ancestry.returncode != 0:
+            parser.error(
+                f"current Git commit {current_commit} does not contain required commit {args.required_git_commit}"
+            )
+    resume_identity = (args.continue_fpath, args.resume_parent_run_id, args.resume_checkpoint_sha256)
+    if any(resume_identity) and not all(resume_identity):
+        parser.error("resume requires checkpoint, --resume-parent-run-id, and --resume-checkpoint-sha256")
+    if args.continue_fpath:
+        actual_resume_sha256 = file_sha256(args.continue_fpath)
+        if actual_resume_sha256.lower() != args.resume_checkpoint_sha256.lower():
+            parser.error(
+                f"resume checkpoint SHA-256 mismatch: expected {args.resume_checkpoint_sha256}, got {actual_resume_sha256}"
+            )
 
     output_dir = os.path.abspath(args.output_dir or config.log_dir)
     prepare_output_directory(output_dir, resume_path=args.continue_fpath)
@@ -307,6 +383,45 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         repo_root=os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
     )
     logger.info(f"experiment run name: {run_name}")
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    git_commit = get_git_commit(repo_root)
+    pretrained_sha256 = file_sha256(config.pretrained_model) if os.path.isfile(config.pretrained_model) else None
+    try:
+        gpu_driver = subprocess.check_output(
+            ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader", "--id=0"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        gpu_driver = None
+    runtime_environment = {
+        "python": platform.python_version(),
+        "pytorch": torch.__version__,
+        "cuda": torch.version.cuda,
+        "cudnn": torch.backends.cudnn.version(),
+        "driver": gpu_driver,
+        "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+    }
+    tracker_config = build_museg_run_config(
+        config=config,
+        args=args,
+        protocol_id=args.protocol_id or "legacy-unversioned",
+        schedule_version=args.schedule_version or "legacy-unversioned",
+        phase=config.experiment_phase,
+        run_id=str(getattr(config, "run_id", run_name)),
+        seed=config.seed,
+        git_commit=git_commit,
+        split_metadata=split_metadata,
+        output_dir=config.log_dir,
+        resume_parent=args.resume_parent_run_id,
+        resume_checkpoint_sha256=args.resume_checkpoint_sha256,
+        pretrained_sha256=pretrained_sha256,
+        environment=runtime_environment,
+        val_batch_size=val_batch_size,
+    )
+    tracker_config["protocol"]["manifest_sha256"] = args.protocol_manifest_sha256
+    if is_primary:
+        write_json(os.path.join(config.log_dir, "run_config.json"), tracker_config)
     tracker.start(
         mode=args.swanlab_mode,
         is_primary=is_primary,
@@ -314,27 +429,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         workspace=args.swanlab_workspace,
         name=run_name,
         log_dir=config.log_dir,
-        config={
-            "config_module": args.config,
-            "experiment_phase": config.experiment_phase,
-            "run_id": str(getattr(config, "run_id", run_name)),
-            "seed": config.seed,
-            "resume_from": os.path.abspath(args.continue_fpath) if args.continue_fpath else None,
-            "parent_run_id": str(getattr(config, "run_id", run_name)) if args.continue_fpath else None,
-            "dataset": config.dataset_name,
-            "backbone": config.backbone,
-            "epochs": config.nepochs,
-            "batch_size": config.batch_size,
-            "val_batch_size": val_batch_size,
-            "workers": config.num_workers,
-            "optimizer": config.optimizer,
-            "learning_rate": config.lr,
-            "weight_decay": config.weight_decay,
-            "amp": args.amp,
-            "max_train_iters": args.max_train_iters,
-            "min_free_vram_gib": args.min_free_vram_gib,
-            "min_free_vram_ratio": args.min_free_vram_ratio,
-        },
+        config=tracker_config,
     )
 
     criterion = nn.CrossEntropyLoss(reduction="none", ignore_index=config.background)
@@ -471,6 +566,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     train_steps_completed = 0
     global_optimizer_steps = engine.state.global_optimizer_step
     short_run_reached = False
+    training_started_monotonic = time.monotonic()
     for epoch in range(engine.state.epoch, config.nepochs + 1):
         model = compiled_model
         model.train()
@@ -836,4 +932,28 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         logger.info(
             f"Avg train time: {train_timer.mean_time:.2f}s, avg eval time: {mean_eval_time:.2f}s, "
             f"left eval count: {eval_count}, ETA: {eta}"
+        )
+
+    if is_primary:
+        latest_checkpoint = os.path.join(config.checkpoint_dir, "latest.pth")
+        write_json(
+            os.path.join(config.log_dir, "training_result.json"),
+            {
+                "schema_version": "museg-training-result-v1",
+                "protocol_id": args.protocol_id,
+                "protocol_manifest_sha256": args.protocol_manifest_sha256,
+                "phase": config.experiment_phase,
+                "run_id": protocol_run_id,
+                "seed": int(config.seed),
+                "best_val_miou": float(best_miou) if best_miou is not None else None,
+                "best_val_epoch": int(best_miou_epoch) if best_miou_epoch is not None else None,
+                "final_epoch": int(epoch),
+                "duration_seconds": float(time.monotonic() - training_started_monotonic),
+                "exit_code": 0,
+                "checkpoint": {
+                    "path": os.path.abspath(latest_checkpoint),
+                    "sha256": file_sha256(latest_checkpoint),
+                } if os.path.isfile(latest_checkpoint) else None,
+                "official_test_included": False,
+            },
         )

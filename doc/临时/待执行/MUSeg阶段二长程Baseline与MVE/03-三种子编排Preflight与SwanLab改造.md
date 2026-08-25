@@ -111,3 +111,31 @@ warning 必须有明确分类：允许继续的建议性 warning 与阻塞 error
 - SwanLab 和本地 JSON 都能追溯 commit、split、seed、超参数、环境和 resume。
 - preflight 在 GPU 分配前发现协议、路径和工作区错误。
 - Sol 签署端到端接口，允许进入 04。
+
+## 11. 执行完成记录（2026-08-25）
+
+### 11.1 已实现接口
+
+- 新增 `museg-training-protocol-v1` 协议清单契约及 JSON Schema；契约冻结 protocol/schedule/phase/model、完整 Git commit、固定 seeds、隔离输出根、四类 split 的数量/group/SHA-256、预训练权重精确身份、训练参数和 SwanLab 模式。加载器拒绝未知顶层字段、重复或负 seed、非十六进制身份哈希、不安全 protocol 路径段，并保留 Windows/Unix 路径和末尾 `#`。
+- 新增 `tools/run_museg_seed.py`：单 seed 输出目录为 `<output-root>/<protocol-id>/<phase>/seed-<seed>`，透传 02 冻结的 source/hash/count/schedule/seed/output/checkpoint/SwanLab 参数；默认拒绝非空目录；resume 必须同时提供 parent run ID 与实际匹配的 checkpoint SHA-256。无论 trainer 返回非零还是进程启动失败，均写入 `launcher.log`、`command.json`、`environment.json`、`train.exit_code` 和 `run_manifest.json`；即使 trainer 返回 0，也必须生成身份完全匹配、未包含 official test 的 `training_result.json`，development/official 还必须提供可读且 SHA-256 匹配的 checkpoint，否则 launcher 把该运行记录为失败。
+- 新增 `tools/run_museg_3seed.py`：严格前台顺序启动 manifest 声明的 seed，首个非零退出立即停止且始终写入 `orchestrator.json`；Python/launcher 进程本身无法启动时也以结构化失败记录对应 seed。支持只对一个明确 seed 透传受控 resume 三元组；全部成功后调用训练/validation 汇总器，若汇总失败则改写整体退出状态并写入 `summary_error`，汇总不包含 official test。
+- 新增 `tools/summarize_museg_runs.py` 与 `tools/summarize_museg_probe.py`：训练汇总器拒绝缺 run、重复/未声明 seed、损坏 JSON、非零退出、跨 protocol/manifest/phase 产物、official test 未封存和 checkpoint SHA 不匹配；development/official 还必须有有效 checkpoint。probe 汇总结构化记录完成步数、吞吐、step time、显存、loss、AMP scale、OOM/非 OOM 异常。4090 shell 在 OOM 或其他失败后停止更大 batch，同时仍保留部分 probe summary；batch 推荐只在绝对和比例显存阈值均满足时按稳定吞吐选择，并强制人工确认。
+- `tools/preflight_train.py` 新增机器可读协议审计：Git branch/commit/dirty/required-commit ancestry，四 split 数量、重复、样本/group 交集、闭合关系与 SHA-256，phase 角色和 sealed official test，预训练权重大小/SHA，输出父目录与碰撞，Python/包/PyTorch/CUDA/cuDNN/驱动/GPU 环境，以及 SwanLab 包、非交互 online 凭据和 warning/error 分级。
+- `utils/experiment_tracker.py` 和 `utils/train.py` 写出完整版本化 run config：protocol、phase/run/seed/commit/dirty、数据与模态、split 封存元数据、schedule、optimizer/LR/warmup/weight decay、augmentation/evaluation、checkpoint schema、resume parent/SHA、预训练 SHA 和运行环境。SwanLab 保持 rank 0 only、显式名称优先、`interactive=False`、初始化失败直传和 finish 幂等；训练结束由 rank 0 写 `training_result.json`。
+- official test 在训练入口继续使用 `read_test_source=False`：只把 manifest 中已审计的路径、数量和 SHA 写为 `sealed_unread` 元数据；official phase 不创建 validation loader，也不读取 test 清单。
+
+### 11.2 测试先行与静态验证
+
+- 新增 `tests/test_museg_stage03.py`；新增约束先观察到 `3 failed, 7 passed`（退出码 1），随后实现到 `15 passed`（退出码 0）。覆盖参数透传、空/非空输出、Windows 路径和末尾 `#`、resume parent+SHA、顺序/失败即停、指定 seed resume、Git dirty 与生成输出排除、split/phase/权重/输出/SwanLab preflight 错误、启动失败结构化证据、成功但缺失/错绑训练结果、orchestrator 启动/汇总失败、SwanLab 元数据和汇总器失败矩阵。
+- `python -m pytest -q tests/test_museg_stage03.py tests/test_training_ops.py tests/test_training_checkpoint.py`：退出码 0，`49 passed, 9 warnings`。
+- `python -m pytest -q tests`：退出码 0，`85 passed, 9 warnings`。warning 均来自 02 的 CPU checkpoint 测试使用旧 `torch.cuda.amp.GradScaler` API，不是本阶段失败。
+- `python -m compileall -q utils tools tests local_configs`：退出码 0；协议 JSON Schema 已通过 PowerShell `ConvertFrom-Json` 解析。
+- `bash -n tools/probe_museg_4090.sh tools/train_museg_4090.sh`：当前系统 Bash 可用，退出码 0；`git -c core.whitespace=cr-at-eol diff --check`：退出码 0。
+- 协议 Python 文件未发现新增语言服务诊断。preflight 中 PIL/PyTorch 的编辑器环境缺包提示属于可选运行环境诊断，真实 preflight 会将缺包写为阻塞 error。
+
+### 11.3 Sol 最终复核、边界与剩余风险
+
+- Sol 已逐项复核 protocol 字段契约、launcher 参数透传、失败传播、训练结果与 checkpoint 身份绑定、SwanLab rank 0/显式名称/fail-fast/finish-once，以及 official test `sealed_unread` 的 preflight—launcher—trainer—summary 路径；本阶段端到端接口复核通过。
+- 本阶段未提交 Git，未修改原始数据，未运行 GPU/CUDA 调用、4090 probe 或任何真实训练，也未在线初始化 SwanLab。
+- fake launcher 证明了编排和失败传播；真实 DDP、GPU 遥测、OOM 分类和在线 SwanLab 凭据链路尚未做运行验证，按计划留给 04。
+- 阶段 03 的 CPU/静态实现与 Sol 复核已完成；本记录不表示 01–03 整体复核、门禁 B、后续阶段或 GPU qualification 已通过。

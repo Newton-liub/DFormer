@@ -39,6 +39,96 @@ def build_run_name(
     return f"{dataset}-{backbone}-{timestamp}-{git_commit or 'nogit'}"
 
 
+def build_museg_run_config(
+    *,
+    config: Any,
+    args: Any,
+    protocol_id: str,
+    schedule_version: str,
+    phase: str,
+    run_id: str,
+    seed: int,
+    git_commit: str,
+    split_metadata: Mapping[str, Any],
+    output_dir: str,
+    resume_parent: str | None,
+    resume_checkpoint_sha256: str | None,
+    pretrained_sha256: str | None,
+    environment: Mapping[str, Any],
+    val_batch_size: int,
+) -> dict[str, Any]:
+    """Build the complete, versioned MUSeg local/SwanLab metadata contract."""
+    iterations = int(config.niters_per_epoch)
+    epochs = int(config.nepochs)
+    warmup_epochs = int(getattr(config, "warm_up_epoch", 0))
+    return {
+        "schema_version": "museg-run-config-v1",
+        "protocol": {"id": protocol_id, "schedule_version": schedule_version},
+        "identity": {
+            "phase": phase,
+            "run_id": run_id,
+            "seed": int(seed),
+            "git_commit": git_commit,
+            "dirty": False,
+        },
+        "data": {
+            "dataset": config.dataset_name,
+            "model": config.backbone,
+            "backbone": config.backbone,
+            "input_modalities": ["RGB", str(getattr(config, "x", "Depth"))],
+            "depth_version": "single-channel" if bool(getattr(config, "x_is_single_channel", False)) else "configured",
+            "splits": dict(split_metadata),
+        },
+        "schedule": {
+            "epochs": epochs,
+            "iterations_per_epoch": iterations,
+            "total_iterations": epochs * iterations,
+            "batch_size": int(config.batch_size),
+            "val_batch_size": int(val_batch_size),
+            "workers": int(config.num_workers),
+            "amp": bool(args.amp),
+            "validation_amp": bool(args.val_amp),
+            "compile": bool(args.compile),
+            "syncbn": bool(args.syncbn),
+        },
+        "optimization": {
+            "optimizer": config.optimizer,
+            "base_lr": float(config.lr),
+            "poly_power": float(config.lr_power),
+            "warmup_epochs": warmup_epochs,
+            "warmup_iterations": warmup_epochs * iterations,
+            "weight_decay": float(config.weight_decay),
+        },
+        "augmentation": {
+            "train_scale": list(getattr(config, "train_scale_array", [])),
+            "eval_scale": list(getattr(config, "eval_scale_array", [1.0])),
+            "flip": bool(getattr(config, "eval_flip", False)),
+            "sliding": bool(args.sliding),
+            "mst": bool(args.mst),
+        },
+        "evaluation": {
+            "start_epoch": int(config.eval_start_epoch),
+            "interval": int(config.eval_interval),
+            "save_interval": int(config.save_interval),
+            "best_metric": "val_miou",
+            "tie_break": "strict-greater-keeps-earliest",
+        },
+        "output": {
+            "directory": str(output_dir),
+            "checkpoint_schema": "dformer-training-checkpoint-v2",
+        },
+        "resume": {
+            "parent_run_id": resume_parent,
+            "checkpoint_sha256": resume_checkpoint_sha256,
+        },
+        "environment": dict(environment),
+        "pretrained": {
+            "path": str(getattr(config, "pretrained_model", "")),
+            "sha256": pretrained_sha256,
+        },
+    }
+
+
 def gpu_safety_violation(
     free_bytes: int,
     total_bytes: int,
