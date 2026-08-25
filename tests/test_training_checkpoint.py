@@ -489,3 +489,30 @@ def test_checkpoint_inspection_hashes_logical_state_and_parent_identity(tmp_path
             expected_protocol=_protocol(run_id="child-run"),
             expected_checkpoint_run_id="wrong-parent",
         )
+
+
+def test_resume_equivalence_comparison_only_ignores_protocol_run_id() -> None:
+    continuous = _protocol(run_id="continuous-run").to_dict()
+    resumed = _protocol(run_id="resumed-child-run").to_dict()
+    expected = {
+        "schema_version": CHECKPOINT_SCHEMA_VERSION,
+        "completed_epoch": 3,
+        "next_epoch": 4,
+        "global_optimizer_step": 3,
+        "best_val_miou": 0.5,
+        "best_val_epoch": 3,
+        "optimizer_lrs": [0.01],
+        "protocol": continuous,
+        "component_sha256": {"model": "a", "optimizer": "b", "amp_scaler": "c", "rng_state": "d"},
+    }
+    actual = {**expected, "protocol": resumed}
+
+    assert compare_checkpoint_inspections(expected, actual) == ["protocol"]
+    assert compare_checkpoint_inspections(expected, actual, allow_protocol_run_id_mismatch=True) == []
+
+    resumed_with_other_change = {**resumed, "seed": 8}
+    assert compare_checkpoint_inspections(
+        expected,
+        {**actual, "protocol": resumed_with_other_change},
+        allow_protocol_run_id_mismatch=True,
+    ) == ["protocol"]

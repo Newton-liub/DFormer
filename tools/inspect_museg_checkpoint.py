@@ -23,6 +23,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     compare_parser.add_argument("--actual-checkpoint", required=True)
     compare_parser.add_argument("--expected-trace")
     compare_parser.add_argument("--actual-trace")
+    compare_parser.add_argument(
+        "--allow-protocol-run-id-mismatch",
+        action="store_true",
+        help="for resume equivalence only, ignore the logical checkpoint protocol run_id",
+    )
     compare_parser.add_argument("--output", required=True)
     args = parser.parse_args(argv)
 
@@ -34,7 +39,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     expected = inspect_training_checkpoint(args.expected_checkpoint)
     actual = inspect_training_checkpoint(args.actual_checkpoint)
-    mismatches = compare_checkpoint_inspections(expected, actual)
+    mismatches = compare_checkpoint_inspections(
+        expected,
+        actual,
+        allow_protocol_run_id_mismatch=args.allow_protocol_run_id_mismatch,
+    )
     trace = None
     if args.expected_trace:
         expected_records = [json.loads(line) for line in Path(args.expected_trace).read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -55,6 +64,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "pass": not mismatches,
             "expected": expected,
             "actual": actual,
+            "allow_protocol_run_id_mismatch": args.allow_protocol_run_id_mismatch,
             "trace": trace,
             "mismatches": mismatches,
         },

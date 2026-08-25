@@ -29,6 +29,7 @@
 - 官方 test 始终为 `sealed_unread`；不得读取、抽样、评估，也不得用于 batch、epoch、checkpoint 或超参数选择。
 - batch 4/8/12/16 probe 是独立 GPU 门禁。没有用户明确授权时不得启动。
 - probe 完成后必须停在人工门禁 C，等用户确认 batch；不得自动进入 3-epoch qualification。
+- 用户已在门禁 C 选择 batch 10；最终 protocol 必须显式绑定 batch 10，并在该 protocol 身份下重跑 B1/full preflight 后才能启动短训。
 - qualification、连续/恢复演练通过后必须停在人工门禁 D；门禁 D 前不得进入阶段 05。
 - 运行证据、日志、协议物化产物、checkpoint、数据和权重保存在云端 qualification 根目录，不提交 Git。
 
@@ -62,6 +63,7 @@
 - 文档提交也会改变 Git commit。同步本交接文档后，不得把旧协议冒充为新提交的协议；继续 exact-commit qualification 前，必须归档旧协议、为新干净提交重新物化协议，并在 batch probe 前重跑 B1 和完整 preflight。旧报告保留为已通过历史与回归对照，不得改写其中的身份。
 - 不要修改已有运行证据来“更新 commit”；旧证据按原提交和原 SHA 保留。
 - 恢复父身份使用逻辑 `parent_run_id`；恢复子运行必须使用唯一新 `run_id`、不同输出目录，并校验 resume checkpoint SHA-256。SwanLab 后端 ID/URL 仅作为额外远端证据。
+- checkpoint 默认比较要求完整 protocol 一致；恢复等价比较可显式忽略唯一合法差异 `protocol.run_id`，其余 protocol 字段、epoch/global step、LR、best、模型、optimizer、AMP scaler 和 RNG 哈希仍必须一致。
 
 ## 6. 已通过、无需无条件重复的核验
 

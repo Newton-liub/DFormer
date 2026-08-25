@@ -470,13 +470,31 @@ def inspect_training_checkpoint(
 def compare_checkpoint_inspections(
     expected: Mapping[str, Any],
     actual: Mapping[str, Any],
+    *,
+    allow_protocol_run_id_mismatch: bool = False,
 ) -> list[str]:
-    """Return deterministic field paths that differ between two audit summaries."""
+    """Return deterministic field paths that differ between two audit summaries.
+
+    A resume-equivalence comparison may ignore only the checkpoint protocol's
+    logical ``run_id``. The parent, resumed child, and uninterrupted reference
+    deliberately have distinct run identities; every other protocol and state
+    field remains part of the equivalence contract.
+    """
     fields = (
         "schema_version", "completed_epoch", "next_epoch", "global_optimizer_step",
         "best_val_miou", "best_val_epoch", "optimizer_lrs", "protocol", "component_sha256",
     )
-    return [field for field in fields if _to_jsonable(expected.get(field)) != _to_jsonable(actual.get(field))]
+    mismatches = []
+    for field in fields:
+        expected_value = _to_jsonable(expected.get(field))
+        actual_value = _to_jsonable(actual.get(field))
+        if field == "protocol" and allow_protocol_run_id_mismatch:
+            if isinstance(expected_value, dict) and isinstance(actual_value, dict):
+                expected_value = {key: value for key, value in expected_value.items() if key != "run_id"}
+                actual_value = {key: value for key, value in actual_value.items() if key != "run_id"}
+        if expected_value != actual_value:
+            mismatches.append(field)
+    return mismatches
 
 
 def _validate_checkpoint_structure(checkpoint: Any, path: Path) -> dict[str, Any]:
