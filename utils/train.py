@@ -22,6 +22,17 @@ from utils.experiment_tracker import ExperimentTracker, build_run_name, gpu_safe
 from utils.init_func import configure_optimizers, group_weight
 from utils.lr_policy import WarmUpPolyLR
 from utils.pyt_utils import all_reduce_tensor
+from utils.training_checkpoint import (
+    CheckpointProtocol,
+    build_split_metadata,
+    get_git_commit,
+    optimizer_step_was_applied,
+    prepare_output_directory,
+    resolve_training_sources,
+    select_best_metric,
+    should_evaluate,
+    should_save_epoch,
+)
 
 # from eval import evaluate_mid
 
@@ -47,6 +58,18 @@ parser.add_argument("--show_image", "-s", default=False, action="store_true")
 parser.add_argument("--save_path", default=None)
 parser.add_argument("--checkpoint-dir", "--checkpoint_dir", dest="checkpoint_dir")
 parser.add_argument("--continue_fpath")
+parser.add_argument("--resume", dest="continue_fpath", help="resume from a versioned epoch-boundary checkpoint")
+parser.add_argument("--eval-interval", type=int, default=None)
+parser.add_argument("--eval-start-epoch", type=int, default=None)
+parser.add_argument("--save-interval", type=int, default=None)
+parser.add_argument("--seed", type=int, default=None)
+parser.add_argument("--run-id", default=None)
+parser.add_argument("--output-dir", default=None)
+parser.add_argument(
+    "--expected-split-sha256",
+    default=None,
+    help="expected SHA-256 for train_source; val/test hashes come from explicit config metadata",
+)
 parser.add_argument("--sliding", default=False, action=argparse.BooleanOptionalAction)
 parser.add_argument("--compile", default=False, action=argparse.BooleanOptionalAction)
 parser.add_argument("--compile_mode", default="default")
@@ -66,9 +89,6 @@ import torch._dynamo
 torch._dynamo.config.suppress_errors = True
 # torch._dynamo.config.automatic_dynamic_shapes = False
 
-
-def is_eval(epoch, config):
-    return epoch > int(config.checkpoint_start_epoch) or epoch == 1 or epoch % 10 == 0
 
 
 class gpu_timer:
@@ -127,16 +147,51 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     if args.epochs is not None:
         if args.epochs <= 0:
             parser.error("--epochs must be positive")
-        original_nepochs = config.nepochs
-        terminal_eval_follows_nepochs = getattr(config, "checkpoint_start_epoch", None) == original_nepochs
         config.nepochs = args.epochs
-        if terminal_eval_follows_nepochs:
-            config.checkpoint_start_epoch = config.nepochs
+    if args.eval_interval is not None:
+        config.eval_interval = args.eval_interval
+    if args.eval_start_epoch is not None:
+        config.eval_start_epoch = args.eval_start_epoch
+    if args.save_interval is not None:
+        config.save_interval = args.save_interval
+    if args.seed is not None:
+        config.seed = args.seed
+    if args.run_id is not None:
+        config.run_id = args.run_id
+
+    config.eval_interval = int(getattr(config, "eval_interval", 10))
+    config.eval_start_epoch = int(getattr(config, "eval_start_epoch", 1))
+    config.save_interval = int(
+        getattr(config, "save_interval", getattr(config, "checkpoint_step", 10))
+    )
+    if config.eval_interval <= 0:
+        parser.error("--eval-interval must be positive")
+    if not 1 <= config.eval_start_epoch <= config.nepochs:
+        parser.error("--eval-start-epoch must be within the configured epochs")
+    if config.save_interval <= 0:
+        parser.error("--save-interval must be positive")
+
+    sources = resolve_training_sources(config)
+    config.experiment_phase = sources.phase
+    config.train_source = sources.train_source
+    config.val_source = sources.val_source
+    config.test_source = sources.test_source
+    expected_split_sha256 = dict(getattr(config, "expected_split_sha256", {}))
+    if args.expected_split_sha256:
+        expected_split_sha256["train"] = args.expected_split_sha256
+    split_metadata = build_split_metadata(
+        sources,
+        expected_sha256=expected_split_sha256,
+        expected_samples=getattr(config, "expected_split_samples", {}),
+        read_test_source=False,
+    )
+    config.num_train_imgs = split_metadata["train"]["samples"]
+
     if args.batch_size is not None:
         if args.batch_size <= 0:
             parser.error("--batch-size must be positive")
         config.batch_size = args.batch_size
-        config.niters_per_epoch = config.num_train_imgs // config.batch_size + 1
+    config.niters_per_epoch = config.num_train_imgs // config.batch_size + 1
     if args.workers is not None:
         if args.workers < 0:
             parser.error("--workers cannot be negative")
@@ -153,9 +208,19 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         parser.error("--min-free-vram-gib cannot be negative")
     if not 0.0 <= args.min_free_vram_ratio <= 1.0:
         parser.error("--min-free-vram-ratio must be between 0 and 1")
-    if args.checkpoint_dir:
-        config.checkpoint_dir = os.path.abspath(args.checkpoint_dir)
-        os.makedirs(config.checkpoint_dir, exist_ok=True)
+
+    output_dir = os.path.abspath(args.output_dir or config.log_dir)
+    prepare_output_directory(output_dir, resume_path=args.continue_fpath)
+    config.log_dir = output_dir
+    config.tb_dir = os.path.join(output_dir, "tb")
+    config.log_dir_link = output_dir
+    config.log_file = os.path.join(output_dir, "train.log")
+    config.link_log_file = os.path.join(output_dir, "log_last.log")
+    config.val_log_file = os.path.join(output_dir, "val.log")
+    config.link_val_log_file = os.path.join(output_dir, "val_last.log")
+    config.checkpoint_dir = os.path.abspath(
+        args.checkpoint_dir or os.path.join(output_dir, "checkpoint")
+    )
 
     logger = get_logger(config.log_dir, config.log_file, rank=engine.local_rank)
     # check if pad_SUNRGBD is used correctly
@@ -167,13 +232,15 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     if (not args.pad_SUNRGBD) and config.backbone.startswith("DFormerv2") and config.dataset_name == "SUNRGBD":
         raise ValueError("DFormerv2 is not recommended without pad_SUNRGBD")
     config.pad = args.pad_SUNRGBD
+    if not args.use_seed and config.experiment_phase in {"development", "official"}:
+        parser.error("development and official phases require deterministic --seed semantics")
     if args.use_seed:
         set_seed(config.seed)
         logger.info(f"set seed {config.seed}")
     else:
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
-        logger.info("use random seed")
+        logger.info("use random seed in legacy qualification mode")
 
     # assert not (args.compile and args.syncbn), "syncbn is not supported in compile mode"
     if not args.compile and args.compile_mode != "default":
@@ -207,13 +274,18 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         int(config.batch_size * val_dl_factor) if config.dataset_name != "SUNRGBD" else int(args.gpus)
     )
     val_batch_size = int(getattr(config, "val_batch_size", default_val_batch_size))
-    val_loader, val_sampler = get_val_loader(
-        engine,
-        RGBXDataset,
-        config,
-        val_batch_size=val_batch_size,
-    )
-    logger.info(f"val dataset len:{len(val_loader) * int(args.gpus)}")
+    val_loader = None
+    val_sampler = None
+    if config.val_source is not None:
+        val_loader, val_sampler = get_val_loader(
+            engine,
+            RGBXDataset,
+            config,
+            val_batch_size=val_batch_size,
+        )
+        logger.info(f"val dataset len:{len(val_loader) * int(args.gpus)}")
+    else:
+        logger.info("no training-time validation source configured; sealed test remains unread")
 
     if (engine.distributed and (engine.local_rank == 0)) or (not engine.distributed):
         tb_dir = config.tb_dir + "/{}".format(time.strftime("%b%d_%d-%H-%M", time.localtime()))
@@ -244,6 +316,11 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         log_dir=config.log_dir,
         config={
             "config_module": args.config,
+            "experiment_phase": config.experiment_phase,
+            "run_id": str(getattr(config, "run_id", run_name)),
+            "seed": config.seed,
+            "resume_from": os.path.abspath(args.continue_fpath) if args.continue_fpath else None,
+            "parent_run_id": str(getattr(config, "run_id", run_name)) if args.continue_fpath else None,
             "dataset": config.dataset_name,
             "backbone": config.backbone,
             "epochs": config.nepochs,
@@ -328,30 +405,53 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
 
-    engine.register_state(dataloader=train_loader, model=model, optimizer=optimizer)
+    if args.amp:
+        scaler = torch.cuda.amp.GradScaler()
+    else:
+        scaler = None
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    protocol_run_id = str(getattr(config, "run_id", run_name))
+    config_summary = {
+        "config_module": args.config,
+        "dataset": config.dataset_name,
+        "seed": config.seed,
+        "backbone": config.backbone,
+        "optimizer": config.optimizer,
+        "weight_decay": config.weight_decay,
+        "batch_size": config.batch_size,
+        "amp": args.amp,
+        "syncbn": args.syncbn,
+        "eval_start_epoch": config.eval_start_epoch,
+        "eval_interval": config.eval_interval,
+        "save_interval": config.save_interval,
+    }
+    checkpoint_protocol = CheckpointProtocol(
+        phase=config.experiment_phase,
+        run_id=protocol_run_id,
+        git_commit=get_git_commit(repo_root),
+        seed=config.seed,
+        model_name=config.backbone,
+        optimizer_name=config.optimizer,
+        total_epochs=config.nepochs,
+        iterations_per_epoch=config.niters_per_epoch,
+        warmup_steps=config.niters_per_epoch * config.warm_up_epoch,
+        poly_power=config.lr_power,
+        base_lr=base_lr,
+        split_metadata=split_metadata,
+        config_summary=config_summary,
+    )
+    engine.register_state(
+        dataloader=train_loader,
+        model=model,
+        optimizer=optimizer,
+        scaler=scaler,
+        checkpoint_protocol=checkpoint_protocol,
+    )
     if engine.continue_state_object:
         engine.restore_checkpoint()
 
     optimizer.zero_grad()
-
-    logger.info("begin trainning:")
-    data_setting = {
-        "rgb_root": config.rgb_root_folder,
-        "rgb_format": config.rgb_format,
-        "gt_root": config.gt_root_folder,
-        "gt_format": config.gt_format,
-        "transform_gt": config.gt_transform,
-        "x_root": config.x_root_folder,
-        "x_format": config.x_format,
-        "x_single_channel": config.x_is_single_channel,
-        "class_names": config.class_names,
-        "train_source": config.train_source,
-        "eval_source": config.eval_source,
-    }
-    # val_pre = ValPre()
-    # val_dataset = RGBXDataset(data_setting, 'val', val_pre)
-    # test_loader, test_sampler = get_test_loader(engine, RGBXDataset,config)
-    all_dev = [0]
+    logger.info("begin training")
     # segmentor = SegEvaluator(val_dataset, config.num_classes, config.norm_mean,
     #                                 config.norm_std, None,
     #                                 config.eval_scale_array, config.eval_flip,
@@ -361,14 +461,15 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         compiled_model = torch.compile(model, backend="inductor", mode=args.compile_mode)
     else:
         compiled_model = model
-    miou, best_miou = 0.0, 0.0
+    miou = 0.0
+    best_miou = engine.state.best_val_miou
+    best_miou_epoch = engine.state.best_val_epoch
     train_timer = gpu_timer()
     eval_timer = gpu_timer()
 
-    if args.amp:
-        scaler = torch.cuda.amp.GradScaler()
     log_interval = args.log_interval or max(1, int(config.niters_per_epoch * 0.1))
     train_steps_completed = 0
+    global_optimizer_steps = engine.state.global_optimizer_step
     short_run_reached = False
     for epoch in range(engine.state.epoch, config.nepochs + 1):
         model = compiled_model
@@ -428,18 +529,24 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             if engine.distributed:
                 reduce_loss = all_reduce_tensor(loss, world_size=engine.world_size)
 
+            optimizer_step_completed = True
             if args.amp:
-                # Scales loss. Calls ``backward()`` on scaled loss to create scaled gradients.
+                scale_before_step = scaler.get_scale()
                 scaler.scale(loss).backward()
-                # otherwise, optimizer.step() is skipped.
                 scaler.step(optimizer)
-                # Updates the scale for next iteration.
                 scaler.update()
-                optimizer.zero_grad(set_to_none=True)  # TODO: check if set_to_none=True impact the performance
+                optimizer_step_completed = optimizer_step_was_applied(
+                    scale_before_step,
+                    scaler.get_scale(),
+                )
+                optimizer.zero_grad(set_to_none=True)
             else:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+            if optimizer_step_completed:
+                global_optimizer_steps += 1
+                train_steps_completed += 1
 
             if not args.amp:
                 if epoch == 1:
@@ -494,7 +601,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     + telemetry_suffix
                 )
 
-            train_steps_completed += 1
+            engine.state.global_optimizer_step = global_optimizer_steps
             loss_value_for_log = reduce_loss.item() if engine.distributed else loss_value
             if should_log and is_primary:
                 print(print_str)
@@ -542,7 +649,12 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         # ):
         #     tb.add_scalar("train_loss", sum_loss / len(pbar), epoch)
 
-        if is_eval(epoch, config):
+        if val_loader is not None and should_evaluate(
+            epoch,
+            config.nepochs,
+            config.eval_start_epoch,
+            config.eval_interval,
+        ):
             eval_timer.start()
             torch.cuda.empty_cache()
             # if args.compile and args.mst and (not args.sliding):
@@ -602,14 +714,17 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                         ious, miou = metric.compute_iou()
                         acc, macc = metric.compute_pixel_acc()
                         f1, mf1 = metric.compute_f1()
-                        if miou > best_miou:
-                            best_miou = miou
-                            engine.save_and_link_checkpoint(
-                                config.log_dir,
-                                config.log_dir,
-                                config.log_dir_link,
-                                infor="_miou_" + str(miou),
-                                metric=miou,
+                        improved, best_miou, best_miou_epoch = select_best_metric(
+                            best_miou,
+                            best_miou_epoch,
+                            float(miou),
+                            epoch,
+                        )
+                        engine.state.best_val_miou = best_miou
+                        engine.state.best_val_epoch = best_miou_epoch
+                        if improved and config.experiment_phase == "development":
+                            engine.save_checkpoint(
+                                os.path.join(config.checkpoint_dir, "best-val-miou.pth")
                             )
                         print("miou", miou, "best", best_miou)
             elif not engine.distributed:
@@ -665,18 +780,21 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     # print('miou',miou)
                 # print('acc, macc, f1, mf1, ious, miou',acc, macc, f1, mf1, ious, miou)
                 # print('miou',miou)
-                if miou > best_miou:
-                    best_miou = miou
-                    engine.save_and_link_checkpoint(
-                        config.log_dir,
-                        config.log_dir,
-                        config.log_dir_link,
-                        infor="_miou_" + str(miou),
-                        metric=miou,
+                improved, best_miou, best_miou_epoch = select_best_metric(
+                    best_miou,
+                    best_miou_epoch,
+                    float(miou),
+                    epoch,
+                )
+                engine.state.best_val_miou = best_miou
+                engine.state.best_val_epoch = best_miou_epoch
+                if improved and config.experiment_phase == "development":
+                    engine.save_checkpoint(
+                        os.path.join(config.checkpoint_dir, "best-val-miou.pth")
                     )
                 print("miou", miou, "best", best_miou)
-            logger.info(f"Epoch {epoch} validation result: mIoU {miou}, best mIoU {best_miou}")
             if is_primary:
+                logger.info(f"Epoch {epoch} validation result: mIoU {miou}, best mIoU {best_miou}")
                 tracker.log(
                     {
                         "validation/miou": float(miou),
@@ -689,23 +807,33 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 )
             eval_timer.stop()
 
-        checkpoint_step = int(getattr(config, "checkpoint_step", 0))
-        save_epoch_checkpoints = getattr(config, "save_epoch_checkpoints", False)
-        if save_epoch_checkpoints and checkpoint_step > 0 and (
-            epoch % checkpoint_step == 0 or epoch == config.nepochs
-        ) and ((engine.distributed and engine.local_rank == 0) or not engine.distributed):
+        if is_primary:
             os.makedirs(config.checkpoint_dir, exist_ok=True)
-            epoch_checkpoint = os.path.join(config.checkpoint_dir, f"epoch-{epoch}.pth")
-            engine.save_checkpoint(epoch_checkpoint)
-            if getattr(config, "save_latest_checkpoint", False):
-                engine.save_checkpoint(os.path.join(config.checkpoint_dir, "latest.pth"))
+            engine.save_checkpoint(os.path.join(config.checkpoint_dir, "latest.pth"))
+            if should_save_epoch(epoch, config.nepochs, config.save_interval):
+                engine.save_checkpoint(
+                    os.path.join(config.checkpoint_dir, f"epoch-{epoch}.pth")
+                )
 
         eval_count = 0
-        for i in range(engine.state.epoch + 1, config.nepochs + 1):
-            if is_eval(i, config):
-                eval_count += 1
-        left_time = train_timer.mean_time * (config.nepochs - engine.state.epoch) + eval_timer.mean_time * eval_count
-        eta = (datetime.datetime.now() + datetime.timedelta(seconds=left_time)).strftime("%Y-%m-%d %H:%M:%S")
+        if val_loader is not None:
+            for future_epoch in range(engine.state.epoch + 1, config.nepochs + 1):
+                if should_evaluate(
+                    future_epoch,
+                    config.nepochs,
+                    config.eval_start_epoch,
+                    config.eval_interval,
+                ):
+                    eval_count += 1
+        mean_eval_time = eval_timer.mean_time or 0.0
+        left_time = (
+            train_timer.mean_time * (config.nepochs - engine.state.epoch)
+            + mean_eval_time * eval_count
+        )
+        eta = (datetime.datetime.now() + datetime.timedelta(seconds=left_time)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
         logger.info(
-            f"Avg train time: {train_timer.mean_time:.2f}s, avg eval time: {eval_timer.mean_time:.2f}s, left eval count: {eval_count}, ETA: {eta}"
+            f"Avg train time: {train_timer.mean_time:.2f}s, avg eval time: {mean_eval_time:.2f}s, "
+            f"left eval count: {eval_count}, ETA: {eta}"
         )

@@ -122,7 +122,8 @@ class RGBXDataset(data.Dataset):
         self._x_format = setting["x_format"]
         self._x_single_channel = setting["x_single_channel"]
         self._train_source = setting["train_source"]
-        self._eval_source = setting["eval_source"]
+        self._val_source = setting.get("val_source", setting.get("eval_source"))
+        self._test_source = setting.get("test_source")
         self.class_names = setting["class_names"]
         self._file_names = self._get_file_names(split_name)
         self._file_length = file_length
@@ -213,7 +214,9 @@ class RGBXDataset(data.Dataset):
         assert split_name in ["train", "val"]
         source = self._train_source
         if split_name == "val":
-            source = self._eval_source
+            source = self._val_source
+        if not source:
+            raise ValueError(f"no source configured for split {split_name!r}")
 
         file_names = []
         with open(source) as f:

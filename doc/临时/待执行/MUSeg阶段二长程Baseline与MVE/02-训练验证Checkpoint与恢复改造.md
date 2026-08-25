@@ -145,3 +145,35 @@ Terra 不得自行：
 - best、latest、periodic checkpoint 路径和内容稳定。
 - epoch 边界 resume 恢复所有关键状态且拒绝不兼容协议。
 - Sol 完成门禁 B 的核心代码复核。
+
+## 12. 执行完成记录（2026-08-25）
+
+### 12.1 Sol 冻结的接口与语义
+
+- `experiment_phase` 仅接受 `development|official|qualification`。development 必须显式提供 `val_source`；official 可以不设内部 validation，但绝不回退到 `test_source`。
+- 训练入口保留 `--continue_fpath` 并新增等价的 `--resume`；`--epochs`、`--eval-interval`、`--eval-start-epoch`、`--save-interval`、`--seed`、`--run-id`、`--output-dir` 和 train split 预期哈希均可显式覆盖。
+- 验证调度采用 `start + k * interval`，并强制最终 epoch；周期 checkpoint 采用 `epoch % interval == 0`，并强制最终 epoch。`latest.pth` 每个完整 epoch 原子更新。
+- best 规则冻结为 `strict-greater-keeps-earliest`：只接受有限 mIoU，严格提升才更新，相等时保留较早 epoch；仅 development 写 `best-val-miou.pth`。
+- checkpoint schema 冻结为 `dformer-training-checkpoint-v2`，仅支持完整 epoch 边界恢复。内容覆盖 model、optimizer、AMP scaler、完成/下一 epoch、真实 optimizer step、best、Python/NumPy/PyTorch CPU/CUDA RNG、训练总周期与 LR 协议、split 路径/数量/SHA-256、Git commit、run ID、phase 及关键配置摘要/哈希。
+- 恢复严格比较 phase、run ID、Git commit、seed、模型、optimizer、总 epochs、每 epoch iterations、warmup、poly power、base LR、split 元数据和配置哈希；损坏、字段缺失、非有限 best、协议摘要篡改或不兼容均快速失败。
+- official test 在训练进程中只使用配置内已冻结的哈希和数量写入 `sealed_unread` 元数据，不打开其清单。恢复训练必须使用新的空输出目录，避免覆盖父运行日志和 checkpoint。
+- 普通 optimizer 路径每次真实更新后增加 step；AMP 路径仅在 GradScaler 未因溢出跳过更新时增加真实 optimizer step。
+
+### 12.2 实现与复核范围
+
+- 新增 `utils/training_checkpoint.py` 和 `tests/test_training_checkpoint.py`。
+- 修改 `utils/train.py`、`utils/engine/engine.py`、`utils/dataloader/RGBXDataset.py`、`utils/dataloader/dataloader.py` 与 `local_configs/MUSeg/DFormerv2_S_4090.py`。
+- Sol 已逐段复核 source 隔离、验证与保存时序、best 写入点、普通/AMP step 计数、epoch-boundary resume、LR 续接、primary-rank 保存和 split 协议校验。单卡 4090 的真实 GPU 恢复演练仍按计划留给 04。
+
+### 12.3 验证证据
+
+- `python -m pytest -q tests/test_training_checkpoint.py tests/test_training_ops.py`：通过。
+- `python -m pytest -q tests`：`70 passed, 9 warnings`；warning 均为测试中旧 `torch.cuda.amp.GradScaler` API 的弃用提示。
+- `python -m compileall -q utils tests local_configs`：通过。
+- MUSeg 配置 smoke check：`development 1277 318 1576 True`，确认 train-dev、val-dev、sealed official-test 数量和封存标记。
+- `git -c core.whitespace=cr-at-eol diff --check`：通过；仓库中的 `utils/train.py` 历史上以 CRLF 入库，因此普通 `git diff --check` 会把新增行的行尾 CR 误报为尾随空白；`git diff --ignore-space-at-eol --numstat -- utils/train.py` 显示实质改动为 `208` 行新增、`80` 行删除。
+
+### 12.4 门禁结论
+
+- 02 的完成标准已满足，Sol 核心复核通过。
+- 本阶段尚未提交 Git，也未运行 GPU 或正式训练；门禁 B 仍需 03 完成、01–03 整体复核和干净提交后才能申请。

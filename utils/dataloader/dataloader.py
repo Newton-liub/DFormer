@@ -150,8 +150,8 @@ def get_train_loader(engine, dataset, config):
         "x_single_channel": config.x_is_single_channel,
         "class_names": config.class_names,
         "train_source": config.train_source,
-        "eval_source": config.eval_source,
-        "class_names": config.class_names,
+        "val_source": getattr(config, "val_source", getattr(config, "eval_source", None)),
+        "test_source": getattr(config, "test_source", None),
         "dataset_name": config.dataset_name,
         "backbone": config.backbone,
     }
@@ -189,6 +189,9 @@ def get_train_loader(engine, dataset, config):
 
 
 def get_val_loader(engine, dataset, config, val_batch_size=1):
+    val_source = getattr(config, "val_source", getattr(config, "eval_source", None))
+    if not val_source:
+        raise ValueError("validation loader requested without val_source")
     data_setting = {
         "rgb_root": config.rgb_root_folder,
         "rgb_format": config.rgb_format,
@@ -200,8 +203,8 @@ def get_val_loader(engine, dataset, config, val_batch_size=1):
         "x_single_channel": config.x_is_single_channel,
         "class_names": config.class_names,
         "train_source": config.train_source,
-        "eval_source": config.eval_source,
-        "class_names": config.class_names,
+        "val_source": val_source,
+        "test_source": getattr(config, "test_source", None),
         "dataset_name": config.dataset_name,
         "backbone": config.backbone,
     }

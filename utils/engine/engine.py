@@ -8,12 +8,14 @@ import torch
 import torch.distributed as dist
 
 from .logger import get_logger
-from utils.pyt_utils import (
-    load_model,
-    parse_devices,
-    extant_file,
-    link_file,
-    ensure_dir,
+from utils.pyt_utils import extant_file, link_file, ensure_dir
+from utils.training_checkpoint import (
+    CheckpointProtocol,
+    atomic_save_checkpoint,
+    create_training_checkpoint,
+    inspect_checkpoint_directory,
+    load_training_checkpoint,
+    restore_training_state,
 )
 
 logger = get_logger()
@@ -26,11 +28,29 @@ class State(object):
         self.dataloader = None
         self.model = None
         self.optimizer = None
+        self.scaler = None
+        self.checkpoint_protocol = None
+        self.global_optimizer_step = 0
+        self.best_val_miou = None
+        self.best_val_epoch = None
 
     def register(self, **kwargs):
-        for k, v in kwargs.items():
-            assert k in ["epoch", "iteration", "dataloader", "model", "optimizer"]
-            setattr(self, k, v)
+        allowed = {
+            "epoch",
+            "iteration",
+            "dataloader",
+            "model",
+            "optimizer",
+            "scaler",
+            "checkpoint_protocol",
+            "global_optimizer_step",
+            "best_val_miou",
+            "best_val_epoch",
+        }
+        for key, value in kwargs.items():
+            if key not in allowed:
+                raise KeyError(f"unsupported engine state field: {key}")
+            setattr(self, key, value)
 
 
 class Engine(object):
@@ -100,33 +120,21 @@ class Engine(object):
 
     def save_checkpoint(self, path):
         logger.info("Saving checkpoint to file {}".format(path))
-        t_start = time.time()
-
-        state_dict = {}
-
-        from collections import OrderedDict
-
-        new_state_dict = OrderedDict()
-        for k, v in self.state.model.state_dict().items():
-            key = k
-            if k.split(".")[0] == "module":
-                key = k[7:]
-            new_state_dict[key] = v
-        state_dict["model"] = new_state_dict
-        state_dict["optimizer"] = self.state.optimizer.state_dict()
-        state_dict["epoch"] = self.state.epoch
-        state_dict["iteration"] = self.state.iteration
-
-        t_iobegin = time.time()
-        torch.save(state_dict, path)
-        del state_dict
-        del new_state_dict
-        t_end = time.time()
-        logger.info(
-            "Save checkpoint to file {}, Time usage:\n\tprepare checkpoint: {}, IO: {}".format(
-                path, t_iobegin - t_start, t_end - t_iobegin
-            )
+        if not isinstance(self.state.checkpoint_protocol, CheckpointProtocol):
+            raise RuntimeError("checkpoint protocol must be registered before saving")
+        checkpoint = create_training_checkpoint(
+            model=self.state.model,
+            optimizer=self.state.optimizer,
+            scaler=self.state.scaler,
+            completed_epoch=self.state.epoch,
+            global_optimizer_step=self.state.global_optimizer_step,
+            best_val_miou=self.state.best_val_miou,
+            best_val_epoch=self.state.best_val_epoch,
+            protocol=self.state.checkpoint_protocol,
         )
+        started_at = time.time()
+        atomic_save_checkpoint(checkpoint, path)
+        logger.info("Saved checkpoint to %s in %.2fs", path, time.time() - started_at)
 
     def link_tb(self, source, target):
         ensure_dir(source)
@@ -134,50 +142,48 @@ class Engine(object):
         link_file(source, target)
 
     def save_and_link_checkpoint(self, checkpoint_dir, log_dir, log_dir_link, infor="", metric=None):
-        assert metric is not None
+        if metric is None:
+            raise ValueError("metric is required")
         ensure_dir(checkpoint_dir)
         if not osp.exists(log_dir_link):
             link_file(log_dir, log_dir_link)
-        self.checkpoint_state.append({"epoch": self.state.epoch, "metric": metric})
-        self.checkpoint_state.sort(key=lambda x: x["metric"], reverse=True)
-        if len(self.checkpoint_state) > 5:
-            try:
-                os.remove(
-                    osp.join(
-                        checkpoint_dir,
-                        f"epoch-{self.checkpoint_state[-1]['epoch']}_miou_{self.checkpoint_state[-1]['metric']}.pth",
-                    )
-                )
-                logger.info(f"remove inferior checkpoint: {self.checkpoint_state[-1]}")
-            except:
-                pass
-            self.checkpoint_state.pop()
         checkpoint = osp.join(checkpoint_dir, f"epoch-{self.state.epoch}{infor}.pth")
         self.save_checkpoint(checkpoint)
 
     def restore_checkpoint(self):
-        t_start = time.time()
-        if self.distributed:
-            # load the model on cpu first to avoid GPU RAM surge
-            # when loading a model checkpoint
-            # tmp = torch.load(self.continue_state_object,
-            #                  map_location=lambda storage, loc: storage.cuda(
-            #                      self.local_rank))
-            tmp = torch.load(self.continue_state_object, map_location=torch.device("cpu"))
-        else:
-            tmp = torch.load(self.continue_state_object)
-        t_ioend = time.time()
-        self.state.model = load_model(self.state.model, tmp["model"], is_restore=True)
-        self.state.optimizer.load_state_dict(tmp["optimizer"])
-        self.state.epoch = tmp["epoch"] + 1
-        self.state.iteration = tmp["iteration"]
-        del tmp
-        t_end = time.time()
-        logger.info(
-            "Load checkpoint from file {}, Time usage:\n\tIO: {}, restore checkpoint: {}".format(
-                self.continue_state_object, t_ioend - t_start, t_end - t_ioend
+        if not isinstance(self.state.checkpoint_protocol, CheckpointProtocol):
+            raise RuntimeError("checkpoint protocol must be registered before restoring")
+        resume_path = osp.abspath(self.continue_state_object)
+        if osp.basename(resume_path) == "latest.pth":
+            checkpoint, _ = inspect_checkpoint_directory(
+                osp.dirname(resume_path),
+                expected_protocol=self.state.checkpoint_protocol,
             )
+        else:
+            checkpoint = load_training_checkpoint(
+                resume_path,
+                expected_protocol=self.state.checkpoint_protocol,
+            )
+        started_at = time.time()
+        resume = restore_training_state(
+            checkpoint,
+            model=self.state.model,
+            optimizer=self.state.optimizer,
+            scaler=self.state.scaler,
+            restore_rng=True,
         )
+        self.state.epoch = resume.next_epoch
+        self.state.iteration = 0
+        self.state.global_optimizer_step = resume.global_optimizer_step
+        self.state.best_val_miou = resume.best_val_miou
+        self.state.best_val_epoch = resume.best_val_epoch
+        logger.info(
+            "Restored epoch-boundary checkpoint %s in %.2fs; next epoch is %d",
+            resume_path,
+            time.time() - started_at,
+            resume.next_epoch,
+        )
+        return resume
 
     def __enter__(self):
         return self
