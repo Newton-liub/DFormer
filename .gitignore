@@ -14,6 +14,17 @@ MUseg/
 !local_configs/MUSeg/
 !local_configs/MUSeg/DFormerv2_S_MVE.py
 
+# Published MUSeg dev-v1 split artifacts
+!/data/splits/MUSeg/
+/data/splits/MUSeg/*
+!/data/splits/MUSeg/dev-v1/
+/data/splits/MUSeg/dev-v1/*
+!/data/splits/MUSeg/dev-v1/train-dev.txt
+!/data/splits/MUSeg/dev-v1/val-dev.txt
+!/data/splits/MUSeg/dev-v1/official-test.txt
+!/data/splits/MUSeg/dev-v1/manifest.json
+!/data/splits/MUSeg/dev-v1/audit-report.json
+
 # C extensions
 *.so
 

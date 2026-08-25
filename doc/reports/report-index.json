@@ -1,14 +1,23 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.6",
+  "nextCanvasVersion": "0.0.7",
   "latestFormalReport": {
-    "path": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
-    "periodStart": "2026-08-19",
-    "periodEnd": "2026-08-21",
-    "baseCommit": "27437c1ddf5ae6c8f5da05b7ae94fc6b29fc80af",
-    "status": "cleanup-and-disposition"
+    "path": "doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md",
+    "periodStart": "2026-08-25",
+    "periodEnd": "2026-08-25",
+    "baseCommit": "9fae925a95aa8d593ef6d00882266532cbd73aed",
+    "status": "stage-2-dev-split-frozen"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md",
+      "topic": "museg-stage-2-dev-split-freeze",
+      "periodStart": "2026-08-25",
+      "periodEnd": "2026-08-25",
+      "baseCommit": "9fae925a95aa8d593ef6d00882266532cbd73aed",
+      "verification": "frozen-split-audit-102-of-102-and-full-tests-46-passed",
+      "status": "formal"
+    },
     {
       "path": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
       "topic": "museg-mve-cleanup-and-disposition",
@@ -90,6 +99,15 @@
       "publishedFilename": "0.0.5-museg-mve-outcome-and-disposition.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
       "createdAt": "2026-08-21",
+      "status": "reference"
+    },
+    {
+      "version": "0.0.6",
+      "name": "museg-stage-2-dev-split-freeze",
+      "source": "doc/canvases/0.0.6-museg-stage-2-dev-split-freeze.canvas.tsx",
+      "publishedFilename": "0.0.6-museg-stage-2-dev-split-freeze.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md",
+      "createdAt": "2026-08-25",
       "status": "current"
     }
   ]
