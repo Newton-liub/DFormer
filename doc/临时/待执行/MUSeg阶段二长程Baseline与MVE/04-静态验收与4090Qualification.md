@@ -173,7 +173,7 @@ git -c core.whitespace=cr-at-eol diff --check
 ### 11.6 当前下一步与暂停边界
 
 1. 先提交并推送本轮交接文档，在云端 fast-forward 后确认本地/云端文档提交一致且工作区干净。
-2. 文档提交改变了 Git commit；保留当前绑定 `4f84ee3...` 的 B1/preflight 证据不动，归档旧 protocol，并为新干净提交重新物化 protocol。严格 exact-commit 门禁下，后续 qualification 不得继续消费旧 protocol。
+2. 文档提交改变了 Git commit；保留当前绑定 `4f84ee3...` 的 B1/preflight 证据不动，归档旧 protocol，并为新干净提交重新物化 protocol。严格 exact-commit 门禁下，batch probe 前必须在最终文档提交上重跑 B1 和完整 preflight，不得继续消费旧 protocol 或改写旧报告身份。
 3. **当前暂停等待 batch probe 的单独用户授权。** 未获授权前不运行 `tools/probe_museg_4090.sh`、不启动短训或恢复演练。
 4. 获得授权后运行 batch 4/8/12/16 各 60 optimizer steps、10-step warmup probe；OOM 停更大 batch，非 OOM 错误停全部。完成后报告结构化证据并停在门禁 C。
 5. SwanLab online 需要同一进程环境中的 `SWANLAB_API_KEY`。只能由用户本人隐藏输入；执行者不得自动登录、读取、请求或回显密钥。

@@ -59,7 +59,7 @@
 - 任何 GPU qualification 开始前都要检查完整 `git rev-parse HEAD` 和 `git status --short`；必须是干净工作区。
 - 协议路径：`/root/cloud-ssd/museg-stage04-qualification/protocols/museg-qualification-v1.json`。
 - 当前已通过的 B1 与完整 preflight 证据绑定代码提交 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`，协议 SHA-256 `cb741c26897ac32f5a76204180932b03a80ff5ef9fd29ddd218a5ddfb64387e7`。
-- 文档提交也会改变 Git commit。同步本交接文档后，不得把旧协议冒充为新提交的协议；继续 exact-commit qualification 前，应归档旧协议、为新干净提交重新物化协议，并按阶段 04 的身份门禁决定重跑 B1/full preflight。
+- 文档提交也会改变 Git commit。同步本交接文档后，不得把旧协议冒充为新提交的协议；继续 exact-commit qualification 前，必须归档旧协议、为新干净提交重新物化协议，并在 batch probe 前重跑 B1 和完整 preflight。旧报告保留为已通过历史与回归对照，不得改写其中的身份。
 - 不要修改已有运行证据来“更新 commit”；旧证据按原提交和原 SHA 保留。
 - 恢复父身份使用逻辑 `parent_run_id`；恢复子运行必须使用唯一新 `run_id`、不同输出目录，并校验 resume checkpoint SHA-256。SwanLab 后端 ID/URL 仅作为额外远端证据。
 
