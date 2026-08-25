@@ -14,7 +14,7 @@
 - 云端仓库目录、py310、数据、预训练权重和输出根已按总索引核实。
 - 工作区干净，当前 commit 和 materialized protocol manifest 已记录。
 
-阶段 04 的 **GPU 执行尚未启动**。当前会话只完成了本地前置代码修复和无卡静态验证；云端环境核验、真实 CUDA B1、protocol 物化、在线 SwanLab、batch probe、短训和恢复演练均留待用户明确开启有卡模式之后。当前修复仍是未提交工作区，不能据此开始正式 GPU qualification。
+阶段 04 的代码/无卡验收、云端 RTX 4090 环境核验、真实 CUDA B1、protocol 物化、完整 preflight 和 SwanLab online smoke 均已完成。当前停在 batch probe 的独立授权边界：尚未运行 batch 4/8/12/16 probe、门禁 C、3-epoch qualification、连续/恢复演练或门禁 D。当前云端证据绑定代码提交 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`；后续文档提交同步到云端后，继续 exact-commit qualification 前必须重新物化协议并处理身份变化。
 
 ## 2. 静态验收
 
@@ -118,17 +118,17 @@ preflight 必须 0 error；每个 warning 先报告并由 Sol/用户决定。
 
 ### 11.1 状态结论
 
-- **正在进行：** 阶段 04 前置资格修复已经完成并提交；本地无卡静态测试通过，但尚未完成全部计划项，也尚未在云端形成 GPU qualification 运行证据。
-- **已完成并验证：** 当前改动范围的 CPU/fake 测试、Python compile、Shell 语法检查和 diff whitespace 检查已经通过。
-- **已完成但尚未做真实运行验证：** 真实模型 B1 工具、qualification best checkpoint、epoch 边界受控停止、Depth16 preflight 和 SwanLab online smoke 的代码已经落地，但尚未在云端 RTX 4090、真实数据和真实 SwanLab 账号上运行。
-- **尚未开始：** 云端环境核验、materialized protocol、真实 CUDA B1、完整 preflight、batch 4/8/12/16 probe、门禁 C、3-epoch qualification、resume 对照和门禁 D。
-- 本阶段仍然不是 baseline；本次没有读取 official test，没有运行 GPU、模型训练或在线实验记录，没有生成性能指标。
+- **正在进行：** 阶段 04 已完成代码加固、无卡静态验收、云端 RTX 4090 环境核验、真实 CUDA B1、完整 preflight 和 SwanLab online smoke；当前停在 batch probe 的独立用户授权边界。
+- **已完成并验证：** 当前代码范围的 CPU/fake 测试、Python compile、Shell 语法和 diff whitespace 检查；云端 Git/协议/数据/权重/四模态样本/GPU 环境；B1 四种真实模型场景；SwanLab 非交互式 online 初始化。
+- **尚未开始：** batch 4/8/12/16 probe、门禁 C、3-epoch qualification、连续/恢复对照和门禁 D。
+- 本阶段仍然不是 baseline；B1 报告明确 `official_test_included=false`，qualification preflight 明确 `test_role=sealed_unread`。当前没有正式性能结论。
 
 ### 11.2 Git 提交与云端同步边界
 
-- 本轮修复起点为 `185db0e76458e6801b1542bf7af67bb488ce01af`，已作为当前本地 `HEAD` 提交，提交说明为 `stage04: harden qualification evidence`。
-- 提交包含配置、训练/检查点与运行工具、probe 汇总、B1 工具、测试和本计划文件共 15 个文件；没有包含数据、权重、protocol 物化产物、日志或运行证据。
-- 本地提交后应保持工作区干净；云端同步后必须先用 `git rev-parse HEAD`、`git status --short` 和 `git show --stat --oneline HEAD` 确认同一提交及干净工作区，才可进行 GPU qualification。
+- 阶段 04 代码加固的主提交为 `fda65ad5c1dc3a5e6aae4ffdcfa3951ef38a46f7`（`stage04: harden qualification evidence`）。后续修复依次为 `8c9f15822a56be4dd4a55136c3c457facf34f7d2`（冻结测试字节）、`22e217303367ff51e2ece8319822e61f4a668967`（B1 云端绝对路径入口）和 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`（辅助特征选择）。
+- 当前已通过的云端 B1/full preflight 证据绑定 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`，不是更早的 `185db0e`。
+- 这些提交只包含代码、测试和文档；没有包含数据、权重、protocol 物化产物、日志或运行证据。
+- 云端运行前后均已确认工作区干净。交接文档的新提交同步后会改变 `HEAD`；继续 exact-commit qualification 前必须重新物化协议，不得修改旧证据中的 commit。
 
 ### 11.3 已落地的前置修复
 
@@ -137,8 +137,8 @@ preflight 必须 0 error；每个 warning 先报告并由 Sol/用户决定。
 3. **qualification checkpoint 身份。** `tools/run_museg_seed.py` 已将 qualification 纳入成功运行 checkpoint 路径和 SHA-256 校验，不再只约束 development/official。
 4. **epoch 边界受控停止。** trainer 与单 seed launcher 已增加 qualification-only 的 `--stop-after-completed-epoch`。该入口在完整 epoch 的 validation、latest、periodic 和 best 保存之后退出，并在 `training_result.json` 记录停止 epoch；它不复用会跳过 validation/checkpoint 的 `--max-train-iters`。
 5. **四模态 preflight。** `tools/preflight_train.py` 的抽样检查已从 RGB/Depth/Label 扩展到 RGB/Depth/Label/Depth16；Depth16 必须存在、尺寸一致，并以二维 `uint16` 解码。
-6. **SwanLab online smoke。** 非 `--static-only` 的 protocol preflight 已增加 `interactive=False` 的在线初始化/立即结束检查；凭据、认证、网络或初始化失败将形成阻塞 error。该逻辑尚未连接真实 SwanLab 验证。
-7. **真实模型 B1 入口。** 新增 `tools/qualify_museg_b1.py`：只从冻结 official train 确定性选取一张全背景图和一张普通图，分别运行主头和主头+辅助头的混合 batch/全背景 batch，检查 loss 和梯度有限性以及全背景图连接精确零；只写版本化 JSON，不保存模型权重，代码路径不读取 official test。当前只验证了样本选择与静态可导入性，尚未执行真实 CUDA forward/backward。
+6. **SwanLab online smoke。** 非 `--static-only` 的 protocol preflight 使用 `interactive=False` 做在线初始化/立即结束检查；凭据、认证、网络或初始化失败形成阻塞 error。最终真实 SwanLab 0.9.7 online smoke 已通过，见 11.11。
+7. **真实模型 B1 入口。** `tools/qualify_museg_b1.py` 只从冻结 official train 确定性选取一张全背景图和一张普通图，分别运行主头和主头+辅助头的 mixed/all-background batch，检查 loss 和梯度有限性以及全背景图连接精确零；只写版本化 JSON，不保存模型权重，代码路径不读取 official test。最终四种真实 CUDA case 已通过，见 11.11。
 8. **测试覆盖。** `tests/test_museg_stage04_preconditions.py` 覆盖 validation phase、318 张验证集声明、Depth16 解码和 B1 样本选择；`tests/test_museg_stage03.py` 增加受控 epoch-stop 的 qualification 转发及非 qualification 拒绝测试。
 
 ### 11.4 本地前置修复完成记录（已提交）
@@ -170,12 +170,13 @@ git -c core.whitespace=cr-at-eol diff --check
 - Python compile、两个 4090 Shell 的 `bash -n` 和 CRLF 兼容的 `git diff --check` 均通过。
 - 这些结果仅证明本地 CPU/fake/static 链路；不证明真实 DFormerv2-S、CUDA、4090 遥测、SwanLab online、B1 或连续/恢复等价性。
 
-### 11.6 下一步与暂停边界
+### 11.6 当前下一步与暂停边界
 
-1. 将当前本地 `HEAD` 的阶段 04 提交同步到云端，确认云端工作区干净。
-2. **暂停等待用户开启有卡模式。** 不在本地物化 protocol、不运行 CUDA B1、不初始化在线 SwanLab、不生成正式 run/checkpoint。
-3. 用户开启后，在云端依次确认 commit/工作区/py310/4090/CUDA/cuDNN/数据/权重/输出根和 SwanLab 凭据，运行真实 B1、物化 protocol 和完整 preflight。
-4. 任何 warning/error，或需要用户登录 SwanLab/输入 API key 时，立即暂停并报告；preflight 通过后才可进行 batch 4/8/12/16 probe，且必须停在门禁 C。
+1. 先提交并推送本轮交接文档，在云端 fast-forward 后确认本地/云端文档提交一致且工作区干净。
+2. 文档提交改变了 Git commit；保留当前绑定 `4f84ee3...` 的 B1/preflight 证据不动，归档旧 protocol，并为新干净提交重新物化 protocol。严格 exact-commit 门禁下，后续 qualification 不得继续消费旧 protocol。
+3. **当前暂停等待 batch probe 的单独用户授权。** 未获授权前不运行 `tools/probe_museg_4090.sh`、不启动短训或恢复演练。
+4. 获得授权后运行 batch 4/8/12/16 各 60 optimizer steps、10-step warmup probe；OOM 停更大 batch，非 OOM 错误停全部。完成后报告结构化证据并停在门禁 C。
+5. SwanLab online 需要同一进程环境中的 `SWANLAB_API_KEY`。只能由用户本人隐藏输入；执行者不得自动登录、读取、请求或回显密钥。
 
 ### 11.7 明确禁止事项
 
@@ -198,4 +199,20 @@ git -c core.whitespace=cr-at-eol diff --check
 
 ### 11.10 第二次 B1 的辅助头结构修复
 
-入口修复提交 `22e217303367ff51e2ece8319822e61f4a668967` 同步云端并重新物化协议后，第二次 B1 已实际完成主头 mixed 和全背景两种 forward/backward；主+辅助头 mixed 在 forward 中失败。根因是 `EncoderDecoder.encode_decode()` 已将双模态 backbone 输出归一化为 RGB 四级特征列表后，辅助头仍使用 `x[0][aux_index]`，错误地在第一级特征的 batch 维取索引 2；B1 固定 batch 为 2，因此触发 `IndexError`。修复改为按特征级选择 `x[aux_index]`，并用 batch=2 的 synthetic 双模态 backbone 测试证明辅助头收到第三级特征而非 batch 切片。本地复核为 `102 passed, 10 warnings`，compile 和 diff whitespace 检查通过。第二次失败未生成 B1 JSON，完整 preflight、SwanLab online smoke 和 batch probe 仍未开始；提交修复后必须再次物化协议并从四种 B1 case 完整重跑。
+入口修复提交 `22e217303367ff51e2ece8319822e61f4a668967` 同步云端并重新物化协议后，第二次 B1 已实际完成主头 mixed 和全背景两种 forward/backward；主+辅助头 mixed 在 forward 中失败。根因是 `EncoderDecoder.encode_decode()` 已将双模态 backbone 输出归一化为 RGB 四级特征列表后，辅助头仍使用 `x[0][aux_index]`，错误地在第一级特征的 batch 维取索引 2；B1 固定 batch 为 2，因此触发 `IndexError`。修复改为按特征级选择 `x[aux_index]`，并用 batch=2 的 synthetic 双模态 backbone 测试证明辅助头收到第三级特征而非 batch 切片。本地复核为 `102 passed, 10 warnings`，compile 和 diff whitespace 检查通过。该段记录的是第二次失败时的历史状态；最终结果见 11.11。
+
+### 11.11 当前云端交接状态（B1 与完整 preflight 已通过）
+
+- 云端官方仓库：`/root/rivermind-data/DFormer`；qualification 根：`/root/cloud-ssd/museg-stage04-qualification`。
+- 当前 SSH：`ssh -p 24569 root@cpod-1tyvjsiu6ahe.podtcp.compshare.cn`；重启后端口可能改变，以控制台为准。
+- 通过证据绑定 Git commit `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`，当时本地/云端工作区均干净。
+- 通过证据绑定 protocol SHA-256 `cb741c26897ac32f5a76204180932b03a80ff5ef9fd29ddd218a5ddfb64387e7`。
+- RTX 4090 环境：24,564 MiB，driver 610.57.04，Python 3.10.16，PyTorch 2.1.2+cu118，CUDA 11.8，cuDNN 8.7.0。
+- B1 报告：`/root/cloud-ssd/museg-stage04-qualification/b1-real-model.json`，SHA-256 `e6dafd8656a783b9569df773381de43ba652e970b7f2b4ee0e971adc455510e5`，`pass=true`。
+- B1 四种 case 全部通过：主头 mixed loss `3.204871892929077`、714 个梯度张量有限且无缺失；主头全背景 loss/梯度精确为零；主+辅助 mixed loss `5.559028625488281`、720 个梯度张量有限且无缺失；主+辅助全背景 loss/梯度精确为零。报告明确 `official_test_included=false`。
+- 预训练加载仍会输出既有 non-strict key mismatch warning。它未导致 B1 失败，且 B1 JSON 没有 warning 字段；后续说明不得静默省略，也不要把它误判为 CUDA 故障。
+- 完整 preflight：`/root/cloud-ssd/museg-stage04-qualification/preflight-full.json`，SHA-256 `c127a792d85b2f315a53b5494b80b68293a435887abeb551de6c973a570e7b4d`，`pass=true`、0 errors、0 warnings。
+- full preflight 已验证 Git、config、冻结 split/authority、`phase=qualification`、`test_role=sealed_unread`、预训练身份、输出根、四模态抽样、RTX 4090/CUDA 环境和 SwanLab 0.9.7 非交互式 online 初始化。
+- SwanLab online smoke 必须由用户在同一进程环境中隐藏输入 `SWANLAB_API_KEY`；`swanlab login` 的本地登录状态不会通过当前项目的环境凭据门禁。执行者不得自动登录或接触密钥。
+- 当前尚未运行 batch probe、短训或恢复演练。下一 GPU workload 是 batch 4/8/12/16 各 60 steps 的 probe，必须先取得用户单独明确授权，并在完成后停在门禁 C。
+- 跨对话长期基础知识和 token 节省规则见 `doc/main/MUSeg-stage04-云端对话基础知识.md`。
