@@ -349,17 +349,35 @@ def test_development_reads_val_source_and_never_opens_test(tmp_path: Path, monke
     assert sources.test_source == str(test_source)
 
 
-def test_official_phase_without_val_never_falls_back_to_test() -> None:
+def test_official_phase_discards_configured_validation_and_never_falls_back_to_test() -> None:
     sources = resolve_training_sources(
         SimpleNamespace(
             experiment_phase="official",
             train_source="official-train.txt",
-            val_source=None,
+            val_source="stale-val-dev.txt",
             test_source="sealed-test.txt",
         )
     )
     assert sources.val_source is None
     assert sources.test_source == "sealed-test.txt"
+
+
+def test_qualification_requires_explicit_validation_source() -> None:
+    with pytest.raises(ValueError, match="qualification phase requires"):
+        resolve_training_sources(
+            SimpleNamespace(experiment_phase="qualification", train_source="train.txt", test_source="sealed-test.txt")
+        )
+
+
+def test_training_source_must_not_alias_sealed_test() -> None:
+    with pytest.raises(ValueError, match="training source must not"):
+        resolve_training_sources(
+            SimpleNamespace(
+                experiment_phase="official",
+                train_source="sealed-test.txt",
+                test_source="sealed-test.txt",
+            )
+        )
 
 
 def test_legacy_config_uses_eval_source_only_as_validation_compatibility() -> None:

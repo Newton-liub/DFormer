@@ -217,8 +217,12 @@ def resolve_training_sources(config: Any) -> TrainingSources:
     val_source = getattr(config, "val_source", None) if explicit_val else getattr(config, "eval_source", None)
     test_source = getattr(config, "test_source", None)
 
-    if phase == "development" and not val_source:
-        raise ValueError("development phase requires an explicit val_source")
+    if phase in {"development", "qualification"} and not val_source:
+        raise ValueError(f"{phase} phase requires an explicit val_source")
+    if phase == "official":
+        val_source = None
+    if test_source and Path(test_source).resolve() == Path(train_source).resolve():
+        raise ValueError("training source must not be the sealed test source")
     if test_source and val_source and Path(test_source).resolve() == Path(val_source).resolve():
         raise ValueError("validation source must not be the sealed test source")
 

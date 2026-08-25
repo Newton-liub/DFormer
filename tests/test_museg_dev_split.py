@@ -18,7 +18,20 @@ def load(name:str):
 m=load('create_museg_dev_split')
 a=load('audit_museg_splits')
 
-def test_paths_groups_and_strict_official_text():
+def test_frozen_manifest_reconstructs_approved_candidate_sha256():
+    frozen_path = ROOT / "data" / "splits" / "MUSeg" / "dev-v1" / "manifest.json"
+    frozen = json.loads(frozen_path.read_text(encoding="utf-8"))
+    reconstructed = copy.deepcopy(frozen)
+    source_hash = reconstructed.pop("freeze_metadata")["source_candidate_manifest_sha256"]
+    reconstructed["candidate_status"] = "candidate"
+    reconstructed["user_gate_a"] = {
+        "status": "pending", "signed_by": None, "signature_reference": None,
+    }
+    candidate_bytes = m.canonical_json(reconstructed)
+    assert hashlib.sha256(candidate_bytes).hexdigest() == source_hash
+    ignored_candidate = ROOT / "output_museg_dev_candidate" / "manifest.json"
+    if ignored_candidate.is_file():
+        assert ignored_candidate.read_bytes() == candidate_bytes
     assert m.parse_path('RGB/06-01-01-0215-230920140531-06-99.jpg')==('06-01-01-0215','06')
     assert m.parse_official_bytes(b'RGB/01-01-01-0001-a.jpg\n')
     assert m.parse_official_bytes(b'RGB/01-01-01-0001-a.jpg\r\n')

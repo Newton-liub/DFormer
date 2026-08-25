@@ -11,6 +11,7 @@ from types import SimpleNamespace
 
 import pytest
 
+import tools.museg_protocol as museg_protocol
 from tools.museg_protocol import ProtocolError, load_protocol
 from tools.preflight_train import audit_protocol
 from tools.run_museg_3seed import main as orchestrate_main
@@ -23,30 +24,53 @@ def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _write_protocol(tmp_path: Path, *, phase: str = "development", seeds=(11, 22, 33)) -> Path:
-    split_dir = tmp_path / "split root #"
-    split_dir.mkdir(parents=True)
+@pytest.fixture(autouse=True)
+def frozen_authority(tmp_path: Path, monkeypatch) -> None:
+    """Give launcher tests a complete miniature Gate-A-approved authority bundle."""
+    root = tmp_path / "frozen authority"
+    root.mkdir()
     entries = {
-        "train_dev": ["01-01-01-0001-a", "02-01-01-0002-b"],
-        "val_dev": ["03-01-01-0003-c"],
-        "official_train": ["01-01-01-0001-a", "02-01-01-0002-b", "03-01-01-0003-c"],
-        "official_test": ["04-01-01-0004-d"],
+        "train-dev.txt": ["01-01-01-0001-a", "02-01-01-0002-b"],
+        "val-dev.txt": ["03-01-01-0003-c"],
+        "official-test.txt": ["04-01-01-0004-d"],
+        "official-train.txt": ["01-01-01-0001-a", "02-01-01-0002-b", "03-01-01-0003-c"],
     }
-    splits = {}
-    for role, lines in entries.items():
-        path = split_dir / f"{role}.txt"
+    records = {}
+    for name, lines in entries.items():
+        path = root / name
         path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        splits[role] = {
-            "path": str(path),
-            "samples": len(lines),
-            "groups": len(lines),
-            "sha256": _sha(path),
-            "sealed_unread": role == "official_test",
-        }
+        records[name] = {"sha256": _sha(path), "samples": len(lines), "groups": len(lines)}
+    manifest = {
+        "schema_version": "museg-dev-split-manifest-v1",
+        "protocol_id": "MUSEG-DEV-SPLIT-PROTOCOL-1",
+        "candidate_status": "frozen",
+        "user_gate_a": {"status": "approved"},
+        "outputs": {name: {**records[name], "byte_policy": "test"} for name in ("train-dev.txt", "val-dev.txt", "official-test.txt")},
+        "official": {"train": {"logical_name": "train.txt", **records["official-train.txt"]}},
+    }
+    manifest_path = root / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    manifest_sha = _sha(manifest_path)
+    audit_path = root / "audit-report.json"
+    audit_path.write_text(json.dumps({
+        "schema_version": "museg-dev-split-audit-v1", "pass": True, "manifest_sha256": manifest_sha,
+        "details": {"manifest_sha256": manifest_sha, "counts": {
+            "train_dev": 2, "val_dev": 1, "official_train": 3, "official_test": 1,
+        }, "groups": {"train_dev": 2, "val_dev": 1, "official_train": 3, "official_test": 1}},
+    }), encoding="utf-8")
+    monkeypatch.setattr(museg_protocol, "FROZEN_SPLIT_ROOT", root)
+    monkeypatch.setattr(museg_protocol, "FROZEN_MANIFEST_PATH", manifest_path)
+    monkeypatch.setattr(museg_protocol, "FROZEN_AUDIT_PATH", audit_path)
+    monkeypatch.setattr(museg_protocol, "FROZEN_MANIFEST_SHA256", manifest_sha)
+    monkeypatch.setattr(museg_protocol, "FROZEN_AUDIT_SHA256", _sha(audit_path))
+
+
+def _write_protocol(tmp_path: Path, *, phase: str = "development", seeds=(11, 22, 33)) -> Path:
+    tmp_path.mkdir(parents=True, exist_ok=True)
     weight = tmp_path / "pretrained #.pth"
     weight.write_bytes(b"fake pretrained weights")
     manifest = {
-        "schema_version": "museg-training-protocol-v1",
+        "schema_version": "museg-training-protocol-v2",
         "protocol_id": "museg-dev-unit-v1",
         "schedule_version": "schedule-unit-v1",
         "phase": phase,
@@ -55,25 +79,20 @@ def _write_protocol(tmp_path: Path, *, phase: str = "development", seeds=(11, 22
         "git": {"required_commit": "0" * 40},
         "seeds": list(seeds),
         "output_root": str(tmp_path / "output root #"),
-        "splits": splits,
+        "split_authority": {
+            "manifest_path": str(museg_protocol.FROZEN_MANIFEST_PATH),
+            "manifest_sha256": museg_protocol.FROZEN_MANIFEST_SHA256,
+            "audit_report_path": str(museg_protocol.FROZEN_AUDIT_PATH),
+            "audit_report_sha256": museg_protocol.FROZEN_AUDIT_SHA256,
+        },
+        "official_train": {"path": str(museg_protocol.FROZEN_SPLIT_ROOT / "official-train.txt")},
         "pretrained": {
-            "path": str(weight),
-            "size_bytes": weight.stat().st_size,
-            "sha256": _sha(weight),
+            "path": str(weight), "size_bytes": weight.stat().st_size, "sha256": _sha(weight),
         },
         "training": {
-            "epochs": 20,
-            "batch_size": 8,
-            "val_batch_size": 1,
-            "workers": 2,
-            "eval_start_epoch": 5,
-            "eval_interval": 5,
-            "save_interval": 5,
-            "amp": True,
-            "compile": False,
-            "syncbn": False,
-            "sliding": False,
-            "mst": False,
+            "epochs": 20, "batch_size": 8, "val_batch_size": 1, "workers": 2,
+            "eval_start_epoch": 5, "eval_interval": 5, "save_interval": 5,
+            "amp": True, "compile": False, "syncbn": False, "sliding": False, "mst": False,
         },
         "swanlab": {"mode": "disabled", "project": "test", "workspace": "test"},
     }
@@ -181,17 +200,18 @@ def test_protocol_and_preflight_reject_split_phase_weight_and_output_errors(tmp_
     assert [error for error in baseline.errors if error["code"] != "package_missing"] == []
 
     raw = json.loads(path.read_text(encoding="utf-8"))
-    raw["splits"]["val_dev"]["sha256"] = "f" * 64
+    raw["split_authority"]["manifest_sha256"] = "f" * 64
     path.write_text(json.dumps(raw), encoding="utf-8")
-    assert any(e["code"] == "split_sha256_mismatch" for e in audit_protocol(load_protocol(path), repo_root=tmp_path, check_git=False).errors)
+    with pytest.raises(ProtocolError, match="approved frozen manifest"):
+        load_protocol(path)
 
     path = _write_protocol(tmp_path / "official", phase="official")
     raw = json.loads(path.read_text(encoding="utf-8"))
-    raw["splits"]["official_train"] = raw["splits"]["official_test"]
+    raw["official_train"]["path"] = str(museg_protocol.FROZEN_SPLIT_ROOT / "official-test.txt")
     raw["pretrained"]["size_bytes"] += 1
     path.write_text(json.dumps(raw), encoding="utf-8")
     codes = {e["code"] for e in audit_protocol(load_protocol(path), repo_root=tmp_path, check_git=False).errors}
-    assert {"phase_role_error", "pretrained_size_mismatch"} <= codes
+    assert {"split_authority_mismatch", "pretrained_size_mismatch"} <= codes
 
     clean = _write_protocol(tmp_path / "collision")
     raw = json.loads(clean.read_text(encoding="utf-8"))
@@ -295,7 +315,7 @@ def test_preflight_rejects_missing_offline_swanlab_and_file_output_collision(
 def test_protocol_rejects_nonhexadecimal_identity_hashes(tmp_path: Path) -> None:
     protocol_path = _write_protocol(tmp_path)
     raw = json.loads(protocol_path.read_text(encoding="utf-8"))
-    raw["splits"]["train_dev"]["sha256"] = "z" * 64
+    raw["split_authority"]["manifest_sha256"] = "z" * 64
     protocol_path.write_text(json.dumps(raw), encoding="utf-8")
     with pytest.raises(ProtocolError, match="hexadecimal"):
         load_protocol(protocol_path)
@@ -356,9 +376,10 @@ def _write_run(protocol, seed: int, *, exit_code: int = 0) -> None:
     (run / "run_manifest.json").write_text(
         json.dumps(
             {
-                "schema_version": "museg-run-manifest-v1",
+                "schema_version": "museg-run-manifest-v2",
                 "protocol_id": protocol.protocol_id,
                 "protocol_manifest_sha256": protocol.manifest_sha256,
+                "split_authority": protocol.authority_identity(),
                 "phase": protocol.phase,
                 "seed": seed,
                 "run_id": f"run-{seed}",

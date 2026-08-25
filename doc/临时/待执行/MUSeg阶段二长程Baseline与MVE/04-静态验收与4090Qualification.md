@@ -8,10 +8,13 @@
 
 ## 1. 前置条件
 
-- 01–03 的代码分别提交并经 Sol 复核。
+- 01–03 的代码已分别提交并通过最终无卡复核，门禁 B 已签署；阶段 04 仍须由用户明确开启有卡模式后才能开始。阶段 03 protocol 已强制绑定阶段 01 冻结 authority，候选来源哈希可由 canonical 重建证明。
+- qualification 使用跟踪的不可运行模板 `protocols/museg-qualification-v1.template.json`；仅在有卡机器上用 `tools/materialize_museg_protocol.py` 生成本机、可审计的 manifest，并将生成物保存于被忽略的实验输出目录。
 - 云端开始前用户明确开启有卡模式。
 - 云端仓库目录、py310、数据、预训练权重和输出根已按总索引核实。
-- 工作区干净，当前 commit 和 protocol manifest 已记录。
+- 工作区干净，当前 commit 和 materialized protocol manifest 已记录。
+
+阶段 04 当前未启动：无卡环境只能验证模板与物化流程，不得执行本阶段的 GPU 探测、训练、恢复或在线实验记录。
 
 ## 2. 静态验收
 

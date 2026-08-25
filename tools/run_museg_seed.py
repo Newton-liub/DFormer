@@ -145,9 +145,7 @@ def _bool_flag(name: str, enabled: bool) -> str:
 
 def build_training_argv(args: argparse.Namespace, protocol, run_dir: Path, run_id: str) -> list[str]:
     training = protocol.training
-    train_role = "official_train" if protocol.phase == "official" else "train_dev"
-    val_role = None if protocol.phase == "official" else "val_dev"
-    test_role = "official_test"
+    train_role, val_role, test_role = protocol.phase_roles()
     if args.direct:
         command = [args.python, args.train_program]
     else:
@@ -276,6 +274,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     try:
         protocol = load_protocol(args.protocol_manifest)
+        protocol.validate_consumed_splits()
         if args.seed not in protocol.seeds:
             raise ProtocolError(f"seed {args.seed} is not declared by the protocol manifest")
         if (args.batch_size is not None or args.max_train_iters is not None) and protocol.phase != "qualification":
@@ -365,6 +364,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "phase": protocol.phase,
                 "model": protocol.model,
                 "git": environment["git"],
+                "split_authority": protocol.authority_identity(),
                 "splits": protocol.splits,
                 "pretrained": protocol.pretrained,
                 "seed": args.seed,

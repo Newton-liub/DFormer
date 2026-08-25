@@ -126,6 +126,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "protocol_id": protocol.protocol_id,
                 "protocol_manifest": str(protocol.path),
                 "protocol_manifest_sha256": protocol.manifest_sha256,
+                "split_authority": protocol.authority_identity(),
                 "phase": protocol.phase,
                 "requested_seeds": list(seeds),
                 "completed_seeds": completed_seeds,

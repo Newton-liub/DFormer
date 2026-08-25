@@ -1,0 +1,42 @@
+{
+  "schema_version": "museg-training-protocol-v2",
+  "protocol_id": "museg-qualification-v1",
+  "schedule_version": "qualification-3epoch-v1",
+  "phase": "qualification",
+  "model": "DFormerv2-S",
+  "config_module": "local_configs.MUSeg.DFormerv2_S_4090",
+  "git": {"required_commit": "__MATERIALIZED_FULL_GIT_COMMIT__"},
+  "seeds": [1572378116],
+  "output_root": "__MATERIALIZED_ABSOLUTE_OUTPUT_ROOT__",
+  "split_authority": {
+    "manifest_path": "__MATERIALIZED_FROZEN_MANIFEST_PATH__",
+    "manifest_sha256": "42233412f432e387cfcffc763724461e2dbc111969a595c714ac12add7bf7b01",
+    "audit_report_path": "__MATERIALIZED_FROZEN_AUDIT_PATH__",
+    "audit_report_sha256": "53ac30aba0230919b994202f37b3571a7b416f9129f27eabf003415721e38055"
+  },
+  "official_train": {"path": "__MATERIALIZED_OFFICIAL_TRAIN_PATH__"},
+  "pretrained": {
+    "path": "__MATERIALIZED_PRETRAINED_PATH__",
+    "size_bytes": 1,
+    "sha256": "__MATERIALIZED_PRETRAINED_SHA256__"
+  },
+  "training": {
+    "epochs": 3,
+    "batch_size": 1,
+    "val_batch_size": 1,
+    "workers": 8,
+    "eval_start_epoch": 1,
+    "eval_interval": 1,
+    "save_interval": 1,
+    "amp": true,
+    "compile": false,
+    "syncbn": false,
+    "sliding": false,
+    "mst": false
+  },
+  "swanlab": {
+    "mode": "online",
+    "project": "DFormer-liu",
+    "workspace": "Newton_liub"
+  }
+}

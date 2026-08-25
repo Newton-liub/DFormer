@@ -193,6 +193,9 @@ output*
 # Local cloud experiment evidence and downloaded artifacts
 cloud/
 
+# Machine-local materialized training protocol manifests
+protocols/generated/
+
 .history
 *.ipynb
 pyrightconfig.json

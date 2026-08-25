@@ -136,6 +136,12 @@ warning 必须有明确分类：允许继续的建议性 warning 与阻塞 error
 ### 11.3 Sol 最终复核、边界与剩余风险
 
 - Sol 已逐项复核 protocol 字段契约、launcher 参数透传、失败传播、训练结果与 checkpoint 身份绑定、SwanLab rank 0/显式名称/fail-fast/finish-once，以及 official test `sealed_unread` 的 preflight—launcher—trainer—summary 路径；本阶段端到端接口复核通过。
-- 本阶段未提交 Git，未修改原始数据，未运行 GPU/CUDA 调用、4090 probe 或任何真实训练，也未在线初始化 SwanLab。
+- 本阶段基础实现已提交为 `e9e3c1c`，门禁 B 冻结 authority 修复已作为独立提交。未修改原始数据，未运行 GPU/CUDA 调用、4090 probe 或任何真实训练，也未在线初始化 SwanLab。
 - fake launcher 证明了编排和失败传播；真实 DDP、GPU 遥测、OOM 分类和在线 SwanLab 凭据链路尚未做运行验证，按计划留给 04。
-- 阶段 03 的 CPU/静态实现与 Sol 复核已完成；本记录不表示 01–03 整体复核、门禁 B、后续阶段或 GPU qualification 已通过。
+### 11.4 门禁 B 修复记录（已通过最终无卡复核）
+
+- protocol 的 split 身份不再接受仅由 protocol 自描述的路径、数量与 SHA-256；加载、preflight、launcher、三 seed 编排和汇总均从 `data/splits/MUSeg/dev-v1/manifest.json` 这个冻结 authority 派生并校验各角色的清单身份。篡改 authority、冻结 artifact 或 protocol 的重复声明均必须在 GPU 分配前失败。
+- `development`、`official` 与 `qualification` 的 source 解析均受冻结 split role 约束；checkpoint phase 只能消费其规定的上游 phase/source，不能通过手填路径跨越 phase 语义。
+- qualification 没有可跟踪的通用可运行 manifest：仓库只跟踪模板。`tools/materialize_museg_protocol.py` 在有卡机器为本机参数生成可审计 manifest，生成物受 `.gitignore` 保护并作为运行证据保存；无卡环境只验证该物化和静态 preflight 链路。
+- `tests/test_museg_dev_split.py` 以确定性 canonical 重建候选 manifest 并验证其 SHA-256 与冻结 `source_candidate_manifest_sha256` 的关系，补齐来源证明。
+- 门禁 B 已签署：冻结 authority 绑定、候选来源 canonical SHA-256 证明、三相位 source 闭合、qualification 模板/物化可追溯性、完整无卡测试、静态检查和干净工作区均已通过正式整体复核；阶段 04 仍必须等待用户开启有卡模式。

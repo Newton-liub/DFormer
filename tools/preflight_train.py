@@ -311,56 +311,48 @@ def _audit_git(report: AuditReport, protocol, repo_root: Path) -> None:
 
 
 def _audit_splits(report: AuditReport, protocol) -> None:
-    sample_sets: dict[str, set[str]] = {}
-    group_sets: dict[str, set[str]] = {}
-    for role, declared in protocol.splits.items():
-        path = protocol.split_path(role)
-        if not path.is_file():
-            report.error("split_missing", f"split {role} is missing", role=role, path=str(path))
-            continue
-        try:
-            lines = _split_lines(path)
-        except (OSError, UnicodeError) as exc:
-            report.error("split_unreadable", f"split {role} cannot be read", role=role, error=str(exc))
-            continue
-        samples, groups = set(lines), {_group(line) for line in lines}
-        sample_sets[role], group_sets[role] = samples, groups
-        if len(lines) != len(samples):
-            report.error("split_duplicates", f"split {role} contains duplicate samples", role=role, duplicates=len(lines) - len(samples))
-        if len(lines) != int(declared["samples"]):
-            report.error("split_sample_count_mismatch", f"split {role} sample count differs", role=role, expected=declared["samples"], actual=len(lines))
-        if len(groups) != int(declared["groups"]):
-            report.error("split_group_count_mismatch", f"split {role} group count differs", role=role, expected=declared["groups"], actual=len(groups))
-        actual_sha = file_sha256(path)
-        if actual_sha.lower() != str(declared["sha256"]).lower():
-            report.error("split_sha256_mismatch", f"split {role} SHA-256 differs", role=role, expected=declared["sha256"], actual=actual_sha)
-        else:
-            report.ok("split_identity", f"split {role} identity matches", role=role, path=str(path), samples=len(lines), groups=len(groups), sha256=actual_sha)
-    roles = sorted(sample_sets)
-    for index, left in enumerate(roles):
-        for right in roles[index + 1:]:
-            if "official_train" in {left, right} and ({left, right} & {"train_dev", "val_dev"}):
-                continue
-            sample_overlap = sorted(sample_sets[left] & sample_sets[right])
-            group_overlap = sorted(group_sets[left] & group_sets[right])
-            if sample_overlap:
-                report.error("split_sample_overlap", f"split sample overlap: {left}/{right}", left=left, right=right, count=len(sample_overlap), items=sample_overlap[:20])
-            if group_overlap:
-                report.error("split_group_overlap", f"split group overlap: {left}/{right}", left=left, right=right, count=len(group_overlap), items=group_overlap[:20])
-    if all(role in sample_sets for role in ("train_dev", "val_dev", "official_train")) and sample_sets["train_dev"] | sample_sets["val_dev"] != sample_sets["official_train"]:
-        report.error("split_dev_not_closed", "train-dev and val-dev do not close to official train")
+    try:
+        protocol.validate_consumed_splits()
+    except ProtocolError as exc:
+        report.error("split_authority_mismatch", "consumed split differs from frozen stage-01 authority", error=str(exc))
+        return
+    for role in ("train_dev", "val_dev", "official_train"):
+        declared = protocol.splits[role]
+        report.ok(
+            "split_identity",
+            f"split {role} identity matches frozen authority",
+            role=role,
+            path=str(protocol.split_path(role)),
+            samples=declared["samples"],
+            groups=declared["groups"],
+            sha256=declared["sha256"],
+        )
+    report.ok(
+        "split_authority",
+        "protocol is bound to the approved frozen stage-01 manifest and audit",
+        **protocol.authority_identity(),
+    )
 
 
 def _audit_phase(report: AuditReport, protocol) -> None:
-    train_role = "official_train" if protocol.phase == "official" else "train_dev"
-    val_role = None if protocol.phase == "official" else "val_dev"
-    if protocol.split_path(train_role) == protocol.split_path("official_test"):
-        report.error("phase_role_error", "training source aliases sealed official test", train_role=train_role)
-    if val_role and protocol.split_path(val_role) == protocol.split_path("official_test"):
-        report.error("phase_role_error", "validation source aliases sealed official test", val_role=val_role)
-    if protocol.phase == "official" and not bool(protocol.splits["official_test"].get("sealed_unread")):
-        report.error("phase_role_error", "official phase must declare official_test sealed_unread")
-    report.ok("phase_roles", "phase roles keep official test out of training", phase=protocol.phase, train_role=train_role, val_role=val_role, test_role="sealed_unread")
+    train_role, val_role, test_role = protocol.phase_roles()
+    if protocol.splits[test_role].get("sealed_unread") is not True:
+        report.error("phase_role_error", "official test must be sealed unread")
+        return
+    if protocol.phase == "official" and val_role is not None:
+        report.error("phase_role_error", "official phase must not configure training validation")
+        return
+    if protocol.phase != "official" and val_role != "val_dev":
+        report.error("phase_role_error", "development and qualification require frozen validation")
+        return
+    report.ok(
+        "phase_roles",
+        "phase roles keep official test out of training",
+        phase=protocol.phase,
+        train_role=train_role,
+        val_role=val_role,
+        test_role="sealed_unread",
+    )
 
 
 def _audit_pretrained(report: AuditReport, protocol) -> None:

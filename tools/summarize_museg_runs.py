@@ -27,6 +27,12 @@ def summarize(protocol, output: str | Path) -> dict[str, Any]:
         "protocol_id": protocol.protocol_id,
         "protocol_manifest_sha256": protocol.manifest_sha256,
         "phase": protocol.phase,
+        "split_authority": protocol.authority_identity(),
+    }
+    expected_result_identity = {
+        "protocol_id": protocol.protocol_id,
+        "protocol_manifest_sha256": protocol.manifest_sha256,
+        "phase": protocol.phase,
     }
     discovered: list[int] = []
     for manifest_path in protocol.run_root.glob("seed-*/run_manifest.json"):
@@ -56,13 +62,16 @@ def summarize(protocol, output: str | Path) -> dict[str, Any]:
             raise ProtocolError(f"seed {seed} is missing run_manifest.json or training_result.json")
         manifest = read_json(manifest_path)
         result = read_json(result_path)
-        if not isinstance(manifest, dict) or manifest.get("schema_version") != "museg-run-manifest-v1":
+        if not isinstance(manifest, dict) or manifest.get("schema_version") != "museg-run-manifest-v2":
             raise ProtocolError(f"seed {seed} has invalid run manifest schema")
         if not isinstance(result, dict) or result.get("schema_version") != "museg-training-result-v1":
             raise ProtocolError(f"seed {seed} has invalid training result schema")
         for field, expected in expected_identity.items():
-            if manifest.get(field) != expected or result.get(field) != expected:
-                raise ProtocolError(f"seed {seed} has mismatched {field}")
+            if manifest.get(field) != expected:
+                raise ProtocolError(f"seed {seed} run manifest has mismatched {field}")
+        for field, expected in expected_result_identity.items():
+            if result.get(field) != expected:
+                raise ProtocolError(f"seed {seed} training result has mismatched {field}")
         if result.get("official_test_included") is not False:
             raise ProtocolError(f"seed {seed} training result does not preserve official test sealing")
         declared_seed = manifest.get("seed")
@@ -121,6 +130,7 @@ def summarize(protocol, output: str | Path) -> dict[str, Any]:
         "protocol_id": protocol.protocol_id,
         "protocol_manifest": str(protocol.path),
         "protocol_manifest_sha256": protocol.manifest_sha256,
+        "split_authority": protocol.authority_identity(),
         "phase": protocol.phase,
         "seeds": list(protocol.seeds),
         "runs": runs,
