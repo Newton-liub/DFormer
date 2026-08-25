@@ -187,3 +187,11 @@ git -c core.whitespace=cr-at-eol diff --check
 ### 11.8 云端协议物化前的跨平台冻结字节修复
 
 云端静态核验发现，`official-test.txt` 的冻结 SHA-256 对应原始 CRLF 字节，但该文件此前被 Git 作为普通文本规范化为 LF。Windows 的 `core.autocrlf=true` 会在检出时恢复 CRLF，因此本地测试未暴露问题；Linux 云端则检出 LF，导致“干净工作树”和“冻结哈希正确”无法同时成立。修复将该特定冻结文件标记为 `-text` 并按原始 CRLF 字节重新入库，同时增加直接比较跟踪文件与冻结 manifest 输出哈希的回归测试。修复后本地无卡验收为 `100 passed, 10 warnings`，其余 compile、Shell 语法和 diff whitespace 检查均通过；warning 仍全部是既有的 AMP API 弃用提示。
+
+### 11.9 云端静态 preflight 与首次 4090 核验
+
+- 跨平台修复提交 `8c9f15822a56be4dd4a55136c3c457facf34f7d2` 已推送并同步云端；云端 Git 工作树干净。
+- 云端 qualification protocol 已物化到 `/root/cloud-ssd/museg-stage04-qualification/protocols/museg-qualification-v1.json`，SHA-256 为 `e3431e511c1a04b4e442f3992f7d37f3f23969ea563c1c3163e3cdb4049042cf`。该 manifest 在下一次修复提交后必须重新物化，旧 manifest 不得继续用于 B1/probe。
+- 云端已安装仓库固定的 `swanlab==0.9.7`。`--static-only` protocol preflight 已通过，报告为 `/root/cloud-ssd/museg-stage04-qualification/preflight-static.json`，结果为 0 error、0 warning；SwanLab online 初始化被明确延后，没有登录或创建在线 run。
+- 真实硬件核验确认 NVIDIA GeForce RTX 4090、24,564 MiB、驱动 610.57.04；PyTorch 2.1.2+cu118、CUDA 11.8、cuDNN 8.7.0，`torch.cuda.is_available()` 为 true。
+- 首次 B1 在任何模型 forward/backward 之前失败：以绝对脚本路径启动时仓库根未加入 `sys.path`，触发 `ModuleNotFoundError: models`。本轮因此没有 B1 JSON、loss、梯度或性能结果，也没有进入完整 preflight、SwanLab online smoke 或 batch probe。入口已补仓库根 bootstrap 和任意工作目录绝对启动回归测试；本地复核为 `101 passed, 10 warnings`，compile、Shell 语法和 diff whitespace 检查通过。修复提交后必须重新物化协议和完整重跑 B1。

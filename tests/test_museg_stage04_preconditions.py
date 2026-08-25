@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -13,6 +15,18 @@ from utils.training_checkpoint import phase_uses_validation
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _CONFIG_PATH = _REPO_ROOT / "local_configs" / "MUSeg" / "DFormerv2_S_4090.py"
+_B1_PATH = _REPO_ROOT / "tools" / "qualify_museg_b1.py"
+
+
+def test_b1_absolute_script_entrypoint_imports_from_arbitrary_cwd(tmp_path: Path) -> None:
+    completed = subprocess.run(
+        [sys.executable, str(_B1_PATH), "--help"],
+        cwd=tmp_path,
+        text=True,
+        capture_output=True,
+    )
+    assert completed.returncode == 0, completed.stderr
+    assert "real-model B1 masked-loss regression" in completed.stdout
 
 
 def test_qualification_and_development_are_the_only_validation_phases() -> None:
