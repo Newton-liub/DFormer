@@ -1,14 +1,23 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.7",
+  "nextCanvasVersion": "0.0.8",
   "latestFormalReport": {
-    "path": "doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md",
+    "path": "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md",
     "periodStart": "2026-08-25",
     "periodEnd": "2026-08-25",
-    "baseCommit": "9fae925a95aa8d593ef6d00882266532cbd73aed",
-    "status": "stage-2-dev-split-frozen"
+    "baseCommit": "4365edd7071f5b68e5e3306e9726ae782637fcdd",
+    "status": "stage-2-gate-b-signed"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md",
+      "topic": "museg-stage-2-gate-b-auditable-training-pipeline",
+      "periodStart": "2026-08-25",
+      "periodEnd": "2026-08-25",
+      "baseCommit": "4365edd7071f5b68e5e3306e9726ae782637fcdd",
+      "verification": "gate-b-authority-binding-full-tests-90-passed-and-worktree-clean",
+      "status": "formal"
+    },
     {
       "path": "doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md",
       "topic": "museg-stage-2-dev-split-freeze",
@@ -107,6 +116,15 @@
       "source": "doc/canvases/0.0.6-museg-stage-2-dev-split-freeze.canvas.tsx",
       "publishedFilename": "0.0.6-museg-stage-2-dev-split-freeze.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md",
+      "createdAt": "2026-08-25",
+      "status": "reference"
+    },
+    {
+      "version": "0.0.7",
+      "name": "museg-gate-b-auditable-training-pipeline",
+      "source": "doc/canvases/0.0.7-museg-gate-b-auditable-training-pipeline.canvas.tsx",
+      "publishedFilename": "0.0.7-museg-gate-b-auditable-training-pipeline.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md",
       "createdAt": "2026-08-25",
       "status": "current"
     }
