@@ -7,7 +7,10 @@ from types import SimpleNamespace
 
 import cv2
 import numpy as np
+import torch
+import torch.nn as nn
 
+from models.builder import EncoderDecoder
 from tools.preflight_train import Preflight, check_dataset
 from tools.qualify_museg_b1 import select_b1_samples
 from utils.training_checkpoint import phase_uses_validation
@@ -27,6 +30,49 @@ def test_b1_absolute_script_entrypoint_imports_from_arbitrary_cwd(tmp_path: Path
     )
     assert completed.returncode == 0, completed.stderr
     assert "real-model B1 masked-loss regression" in completed.stdout
+
+
+def test_auxiliary_head_consumes_selected_backbone_feature_not_batch_axis() -> None:
+    class Backbone(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.rgb_features = [
+                torch.randn(2, 4, 8, 8),
+                torch.randn(2, 5, 4, 4),
+                torch.randn(2, 6, 2, 2),
+                torch.randn(2, 7, 1, 1),
+            ]
+
+        def forward(self, _rgb: torch.Tensor, _modal_x: torch.Tensor):
+            return self.rgb_features, [feature.clone() for feature in self.rgb_features]
+
+    class DecodeHead(nn.Module):
+        def forward(self, features: list[torch.Tensor]) -> torch.Tensor:
+            return features[0][:, :2]
+
+    class AuxHead(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.received: torch.Tensor | None = None
+
+        def forward(self, feature: torch.Tensor) -> torch.Tensor:
+            self.received = feature
+            return feature[:, :2]
+
+    model = EncoderDecoder.__new__(EncoderDecoder)
+    nn.Module.__init__(model)
+    model.backbone = Backbone()
+    model.decode_head = DecodeHead()
+    model.aux_head = AuxHead()
+    model.aux_index = 2
+    rgb = torch.zeros(2, 3, 8, 8)
+    modal_x = torch.zeros(2, 3, 8, 8)
+
+    out, aux = model.encode_decode(rgb, modal_x)
+
+    assert model.aux_head.received is model.backbone.rgb_features[2]
+    assert out.shape[-2:] == (8, 8)
+    assert aux.shape[-2:] == (8, 8)
 
 
 def test_qualification_and_development_are_the_only_validation_phases() -> None:

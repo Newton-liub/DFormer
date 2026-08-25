@@ -195,3 +195,7 @@ git -c core.whitespace=cr-at-eol diff --check
 - 云端已安装仓库固定的 `swanlab==0.9.7`。`--static-only` protocol preflight 已通过，报告为 `/root/cloud-ssd/museg-stage04-qualification/preflight-static.json`，结果为 0 error、0 warning；SwanLab online 初始化被明确延后，没有登录或创建在线 run。
 - 真实硬件核验确认 NVIDIA GeForce RTX 4090、24,564 MiB、驱动 610.57.04；PyTorch 2.1.2+cu118、CUDA 11.8、cuDNN 8.7.0，`torch.cuda.is_available()` 为 true。
 - 首次 B1 在任何模型 forward/backward 之前失败：以绝对脚本路径启动时仓库根未加入 `sys.path`，触发 `ModuleNotFoundError: models`。本轮因此没有 B1 JSON、loss、梯度或性能结果，也没有进入完整 preflight、SwanLab online smoke 或 batch probe。入口已补仓库根 bootstrap 和任意工作目录绝对启动回归测试；本地复核为 `101 passed, 10 warnings`，compile、Shell 语法和 diff whitespace 检查通过。修复提交后必须重新物化协议和完整重跑 B1。
+
+### 11.10 第二次 B1 的辅助头结构修复
+
+入口修复提交 `22e217303367ff51e2ece8319822e61f4a668967` 同步云端并重新物化协议后，第二次 B1 已实际完成主头 mixed 和全背景两种 forward/backward；主+辅助头 mixed 在 forward 中失败。根因是 `EncoderDecoder.encode_decode()` 已将双模态 backbone 输出归一化为 RGB 四级特征列表后，辅助头仍使用 `x[0][aux_index]`，错误地在第一级特征的 batch 维取索引 2；B1 固定 batch 为 2，因此触发 `IndexError`。修复改为按特征级选择 `x[aux_index]`，并用 batch=2 的 synthetic 双模态 backbone 测试证明辅助头收到第三级特征而非 batch 切片。本地复核为 `102 passed, 10 warnings`，compile 和 diff whitespace 检查通过。第二次失败未生成 B1 JSON，完整 preflight、SwanLab online smoke 和 batch probe 仍未开始；提交修复后必须再次物化协议并从四种 B1 case 完整重跑。
