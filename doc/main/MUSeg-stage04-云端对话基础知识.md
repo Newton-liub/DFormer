@@ -51,7 +51,7 @@
 - qualification 根：`/root/cloud-ssd/museg-stage04-qualification`。
 - Python：`/usr/local/miniconda3/envs/py310/bin/python`，Python 3.10.16。
 - 已核验环境：NVIDIA GeForce RTX 4090，24,564 MiB；驱动 610.57.04；PyTorch 2.1.2+cu118；CUDA 11.8；cuDNN 8.7.0。
-- SwanLab：0.9.7。
+- SwanLab：0.9.7。持久凭据保存在 Git 仓库外的 `/root/.config/dformer/swanlab.env`，文件权限为 `600`；`/root/.bashrc` 自动加载该文件。非交互命令若未继承交互式 Bash 环境，应先执行 `source /root/.config/dformer/swanlab.env`。基础知识和 Git 中只记录路径与加载方式，不记录 Key 内容。
 - 预训练权重实际协议路径：`/root/rivermind-data/pretrained/DFormerv2_Small_pretrained.pth`，大小 110,203,103 bytes，SHA-256 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6`。
 
 ## 5. Git、协议和证据身份规则
@@ -87,7 +87,7 @@
 2. 首次 B1 以绝对路径执行时报 `ModuleNotFoundError: models`。提交 `22e217303367ff51e2ece8319822e61f4a668967` 已把 repo root 加入模块搜索路径并增加回归测试。
 3. 第二次 B1 的辅助头使用 `x[0][aux_index]`，错误索引 batch 维并报 `IndexError`。提交 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9` 已改为按特征级选择 `x[aux_index]`，最终四种 B1 case 通过。
 4. 预训练加载会输出既有的 non-strict key mismatch warning。它没有导致上述 B1 失败，B1 JSON 本身没有 warning 字段；后续报告应单独注明，不得静默忽略，也不要把它误判为 CUDA 故障。
-5. `swanlab login` 保存的本地登录状态不会通过本项目 `tools/preflight_train.py` 的环境凭据前置门禁。完整 online preflight 必须在同一进程环境中具有 `SWANLAB_API_KEY`；由用户本人隐藏输入并在运行后 `unset`。不要自动登录、请求、读取或回显 API Key。
+5. SwanLab online 门禁要求同一进程环境中存在 `SWANLAB_API_KEY`。当前云端已按用户授权将凭据持久化到 Git 仓库外的 `/root/.config/dformer/swanlab.env`，并由 `/root/.bashrc` 自动加载；非交互执行入口应显式 `source` 该文件。不得把 Key 内容写入文档、日志或 Git。
 6. 曾误尝试不存在的 `tools/preflight_museg.py`；正确入口是 `tools/preflight_train.py --protocol-manifest ... --report ...`。旧失败没有覆盖结构化报告。
 
 ## 8. 当前后续边界

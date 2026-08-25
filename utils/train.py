@@ -697,8 +697,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     min_free_gib=args.min_free_vram_gib,
                     min_free_ratio=args.min_free_vram_ratio,
                 )
-                if safety_error is not None:
-                    raise RuntimeError(f"GPU safety threshold violated at step {global_step}: {safety_error}")
                 amp_scale = scaler.get_scale() if args.amp else 1.0
                 telemetry_suffix = (
                     f" step={step_seconds:.3f}s throughput={images_per_second:.2f} img/s"
@@ -736,11 +734,14 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                         "free_ratio": free_vram_ratio,
                         "amp_scale": float(amp_scale),
                         "safety_passed": safety_error is None,
+                        "safety_error": safety_error,
                     }
                     with open(probe_telemetry_path, "a", encoding="utf-8") as telemetry_file:
                         telemetry_file.write(json.dumps(record, sort_keys=True) + "\n")
                         telemetry_file.flush()
                         os.fsync(telemetry_file.fileno())
+                if safety_error is not None:
+                    raise RuntimeError(f"GPU safety threshold violated at step {global_step}: {safety_error}")
 
             if engine.distributed:
                 sum_loss += reduce_loss.item()

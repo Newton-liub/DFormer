@@ -78,3 +78,45 @@ def test_probe_summary_rejects_incomplete_or_nonmonotonic_evidence(tmp_path: Pat
     result = json.loads(malformed_output.read_text(encoding="utf-8"))
     assert result["eligible"] is False
     assert result["anomaly"]["class"] == "evidence"
+
+
+def test_probe_summary_preserves_vram_threshold_failure_telemetry(tmp_path: Path) -> None:
+    run = _write_run(tmp_path, steps=3)
+    telemetry_path = run / "probe-telemetry.jsonl"
+    records = [json.loads(line) for line in telemetry_path.read_text(encoding="utf-8").splitlines()]
+    records[-1].update({
+        "optimizer_step_completed": False,
+        "completed_optimizer_steps": 2,
+        "free_mib": 384.0,
+        "free_ratio": 0.016,
+        "safety_passed": False,
+        "safety_error": "free VRAM 0.38 GiB is below required 2.00 GiB",
+    })
+    telemetry_path.write_text(
+        "".join(json.dumps(record) + "\n" for record in records), encoding="utf-8"
+    )
+    (run / "train.exit_code").write_text(json.dumps({"exit_code": 1}), encoding="utf-8")
+    (run / "launcher.log").write_text(
+        "RuntimeError: GPU safety threshold violated at step 3: free VRAM 0.38 GiB is below required 2.00 GiB\n",
+        encoding="utf-8",
+    )
+
+    output = tmp_path / "vram-threshold-result.json"
+    assert summarize_probe([
+        "--run-dir", str(run), "--output", str(output),
+        "--required-steps", "60", "--warmup-steps", "10",
+        "--min-free-vram-gib", "2", "--min-free-vram-ratio", "0.1",
+    ]) == 0
+    result = json.loads(output.read_text(encoding="utf-8"))
+    assert result["eligible"] is False
+    assert result["anomaly"]["class"] == "vram_threshold"
+    assert result["evidence_error"] == "training result does not prove the required probe completion"
+    assert result["thresholds"]["all_steps_passed"] is False
+    assert result["memory"]["minimum_free_mib"] == 384.0
+
+
+def test_probe_records_vram_threshold_attempt_before_raising() -> None:
+    source = Path("utils/train.py").read_text(encoding="utf-8")
+    telemetry_write = source.index("telemetry_file.write(json.dumps(record")
+    threshold_raise = source.index('raise RuntimeError(f"GPU safety threshold violated')
+    assert telemetry_write < threshold_raise

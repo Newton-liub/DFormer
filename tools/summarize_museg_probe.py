@@ -92,20 +92,23 @@ def main(argv: list[str] | None = None) -> int:
 
     log_text = (run_dir / "launcher.log").read_text(encoding="utf-8", errors="replace") if (run_dir / "launcher.log").is_file() else ""
     lower_log = log_text.lower()
-    if evidence_error:
-        anomaly: dict[str, str] | None = {"class": "evidence", "reason": evidence_error}
-    elif exit_code == 0:
-        anomaly = None
-    elif "out of memory" in lower_log:
-        anomaly = {"class": "oom", "reason": "launcher log reports CUDA out of memory"}
-    elif "xid" in lower_log:
-        anomaly = {"class": "cuda_xid", "reason": "launcher log reports CUDA Xid"}
-    elif "non-finite" in lower_log:
-        anomaly = {"class": "non_finite", "reason": "launcher log reports a non-finite value"}
-    elif "gpu safety threshold violated" in lower_log:
-        anomaly = {"class": "vram_threshold", "reason": "trainer rejected the configured VRAM safety threshold"}
+    if exit_code != 0:
+        if "out of memory" in lower_log:
+            anomaly: dict[str, str] | None = {"class": "oom", "reason": "launcher log reports CUDA out of memory"}
+        elif "xid" in lower_log:
+            anomaly = {"class": "cuda_xid", "reason": "launcher log reports CUDA Xid"}
+        elif "non-finite" in lower_log:
+            anomaly = {"class": "non_finite", "reason": "launcher log reports a non-finite value"}
+        elif "gpu safety threshold violated" in lower_log:
+            anomaly = {"class": "vram_threshold", "reason": "trainer rejected the configured VRAM safety threshold"}
+        elif evidence_error:
+            anomaly = {"class": "evidence", "reason": evidence_error}
+        else:
+            anomaly = {"class": "trainer_failure", "reason": f"trainer exited with {exit_code}"}
+    elif evidence_error:
+        anomaly = {"class": "evidence", "reason": evidence_error}
     else:
-        anomaly = {"class": "trainer_failure", "reason": f"trainer exited with {exit_code}"}
+        anomaly = None
 
     def summarize(values: list[float]) -> dict[str, float | int | None]:
         if not values:
@@ -136,6 +139,7 @@ def main(argv: list[str] | None = None) -> int:
         "anomaly": anomaly,
         "eligible": exit_code == 0 and anomaly is None,
         "rejection_reasons": [] if exit_code == 0 and anomaly is None else [anomaly["reason"] if anomaly else "non-zero exit code"],
+        "evidence_error": evidence_error,
     }
     write_json(args.output, payload)
     return 0
