@@ -50,9 +50,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--resume-parent-run-id")
     parser.add_argument("--resume-checkpoint-sha256")
     parser.add_argument("--swanlab-run-name")
+    parser.add_argument("--run-id", help="unique logical run identity; required for qualification resume")
     parser.add_argument("--output-dir", help="qualification-only isolated output override")
     parser.add_argument("--batch-size", type=int, help="qualification-only batch override")
     parser.add_argument("--max-train-iters", type=int, help="qualification-only bounded probe")
+    parser.add_argument("--run-kind", choices=("qualification", "probe"), default="qualification")
+    parser.add_argument("--probe-warmup-steps", type=int, default=10, help="probe-only performance warmup steps")
+    parser.add_argument(
+        "--stop-after-completed-epoch",
+        type=int,
+        help="qualification-only controlled epoch-boundary stop for resume rehearsal",
+    )
     parser.add_argument("--min-free-vram-gib", type=float, default=0.0)
     parser.add_argument("--min-free-vram-ratio", type=float, default=0.0)
     parser.add_argument("--dry-run", action="store_true", help="write launch records without starting the trainer")
@@ -195,8 +203,16 @@ def build_training_argv(args: argparse.Namespace, protocol, run_dir: Path, run_i
             "--expected-val-split-sha256", str(protocol.splits[val_role]["sha256"]),
             "--expected-val-samples", str(protocol.splits[val_role]["samples"]),
         ]
+    command += ["--run-kind", args.run_kind]
+    if args.run_kind == "probe":
+        command += [
+            "--probe-warmup-steps", str(args.probe_warmup_steps),
+            "--probe-telemetry-jsonl", str(run_dir / "probe-telemetry.jsonl"),
+        ]
     if args.max_train_iters is not None:
         command += ["--max-train-iters", str(args.max_train_iters)]
+    if args.stop_after_completed_epoch is not None:
+        command += ["--stop-after-completed-epoch", str(args.stop_after_completed_epoch)]
     if args.min_free_vram_gib > 0:
         command += ["--min-free-vram-gib", str(args.min_free_vram_gib)]
     if args.min_free_vram_ratio > 0:
@@ -231,7 +247,15 @@ def _validate_resume(args: argparse.Namespace) -> dict[str, Any] | None:
     return {"checkpoint": str(checkpoint), "checkpoint_sha256": actual, "parent_run_id": args.resume_parent_run_id}
 
 
-def _validate_training_result(protocol, run_dir: Path, seed: int, run_id: str) -> None:
+def _validate_training_result(
+    protocol,
+    run_dir: Path,
+    seed: int,
+    run_id: str,
+    *,
+    run_kind: str,
+    requested_steps: int | None,
+) -> None:
     result_path = run_dir / "training_result.json"
     if not result_path.is_file():
         raise ProtocolError(f"successful trainer did not write {result_path}")
@@ -252,7 +276,20 @@ def _validate_training_result(protocol, run_dir: Path, seed: int, run_id: str) -
             raise ProtocolError(
                 f"training_result.json {field} mismatch: expected {expected!r}, got {result.get(field)!r}"
             )
-    if protocol.phase in {"development", "official"}:
+    if result.get("run_kind") != run_kind:
+        raise ProtocolError(
+            f"training_result.json run_kind mismatch: expected {run_kind!r}, got {result.get('run_kind')!r}"
+        )
+    if run_kind == "probe":
+        if requested_steps is None or result.get("completed_optimizer_steps") != requested_steps:
+            raise ProtocolError("probe training_result.json must prove the exact requested optimizer-step count")
+        telemetry = run_dir / "probe-telemetry.jsonl"
+        if not telemetry.is_file() or not telemetry.read_text(encoding="utf-8").strip():
+            raise ProtocolError("probe training_result.json requires non-empty probe telemetry")
+        return
+    if result.get("controlled_stop_after_completed_epoch") is None and result.get("final_epoch") != protocol.training["epochs"]:
+        raise ProtocolError("qualification training_result.json ended before the protocol epoch count")
+    if protocol.phase in {"qualification", "development", "official"}:
         checkpoint = result.get("checkpoint")
         if not isinstance(checkpoint, dict):
             raise ProtocolError(f"{protocol.phase} training_result.json must identify a checkpoint")
@@ -277,12 +314,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         protocol.validate_consumed_splits()
         if args.seed not in protocol.seeds:
             raise ProtocolError(f"seed {args.seed} is not declared by the protocol manifest")
-        if (args.batch_size is not None or args.max_train_iters is not None) and protocol.phase != "qualification":
+        if (
+            args.batch_size is not None
+            or args.max_train_iters is not None
+            or args.stop_after_completed_epoch is not None
+        ) and protocol.phase != "qualification":
             raise ProtocolError("batch/step overrides are restricted to qualification protocols")
         if args.batch_size is not None and args.batch_size <= 0:
             raise ProtocolError("--batch-size must be positive")
         if args.max_train_iters is not None and args.max_train_iters <= 0:
             raise ProtocolError("--max-train-iters must be positive")
+        if args.run_kind == "probe" and args.max_train_iters is None:
+            raise ProtocolError("probe runs require --max-train-iters")
+        if args.run_kind == "probe" and args.probe_warmup_steps < 0:
+            raise ProtocolError("--probe-warmup-steps cannot be negative")
+        if args.stop_after_completed_epoch is not None:
+            if not 1 <= args.stop_after_completed_epoch < int(protocol.training["epochs"]):
+                raise ProtocolError(
+                    "--stop-after-completed-epoch must be within [1, protocol epochs)"
+                )
         resume = _validate_resume(args)
         run_dir = Path(args.output_dir).resolve() if args.output_dir else protocol.seed_output_dir(args.seed)
         if args.output_dir and protocol.phase != "qualification":
@@ -291,10 +341,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise ProtocolError(f"seed output directory is non-empty: {run_dir}")
         if run_dir.exists():
             run_dir.rmdir()
-        run_id = (
+        default_run_id = (
             f"{protocol.protocol_id}-{protocol.phase}-{protocol.model}-"
             f"{protocol.schedule_version}-seed-{args.seed}"
         )
+        run_id = args.run_id or default_run_id
+        if resume is not None and protocol.phase == "qualification":
+            if args.run_id is None:
+                raise ProtocolError("qualification resume requires an explicit unique --run-id")
+            if run_id == resume["parent_run_id"]:
+                raise ProtocolError("resume child --run-id must differ from --resume-parent-run-id")
         command = build_training_argv(args, protocol, run_dir, run_id)
         protocol.run_root.mkdir(parents=True, exist_ok=True)
         repo_root = Path(__file__).resolve().parents[1]
@@ -341,7 +397,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             Path(temporary_log).unlink(missing_ok=True)
         if exit_code == 0 and not args.dry_run:
             try:
-                _validate_training_result(protocol, run_dir, args.seed, run_id)
+                _validate_training_result(
+                    protocol,
+                    run_dir,
+                    args.seed,
+                    run_id,
+                    run_kind=args.run_kind,
+                    requested_steps=args.max_train_iters if args.run_kind == "probe" else None,
+                )
             except (OSError, ProtocolError) as exc:
                 evidence_error = str(exc)
                 exit_code = 3

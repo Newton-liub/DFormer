@@ -12,6 +12,9 @@ PROTOCOL_MANIFEST="$(cd -- "$(dirname -- "${PROTOCOL_MANIFEST}")" && pwd)/$(base
 PROBE_OUTPUT_ROOT="${DFORMER_PROBE_OUTPUT_ROOT:-${REPO_ROOT}/outputs/museg_4090_probe}"
 PROBE_STEPS="${DFORMER_PROBE_STEPS:-60}"
 PROBE_SEED="${DFORMER_PROBE_SEED:-}"
+PROBE_WARMUP_STEPS="${DFORMER_PROBE_WARMUP_STEPS:-10}"
+MIN_FREE_GIB="${DFORMER_PROBE_MIN_FREE_GIB:-2}"
+MIN_FREE_RATIO="${DFORMER_PROBE_MIN_FREE_RATIO:-0.10}"
 mkdir -p "${PROBE_OUTPUT_ROOT}"
 cd "${REPO_ROOT}"
 export PYTHONPATH="${REPO_ROOT}:${PYTHONPATH:-}"
@@ -37,21 +40,26 @@ for batch_size in 4 8 12 16; do
         --protocol-manifest "${PROTOCOL_MANIFEST}" \
         --seed "${PROBE_SEED}" \
         --batch-size "${batch_size}" \
+        --run-id "probe-batch-${batch_size}-seed-${PROBE_SEED}" \
+        --run-kind probe \
+        --probe-warmup-steps "${PROBE_WARMUP_STEPS}" \
         --max-train-iters "${PROBE_STEPS}" \
-        --min-free-vram-gib "${DFORMER_PROBE_MIN_FREE_GIB:-2}" \
-        --min-free-vram-ratio "${DFORMER_PROBE_MIN_FREE_RATIO:-0.10}" \
+        --min-free-vram-gib "${MIN_FREE_GIB}" \
+        --min-free-vram-ratio "${MIN_FREE_RATIO}" \
         --output-dir "${batch_output}"
     status=$?
     set -e
 
     "${PYTHON_BIN}" tools/summarize_museg_probe.py \
-        --log "${batch_output}/launcher.log" \
+        --run-dir "${batch_output}" \
         --output "${batch_output}/probe-result.json" \
-        --batch-size "${batch_size}" \
-        --exit-code "${status}"
+        --required-steps "${PROBE_STEPS}" \
+        --warmup-steps "${PROBE_WARMUP_STEPS}" \
+        --min-free-vram-gib "${MIN_FREE_GIB}" \
+        --min-free-vram-ratio "${MIN_FREE_RATIO}"
 
     if (( status != 0 )); then
-        anomaly="$("${PYTHON_BIN}" -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("anomaly") or "unknown")' "${batch_output}/probe-result.json")"
+        anomaly="$("${PYTHON_BIN}" -c 'import json,sys; print((json.load(open(sys.argv[1], encoding="utf-8")).get("anomaly") or {}).get("class", "unknown"))' "${batch_output}/probe-result.json")"
         overall_status="${status}"
         if [[ "${anomaly}" == "oom" ]]; then
             printf 'batch %s reached OOM; larger probes were not started\n' "${batch_size}" >&2
@@ -70,14 +78,15 @@ root = Path(sys.argv[1])
 rows = [json.loads(path.read_text(encoding="utf-8")) for path in sorted(root.glob("batch-*/probe-result.json"))]
 safe = [
     row for row in rows
-    if row["exit_code"] == 0
-    and row["free_mib"] is not None
-    and row["free_mib"] >= 2048
-    and row["free_ratio"] is not None
-    and row["free_ratio"] >= 0.10
-    and row["stable_throughput_images_per_second"] is not None
+    if row.get("eligible") is True
+    and row.get("completion", {}).get("exact_target_met") is True
+    and row.get("thresholds", {}).get("all_steps_passed") is True
+    and row.get("stable_throughput_images_per_second", {}).get("median") is not None
 ]
-best = max(safe, key=lambda row: row["stable_throughput_images_per_second"]) if safe else None
+best = max(
+    safe,
+    key=lambda row: (row["stable_throughput_images_per_second"]["median"], -row["batch_size"]),
+) if safe else None
 summary = {
     "schema_version": "museg-4090-probe-summary-v1",
     "runs": rows,

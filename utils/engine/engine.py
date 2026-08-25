@@ -46,6 +46,7 @@ class State(object):
             "global_optimizer_step",
             "best_val_miou",
             "best_val_epoch",
+            "resume_parent_run_id",
         }
         for key, value in kwargs.items():
             if key not in allowed:
@@ -158,11 +159,13 @@ class Engine(object):
             checkpoint, _ = inspect_checkpoint_directory(
                 osp.dirname(resume_path),
                 expected_protocol=self.state.checkpoint_protocol,
+                expected_checkpoint_run_id=getattr(self.state, "resume_parent_run_id", None),
             )
         else:
             checkpoint = load_training_checkpoint(
                 resume_path,
                 expected_protocol=self.state.checkpoint_protocol,
+                expected_checkpoint_run_id=getattr(self.state, "resume_parent_run_id", None),
             )
         started_at = time.time()
         resume = restore_training_state(

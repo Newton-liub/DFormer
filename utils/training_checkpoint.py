@@ -234,6 +234,13 @@ def resolve_training_sources(config: Any) -> TrainingSources:
     )
 
 
+def phase_uses_validation(phase: str) -> bool:
+    """Return whether a training phase owns a validation split and best checkpoint."""
+    if phase not in _ALLOWED_PHASES:
+        raise ValueError(f"unsupported training phase: {phase!r}")
+    return phase in {"qualification", "development"}
+
+
 def should_evaluate(
     epoch: int,
     total_epochs: int,
@@ -383,6 +390,95 @@ def _torch_load_cpu(path: Path) -> Any:
         return torch.load(path, map_location=torch.device("cpu"))
 
 
+def canonical_state_sha256(value: Any) -> str:
+    """Hash nested checkpoint state without relying on torch.save byte layout."""
+    digest = hashlib.sha256()
+
+    def update(item: Any) -> None:
+        if isinstance(item, torch.Tensor):
+            tensor = item.detach().cpu().contiguous()
+            digest.update(b"tensor\0")
+            digest.update(str(tensor.dtype).encode("utf-8"))
+            digest.update(repr(tuple(tensor.shape)).encode("utf-8"))
+            digest.update(tensor.numpy().tobytes())
+        elif isinstance(item, np.ndarray):
+            array = np.ascontiguousarray(item)
+            digest.update(b"ndarray\0")
+            digest.update(str(array.dtype).encode("utf-8"))
+            digest.update(repr(array.shape).encode("utf-8"))
+            digest.update(array.tobytes())
+        elif isinstance(item, Mapping):
+            digest.update(b"mapping\0")
+            for key in sorted(item, key=lambda candidate: repr(candidate)):
+                update(key)
+                update(item[key])
+        elif isinstance(item, (list, tuple)):
+            digest.update(b"sequence\0")
+            for child in item:
+                update(child)
+        elif isinstance(item, bytes):
+            digest.update(b"bytes\0")
+            digest.update(item)
+        else:
+            digest.update(b"scalar\0")
+            digest.update(repr(item).encode("utf-8"))
+
+    update(value)
+    return digest.hexdigest()
+
+
+def inspect_training_checkpoint(
+    path: str | os.PathLike[str],
+    *,
+    expected_protocol: CheckpointProtocol | None = None,
+    expected_checkpoint_run_id: str | None = None,
+) -> dict[str, Any]:
+    """Load a checkpoint on CPU and return a compact, auditable state summary."""
+    checkpoint_path = Path(path)
+    try:
+        raw = _torch_load_cpu(checkpoint_path)
+    except Exception as exc:
+        raise CheckpointCorruptionError(f"cannot load checkpoint {checkpoint_path}: {exc}") from exc
+    checkpoint = _validate_checkpoint_structure(raw, checkpoint_path)
+    if expected_protocol is not None:
+        _validate_protocol(
+            checkpoint["protocol"],
+            expected_protocol,
+            expected_checkpoint_run_id=expected_checkpoint_run_id,
+        )
+    optimizer_lrs = [float(group["lr"]) for group in checkpoint["optimizer"].get("param_groups", [])]
+    return {
+        "path": str(checkpoint_path.resolve()),
+        "sha256": file_sha256(checkpoint_path),
+        "schema_version": checkpoint["schema_version"],
+        "completed_epoch": checkpoint["completed_epoch"],
+        "next_epoch": checkpoint["next_epoch"],
+        "global_optimizer_step": checkpoint["global_optimizer_step"],
+        "best_val_miou": checkpoint["best_val_miou"],
+        "best_val_epoch": checkpoint["best_val_epoch"],
+        "optimizer_lrs": optimizer_lrs,
+        "protocol": checkpoint["protocol"],
+        "component_sha256": {
+            "model": canonical_state_sha256(checkpoint["model"]),
+            "optimizer": canonical_state_sha256(checkpoint["optimizer"]),
+            "amp_scaler": canonical_state_sha256(checkpoint["amp_scaler"]),
+            "rng_state": canonical_state_sha256(checkpoint["rng_state"]),
+        },
+    }
+
+
+def compare_checkpoint_inspections(
+    expected: Mapping[str, Any],
+    actual: Mapping[str, Any],
+) -> list[str]:
+    """Return deterministic field paths that differ between two audit summaries."""
+    fields = (
+        "schema_version", "completed_epoch", "next_epoch", "global_optimizer_step",
+        "best_val_miou", "best_val_epoch", "optimizer_lrs", "protocol", "component_sha256",
+    )
+    return [field for field in fields if _to_jsonable(expected.get(field)) != _to_jsonable(actual.get(field))]
+
+
 def _validate_checkpoint_structure(checkpoint: Any, path: Path) -> dict[str, Any]:
     if not isinstance(checkpoint, dict):
         raise CheckpointCorruptionError(f"checkpoint {path} is not a mapping")
@@ -424,14 +520,17 @@ def _validate_checkpoint_structure(checkpoint: Any, path: Path) -> dict[str, Any
 def _validate_protocol(
     actual: Mapping[str, Any],
     expected_protocol: CheckpointProtocol,
+    *,
+    expected_checkpoint_run_id: str | None = None,
 ) -> None:
     expected = expected_protocol.to_dict()
     for field in _PROTOCOL_COMPATIBILITY_FIELDS:
         if field not in actual:
             raise CheckpointCorruptionError(f"checkpoint protocol missing required field {field!r}")
-        if _to_jsonable(actual[field]) != _to_jsonable(expected[field]):
+        expected_value = expected_checkpoint_run_id if field == "run_id" and expected_checkpoint_run_id else expected[field]
+        if _to_jsonable(actual[field]) != _to_jsonable(expected_value):
             raise CheckpointCompatibilityError(
-                f"checkpoint protocol mismatch for {field}: expected {expected[field]!r}, got {actual[field]!r}"
+                f"checkpoint protocol mismatch for {field}: expected {expected_value!r}, got {actual[field]!r}"
             )
 
 
@@ -439,6 +538,7 @@ def load_training_checkpoint(
     path: str | os.PathLike[str],
     *,
     expected_protocol: CheckpointProtocol,
+    expected_checkpoint_run_id: str | None = None,
 ) -> dict[str, Any]:
     checkpoint_path = Path(path)
     try:
@@ -446,7 +546,11 @@ def load_training_checkpoint(
     except Exception as exc:
         raise CheckpointCorruptionError(f"cannot load checkpoint {checkpoint_path}: {exc}") from exc
     checkpoint = _validate_checkpoint_structure(raw, checkpoint_path)
-    _validate_protocol(checkpoint["protocol"], expected_protocol)
+    _validate_protocol(
+        checkpoint["protocol"],
+        expected_protocol,
+        expected_checkpoint_run_id=expected_checkpoint_run_id,
+    )
     completed_epoch = checkpoint["completed_epoch"]
     if completed_epoch > expected_protocol.total_epochs:
         raise CheckpointCompatibilityError("checkpoint completed epoch exceeds target total epochs")
@@ -490,10 +594,15 @@ def inspect_checkpoint_directory(
     checkpoint_dir: str | os.PathLike[str],
     *,
     expected_protocol: CheckpointProtocol,
+    expected_checkpoint_run_id: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any] | None]:
     directory = Path(checkpoint_dir)
     latest_path = directory / "latest.pth"
-    latest = load_training_checkpoint(latest_path, expected_protocol=expected_protocol)
+    latest = load_training_checkpoint(
+        latest_path,
+        expected_protocol=expected_protocol,
+        expected_checkpoint_run_id=expected_checkpoint_run_id,
+    )
     periodic: list[tuple[int, Path]] = []
     for candidate in directory.glob("epoch-*.pth"):
         match = _EPOCH_CHECKPOINT_RE.match(candidate.name)
@@ -502,7 +611,11 @@ def inspect_checkpoint_directory(
     if not periodic:
         return latest, None
     filename_epoch, highest_path = max(periodic, key=lambda item: item[0])
-    highest = load_training_checkpoint(highest_path, expected_protocol=expected_protocol)
+    highest = load_training_checkpoint(
+        highest_path,
+        expected_protocol=expected_protocol,
+        expected_checkpoint_run_id=expected_checkpoint_run_id,
+    )
     if highest["completed_epoch"] != filename_epoch:
         raise CheckpointCorruptionError(
             f"periodic checkpoint filename {highest_path.name} disagrees with completed_epoch"

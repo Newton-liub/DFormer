@@ -109,15 +109,15 @@ def _write_fake_trainer(tmp_path: Path) -> Path:
         "p=argparse.ArgumentParser(); p.add_argument('--seed',type=int); p.add_argument('--run-id'); "
         "p.add_argument('--output-dir'); p.add_argument('--resume'); p.add_argument('--resume-parent-run-id'); "
         "p.add_argument('--resume-checkpoint-sha256'); p.add_argument('--protocol-id'); "
-        "p.add_argument('--protocol-manifest-sha256'); p.add_argument('--experiment-phase'); a,x=p.parse_known_args()\n"
+        "p.add_argument('--protocol-manifest-sha256'); p.add_argument('--experiment-phase'); p.add_argument('--run-kind', default='qualification'); a,x=p.parse_known_args()\n"
         "out=Path(a.output_dir); out.mkdir(parents=True,exist_ok=True); "
         "checkpoint=out/'checkpoint'/'latest.pth'; checkpoint.parent.mkdir(parents=True,exist_ok=True); "
         "checkpoint.write_bytes(b'fake checkpoint'); checkpoint_sha=hashlib.sha256(checkpoint.read_bytes()).hexdigest(); "
         "(out/'training_result.json').write_text(json.dumps({"
         "'schema_version':'museg-training-result-v1','protocol_id':a.protocol_id,"
         "'protocol_manifest_sha256':a.protocol_manifest_sha256,'phase':a.experiment_phase,"
-        "'seed':a.seed,'run_id':a.run_id,'best_val_miou':0.5,"
-        "'best_val_epoch':5,'final_epoch':20,'duration_seconds':1.25,'exit_code':0,"
+        "'seed':a.seed,'run_id':a.run_id,'run_kind':a.run_kind,'best_val_miou':0.5,"
+        "'best_val_epoch':5,'final_epoch':20,'duration_seconds':1.25,'completed_optimizer_steps':20,'exit_code':0,"
         "'checkpoint':{'path':str(checkpoint.resolve()),'sha256':checkpoint_sha},"
         "'official_test_included':False,'extra_args':x}),encoding='utf-8')\n",
         encoding="utf-8",
@@ -144,6 +144,30 @@ def test_single_seed_launcher_passes_protocol_arguments_and_writes_json(tmp_path
     assert run["protocol_manifest_sha256"] == _sha(protocol)
     assert (run_dir / "launcher.log").is_file()
     assert json.loads((run_dir / "train.exit_code").read_text(encoding="utf-8"))["exit_code"] == 0
+
+
+def test_qualification_launcher_forwards_controlled_epoch_stop(tmp_path: Path) -> None:
+    protocol = _write_protocol(tmp_path, phase="qualification", seeds=(11,))
+    trainer = _write_fake_trainer(tmp_path)
+
+    assert run_seed_main([
+        "--protocol-manifest", str(protocol), "--seed", "11", "--direct",
+        "--train-program", str(trainer), "--python", sys.executable,
+        "--stop-after-completed-epoch", "1",
+    ]) == 0
+
+    run_dir = tmp_path / "output root #" / "museg-dev-unit-v1" / "qualification" / "seed-11"
+    command = json.loads((run_dir / "command.json").read_text(encoding="utf-8"))["argv"]
+    assert command[command.index("--stop-after-completed-epoch") + 1] == "1"
+
+
+def test_controlled_epoch_stop_rejects_nonqualification_protocol(tmp_path: Path) -> None:
+    protocol = _write_protocol(tmp_path, phase="development", seeds=(11,))
+
+    assert run_seed_main([
+        "--protocol-manifest", str(protocol), "--seed", "11",
+        "--stop-after-completed-epoch", "1",
+    ]) != 0
 
 
 def test_single_seed_rejects_nonempty_output_and_resume_requires_parent_and_sha(tmp_path: Path) -> None:

@@ -1,5 +1,7 @@
 import argparse
 import datetime
+import hashlib
+import json
 import os
 import platform
 import pprint
@@ -36,6 +38,7 @@ from utils.training_checkpoint import (
     file_sha256,
     get_git_commit,
     optimizer_step_was_applied,
+    phase_uses_validation,
     prepare_output_directory,
     resolve_training_sources,
     select_best_metric,
@@ -56,6 +59,15 @@ parser.add_argument("--batch-size", "--batch", dest="batch_size", type=int, defa
 parser.add_argument("--workers", "--worker", "--num-workers", dest="workers", type=int, default=None, help="override config.num_workers")
 parser.add_argument("--val-batch-size", "--val-batch", dest="val_batch_size", type=int, default=None, help="override validation batch size")
 parser.add_argument("--max-train-iters", type=int, default=None, help="stop normally after this many train steps")
+parser.add_argument("--run-kind", choices=("qualification", "probe"), default="qualification")
+parser.add_argument("--probe-warmup-steps", type=int, default=10)
+parser.add_argument("--probe-telemetry-jsonl", default=None)
+parser.add_argument(
+    "--stop-after-completed-epoch",
+    type=int,
+    default=None,
+    help="qualification-only controlled stop after validation and checkpoint saving",
+)
 parser.add_argument("--log-interval", type=int, default=0, help="train metric interval in steps; 0 uses 10% of an epoch")
 parser.add_argument("--min-free-vram-gib", type=float, default=0.0, help="fail when free VRAM falls below GiB; 0 disables")
 parser.add_argument("--min-free-vram-ratio", type=float, default=0.0, help="fail when free/total VRAM falls below ratio; 0 disables")
@@ -247,6 +259,17 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         config.val_batch_size = args.val_batch_size
     if args.max_train_iters is not None and args.max_train_iters <= 0:
         parser.error("--max-train-iters must be positive")
+    if args.run_kind == "probe" and args.max_train_iters is None:
+        parser.error("probe runs require --max-train-iters")
+    if args.run_kind == "probe" and args.probe_warmup_steps < 0:
+        parser.error("--probe-warmup-steps cannot be negative")
+    if args.run_kind == "probe" and not args.probe_telemetry_jsonl:
+        parser.error("probe runs require --probe-telemetry-jsonl")
+    if args.stop_after_completed_epoch is not None:
+        if config.experiment_phase != "qualification":
+            parser.error("--stop-after-completed-epoch is restricted to qualification")
+        if not 1 <= args.stop_after_completed_epoch < config.nepochs:
+            parser.error("--stop-after-completed-epoch must be within [1, epochs) for qualification")
     if args.log_interval < 0:
         parser.error("--log-interval cannot be negative")
     if args.min_free_vram_gib < 0:
@@ -541,6 +564,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         optimizer=optimizer,
         scaler=scaler,
         checkpoint_protocol=checkpoint_protocol,
+        resume_parent_run_id=args.resume_parent_run_id,
     )
     if engine.continue_state_object:
         engine.restore_checkpoint()
@@ -566,6 +590,12 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     train_steps_completed = 0
     global_optimizer_steps = engine.state.global_optimizer_step
     short_run_reached = False
+    controlled_stop_epoch = None
+    probe_attempts = 0
+    probe_telemetry_path = args.probe_telemetry_jsonl
+    if probe_telemetry_path and is_primary:
+        os.makedirs(os.path.dirname(os.path.abspath(probe_telemetry_path)), exist_ok=True)
+        open(probe_telemetry_path, "w", encoding="utf-8").close()
     training_started_monotonic = time.monotonic()
     for epoch in range(engine.state.epoch, config.nepochs + 1):
         model = compiled_model
@@ -596,7 +626,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             next_train_step = train_steps_completed + 1
             should_log = next_train_step == 1 or next_train_step % log_interval == 0
             safety_monitoring = args.min_free_vram_gib > 0 or args.min_free_vram_ratio > 0
-            measure_step = should_log or safety_monitoring
+            measure_step = should_log or safety_monitoring or args.run_kind == "probe"
             if measure_step:
                 torch.cuda.synchronize()
                 step_started_at = time.perf_counter()
@@ -676,6 +706,41 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     f" free={free_vram_mb:.0f}/{total_vram_mb:.0f} MiB"
                     f" free_ratio={free_vram_ratio:.3f} amp_scale={amp_scale:.1f}"
                 )
+                if args.run_kind == "probe" and is_primary:
+                    probe_attempts += 1
+                    sample_ids = minibatch.get("fn", [])
+                    if isinstance(sample_ids, str):
+                        sample_ids = [sample_ids]
+                    tensor_sha256 = {
+                        "rgb": hashlib.sha256(imgs.detach().cpu().contiguous().numpy().tobytes()).hexdigest(),
+                        "depth": hashlib.sha256(modal_xs.detach().cpu().contiguous().numpy().tobytes()).hexdigest(),
+                        "label": hashlib.sha256(gts.detach().cpu().contiguous().numpy().tobytes()).hexdigest(),
+                    }
+                    record = {
+                        "schema_version": "museg-probe-step-v1",
+                        "attempt": probe_attempts,
+                        "completed_optimizer_steps": train_steps_completed,
+                        "global_optimizer_step": global_optimizer_steps,
+                        "optimizer_step_completed": optimizer_step_completed,
+                        "epoch": epoch,
+                        "iteration": idx + 1,
+                        "sample_ids": list(sample_ids),
+                        "tensor_sha256": tensor_sha256,
+                        "loss": float(loss.detach().item()),
+                        "step_seconds": step_seconds,
+                        "images_per_second": images_per_second,
+                        "allocated_mib": max_memory_mb,
+                        "reserved_mib": max_memory_reserved_mb,
+                        "free_mib": free_vram_mb,
+                        "total_mib": total_vram_mb,
+                        "free_ratio": free_vram_ratio,
+                        "amp_scale": float(amp_scale),
+                        "safety_passed": safety_error is None,
+                    }
+                    with open(probe_telemetry_path, "a", encoding="utf-8") as telemetry_file:
+                        telemetry_file.write(json.dumps(record, sort_keys=True) + "\n")
+                        telemetry_file.flush()
+                        os.fsync(telemetry_file.fileno())
 
             if engine.distributed:
                 sum_loss += reduce_loss.item()
@@ -818,7 +883,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                         )
                         engine.state.best_val_miou = best_miou
                         engine.state.best_val_epoch = best_miou_epoch
-                        if improved and config.experiment_phase == "development":
+                        if improved and phase_uses_validation(config.experiment_phase):
                             engine.save_checkpoint(
                                 os.path.join(config.checkpoint_dir, "best-val-miou.pth")
                             )
@@ -884,7 +949,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 )
                 engine.state.best_val_miou = best_miou
                 engine.state.best_val_epoch = best_miou_epoch
-                if improved and config.experiment_phase == "development":
+                if improved and phase_uses_validation(config.experiment_phase):
                     engine.save_checkpoint(
                         os.path.join(config.checkpoint_dir, "best-val-miou.pth")
                     )
@@ -910,6 +975,11 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 engine.save_checkpoint(
                     os.path.join(config.checkpoint_dir, f"epoch-{epoch}.pth")
                 )
+
+        if args.stop_after_completed_epoch is not None and epoch >= args.stop_after_completed_epoch:
+            controlled_stop_epoch = epoch
+            logger.info(f"controlled qualification stop completed after epoch {epoch}")
+            break
 
         eval_count = 0
         if val_loader is not None:
@@ -945,9 +1015,16 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 "phase": config.experiment_phase,
                 "run_id": protocol_run_id,
                 "seed": int(config.seed),
+                "run_kind": args.run_kind,
+                "requested_optimizer_steps": args.max_train_iters if args.run_kind == "probe" else None,
+                "completed_optimizer_steps": train_steps_completed,
+                "attempted_steps": probe_attempts if args.run_kind == "probe" else train_steps_completed,
+                "probe_warmup_steps": args.probe_warmup_steps if args.run_kind == "probe" else None,
+                "probe_telemetry_jsonl": os.path.abspath(probe_telemetry_path) if probe_telemetry_path else None,
                 "best_val_miou": float(best_miou) if best_miou is not None else None,
                 "best_val_epoch": int(best_miou_epoch) if best_miou_epoch is not None else None,
                 "final_epoch": int(epoch),
+                "controlled_stop_after_completed_epoch": controlled_stop_epoch,
                 "duration_seconds": float(time.monotonic() - training_started_monotonic),
                 "exit_code": 0,
                 "checkpoint": {

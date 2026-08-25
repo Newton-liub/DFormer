@@ -30,6 +30,7 @@ C.expected_split_sha256 = {
 }
 C.expected_split_samples = {"train": 1277, "val": 318, "test": 1576}
 C.num_train_imgs = 1277
+C.num_eval_imgs = 318
 
 C.pretrained_model = osp.abspath(
     os.environ.get(

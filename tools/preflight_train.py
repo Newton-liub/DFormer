@@ -136,6 +136,10 @@ def _paths_for_entry(config, entry: str) -> tuple[Path, Path, Path]:
     )
 
 
+def _depth16_path(config, entry: str) -> Path:
+    return Path(config.dataset_path) / "Depth16" / f"{Path(entry).stem}.png"
+
+
 def check_dataset(config, result: Preflight, sample_count: int) -> None:
     dataset_root = Path(config.dataset_path)
     if not dataset_root.is_dir():
@@ -169,11 +173,14 @@ def check_dataset(config, result: Preflight, sample_count: int) -> None:
             result.ok(f"{split_name} split entries: {len(lines)}")
         for entry in _sample_lines(lines, sample_count):
             sample_paths = _paths_for_entry(config, entry)
-            missing = [str(path) for path in sample_paths if not path.is_file()]
+            depth16_path = _depth16_path(config, entry)
+            missing = [str(path) for path in (*sample_paths, depth16_path) if not path.is_file()]
             if missing:
                 result.error(f"sample {entry!r} is incomplete: {', '.join(missing)}")
                 continue
             try:
+                import cv2
+                import numpy as np
                 from PIL import Image
 
                 sizes = []
@@ -182,13 +189,17 @@ def check_dataset(config, result: Preflight, sample_count: int) -> None:
                         image.verify()
                     with Image.open(path) as image:
                         sizes.append(image.size)
+                depth16 = cv2.imread(str(depth16_path), cv2.IMREAD_UNCHANGED)
+                if depth16 is None or depth16.ndim != 2 or depth16.dtype != np.uint16:
+                    raise ValueError("Depth16 must decode as a two-dimensional uint16 image")
+                sizes.append((int(depth16.shape[1]), int(depth16.shape[0])))
             except Exception as exc:
                 result.error(f"sample {entry!r} cannot be decoded: {exc}")
             else:
                 if len(set(sizes)) != 1:
-                    result.error(f"sample {entry!r} has mismatched RGB/depth/label sizes: {sizes}")
+                    result.error(f"sample {entry!r} has mismatched RGB/depth/label/Depth16 sizes: {sizes}")
                 else:
-                    result.ok(f"sample triplet decoded at {sizes[0]}: {entry}")
+                    result.ok(f"sample RGB/depth/label/Depth16 decoded at {sizes[0]}: {entry}")
 
 
 def check_pretrained(config, result: Preflight, skip: bool) -> None:
@@ -410,6 +421,46 @@ def _audit_output(report: AuditReport, protocol) -> None:
             )
 
 
+def _audit_swanlab(report: AuditReport, protocol, *, static_only: bool) -> None:
+    mode = str(protocol.swanlab["mode"])
+    if mode == "disabled":
+        report.ok("swanlab_mode", "SwanLab mode does not require online credentials", mode=mode)
+        return
+    if importlib.util.find_spec("swanlab") is None:
+        report.error("swanlab_package_missing", f"{mode} SwanLab package is unavailable")
+        return
+    if mode != "online":
+        report.ok("swanlab_mode", "SwanLab package is available for offline mode", mode=mode)
+        return
+    if static_only:
+        report.ok("swanlab_online_deferred", "online initialization deferred by static-only preflight")
+        return
+    key = os.environ.get("SWANLAB_API_KEY")
+    key_file_value = os.environ.get("SWANLAB_API_KEY_FILE")
+    key_file = Path(key_file_value).expanduser() if key_file_value else None
+    key_file_available = bool(key_file and key_file.is_file() and key_file.stat().st_size > 0)
+    if not key and not key_file_available:
+        report.error("swanlab_credentials_missing", "online SwanLab credentials are unavailable")
+        return
+    try:
+        from utils.experiment_tracker import ExperimentTracker
+
+        tracker = ExperimentTracker()
+        tracker.start(
+            mode="online",
+            project=str(protocol.swanlab.get("project", "DFormer-liu")),
+            workspace=str(protocol.swanlab.get("workspace", "Newton_liub")),
+            name=f"{protocol.protocol_id}-preflight",
+            log_dir=str(protocol.run_root / "swanlab-preflight"),
+            config={"protocol_id": protocol.protocol_id, "phase": protocol.phase, "preflight": True},
+        )
+        tracker.finish()
+    except Exception as exc:
+        report.error("swanlab_online_init", "non-interactive SwanLab initialization failed", error=str(exc))
+        return
+    report.ok("swanlab_online_init", "non-interactive SwanLab initialization succeeded")
+
+
 def _environment(static_only: bool) -> dict[str, Any]:
     package_names = set(REQUIRED_PACKAGES.values()) | {"swanlab"}
     packages: dict[str, str | None] = {}
@@ -489,19 +540,7 @@ def audit_protocol(
         "workers": training["workers"], "eval_start_epoch": training["eval_start_epoch"],
         "eval_interval": training["eval_interval"], "save_interval": training["save_interval"],
     }
-    mode = str(protocol.swanlab["mode"])
-    if mode in {"offline", "online"} and importlib.util.find_spec("swanlab") is None:
-        report.error("swanlab_package_missing", f"{mode} SwanLab package is unavailable")
-    if mode == "online":
-        key = os.environ.get("SWANLAB_API_KEY")
-        key_file_value = os.environ.get("SWANLAB_API_KEY_FILE")
-        key_file = Path(key_file_value).expanduser() if key_file_value else None
-        key_file_available = bool(key_file and key_file.is_file() and key_file.stat().st_size > 0)
-        if not key and not key_file_available:
-            report.error("swanlab_credentials_missing", "online SwanLab credentials are unavailable")
-        report.ok("swanlab_noninteractive", "launcher requires ExperimentTracker interactive=False")
-    else:
-        report.ok("swanlab_mode", "SwanLab mode does not require online credentials", mode=mode)
+    _audit_swanlab(report, protocol, static_only=static_only)
     return report
 
 

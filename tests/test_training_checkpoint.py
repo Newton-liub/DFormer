@@ -20,6 +20,8 @@ from utils.training_checkpoint import (
     build_split_metadata,
     atomic_save_checkpoint,
     create_training_checkpoint,
+    inspect_training_checkpoint,
+    compare_checkpoint_inspections,
     inspect_checkpoint_directory,
     load_training_checkpoint,
     optimizer_step_was_applied,
@@ -437,3 +439,53 @@ def test_output_directory_refuses_nonempty_even_when_resuming(tmp_path: Path) ->
     resumed_output = tmp_path / "resumed-run"
     assert prepare_output_directory(resumed_output, resume_path=resume) == resumed_output.resolve()
     assert (output / "existing.txt").read_text(encoding="utf-8") == "keep"
+
+
+def test_checkpoint_inspection_hashes_logical_state_and_parent_identity(tmp_path: Path) -> None:
+    model = torch.nn.Linear(1, 1)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+    scaler = torch.cuda.amp.GradScaler(enabled=False)
+    path = tmp_path / "latest.pth"
+    atomic_save_checkpoint(
+        create_training_checkpoint(
+            model=model,
+            optimizer=optimizer,
+            scaler=scaler,
+            completed_epoch=1,
+            global_optimizer_step=1,
+            best_val_miou=0.3,
+            best_val_epoch=1,
+            protocol=_protocol(),
+        ),
+        path,
+    )
+    parent_protocol = _protocol(run_id="parent-run")
+    parent_path = tmp_path / "parent.pth"
+    atomic_save_checkpoint(
+        create_training_checkpoint(
+            model=model,
+            optimizer=optimizer,
+            scaler=scaler,
+            completed_epoch=1,
+            global_optimizer_step=1,
+            best_val_miou=0.3,
+            best_val_epoch=1,
+            protocol=parent_protocol,
+        ),
+        parent_path,
+    )
+    inspection = inspect_training_checkpoint(path, expected_protocol=_protocol())
+    assert inspection["component_sha256"]["model"]
+    assert compare_checkpoint_inspections(inspection, inspection) == []
+    loaded = load_training_checkpoint(
+        parent_path,
+        expected_protocol=_protocol(run_id="child-run"),
+        expected_checkpoint_run_id="parent-run",
+    )
+    assert loaded["protocol"]["run_id"] == "parent-run"
+    with pytest.raises(CheckpointCompatibilityError, match="run_id"):
+        load_training_checkpoint(
+            parent_path,
+            expected_protocol=_protocol(run_id="child-run"),
+            expected_checkpoint_run_id="wrong-parent",
+        )
