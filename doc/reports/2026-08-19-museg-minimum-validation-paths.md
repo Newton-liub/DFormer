@@ -226,7 +226,7 @@
 - **RE003**：Yin, B. et al. *DFormerv2: Geometry Self-Attention for RGBD Semantic Segmentation*. arXiv:2504.04701, 2025. https://arxiv.org/abs/2504.04701
 - **RE004**：DFormer 当前实现，`models/encoders/DFormerv2.py`，`generate_depth_decay()` 与 `forward()`；深度先插值到 patch 网格，再以绝对差参与 geometry prior，访问日期 2026-08-19。
 - **RE005**：Li, et al. *MUSeg: A multimodal semantic segmentation dataset for complex underground mine scenes*. Scientific Data, 2025. https://www.nature.com/articles/s41597-025-05493-9
-- **RE006**：项目全量审计，`doc/museg-dformer-data-processing-review.md`；3171 样本、Depth=0 比例 30.7351%、11 张全背景图及 train/test 分布，修订日期 2026-08-19。
+- **RE006**：项目全量审计，`doc/reports/2026-08-19-museg-dformer-data-processing-review.md`；3171 样本、Depth=0 比例 30.7351%、11 张全背景图及 train/test 分布，修订日期 2026-08-19。
 - **RE007**：项目转换实现，`tools/prepare_museg.py` 与生成的 `dataset_meta.json`；固定 `max_raw=13932`、保留 invalid 0、官方 split 和全量验证，验证日期 2026-08-19。
 - **RE008**：Zhang, Y. and Funkhouser, T. *Deep Depth Completion of a Single RGB-D Image*. CVPR 2018. https://github.com/yindaz/DeepCompletionRelease
 - **RE009**：Montgomery, D. C. *Design and Analysis of Experiments*. Wiley；受控变量、配对对照、预先规定决策规则等实验设计原则。

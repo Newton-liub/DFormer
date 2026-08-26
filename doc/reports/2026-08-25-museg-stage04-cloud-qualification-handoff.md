@@ -1,22 +1,18 @@
-# MUSeg Stage-04 云端对话基础知识
+# MUSeg Stage-04 云端 qualification 交接（历史快照）
 
-> **历史快照：** 本文件保存 Stage-04 qualification 的环境、失败史和证据身份，不再是当前恢复入口。Gate D 已完成，Stage-05 seed 1 已启动；当前唯一入口为 `doc/main/MUSeg-current-status.md`。
->
-> 以下“尚未执行 probe/Gate C/Gate D”段落是当时状态，不得据此重复运行 Stage-04。
+> 形成日期：2026-08-25
+> 历史边界：本文件保存 Stage-04 qualification 当时的环境、失败史、证据身份和恢复规则。Stage-04 Gate D 与后续 Stage-05 seed 1 均已完成，本文不再是当前恢复入口。
+> 阅读规则：正文中的“当前”“尚未执行”“下一项”等表述一律按形成时点理解，不得据此重复运行 probe、Gate C、qualification 或 Gate D。
+> 当前入口：项目事实、边界和恢复点只以 `doc/main/MUSeg-current-status.md` 为准；Stage-04 详细历史证据以 `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 为准。
+> 安全边界：本文件不得保存 API Key、密码、登录 cookie、完整环境变量或其他凭据。
 
-> 用途：提供给项目空间中的云端执行对话，保存跨对话长期有效、可减少重复扫描与重复核验的信息。
->
-> 本文件所记录的 Stage-04 历史恢复点、失败和门禁证据以 `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的“当前云端交接状态”章节为准；项目当前恢复点只以 `doc/main/MUSeg-current-status.md` 为准。
->
-> 本文件不得保存 API Key、密码、登录 cookie、完整环境变量或其他凭据。
+## 1. 历史复核最小阅读集
 
-## 1. 新对话最小阅读集
-
-正常继续阶段 04 时，只需先读：
+需要复核 Stage-04 形成时点时，只需先读：
 
 1. 本文件；
-2. `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的当前交接章节；
-3. 实际将要运行的工具脚本及其 `--help`/参数解析。
+2. `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的第 11.11 节历史交接记录；
+3. 与历史证据对应的工具脚本及其 `--help`/参数解析；默认只读复核，不重新执行旧 workload。
 
 只有发生门禁、协议或跨阶段争议时，才补读：
 
@@ -27,7 +23,7 @@
 
 ## 2. 研究语义和禁止事项
 
-- 当前 `phase=qualification`，目标是证明工程链路可用，不是 baseline，不产生论文性能结论。
+- 当时 `phase=qualification`，目标是证明工程链路可用，不是 baseline，不产生论文性能结论。
 - qualification 训练只消费冻结的 `train-dev.txt` 和 `val-dev.txt`。
 - B1 真实模型回归只消费冻结的官方 `train.txt`，用于选择一张普通图和一张全背景图。
 - 官方 test 始终为 `sealed_unread`；不得读取、抽样、评估，也不得用于 batch、epoch、checkpoint 或超参数选择。
@@ -47,10 +43,10 @@
 - 冻结 audit report：SHA-256 `53ac30aba0230919b994202f37b3571a7b416f9129f27eabf003415721e38055`。
 - 本地与云端数据根中的 `train.txt`、`test.txt` 已按冻结清单纠正并完整校验；旧文件以 `*.before-frozen-fix-*` 保留。不要再次“修复”或重建划分。
 
-## 4. 云端固定信息
+## 4. 形成时点的云端固定信息
 
 - 实例：`cpod-1tyvjsiu6ahe`。
-- 当前 SSH：`ssh -p 24569 root@cpod-1tyvjsiu6ahe.podtcp.compshare.cn`。实例重启后端口可能变化，以用户控制台为准。
+- 当时 SSH：`ssh -p 24569 root@cpod-1tyvjsiu6ahe.podtcp.compshare.cn`。该端口只记录形成时点，不得作为当前连接入口。
 - 官方仓库：`/root/rivermind-data/DFormer`。
 - 数据集：`/root/rivermind-data/dataset/MUSeg_DFormer`。
 - qualification 根：`/root/cloud-ssd/museg-stage04-qualification`。
@@ -63,7 +59,7 @@
 
 - 任何 GPU qualification 开始前都要检查完整 `git rev-parse HEAD` 和 `git status --short`；必须是干净工作区。
 - 协议路径：`/root/cloud-ssd/museg-stage04-qualification/protocols/museg-qualification-v1.json`。
-- 当前已通过的 B1 与完整 preflight 证据绑定代码提交 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`，协议 SHA-256 `cb741c26897ac32f5a76204180932b03a80ff5ef9fd29ddd218a5ddfb64387e7`。
+- 当时已通过的 B1 与完整 preflight 证据绑定代码提交 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`，协议 SHA-256 `cb741c26897ac32f5a76204180932b03a80ff5ef9fd29ddd218a5ddfb64387e7`。
 - 文档提交也会改变 Git commit。同步本交接文档后，不得把旧协议冒充为新提交的协议；继续 exact-commit qualification 前，必须归档旧协议、为新干净提交重新物化协议，并在 batch probe 前重跑 B1 和完整 preflight。旧报告保留为已通过历史与回归对照，不得改写其中的身份。
 - 不要修改已有运行证据来“更新 commit”；旧证据按原提交和原 SHA 保留。
 - 恢复父身份使用逻辑 `parent_run_id`；恢复子运行必须使用唯一新 `run_id`、不同输出目录，并校验 resume checkpoint SHA-256。SwanLab 后端 ID/URL 仅作为额外远端证据。
@@ -96,10 +92,10 @@
 5. SwanLab online 门禁要求同一进程环境中存在 `SWANLAB_API_KEY`。当前云端已按用户授权将凭据持久化到 Git 仓库外的 `/root/.config/dformer/swanlab.env`，并由 `/root/.bashrc` 自动加载；非交互执行入口应显式 `source` 该文件。不得把 Key 内容写入文档、日志或 Git。
 6. 曾误尝试不存在的 `tools/preflight_museg.py`；正确入口是 `tools/preflight_train.py --protocol-manifest ... --report ...`。旧失败没有覆盖结构化报告。
 
-## 8. 当前后续边界
+## 8. 形成时点的后续边界（现均已被后续证据取代）
 
 - 已完成：代码/静态验收、云端环境、真实 B1、完整 preflight、SwanLab online smoke。
-- 尚未执行：batch 4/8/12/16 probe、门禁 C、3-epoch qualification、连续/恢复演练、门禁 D。
+- 形成时尚未执行：batch 4/8/12/16 probe、门禁 C、3-epoch qualification、连续/恢复演练、门禁 D；这些事项后来已经完成。
 - 下一项 GPU 工作是 `tools/probe_museg_4090.sh` 的四档各 60 optimizer steps、10-step warmup 结构化 probe。
 - **当前没有 batch probe 授权。** 新对话必须先向用户明确说明 workload、输出根和停止条件，并取得单独确认。
 - probe 遇到 OOM 时停止更大 batch；遇到非 OOM 错误时停止全部；只有完整 60 步、显存安全且证据一致的档位可参与推荐。

@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一入口
 
-> 状态时间：2026-08-26 10:20 UTC
+> 状态时间：2026-08-26 18:08 UTC
 > 当前阶段：Stage-05 development seed 1 已完成并通过独立 v2 裁决；后评估工具与文档治理已收口，五项本地后评估待运行
 > 本文件是 MUSeg 当前状态的唯一入口；其他阶段计划、审计和正式报告按各自日期保留为历史证据。
 
@@ -30,7 +30,7 @@
 - 在冻结 val-dev、BGR、batch 1、official test 不参与的条件下，运行最佳 checkpoint 的原图、resize 和 sliding 三种后评估，以及 epoch-500 的 resize 和 sliding 后评估。
 - 原分辨率整图若超过本地 RTX 5060 Laptop GPU 的 8 GB 显存，将记录为本地 `environment_limit`，不写成模型失败。
 - 唯一实时入口维护规则已写入 `.cursor/rules/museg-current-status.mdc` 和 README；每次 MUSeg 对话必须在最终答复前同步持久状态变化，无事实变化时不更新时间。
-- 原 `doc/临时/待执行/` 已规范迁移为 `doc/plans/`，有效路径引用已同步更新；本轮规则、目录治理与 Stage-05 收口改动由本文件所在的本地提交保存，远端保持未推送。
+- 文档职责已进一步收口：Stage-04 云端交接和 2026-08-19 数据处理评审已归入 `doc/reports/`，File Browser/OpenList 操作说明已归入 `doc/guides/cloud/`，`doc/dataset.md` 继续作为稳定数据入口；有效引用已同步更新。最终一致性检查已通过：旧路径无残留，报告索引 JSON 可解析，归档 Canvas 无诊断，完整暂存 whitespace/rename 检查通过。逐文件复核确认普通差异与忽略 CRLF 后的实质差异一致，没有纯换行污染进入提交；本轮迁移与状态记录由同一个本地文档治理提交保存，远端未推送。
 - 五项后评估完成后继续收口正式完成与风险处置报告、Canvas 0.0.10 和发布状态。
 
 ## 4. 当前权威链路

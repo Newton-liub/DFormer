@@ -1,15 +1,18 @@
-# CompShare 容器 FileBrowser 配置与故障恢复指南
+# CompShare 容器 File Browser 兼容配置与故障恢复指南
 
-本文用于在新建的 CompShare（优云智算）容器实例中配置平台 FileBrowser，确保平台“文件管理”按钮能够打开、自动登录，并在容器重启后恢复服务。
+> 核验日期：2026-08-27
+> 生命周期边界：File Browser 上游已宣布于 2026-09-01 归档，最后一个计划版本已经发布，之后不再提供发布、缺陷修复或安全修复。本项目将它视为遗留兼容组件，而不是新部署的无条件推荐方案。
 
-官方功能说明：[文件管理功能](https://www.compshare.cn/docs/operation/gpu/filebrowser)
+本文只用于 CompShare（优云智算）厂商预装 File Browser 的兼容配置和故障恢复，目标是让平台“文件管理”入口在受控条件下工作。新实例应先检查平台是否提供受维护的替代服务；继续使用本指南时，必须记录实际二进制版本，并确认平台入口同时提供 TLS 和独立访问控制。
 
-> 安全与生命周期边界：厂商预装 FileBrowser 的版本必须在实例审计中记录。该上游项目计划于 2026-09-01 归档，归档后不再承诺 bug 或安全修复；本指南只接受 CompShare 平台入口同时提供 TLS 和独立访问控制的兼容模式。不要把 8889 端口直接暴露到无额外认证的公网，保持 command runner 禁用；平台允许时优先使用非 root 服务账号。
+官方平台说明：[文件管理功能](https://www.compshare.cn/docs/operation/gpu/filebrowser)；上游生命周期与安全说明：[filebrowser/filebrowser](https://github.com/filebrowser/filebrowser)。
+
+> 安全边界：不要把 `8889` 直接暴露到无额外认证的公网，保持 command runner 禁用。上游建议使用非特权账号和最小目录挂载；本文的 root 示例只用于兼容 CompShare 厂商预装路径与既有启动方式，不代表通用安全最佳实践。
 
 ## 一、适用范围与工作方式
 
 - 仅适用于 CompShare **容器实例**；虚机实例不适用。
-- 平台 FileBrowser 固定使用 HTTP 端口 `8889`。
+- 核验时 CompShare 平台 File Browser 入口使用 HTTP 端口 `8889`；新实例仍须以平台页面为准。
 - 平台实例详情页会显示登录用户名和初始密码；点击“文件管理”时，平台将凭据自动填入登录页面。
 - FileBrowser 与 OpenList 是两套独立服务，可以同时运行：
 
@@ -30,7 +33,7 @@ FileBrowser 自启动脚本：/start.d/filebrowser.sh
 
 默认只开放 `/root/rivermind-data`。不要默认开放整个 `/root`，否则网页可以访问 `.ssh`、Shell 历史、服务密码文件和其他敏感配置。
 
-## 二、新容器的推荐初始化流程
+## 二、新容器的兼容初始化流程
 
 ### 2.1 创建实例并确认平台条件
 
@@ -388,7 +391,7 @@ ls -ld /root/rivermind-data
 df -h /root/rivermind-data
 ```
 
-FileBrowser 以 `root` 运行时通常具有写权限。如果网页写入请求返回 `502`，检查进程是否在请求后退出，并读取日志：
+本兼容流程沿用厂商 root 启动方式，因此通常具有写权限；只要平台支持非特权运行，就应改用最小权限账号和目录挂载。如果网页写入请求返回 `502`，检查进程是否在请求后退出，并读取日志：
 
 ```bash
 ps -ef | grep '[f]ilebrowser'

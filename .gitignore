@@ -192,6 +192,8 @@ output*
 
 # Local cloud experiment evidence and downloaded artifacts
 cloud/
+!doc/guides/cloud/
+!doc/guides/cloud/**
 
 # Machine-local materialized training protocol manifests
 protocols/generated/

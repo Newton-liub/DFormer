@@ -4,14 +4,18 @@
 >
 > 以下“batch probe 尚未执行”等文字是当时状态，已由后续 Gate D 与 Stage-05 证据取代。
 
-## 1. 当前唯一执行入口
+## 1. 当前入口与历史证据
 
-后续新对话或执行模型优先读取：
+项目当前事实、边界和恢复点只读取：
 
-1. `doc/main/MUSeg-stage04-云端对话基础知识.md`；
-2. `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的当前交接章节。
+1. `doc/main/MUSeg-current-status.md`。
 
-只有发生跨阶段或门禁争议时，再读取 `00-总索引与执行门禁.md`；不要默认重读全部 01–03 和历史日志。阶段 04 完成后，再严格按 `05` 至 `11` 的顺序和门禁执行。
+需要复核 Stage-04 时，再读取：
+
+1. `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md`；
+2. `doc/reports/2026-08-25-museg-stage04-cloud-qualification-handoff.md`。
+
+以下 01–11 顺序和门禁均为阶段计划及历史执行设计，不得绕过当前入口直接恢复旧 workload。
 
 ## 2. 计划起点
 
@@ -68,4 +72,4 @@
 - 不读取 official test，不把 qualification/probe 结果写成 baseline 或论文性能；
 - 不创建计划外提交，不提交数据、权重、protocol 物化产物、日志、checkpoint 或凭据。
 
-本文件只承担总入口和旧计划作废声明。跨对话基础知识见 `doc/main/MUSeg-stage04-云端对话基础知识.md`，当前执行细节见阶段 04 文档。
+本文件只承担 Stage-04 历史总入口和旧计划作废声明。项目当前恢复点见 `doc/main/MUSeg-current-status.md`；Stage-04 详细设计见阶段 04 文档，形成时点的云端交接见 `doc/reports/2026-08-25-museg-stage04-cloud-qualification-handoff.md`。

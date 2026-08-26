@@ -56,8 +56,8 @@
 优先检查：
 
 - `doc/dataset.md`；
-- `doc/museg-dformer-data-processing-review.md`；
-- `doc/openlist-cloud-download-guide.md`；
+- `doc/reports/2026-08-19-museg-dformer-data-processing-review.md`；
+- `doc/guides/cloud/openlist-quark-download.md`；
 - 实际执行的数据脚本、目录结构、清单和统计输出；
 - 数据集论文及其官方说明。
 

@@ -1,5 +1,7 @@
 # MUSeg 数据集说明
 
+> 本文件是 MUSeg 数据准备、目录结构、深度转换和标签映射的稳定入口。当前实验状态见 `doc/main/MUSeg-current-status.md`，研究口径与尚待决定事项见 `doc/main/MUSeg-open-decisions.md`。
+
 ## 数据集位置与转换
 
 项目约定原始 MUSeg 和 DFormer 输入均放在仓库上一级的 `dataset` 目录：
@@ -31,6 +33,13 @@ C.root_dir = "../dataset"
 C.dataset_name = "MUSeg"
 C.dataset_path = osp.join(C.root_dir, "MUSeg_DFormer")
 ```
+
+## 实验划分、test 封存与通道边界
+
+- `tools/prepare_museg.py` 生成官方 `train.txt` 和 `test.txt`，用于保存官方来源身份和完整数据结构；这不等于 development 训练可以读取 official test。
+- 当前 development 训练与验证必须使用 `data/splits/MUSeg/dev-v1/` 中冻结的 `train-dev.txt`、`val-dev.txt`、manifest 和 audit report。
+- official test 当前保持 `sealed_unread`，不得用于选择 epoch、checkpoint、seed、validation 几何、A2 条件或 B2 结构；解封只能按后续独立门禁执行。
+- 当前 baseline 谱系的彩色张量通道顺序冻结为 BGR。目录仍可使用 `RGB/` 表示彩色模态，但涉及 loader、protocol 和实验身份时必须显式记录 `channel_order=BGR`。
 
 ## 项目需要的数据集信息
 

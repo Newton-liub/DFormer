@@ -21,7 +21,7 @@ import {
   useHostTheme,
 } from "cursor/canvas";
 
-const reportPath = "doc/museg-dformer-data-processing-review.md";
+const reportPath = "doc/reports/2026-08-19-museg-dformer-data-processing-review.md";
 
 const labelPercentages = [
   50.9459, 0.1599, 5.6111, 4.0558, 2.1136, 2.2368, 1.2068, 6.9704,

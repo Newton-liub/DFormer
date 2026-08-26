@@ -97,7 +97,7 @@
       "name": "museg-dformer-data-review",
       "source": "doc/canvases/old/0.0.2-museg-dformer-data-review.canvas.tsx",
       "publishedFilename": "0.0.2-museg-dformer-data-review.canvas.tsx",
-      "relatedReport": "doc/museg-dformer-data-processing-review.md",
+      "relatedReport": "doc/reports/2026-08-19-museg-dformer-data-processing-review.md",
       "createdAt": "2026-08-17",
       "status": "reference"
     },

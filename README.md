@@ -9,6 +9,7 @@
 - **MUSeg 实验口径与处置状态：** `doc/main/MUSeg-open-decisions.md`
 - **MUSeg 阶段计划与历史执行记录：** `doc/plans/`，不承担实时状态
 - **正式报告与证据索引：** `doc/reports/` 和 `doc/reports/report-index.json`
+- **云端操作指南：** `doc/guides/cloud/`，执行前核对文首适用版本和外部服务状态
 - **上游论文复现：** 继续阅读下面的原版 DFormer/DFormerv2 说明
 
 ### MUSeg 对话状态维护

@@ -203,7 +203,7 @@ git -c core.whitespace=cr-at-eol diff --check
 
 入口修复提交 `22e217303367ff51e2ece8319822e61f4a668967` 同步云端并重新物化协议后，第二次 B1 已实际完成主头 mixed 和全背景两种 forward/backward；主+辅助头 mixed 在 forward 中失败。根因是 `EncoderDecoder.encode_decode()` 已将双模态 backbone 输出归一化为 RGB 四级特征列表后，辅助头仍使用 `x[0][aux_index]`，错误地在第一级特征的 batch 维取索引 2；B1 固定 batch 为 2，因此触发 `IndexError`。修复改为按特征级选择 `x[aux_index]`，并用 batch=2 的 synthetic 双模态 backbone 测试证明辅助头收到第三级特征而非 batch 切片。本地复核为 `102 passed, 10 warnings`，compile 和 diff whitespace 检查通过。该段记录的是第二次失败时的历史状态；最终结果见 11.11。
 
-### 11.11 当前云端交接状态（B1 与完整 preflight 已通过）
+### 11.11 形成时点的云端交接状态（B1 与完整 preflight 已通过）
 
 - 云端官方仓库：`/root/rivermind-data/DFormer`；qualification 根：`/root/cloud-ssd/museg-stage04-qualification`。
 - 当前 SSH：`ssh -p 24569 root@cpod-1tyvjsiu6ahe.podtcp.compshare.cn`；重启后端口可能改变，以控制台为准。
@@ -217,4 +217,4 @@ git -c core.whitespace=cr-at-eol diff --check
 - full preflight 已验证 Git、config、冻结 split/authority、`phase=qualification`、`test_role=sealed_unread`、预训练身份、输出根、四模态抽样、RTX 4090/CUDA 环境和 SwanLab 0.9.7 非交互式 online 初始化。
 - SwanLab online smoke 必须由用户在同一进程环境中隐藏输入 `SWANLAB_API_KEY`；`swanlab login` 的本地登录状态不会通过当前项目的环境凭据门禁。执行者不得自动登录或接触密钥。
 - 当前尚未运行 batch probe、短训或恢复演练。下一 GPU workload 是 batch 4/8/12/16 各 60 steps 的 probe，必须先取得用户单独明确授权，并在完成后停在门禁 C。
-- 跨对话长期基础知识和 token 节省规则见 `doc/main/MUSeg-stage04-云端对话基础知识.md`。
+- 形成时点的跨对话基础知识和 token 节省规则见 `doc/reports/2026-08-25-museg-stage04-cloud-qualification-handoff.md`；当前恢复点只看 `doc/main/MUSeg-current-status.md`。
