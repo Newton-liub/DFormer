@@ -1,5 +1,7 @@
 # MUSeg Stage-05 development seed 1 启动前报告
 
+> **历史启动前快照：** 本报告准确记录 v1 protocol 尚未启动时的状态。后续已在提交 `56a7ed7...` 上重新物化 `museg-development-long500-v2` 并启动 seed 1；当前状态见 `doc/main/MUSeg-current-status.md` 和 `doc/reports/2026-08-26-museg-stage05-seed1-running-handoff.md`。
+
 - 生成时间：2026-08-25
 - 当前状态：**技术 preflight 通过；训练未启动；等待用户手动授权与启动**
 - official test：保持 `sealed_unread`；本轮未读取、未抽样、未评估

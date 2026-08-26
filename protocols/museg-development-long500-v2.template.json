@@ -1,0 +1,94 @@
+{
+  "schema_version": "museg-training-protocol-v2",
+  "protocol_id": "museg-development-long500-v2",
+  "schedule_version": "adamw-6e-5-warmup2-poly0.9-500e-v2",
+  "phase": "development",
+  "model": "DFormerv2-S",
+  "config_module": "local_configs.MUSeg.DFormerv2_S_4090",
+  "git": {
+    "required_commit": "56a7ed711df2252e6228fc777d7cb92eb2510ef6"
+  },
+  "seeds": [
+    772961337,
+    1101528019,
+    1126246545
+  ],
+  "output_root": "__MATERIALIZED_ABSOLUTE_OUTPUT_ROOT__",
+  "split_authority": {
+    "manifest_path": "__MATERIALIZED_FROZEN_MANIFEST_PATH__",
+    "manifest_sha256": "42233412f432e387cfcffc763724461e2dbc111969a595c714ac12add7bf7b01",
+    "audit_report_path": "__MATERIALIZED_FROZEN_AUDIT_PATH__",
+    "audit_report_sha256": "53ac30aba0230919b994202f37b3571a7b416f9129f27eabf003415721e38055"
+  },
+  "official_train": {
+    "path": "__MATERIALIZED_OFFICIAL_TRAIN_PATH__"
+  },
+  "pretrained": {
+    "path": "__MATERIALIZED_PRETRAINED_PATH__",
+    "sha256": "19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6",
+    "size_bytes": 110203103
+  },
+  "training": {
+    "amp": true,
+    "batch_size": 10,
+    "checkpoint_selection": {
+      "best_filename": "best-val-miou.pth",
+      "metric": "val_foreground_miou",
+      "mode": "strict_greater",
+      "tie_break": "keep_earliest_evaluated_epoch"
+    },
+    "compile": false,
+    "early_stop": {
+      "automatic": false,
+      "failure_conditions": [
+        "non_finite_loss_or_metric",
+        "sustained_amp_scale_collapse",
+        "cuda_oom_or_xid",
+        "data_loader_failure",
+        "swanlab_online_failure",
+        "git_protocol_split_pretrained_or_seed_identity_mismatch",
+        "checkpoint_or_resume_inconsistency"
+      ]
+    },
+    "epochs": 500,
+    "eval_interval": 10,
+    "eval_start_epoch": 10,
+    "expected_eval_epochs": [
+      10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+      110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
+      210, 220, 230, 240, 250, 260, 270, 280, 290, 300,
+      310, 320, 330, 340, 350, 360, 370, 380, 390, 400,
+      410, 420, 430, 440, 450, 460, 470, 480, 490, 500
+    ],
+    "input_height": 480,
+    "input_width": 640,
+    "iterations_per_epoch": 128,
+    "lr_schedule": {
+      "base_lr": 0.00006,
+      "name": "WarmUpPolyLR",
+      "poly_power": 0.9,
+      "total_iterations": 64000,
+      "warmup_epochs": 2,
+      "warmup_iterations": 256,
+      "warmup_start_lr": 0.0
+    },
+    "mst": false,
+    "optimizer": {
+      "betas": [0.9, 0.999],
+      "name": "AdamW",
+      "weight_decay": 0.01
+    },
+    "save_interval": 50,
+    "sliding": false,
+    "syncbn": false,
+    "train_scale_array": [1.0],
+    "val_batch_size": 1,
+    "validation_amp": true,
+    "workers": 8
+  },
+  "swanlab": {
+    "mode": "online",
+    "project": "DFormer-liu",
+    "workspace": "Newton_liub"
+  }
+}

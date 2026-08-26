@@ -1,5 +1,7 @@
 # MUSeg / DFormerv2 MVE、A1/B1 与 Git 对齐阶段分析报告
 
+> **历史报告：** 本文的指标和当时处置结论保持有效，但“20-epoch 正式 baseline”和 official-test 下一步已被阶段二长程协议取消。A2 在本文中指 epoch-10/16 图 pilot，不代表成熟 baseline 上的正式 A2。当前入口见 `doc/main/MUSeg-current-status.md`。
+
 - 汇报周期：2026-08-19 至 2026-08-21
 - 报告对象：实验复盘、代码交接与后续研究决策
 - 证据边界：本机 Git 检查、云端两个项目副本检查、A1/B1 本地测试、epoch-10 MVE/A2 云端任务与独立评估
@@ -179,4 +181,4 @@ A1/B1 本地测试：
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-历史云端 MVE/A2 的执行结论、任务记录和结果已归档在本报告及 `doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`。原 `doc/临时` 执行文档已在后续计划清理中合并删除；当前唯一待执行入口为 `doc/临时/待执行/MUSeg-4090云端训练交接计划.md`。
+历史云端 MVE/A2 的执行结论、任务记录和结果已归档在本报告及 `doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`。原 `doc/临时` 执行文档已在后续计划清理中合并删除；当前唯一待执行入口为 `doc/plans/MUSeg-4090云端训练交接计划.md`。

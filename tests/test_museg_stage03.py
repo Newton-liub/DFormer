@@ -146,6 +146,23 @@ def test_single_seed_launcher_passes_protocol_arguments_and_writes_json(tmp_path
     assert json.loads((run_dir / "train.exit_code").read_text(encoding="utf-8"))["exit_code"] == 0
 
 
+def test_standard_run_kind_is_forwarded_for_future_full_runs(tmp_path: Path) -> None:
+    protocol = _write_protocol(tmp_path, phase="development", seeds=(11,))
+    trainer = _write_fake_trainer(tmp_path)
+
+    assert run_seed_main([
+        "--protocol-manifest", str(protocol), "--seed", "11", "--direct",
+        "--train-program", str(trainer), "--python", sys.executable,
+        "--run-kind", "standard",
+    ]) == 0
+
+    run_dir = tmp_path / "output root #" / "museg-dev-unit-v1" / "development" / "seed-11"
+    command = json.loads((run_dir / "command.json").read_text(encoding="utf-8"))["argv"]
+    result = json.loads((run_dir / "training_result.json").read_text(encoding="utf-8"))
+    assert command[command.index("--run-kind") + 1] == "standard"
+    assert result["run_kind"] == "standard"
+
+
 def test_qualification_launcher_forwards_controlled_epoch_stop(tmp_path: Path) -> None:
     protocol = _write_protocol(tmp_path, phase="qualification", seeds=(11,))
     trainer = _write_fake_trainer(tmp_path)

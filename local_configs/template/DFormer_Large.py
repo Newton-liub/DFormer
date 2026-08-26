@@ -10,8 +10,7 @@ C = edict()
 config = C
 cfg = C
 
-remoteip = os.popen("pwd").read()
-C.root_dir = "datasets"
+C.root_dir = "../dataset"
 C.abs_dir = osp.realpath(".")
 
 # Dataset config
@@ -29,10 +28,11 @@ C.x_is_single_channel = True
 C.train_source = osp.join(C.dataset_path, "train.txt")
 C.eval_source = osp.join(C.dataset_path, "test.txt")
 C.is_test = True
-C.num_train_imgs = None
-C.num_eval_imgs = None
-C.num_classes = N
-C.class_names = []
+# Import-safe examples: replace all four values before training a real dataset.
+C.num_train_imgs = 1
+C.num_eval_imgs = 1
+C.num_classes = 1
+C.class_names = ["replace_me"]
 
 """Image Config"""
 C.background = 255

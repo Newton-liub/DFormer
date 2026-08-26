@@ -1,15 +1,15 @@
-# MUSeg 4090 云端训练交接计划（已改为阶段二总入口）
+# MUSeg 4090 云端训练交接计划（历史阶段二入口）
 
-> 文档状态：阶段二总入口；当前执行到阶段 04 的 batch probe 授权边界。
+> **历史快照：** 本文件记录 Stage-04 交接和旧定义替代过程，不再是当前执行入口。当前唯一入口为 `doc/main/MUSeg-current-status.md`；Stage-05 seed 1 的运行中证据见 `doc/reports/2026-08-26-museg-stage05-seed1-running-handoff.md`。
 >
-> 当前事实：01–03 和门禁 B 已完成；阶段 04 的代码/静态验收、云端 RTX 4090 环境、真实 CUDA B1、完整 preflight 与 SwanLab online smoke 已通过。batch probe、门禁 C、短训、恢复演练和门禁 D 尚未执行。
+> 以下“batch probe 尚未执行”等文字是当时状态，已由后续 Gate D 与 Stage-05 证据取代。
 
 ## 1. 当前唯一执行入口
 
 后续新对话或执行模型优先读取：
 
 1. `doc/main/MUSeg-stage04-云端对话基础知识.md`；
-2. `doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的当前交接章节。
+2. `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的当前交接章节。
 
 只有发生跨阶段或门禁争议时，再读取 `00-总索引与执行门禁.md`；不要默认重读全部 01–03 和历史日志。阶段 04 完成后，再严格按 `05` 至 `11` 的顺序和门禁执行。
 
@@ -50,7 +50,7 @@
 
 以上文件位于：
 
-`doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/`
+`doc/plans/MUSeg阶段二长程Baseline与MVE/`
 
 ## 5. 执行模型要求
 

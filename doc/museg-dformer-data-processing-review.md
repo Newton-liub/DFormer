@@ -1,5 +1,7 @@
 # MUSeg 数据集接入 DFormer/DFormerv2 的处理评审与复现报告
 
+> **历史数据审计：** 本文保留 2026-08-17 至 2026-08-19 的数据复现证据。文中“缺 MUSeg config、缺 development validation、全背景 loss 未处理”等状态后来已解决；仍未冻结的是 validation 尺寸、BGR/RGB 和无效深度/B2 口径。当前状态见 `doc/main/MUSeg-current-status.md`，未决项见 `doc/main/MUSeg-open-decisions.md`。
+
 > 用途：组会汇报、数据处理评审、新项目复现  
 > 审计日期：2026-08-17  
 > 状态修订：2026-08-19（标签语义、转换脚本与本地重建状态）

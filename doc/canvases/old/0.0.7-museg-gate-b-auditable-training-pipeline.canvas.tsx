@@ -20,8 +20,8 @@ import {
 } from "cursor/canvas";
 
 const reportPath = "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md";
-const indexPath = "doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md";
-const stage04Path = "doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md";
+const indexPath = "doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md";
+const stage04Path = "doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md";
 
 function App() {
   const dispatch = useCanvasAction();

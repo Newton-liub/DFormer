@@ -1,5 +1,7 @@
 # MUSeg 全背景样本与 Depth=0 最短验证路径
 
+> **历史预注册设计：** 本文记录 2026-08-19 的最短验证思路，其中“从 official test 抽 64 张”和“20-epoch/test 评估”已被阶段二 test 封存协议取代，不得按当前流程执行。历史 A2 结果只作为 epoch-10/16 图 pilot；正式 A2/B2 开发筛查只使用 `val-dev`。当前边界见 `doc/main/MUSeg-current-status.md`。
+
 - 设计目标：以最少代码、最少训练和最少 GPU 时间，判断两个风险是否真实，以及两个最小修复是否值得继续投入。[RE001][RE003][RE006]
 - 路径 A：问题—假设验证；通过受控注入复现负面结果。[RE009]
 - 路径 B：方案—假设验证；通过最小 A/B 对照检验 safe loss 与 depth validity mask。[RE001][RE003][RE004]

@@ -1,5 +1,7 @@
 # 02：训练、验证、checkpoint 与恢复链路改造计划
 
+> **历史阶段记录：** Stage-02 已完成并提交。以下“尚未提交/Gate B 未完成”等文字是当时快照；当前入口见 `doc/main/MUSeg-current-status.md`。
+
 > 任务类型：训练核心语义改造。
 >
 > 模型要求：**Sol 必须设计接口、checkpoint schema、验证与恢复语义，并逐行复核；Terra 只能在冻结规格下机械实现。**
@@ -153,9 +155,9 @@ Terra 不得自行：
 - `experiment_phase` 仅接受 `development|official|qualification`。development 必须显式提供 `val_source`；official 可以不设内部 validation，但绝不回退到 `test_source`。
 - 训练入口保留 `--continue_fpath` 并新增等价的 `--resume`；`--epochs`、`--eval-interval`、`--eval-start-epoch`、`--save-interval`、`--seed`、`--run-id`、`--output-dir` 和 train split 预期哈希均可显式覆盖。
 - 验证调度采用 `start + k * interval`，并强制最终 epoch；周期 checkpoint 采用 `epoch % interval == 0`，并强制最终 epoch。`latest.pth` 每个完整 epoch 原子更新。
-- best 规则冻结为 `strict-greater-keeps-earliest`：只接受有限 mIoU，严格提升才更新，相等时保留较早 epoch；仅 development 写 `best-val-miou.pth`。
+- best 规则冻结为 `strict-greater-keeps-earliest`：只接受有限 mIoU，严格提升才更新，相等时保留较早 epoch；qualification 与 development 都使用 validation 并可写 `best-val-miou.pth`，official phase 不创建 validation loader。
 - checkpoint schema 冻结为 `dformer-training-checkpoint-v2`，仅支持完整 epoch 边界恢复。内容覆盖 model、optimizer、AMP scaler、完成/下一 epoch、真实 optimizer step、best、Python/NumPy/PyTorch CPU/CUDA RNG、训练总周期与 LR 协议、split 路径/数量/SHA-256、Git commit、run ID、phase 及关键配置摘要/哈希。
-- 恢复严格比较 phase、run ID、Git commit、seed、模型、optimizer、总 epochs、每 epoch iterations、warmup、poly power、base LR、split 元数据和配置哈希；损坏、字段缺失、非有限 best、协议摘要篡改或不兼容均快速失败。
+- 加载父 checkpoint 时严格比较 phase、父 run ID、Git commit、seed、模型、optimizer、总 epochs、每 epoch iterations、warmup、poly power、base LR、split 元数据和配置哈希；恢复子运行必须使用新的 run ID 与空输出目录。连续/恢复等价比较只允许 `protocol.run_id` 这一项不同，其余身份和状态必须一致；损坏、字段缺失、非有限 best、协议摘要篡改或其他不兼容均快速失败。
 - official test 在训练进程中只使用配置内已冻结的哈希和数量写入 `sealed_unread` 元数据，不打开其清单。恢复训练必须使用新的空输出目录，避免覆盖父运行日志和 checkpoint。
 - 普通 optimizer 路径每次真实更新后增加 step；AMP 路径仅在 GradScaler 未因溢出跳过更新时增加真实 optimizer step。
 

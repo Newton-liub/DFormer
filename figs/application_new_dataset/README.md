@@ -20,7 +20,7 @@ We recommond to orginize the dataset as follows:
 
 
 ```shell
-<datasets>
+<../dataset>
 |-- <DatasetName1>
     |-- <RGB>
         |-- <name1>.<ImageFormat>
@@ -34,7 +34,7 @@ We recommond to orginize the dataset as follows:
     |-- test.txt
 ```
 
-where the \<Format\> tends to be jpg or png, the two `.txt' files are used to index the training and evaluating sets.
+where the \<Format\> tends to be jpg or png, the two `.txt` files are used to index the training and evaluating sets. The maintained template defaults to the repository sibling directory `../dataset`; if you choose another root, change `C.root_dir` explicitly and keep the documentation and launch command consistent.
 <!-- We provide a [template]() to generate the indexing files. -->
 The format of the indexing files (test.txt, train.txt) are as follows:
 
@@ -45,9 +45,8 @@ RGB/file1_name.<format>
 Note that we assume that the depth, RGB, and label for the same sample share the name and are in different folders.
 
 
->Requirement: Depth maps and labels are gray images while RGB images are in RGB format.
-In depth maps, the closer it is, the darker it is, and the farther it is, the whiter it is, i.e., 0 (nearest) to 255 (farest).
-In labels, the 0 is the background class, which is not used to caluculate the loss, and 1-N means the N classes. If you want to caluculate the loss and miou on the background class, you can add 1 on the labels or delete the gt_transform within the `utils/dataloader/RGBXDataset.py' and then the class number is N+1 instead of N.
+> Requirement: Depth maps and labels are grayscale images. The color image channel order must be declared for the selected loader instead of inferred from the word “RGB”.
+In labels, if 0 is background and should be ignored while 1–N are foreground classes, use `C.gt_transform = True`, `C.background = 255`, and `C.num_classes = N`. If background participates in loss and mIoU and labels are already `0..N`, use `C.gt_transform = False` and `C.num_classes = N + 1`. Do not delete or edit the shared transform in `utils/dataloader/RGBXDataset.py`, because that would silently change every dataset.
 
 
 ## 2. 🌟 Make your own config file
@@ -65,15 +64,15 @@ C.dataset_path = osp.join(C.root_dir, 'dataset_name')
 C.x_format = '.png' <br />
 C.gt_format = '.png'
 
-(3) Change the samples number according to the new dataset.
+(3) Replace the example counts with positive integers from the final `train.txt` and `test.txt`. The template values `1` are import-safe examples, not real dataset statistics.
 
->C.num_train_imgs = None <br />
-C.num_eval_imgs = None
+>C.num_train_imgs = 1595  # example only <br />
+C.num_eval_imgs = 1576   # example only
 
-(4) Set the classes number.
+(4) Replace the example class metadata with the real integer count and matching names.
 
->C.num_classes = N <br />
-C.class_names =  []
+>C.num_classes = 15  # example only <br />
+C.class_names = ['class_1', '...']
 
 (5) Change the training size.
 
@@ -82,4 +81,10 @@ C.image_width = 640
 
 You can also tune some other parameters for better performance.
 
-After doing all the above operations, you can train DFormer on your own datasets by changing the config path within the `.sh' files.
+After replacing every example value, first verify that the config imports from the repository root:
+
+```bash
+python -c "import local_configs.template.DFormer_Large as c; print(c.config.dataset_name, c.config.num_train_imgs, c.config.num_classes)"
+```
+
+Then change the config path in a reviewed launch command. The root `.sh` files are upstream multi-GPU examples; inspect their fixed GPU count, dataset, checkpoint and `PYTHONPATH` before reuse.

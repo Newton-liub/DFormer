@@ -11,6 +11,22 @@ $ErrorActionPreference = "Stop"
 
 $versionPattern = '^(?<Version>(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*))-(?<Name>[a-z0-9]+(?:-[a-z0-9]+)*)\.canvas\.tsx$'
 
+function Get-CanvasFileSha256 {
+    param([Parameter(Mandatory)][string]$LiteralPath)
+
+    $stream = [IO.File]::OpenRead($LiteralPath)
+    try {
+        $sha256 = [Security.Cryptography.SHA256]::Create()
+        try {
+            return -join ($sha256.ComputeHash($stream) | ForEach-Object { $_.ToString("X2") })
+        } finally {
+            $sha256.Dispose()
+        }
+    } finally {
+        $stream.Dispose()
+    }
+}
+
 if (-not $ProjectRoot) {
     $ProjectRoot = Split-Path -Parent $PSScriptRoot
 }
@@ -77,8 +93,8 @@ foreach ($canvasFile in $canvasFiles) {
     $target = Join-Path $Destination $canvasFile.Name
 
     if (Test-Path -LiteralPath $target) {
-        $sourceHash = (Get-FileHash -LiteralPath $canvasFile.FullName -Algorithm SHA256).Hash
-        $targetHash = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash
+        $sourceHash = Get-CanvasFileSha256 -LiteralPath $canvasFile.FullName
+        $targetHash = Get-CanvasFileSha256 -LiteralPath $target
 
         if ($sourceHash -eq $targetHash) {
             Write-Host "Unchanged: $target"

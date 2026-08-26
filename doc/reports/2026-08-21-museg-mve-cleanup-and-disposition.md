@@ -1,5 +1,7 @@
 # MUSeg MVE 实验、云端状态与项目处置总结报告
 
+> **历史报告：** 本文保留 2026-08-21 的 MVE 处置和实例状态。其“实例已停止”和后续 20-epoch 路线不是当前实时状态；当前 Stage-05 seed 1 已运行，见 `doc/main/MUSeg-current-status.md`。
+
 - 汇报日期：2026-08-21
 - 报告对象：项目整理、实验交接与后续执行决策
 - 代码基线：`27437c1ddf5ae6c8f5da05b7ae94fc6b29fc80af`
@@ -140,7 +142,7 @@ DFormerv2 的 geometry prior 使用深度差异。项目中原始无效深度以
 
 当前唯一待执行计划为：
 
-`doc/临时/待执行/MUSeg-4090云端训练交接计划.md`
+`doc/plans/MUSeg-4090云端训练交接计划.md`
 
 该文件汇总已完成事项、无需重复的检查、当前项目基线、RTX 4090 batch 探测、SwanLab online 正式训练和结果验收步骤。历史结论继续以 `doc/reports/` 下的报告为证据，不再以临时计划作为审计入口。
 
@@ -177,7 +179,7 @@ DFormerv2 的 geometry prior 使用深度差异。项目中原始无效深度以
 ## 七、复现入口与证据路径
 
 - A1/B1 测试：`python -m unittest discover -s tests -p "test_*.py" -v`；
-- 当前待执行计划：`doc/临时/待执行/MUSeg-4090云端训练交接计划.md`；
+- 当前待执行计划：`doc/plans/MUSeg-4090云端训练交接计划.md`；
 - 历史 A1/B1/A2 综合分析：`doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md`；
 - 历史清理与处置记录：`doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`；
 - 本地证据：`cloud/museg-epoch10-a2-20260821`；

@@ -1,5 +1,7 @@
 # 04：静态验收与 RTX 4090 qualification 计划
 
+> **历史快照：** 本阶段的 Gate C、3-epoch qualification、连续/恢复等价演练和 Gate D 后来均已完成。以下计划与“停在 batch probe”文字按当时状态保留；当前唯一入口见 `doc/main/MUSeg-current-status.md`。
+
 > 任务类型：代码资格验收、短跑、恢复演练和 batch 选择。
 >
 > 模型要求：Terra 可严格执行；遇到异常、指标解释或方案变更必须停止并升级给 Sol。

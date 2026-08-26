@@ -1,5 +1,7 @@
 # MUSeg 数据复现与标签语义阶段工作汇报
 
+> **历史阶段报告：** 本文冻结 2026-08-19 数据复现完成时的状态；“训练配置与无效深度处理尚未完成”只代表当时边界。后续状态与当前恢复点见 `doc/main/MUSeg-current-status.md`。
+
 - 汇报周期：2026-08-17 至 2026-08-19
 - 报告对象：研发复核、组会与云端交接
 - 证据边界：旧版 MUSeg 数据处理审计之后的转换脚本实现、本地全量重建、标签语义确认与文档修订
@@ -141,4 +143,4 @@ python tools/prepare_museg.py --overwrite
 - 原始输入：`../dataset/MUSeg`；
 - 转换输出：`../dataset/MUSeg_DFormer`。
 
-禁止删除原始 `MUSeg`，禁止分别为 train/test 计算量化范围，禁止把数据集、转换结果或 checkpoint 加入 Git。稳定的数据重建规则见 `doc/dataset.md`；当前云端训练入口见 `doc/临时/待执行/MUSeg-4090云端训练交接计划.md`。
+禁止删除原始 `MUSeg`，禁止分别为 train/test 计算量化范围，禁止把数据集、转换结果或 checkpoint 加入 Git。稳定的数据重建规则见 `doc/dataset.md`；当前云端训练入口见 `doc/plans/MUSeg-4090云端训练交接计划.md`。

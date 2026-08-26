@@ -1,8 +1,12 @@
 # MUSeg Stage-04 云端对话基础知识
 
+> **历史快照：** 本文件保存 Stage-04 qualification 的环境、失败史和证据身份，不再是当前恢复入口。Gate D 已完成，Stage-05 seed 1 已启动；当前唯一入口为 `doc/main/MUSeg-current-status.md`。
+>
+> 以下“尚未执行 probe/Gate C/Gate D”段落是当时状态，不得据此重复运行 Stage-04。
+
 > 用途：提供给项目空间中的云端执行对话，保存跨对话长期有效、可减少重复扫描与重复核验的信息。
 >
-> 当前阶段的精确恢复点、历史失败和门禁状态仍以 `doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的最新“当前云端交接状态”章节为准。
+> 本文件所记录的 Stage-04 历史恢复点、失败和门禁证据以 `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的“当前云端交接状态”章节为准；项目当前恢复点只以 `doc/main/MUSeg-current-status.md` 为准。
 >
 > 本文件不得保存 API Key、密码、登录 cookie、完整环境变量或其他凭据。
 
@@ -11,12 +15,12 @@
 正常继续阶段 04 时，只需先读：
 
 1. 本文件；
-2. `doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的当前交接章节；
+2. `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的当前交接章节；
 3. 实际将要运行的工具脚本及其 `--help`/参数解析。
 
 只有发生门禁、协议或跨阶段争议时，才补读：
 
-- `doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`；
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`；
 - 对应的 01–03 计划或测试。
 
 无需默认重读 01–03 全文、研究报告、Canvas、全部测试、历史终端日志或整个仓库。

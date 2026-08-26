@@ -9,14 +9,12 @@ import random
 import subprocess
 import time
 from importlib import import_module
-
 import numpy as np
 import torch
 import torch.nn as nn
 from tensorboardX import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel
 from val_mm import evaluate, evaluate_msf
-
 from models.builder import EncoderDecoder as segmodel
 from tools.museg_protocol import write_json
 from utils.dataloader.dataloader import get_train_loader, get_val_loader
@@ -45,9 +43,7 @@ from utils.training_checkpoint import (
     should_evaluate,
     should_save_epoch,
 )
-
 # from eval import evaluate_mid
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", help="train config file path")
@@ -59,7 +55,11 @@ parser.add_argument("--batch-size", "--batch", dest="batch_size", type=int, defa
 parser.add_argument("--workers", "--worker", "--num-workers", dest="workers", type=int, default=None, help="override config.num_workers")
 parser.add_argument("--val-batch-size", "--val-batch", dest="val_batch_size", type=int, default=None, help="override validation batch size")
 parser.add_argument("--max-train-iters", type=int, default=None, help="stop normally after this many train steps")
-parser.add_argument("--run-kind", choices=("qualification", "probe"), default="qualification")
+parser.add_argument(
+    "--run-kind",
+    choices=("qualification", "standard", "probe"),
+    default="qualification",
+)
 parser.add_argument("--probe-warmup-steps", type=int, default=10)
 parser.add_argument("--probe-telemetry-jsonl", default=None)
 parser.add_argument(
@@ -115,15 +115,11 @@ parser.add_argument("--pad_SUNRGBD", default=False, action=argparse.BooleanOptio
 parser.add_argument("--use_seed", default=True, action=argparse.BooleanOptionalAction)
 parser.add_argument("--local-rank", default=0)
 # parser.add_argument('--save_path', '-p', default=None)
-
 # os.environ['MASTER_PORT'] = '169710'
 torch.set_float32_matmul_precision("high")
 import torch._dynamo
-
 torch._dynamo.config.suppress_errors = True
 # torch._dynamo.config.automatic_dynamic_shapes = False
-
-
 
 class gpu_timer:
     def __init__(self, beta=0.6) -> None:
@@ -132,11 +128,9 @@ class gpu_timer:
         self.mean_time = None
         self.beta = beta
         self.first_call = True
-
     def start(self):
         torch.cuda.synchronize()
         self.start_time = time.perf_counter()
-
     def stop(self):
         if self.start_time is None:
             print("Use start() before stop(). ")
@@ -151,32 +145,25 @@ class gpu_timer:
             self.mean_time = self.beta * self.mean_time + (1 - self.beta) * elapsed
         return elapsed
 
-
 def set_seed(seed):
     # seed init.
     random.seed(seed)
     np.random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
-
     # torch seed init.
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.enabled = True  # train speed is slower after enabling this opts.
-
     # https://pytorch.org/docs/stable/generated/torch.use_deterministic_algorithms.html
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
-
     # avoiding nondeterministic algorithms (see https://pytorch.org/docs/stable/notes/randomness.html)
     torch.use_deterministic_algorithms(True, warn_only=True)
 
-
 with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     args = parser.parse_args()
-
     config = getattr(import_module(args.config), "C")
     if args.epochs is not None:
         if args.epochs <= 0:
@@ -202,7 +189,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         config.test_source = os.path.abspath(args.test_source)
     if args.pretrained_model is not None:
         config.pretrained_model = os.path.abspath(args.pretrained_model)
-
     config.eval_interval = int(getattr(config, "eval_interval", 10))
     config.eval_start_epoch = int(getattr(config, "eval_start_epoch", 1))
     config.save_interval = int(
@@ -214,7 +200,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         parser.error("--eval-start-epoch must be within the configured epochs")
     if config.save_interval <= 0:
         parser.error("--save-interval must be positive")
-
     sources = resolve_training_sources(config)
     config.experiment_phase = sources.phase
     config.train_source = sources.train_source
@@ -243,7 +228,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         read_test_source=False,
     )
     config.num_train_imgs = split_metadata["train"]["samples"]
-
     if args.batch_size is not None:
         if args.batch_size <= 0:
             parser.error("--batch-size must be positive")
@@ -307,7 +291,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             parser.error(
                 f"resume checkpoint SHA-256 mismatch: expected {args.resume_checkpoint_sha256}, got {actual_resume_sha256}"
             )
-
     output_dir = os.path.abspath(args.output_dir or config.log_dir)
     prepare_output_directory(output_dir, resume_path=args.continue_fpath)
     config.log_dir = output_dir
@@ -320,7 +303,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     config.checkpoint_dir = os.path.abspath(
         args.checkpoint_dir or os.path.join(output_dir, "checkpoint")
     )
-
     logger = get_logger(config.log_dir, config.log_file, rank=engine.local_rank)
     # check if pad_SUNRGBD is used correctly
     if args.pad_SUNRGBD and config.dataset_name != "SUNRGBD":
@@ -340,13 +322,10 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         torch.backends.cudnn.enabled = True
         torch.backends.cudnn.benchmark = True
         logger.info("use random seed in legacy qualification mode")
-
     # assert not (args.compile and args.syncbn), "syncbn is not supported in compile mode"
     if not args.compile and args.compile_mode != "default":
         logger.warning("compile_mode is only valid when compile is enabled, ignoring compile_mode")
-
     train_loader, train_sampler = get_train_loader(engine, RGBXDataset, config)
-
     if args.gpus == 2:
         if args.mst and args.compile and args.compile_mode == "reduce-overhead":
             val_dl_factor = 0.25
@@ -367,7 +346,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             val_dl_factor = 2
     else:
         val_dl_factor = 1.5
-
     val_dl_factor = 1  # TODO: remove this line
     default_val_batch_size = (
         int(config.batch_size * val_dl_factor) if config.dataset_name != "SUNRGBD" else int(args.gpus)
@@ -385,7 +363,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         logger.info(f"val dataset len:{len(val_loader) * int(args.gpus)}")
     else:
         logger.info("no training-time validation source configured; sealed test remains unread")
-
     if (engine.distributed and (engine.local_rank == 0)) or (not engine.distributed):
         tb_dir = config.tb_dir + "/{}".format(time.strftime("%b%d_%d-%H-%M", time.localtime()))
         generate_tb_dir = config.tb_dir + "/tb"
@@ -393,11 +370,9 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         engine.link_tb(tb_dir, generate_tb_dir)
         pp = pprint.PrettyPrinter(indent=4)
         logger.info("config: \n" + pp.pformat(config))
-
     logger.info("args parsed:")
     for k in args.__dict__:
         logger.info(k + ": " + str(args.__dict__[k]))
-
     is_primary = (not engine.distributed) or engine.local_rank == 0
     run_name = build_run_name(
         config.dataset_name,
@@ -454,16 +429,13 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         log_dir=config.log_dir,
         config=tracker_config,
     )
-
     criterion = nn.CrossEntropyLoss(reduction="none", ignore_index=config.background)
-
     if args.syncbn:
         BatchNorm2d = nn.SyncBatchNorm
         logger.info("using syncbn")
     else:
         BatchNorm2d = nn.BatchNorm2d
         logger.info("using regular bn")
-
     model = segmodel(
         cfg=config,
         criterion=criterion,
@@ -476,15 +448,12 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     # #     weight[k[7:]] = weight[k]
     # print('load model')
     # model.load_state_dict(weight)
-
     base_lr = config.lr
     if engine.distributed:
         base_lr = config.lr
-
     params_list = []
     params_list = group_weight(params_list, model, BatchNorm2d, base_lr)
     # params_list = configure_optimizers(model, base_lr, config.weight_decay)
-
     if config.optimizer == "AdamW":
         optimizer = torch.optim.AdamW(
             params_list,
@@ -501,7 +470,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         )
     else:
         raise NotImplementedError
-
     total_iteration = config.nepochs * config.niters_per_epoch
     lr_policy = WarmUpPolyLR(
         base_lr,
@@ -522,7 +490,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     else:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
-
     if args.amp:
         scaler = torch.cuda.amp.GradScaler()
     else:
@@ -568,7 +535,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     )
     if engine.continue_state_object:
         engine.restore_checkpoint()
-
     optimizer.zero_grad()
     logger.info("begin training")
     # segmentor = SegEvaluator(val_dataset, config.num_classes, config.norm_mean,
@@ -585,13 +551,13 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     best_miou_epoch = engine.state.best_val_epoch
     train_timer = gpu_timer()
     eval_timer = gpu_timer()
-
     log_interval = args.log_interval or max(1, int(config.niters_per_epoch * 0.1))
     train_steps_completed = 0
+    attempted_steps = 0
+    skipped_optimizer_steps = 0
     global_optimizer_steps = engine.state.global_optimizer_step
     short_run_reached = False
     controlled_stop_epoch = None
-    probe_attempts = 0
     probe_telemetry_path = args.probe_telemetry_jsonl
     if probe_telemetry_path and is_primary:
         os.makedirs(os.path.dirname(os.path.abspath(probe_telemetry_path)), exist_ok=True)
@@ -612,7 +578,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         #     # bar_format=bar_format,
         # )
         dataloader = iter(train_loader)
-
         sum_loss = 0
         i = 0
         train_timer.start()
@@ -623,38 +588,33 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             lr = lr_policy.get_lr(current_idx)
             for param_group in optimizer.param_groups:
                 param_group["lr"] = lr
-            next_train_step = train_steps_completed + 1
-            should_log = next_train_step == 1 or next_train_step % log_interval == 0
+            attempted_steps += 1
+            should_log = attempted_steps == 1 or attempted_steps % log_interval == 0
+            is_epoch_last_attempt = idx + 1 == config.niters_per_epoch
             safety_monitoring = args.min_free_vram_gib > 0 or args.min_free_vram_ratio > 0
-            measure_step = should_log or safety_monitoring or args.run_kind == "probe"
+            measure_step = should_log or is_epoch_last_attempt or safety_monitoring or args.run_kind == "probe"
             if measure_step:
                 torch.cuda.synchronize()
                 step_started_at = time.perf_counter()
                 torch.cuda.reset_peak_memory_stats()
-
             # minibatch = dataloader.next()
             minibatch = next(dataloader)
             imgs = minibatch["data"]
             gts = minibatch["label"]
             modal_xs = minibatch["modal_x"]
-
             imgs = imgs.cuda(non_blocking=True)
             gts = gts.cuda(non_blocking=True)
             modal_xs = modal_xs.cuda(non_blocking=True)
-
             if args.amp:
                 with torch.autocast(device_type="cuda", dtype=torch.float16):
                     loss = model(imgs, modal_xs, gts)
             else:
                 loss = model(imgs, modal_xs, gts)
-
             if measure_step and not bool(torch.isfinite(loss.detach()).all().item()):
                 raise FloatingPointError(f"non-finite loss at epoch {epoch}, iteration {idx + 1}")
-
             # reduce the whole loss over multi-gpu
             if engine.distributed:
                 reduce_loss = all_reduce_tensor(loss, world_size=engine.world_size)
-
             optimizer_step_completed = True
             if args.amp:
                 scale_before_step = scaler.get_scale()
@@ -673,13 +633,18 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             if optimizer_step_completed:
                 global_optimizer_steps += 1
                 train_steps_completed += 1
-
+            else:
+                skipped_optimizer_steps += 1
+                if is_primary:
+                    logger.warning(
+                        f"AMP optimizer update skipped at epoch {epoch}, iteration {idx + 1}; "
+                        f"attempted_steps={attempted_steps}, skipped_optimizer_steps={skipped_optimizer_steps}"
+                    )
             if not args.amp:
                 if epoch == 1:
                     for name, param in model.named_parameters():
                         if param.grad is None:
                             logger.warning(f"{name} has no grad, please check")
-
             telemetry_suffix = ""
             if measure_step:
                 torch.cuda.synchronize()
@@ -705,7 +670,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     f" free_ratio={free_vram_ratio:.3f} amp_scale={amp_scale:.1f}"
                 )
                 if args.run_kind == "probe" and is_primary:
-                    probe_attempts += 1
                     sample_ids = minibatch.get("fn", [])
                     if isinstance(sample_ids, str):
                         sample_ids = [sample_ids]
@@ -716,7 +680,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     }
                     record = {
                         "schema_version": "museg-probe-step-v1",
-                        "attempt": probe_attempts,
+                        "attempt": attempted_steps,
                         "completed_optimizer_steps": train_steps_completed,
                         "global_optimizer_step": global_optimizer_steps,
                         "optimizer_step_completed": optimizer_step_completed,
@@ -742,7 +706,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                         os.fsync(telemetry_file.fileno())
                 if safety_error is not None:
                     raise RuntimeError(f"GPU safety threshold violated at step {global_step}: {safety_error}")
-
             if engine.distributed:
                 sum_loss += reduce_loss.item()
                 print_str = (
@@ -752,7 +715,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     + " loss=%.4f total_loss=%.4f" % (reduce_loss.item(), (sum_loss / (idx + 1)))
                     + telemetry_suffix
                 )
-
             else:
                 loss_value = loss.item()
                 sum_loss += loss_value
@@ -762,7 +724,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     + f"lr={lr:.4e} loss={loss_value:.4f} total_loss={(sum_loss / (idx + 1)):.4f}"
                     + telemetry_suffix
                 )
-
             engine.state.global_optimizer_step = global_optimizer_steps
             loss_value_for_log = reduce_loss.item() if engine.distributed else loss_value
             if should_log and is_primary:
@@ -780,11 +741,14 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                         "train/total_vram_mb": total_vram_mb,
                         "train/free_vram_ratio": free_vram_ratio,
                         "train/amp_scale": amp_scale,
+                        "train/optimizer_step_completed": int(optimizer_step_completed),
+                        "train/attempted_steps": attempted_steps,
+                        "train/completed_optimizer_steps": train_steps_completed,
+                        "train/skipped_optimizer_steps": skipped_optimizer_steps,
                         "train/epoch": epoch,
                     },
                     step=global_step,
                 )
-
             del loss
             if args.max_train_iters is not None and train_steps_completed >= args.max_train_iters:
                 short_run_reached = True
@@ -792,6 +756,11 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 break
             # pbar.set_description(print_str, refresh=False)
         logger.info(print_str)
+        logger.info(
+            f"Epoch {epoch} optimizer telemetry: attempted_steps={attempted_steps}, "
+            f"completed_optimizer_steps={train_steps_completed}, "
+            f"skipped_optimizer_steps={skipped_optimizer_steps}"
+        )
         train_epoch_seconds = train_timer.stop()
         epoch_loss = sum_loss / (idx + 1)
         if is_primary:
@@ -805,12 +774,10 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         if short_run_reached:
             logger.info("short run completed normally; validation and checkpoint saving were skipped")
             break
-
         # if (engine.distributed and (engine.local_rank == 0)) or (
         #     not engine.distributed
         # ):
         #     tb.add_scalar("train_loss", sum_loss / len(pbar), epoch)
-
         if val_loader is not None and should_evaluate(
             epoch,
             config.nepochs,
@@ -968,7 +935,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     step=epoch * config.niters_per_epoch,
                 )
             eval_timer.stop()
-
         if is_primary:
             os.makedirs(config.checkpoint_dir, exist_ok=True)
             engine.save_checkpoint(os.path.join(config.checkpoint_dir, "latest.pth"))
@@ -976,12 +942,10 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 engine.save_checkpoint(
                     os.path.join(config.checkpoint_dir, f"epoch-{epoch}.pth")
                 )
-
         if args.stop_after_completed_epoch is not None and epoch >= args.stop_after_completed_epoch:
             controlled_stop_epoch = epoch
             logger.info(f"controlled qualification stop completed after epoch {epoch}")
             break
-
         eval_count = 0
         if val_loader is not None:
             for future_epoch in range(engine.state.epoch + 1, config.nepochs + 1):
@@ -1004,7 +968,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             f"Avg train time: {train_timer.mean_time:.2f}s, avg eval time: {mean_eval_time:.2f}s, "
             f"left eval count: {eval_count}, ETA: {eta}"
         )
-
     if is_primary:
         latest_checkpoint = os.path.join(config.checkpoint_dir, "latest.pth")
         write_json(
@@ -1019,7 +982,9 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 "run_kind": args.run_kind,
                 "requested_optimizer_steps": args.max_train_iters if args.run_kind == "probe" else None,
                 "completed_optimizer_steps": train_steps_completed,
-                "attempted_steps": probe_attempts if args.run_kind == "probe" else train_steps_completed,
+                "attempted_steps": attempted_steps,
+                "skipped_optimizer_steps": skipped_optimizer_steps,
+                "optimizer_telemetry_schema_version": "museg-optimizer-telemetry-v1",
                 "probe_warmup_steps": args.probe_warmup_steps if args.run_kind == "probe" else None,
                 "probe_telemetry_jsonl": os.path.abspath(probe_telemetry_path) if probe_telemetry_path else None,
                 "best_val_miou": float(best_miou) if best_miou is not None else None,

@@ -1,5 +1,7 @@
 # 03：三种子编排、preflight、4090 脚本与 SwanLab 改造计划
 
+> **历史阶段记录：** Stage-03 与 Gate B 已完成。以下尚未运行真实 GPU/SwanLab 的表述是 Stage-03 结束时快照，已被 Stage-04/05 证据取代；当前入口见 `doc/main/MUSeg-current-status.md`。
+
 > 任务类型：外围编排、可观测性和防误操作工具。
 >
 > 模型要求：Terra 可按本计划实现；**Sol 必须复核字段契约、失败传播和最终端到端接口。**
@@ -116,7 +118,7 @@ warning 必须有明确分类：允许继续的建议性 warning 与阻塞 error
 
 ### 11.1 已实现接口
 
-- 新增 `museg-training-protocol-v1` 协议清单契约及 JSON Schema；契约冻结 protocol/schedule/phase/model、完整 Git commit、固定 seeds、隔离输出根、四类 split 的数量/group/SHA-256、预训练权重精确身份、训练参数和 SwanLab 模式。加载器拒绝未知顶层字段、重复或负 seed、非十六进制身份哈希、不安全 protocol 路径段，并保留 Windows/Unix 路径和末尾 `#`。
+- 新增 `museg-training-protocol-v2` 协议清单契约及 JSON Schema；契约冻结 protocol/schedule/phase/model、完整 Git commit、固定 seeds、隔离输出根、四类 split 的数量/group/SHA-256、预训练权重精确身份、训练参数和 SwanLab 模式。加载器拒绝未知顶层字段、重复或负 seed、非十六进制身份哈希、不安全 protocol 路径段，并保留 Windows/Unix 路径和末尾 `#`。
 - 新增 `tools/run_museg_seed.py`：单 seed 输出目录为 `<output-root>/<protocol-id>/<phase>/seed-<seed>`，透传 02 冻结的 source/hash/count/schedule/seed/output/checkpoint/SwanLab 参数；默认拒绝非空目录；resume 必须同时提供 parent run ID 与实际匹配的 checkpoint SHA-256。无论 trainer 返回非零还是进程启动失败，均写入 `launcher.log`、`command.json`、`environment.json`、`train.exit_code` 和 `run_manifest.json`；即使 trainer 返回 0，也必须生成身份完全匹配、未包含 official test 的 `training_result.json`，development/official 还必须提供可读且 SHA-256 匹配的 checkpoint，否则 launcher 把该运行记录为失败。
 - 新增 `tools/run_museg_3seed.py`：严格前台顺序启动 manifest 声明的 seed，首个非零退出立即停止且始终写入 `orchestrator.json`；Python/launcher 进程本身无法启动时也以结构化失败记录对应 seed。支持只对一个明确 seed 透传受控 resume 三元组；全部成功后调用训练/validation 汇总器，若汇总失败则改写整体退出状态并写入 `summary_error`，汇总不包含 official test。
 - 新增 `tools/summarize_museg_runs.py` 与 `tools/summarize_museg_probe.py`：训练汇总器拒绝缺 run、重复/未声明 seed、损坏 JSON、非零退出、跨 protocol/manifest/phase 产物、official test 未封存和 checkpoint SHA 不匹配；development/official 还必须有有效 checkpoint。probe 汇总结构化记录完成步数、吞吐、step time、显存、loss、AMP scale、OOM/非 OOM 异常。4090 shell 在 OOM 或其他失败后停止更大 batch，同时仍保留部分 probe summary；batch 推荐只在绝对和比例显存阈值均满足时按稳定吞吐选择，并强制人工确认。

@@ -1,5 +1,26 @@
 # <p align=center>`DFormer for RGBD Semantic Segmentation`</p>
 
+## 本仓库项目入口
+
+本仓库同时包含上游 DFormer/DFormerv2 论文代码和本项目的 MUSeg 扩展。两套入口用途不同：
+
+- **MUSeg 当前状态与恢复点：** `doc/main/MUSeg-current-status.md`
+- **MUSeg 数据准备：** `doc/dataset.md`，默认目录为仓库上一级的 `../dataset/`
+- **MUSeg 实验口径与处置状态：** `doc/main/MUSeg-open-decisions.md`
+- **MUSeg 阶段计划与历史执行记录：** `doc/plans/`，不承担实时状态
+- **正式报告与证据索引：** `doc/reports/` 和 `doc/reports/report-index.json`
+- **上游论文复现：** 继续阅读下面的原版 DFormer/DFormerv2 说明
+
+### MUSeg 对话状态维护
+
+`doc/main/MUSeg-current-status.md` 是当前事实、正在进行事项、边界和恢复点的唯一实时入口。每个涉及 MUSeg 的对话都应先读取该文件；训练、验收、指标、checkpoint、official test、云实例、证据位置、阻塞项、恢复步骤、提交或发布状态发生变化时，必须在该对话最终答复之前同步更新。对话结束后代理无法继续写文件，因此“自动更新”统一定义为最终答复前完成，而不是答复后异步补写。
+
+没有持久状态变化的解释或只读检查不更新时间，避免制造虚假进度。详细过程继续写入日期化报告，真正开放的研究选择及处置状态写入 `doc/main/MUSeg-open-decisions.md`。项目级强制规则见 `.cursor/rules/museg-current-status.mdc`。
+
+根目录 `train.sh`、`eval.sh` 和 `infer.sh` 是上游 NYUv2/SUNRGBD 多卡示例，**不是 MUSeg 的审计训练入口**。MUSeg 必须使用冻结 protocol、preflight 和独立输出目录，不能直接修改根脚本绕过 split、Git、checkpoint 和 official-test 门禁。
+
+---
+
 非常荣幸我们收到3D视觉工坊的邀请，我们在6月19日晚上19:00开展了关于DFormerv2的论文直播，有兴趣的同学可以观看[直播回放](https://www.bilibili.com/video/BV1hGNozuEe4?t=4.2)，有问题欢迎在这个项目下提issue交流讨论，直播用到的PPT可以在这里下载[BaiduNetDisk](https://pan.baidu.com/s/1HjmiVBYZSnBGcPDJgfCeoA?pwd=ti6p)。
 
 
@@ -111,6 +132,10 @@ conda install pytorch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 pytorch-cuda=
 pip install mmcv==2.1.0 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.1/index.html
 
 pip install tqdm opencv-python scipy tensorboardX tabulate easydict ftfy regex
+pip install timm==1.0.28 mmengine==0.10.7 matplotlib PyYAML thop
+
+# MUSeg 审计运行还需要在线实验记录依赖
+pip install -r requirements-monitoring.txt
 ```
 
 
@@ -120,7 +145,7 @@ pip install tqdm opencv-python scipy tensorboardX tabulate easydict ftfy regex
 
 - **Datasets:** 
 
-By default, you can put datasets into the folder 'datasets' or use 'ln -s path_to_data datasets'.
+上游下载包的示例结构使用 `datasets/`，但仓库现有内置配置与 MUSeg 扩展默认使用仓库上一级的 `../dataset/`。运行前应以所选配置中的 `C.root_dir` 为准，不要无说明地混用两个目录。MUSeg 的固定约定和转换命令见 `doc/dataset.md`。
 
 | Datasets | [GoogleDrive](https://drive.google.com/drive/folders/1RIa9t7Wi4krq0YcgjR3EWBxWWJedrYUl?usp=sharing) | [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/EqActCWQb_pJoHpxvPh4xRgBMApqGAvUjid-XK3wcl08Ug?e=VcIVob) | [BaiduNetdisk](https://pan.baidu.com/s/1-CEL88wM5DYOFHOVjzRRhA?pwd=ij7q) | 
 |:---: |:---:|:---:|:---:|
@@ -206,9 +231,9 @@ NYUDepth v2 trained DFormers T/S/B/L can be downloaded at
 
 
 
-**2. Train.**
+**2. Train（上游示例）.**
 
-You can change the `local_config' files in the script to choose the model for training. 
+`train.sh` 当前固定 NYUv2、2 张 GPU 和 `local_configs.NYUDepthv2.DFormerv2_S`。先按实际设备、数据和配置审查脚本；单卡 MUSeg 不使用此入口。
 ```
 bash train.sh
 ```
@@ -216,14 +241,16 @@ bash train.sh
 After training, the checkpoints will be saved in the path `checkpoints/XXX', where the XXX is depends on the training config.
 
 
-**3. Eval.**
+**3. Eval（上游示例）.**
 
-You can change the `local_config' files and checkpoint path in the script to choose the model for testing. 
+`eval.sh` 当前固定 NYUv2、8 张 GPU 和一个具体 checkpoint。运行前必须确认设备数、配置和 checkpoint 路径。
 ```
 bash eval.sh
 ```
 
-**4. Visualize.**
+**4. Visualize（上游示例）.**
+
+`infer.sh` 当前固定 NYUv2、2 张 GPU 和 checkpoint；它不是通用或 MUSeg 推理入口。
 
 ```
 bash infer.sh
@@ -232,13 +259,13 @@ bash infer.sh
 **5. FLOPs & Parameters.**
 
 ```
-PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python benchmark.py --config local_configs.NYUDepthv2.DFormer_Large
+PYTHONPATH="$(pwd):${PYTHONPATH:-}" python utils/benchmark.py --config local_configs.NYUDepthv2.DFormer_Large
 ```
 
 **6. Latency.**
 
 ```
-PYTHONPATH="$(dirname $0)/..":$PYTHONPATH python utils/latency.py --config local_configs.NYUDepthv2.DFormer_Large
+PYTHONPATH="$(pwd):${PYTHONPATH:-}" python utils/latency.py --config local_configs.NYUDepthv2.DFormer_Large
 ```
 
 ps: The latency highly depends on the devices. It is recommended to compare the latency on the same devices. 
@@ -273,7 +300,8 @@ ps: The latency highly depends on the devices. It is recommended to compare the 
 
 Canvas 采用“仓库源文件 + Cursor 受管副本”的方式保存：
 
-- Git 管理的源文件放在 `doc/canvases/`；
+- Git 管理的当前源文件放在 `doc/canvases/`；只读历史版本放在 `doc/canvases/old/`；
+- 默认发布只扫描 `doc/canvases/` 顶层当前版本，不递归发布 `old/`；
 - 文件名必须使用 `MAJOR.MINOR.PATCH-<name>.canvas.tsx`，例如 `0.0.2-weekly-progress.canvas.tsx`；
 - 页面标题或显著元数据必须显示与文件名一致的版本号；
 - 已发布版本只读保留。修改 Canvas 时创建新版本，不覆盖或删除旧文件；
@@ -281,15 +309,16 @@ Canvas 采用“仓库源文件 + Cursor 受管副本”的方式保存：
 
 发布方式：
 
-- 双击 `tools/publish-canvas.cmd`，发布 `doc/canvases` 下的全部 Canvas；
+- 双击 `tools/publish-canvas.cmd`，只发布 `doc/canvases` 顶层的当前 Canvas；
 - 在项目根目录执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1`，效果相同；
-- 只发布单个文件时执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1 -Source doc/canvases/0.0.1-report-workflow-decision.canvas.tsx`；
+- 只发布单个当前文件时执行 `powershell -ExecutionPolicy Bypass -File tools/publish-canvas.ps1 -Source doc/canvases/0.0.9-markdown-consistency-audit.canvas.tsx`；
+- 需要恢复某个历史预览时，显式把 `-Source` 指向 `doc/canvases/old/<version>-<name>.canvas.tsx`；归档不参与默认发布；
 - 使用 `-WhatIf` 可以预览目标路径而不复制文件；
 - 只有迁移历史文件时才使用 `-AllowUnversioned`。
 
 发布脚本会校验版本前缀和版本唯一性。目标中已有同名同内容文件时跳过；同名但内容不同时拒绝覆盖，并要求提升版本号。脚本不会清理或删除已有 Canvas。
 
-脚本会根据当前项目路径自动计算 Cursor 受管目录，例如本项目对应 `C:\Users\<用户名>\.cursor\projects\d-0Project-DFormer\canvases`。受管副本仅用于 Cursor 预览，`doc/canvases/` 中的源文件是长期保存和审阅的依据。
+脚本会根据当前项目路径自动计算 Cursor 受管目录，例如本项目对应 `C:\Users\<用户名>\.cursor\projects\d-0Project-DFormer\canvases`。受管副本仅用于 Cursor 预览；`doc/canvases/` 的当前源和 `doc/canvases/old/` 的只读归档共同构成长期保存与审阅依据。
 
 项目级汇报 Skill 位于 `.cursor/skills/research-progress-report/`。正式报告默认保存到 `doc/reports/`；需要组会展示或可视化布局时，再根据 Markdown 事实正文生成下一个版本的 Canvas。
 

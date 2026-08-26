@@ -1,5 +1,7 @@
 # MUSeg 阶段二 Stage 01–03 项目汇报：从数据冻结到可审计训练链路
 
+> **历史阶段报告：** 本文冻结 2026-08-25 Gate B 签署时的状态；“Stage 04 尚未启动”只代表当时边界。Stage-04 Gate D 后来已完成，Stage-05 seed 1 已运行；当前唯一入口见 `doc/main/MUSeg-current-status.md`。
+
 - 汇报日期：2026-08-25
 - 汇报对象：组会；面向不熟悉语义分割、训练工程和实验审计的老师
 - 汇报范围：上次正式报告 `doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md` 之后，补充 Stage 02、Stage 03、门禁 B 阻塞修复及 01–03 整体复核；为便于理解，同时保留 Stage 01 的必要上下文
@@ -156,7 +158,7 @@ best 规则固定为 `strict-greater-keeps-earliest`：
 - 只接受有限 mIoU；
 - 只有严格提升才更新 best；
 - 分数相等时保留更早的 epoch；
-- 只有 development 写 `best-val-miou.pth`。
+- qualification 与 development 都在 validation phase 写 `best-val-miou.pth`；official phase 不建立 validation loader，也不写 best validation checkpoint。
 
 这样可以避免同分时因文件写入顺序改变最终选择。
 
@@ -405,11 +407,11 @@ qualification 只有 2–3 epochs，用于检查数据、显存、日志、验�
 
 ## 十四、复核入口
 
-- 总索引与门禁：`doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
-- Stage 01：`doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
-- Stage 02：`doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md`
-- Stage 03：`doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/03-三种子编排Preflight与SwanLab改造.md`
-- Stage 04：`doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md`
+- 总索引与门禁：`doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
+- Stage 01：`doc/plans/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
+- Stage 02：`doc/plans/MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md`
+- Stage 03：`doc/plans/MUSeg阶段二长程Baseline与MVE/03-三种子编排Preflight与SwanLab改造.md`
+- Stage 04：`doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md`
 - 冻结数据证据：`data/splits/MUSeg/dev-v1`
 - Protocol v2：`tools/museg_protocol.py`、`tools/museg_protocol.schema.json`
 - Qualification 物化：`protocols/museg-qualification-v1.template.json`、`tools/materialize_museg_protocol.py`

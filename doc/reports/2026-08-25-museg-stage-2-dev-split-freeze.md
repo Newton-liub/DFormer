@@ -1,5 +1,7 @@
 # MUSeg 阶段二 Stage 01 项目汇报：开发划分冻结与审计完成
 
+> **历史阶段报告：** 本文冻结 2026-08-25 Stage-01 完成时的状态；“Stage 02 尚未开始”只代表当时边界。Stage-04 Gate D 后来已完成，Stage-05 seed 1 已运行；当前唯一入口见 `doc/main/MUSeg-current-status.md`。
+
 - 汇报日期：2026-08-25
 - 汇报范围：MUSeg 阶段二长程 baseline 的 Stage 01——开发集划分协议、生成工具、真实划分、技术复核、Gate A 与冻结发布
 - 仓库分支：`main`
@@ -225,8 +227,8 @@
 
 ### 8.3 协议与门禁文档
 
-- `doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
-- `doc/临时/待执行/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
 
 `.gitignore` 已增加窄范围白名单，只让上述五个冻结产物进入 Git 视野；原始 MUSeg 数据、临时候选目录和大体量输出仍保持忽略。
 

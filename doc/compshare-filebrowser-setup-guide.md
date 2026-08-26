@@ -4,6 +4,8 @@
 
 官方功能说明：[文件管理功能](https://www.compshare.cn/docs/operation/gpu/filebrowser)
 
+> 安全与生命周期边界：厂商预装 FileBrowser 的版本必须在实例审计中记录。该上游项目计划于 2026-09-01 归档，归档后不再承诺 bug 或安全修复；本指南只接受 CompShare 平台入口同时提供 TLS 和独立访问控制的兼容模式。不要把 8889 端口直接暴露到无额外认证的公网，保持 command runner 禁用；平台允许时优先使用非 root 服务账号。
+
 ## 一、适用范围与工作方式
 
 - 仅适用于 CompShare **容器实例**；虚机实例不适用。
@@ -66,7 +68,7 @@ FileBrowser 自启动脚本：/start.d/filebrowser.sh
 FB_BIN=/model/other/filebrowser/filebrowser
 
 test -x "$FB_BIN" \
-  && "$FB_BIN" version \
+  && "$FB_BIN" version | tee /root/rivermind-data/filebrowser-version.txt \
   || echo "未找到厂商预装的 FileBrowser"
 ```
 

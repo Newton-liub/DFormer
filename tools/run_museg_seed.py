@@ -54,7 +54,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", help="qualification-only isolated output override")
     parser.add_argument("--batch-size", type=int, help="qualification-only batch override")
     parser.add_argument("--max-train-iters", type=int, help="qualification-only bounded probe")
-    parser.add_argument("--run-kind", choices=("qualification", "probe"), default="qualification")
+    parser.add_argument("--run-kind", choices=("qualification", "standard", "probe"), default="qualification")
     parser.add_argument("--probe-warmup-steps", type=int, default=10, help="probe-only performance warmup steps")
     parser.add_argument(
         "--stop-after-completed-epoch",
@@ -288,7 +288,7 @@ def _validate_training_result(
             raise ProtocolError("probe training_result.json requires non-empty probe telemetry")
         return
     if result.get("controlled_stop_after_completed_epoch") is None and result.get("final_epoch") != protocol.training["epochs"]:
-        raise ProtocolError("qualification training_result.json ended before the protocol epoch count")
+        raise ProtocolError(f"{run_kind} training_result.json ended before the protocol epoch count")
     if protocol.phase in {"qualification", "development", "official"}:
         checkpoint = result.get("checkpoint")
         if not isinstance(checkpoint, dict):

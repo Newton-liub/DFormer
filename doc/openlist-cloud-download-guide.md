@@ -72,17 +72,20 @@ chmod 755 /opt/openlist/openlist
 
 ### 3.4 初始化数据目录和管理员密码
 
-如果 OpenList 尚未初始化，先使用 `/opt/openlist/data` 作为数据目录启动一次，完成数据库初始化。随后在 OpenList 管理后台设置管理员密码。
+如果 OpenList 尚未初始化，先按 3.5 节用 `--data /opt/openlist/data` 启动前台 server 进程。首次启动后，从 `/opt/openlist/logs/openlist.log` 查找 OpenList 生成的初始管理员密码，用它登录后台并立即修改为自己的强密码。
 
-将管理员密码只保存到服务器文件：
+确认新密码已经实际登录成功后，再把同一密码保存到只允许 root 读取的服务器文件：
 
 ```bash
 umask 077
-printf '%s\n' '在这里输入管理员密码' > /root/openlist-admin-password
+read -r -s -p "输入已经验证可登录的 OpenList 管理员密码：" OPENLIST_PASSWORD
+printf '\n'
+printf '%s\n' "$OPENLIST_PASSWORD" > /root/openlist-admin-password
+unset OPENLIST_PASSWORD
 chmod 600 /root/openlist-admin-password
 ```
 
-不要把真实密码替换进本文，也不要将上面的示例命令原样用于生产环境而忘记替换密码。
+不要把真实密码替换进本文，也不要把未实际设置到 OpenList 的占位文字保存成“密码文件”。如果选择使用 `openlist --data /opt/openlist/data admin set` 修改密码，应在服务停止时操作，并注意命令参数可能短暂出现在进程列表中；优先使用管理后台。
 
 确认权限：
 
@@ -99,7 +102,10 @@ ls -l /root/openlist-admin-password
 ### 3.5 手动启动 OpenList
 
 ```bash
-nohup /opt/openlist/openlist server /opt/openlist/data start --force-bin-dir \
+nohup /opt/openlist/openlist \
+  --data /opt/openlist/data \
+  --log-std \
+  server \
   >>/opt/openlist/logs/openlist.log 2>&1 &
 ```
 
@@ -147,11 +153,14 @@ OPENLIST_PID_FILE=/opt/openlist/openlist.pid
 
 mkdir -p "$OPENLIST_DATA" "$OPENLIST_LOG_DIR" /root/rivermind-data
 
-if pgrep -f "^${OPENLIST_BIN} server ${OPENLIST_DATA}" >/dev/null 2>&1; then
+if pgrep -f "^${OPENLIST_BIN} --data ${OPENLIST_DATA} --log-std server" >/dev/null 2>&1; then
     exit 0
 fi
 
-nohup "$OPENLIST_BIN" server "$OPENLIST_DATA" start --force-bin-dir \
+nohup "$OPENLIST_BIN" \
+    --data "$OPENLIST_DATA" \
+    --log-std \
+    server \
     >>"$OPENLIST_LOG_DIR/openlist.log" 2>&1 &
 printf '%s\n' "$!" >"$OPENLIST_PID_FILE"
 EOF
@@ -199,7 +208,7 @@ https://5244-<实例ID>.pod.compshare.cn/
 admin
 ```
 
-如果需要在服务器终端读取密码，使用：
+首次启动时先从日志读取系统生成的初始密码；修改密码并验证登录成功后，才能把最终密码写入 `/root/openlist-admin-password`。如果需要在服务器终端读取已验证密码，使用：
 
 ```bash
 less /root/openlist-admin-password
@@ -419,20 +428,22 @@ apt-get install -y p7zip-full
 Everything is Ok
 ```
 
-解压到独立目录：
+解压到 MUSeg 转换脚本的默认原始数据目录：
 
 ```bash
-mkdir -p /root/rivermind-data/MUSeg
+mkdir -p /root/rivermind-data/dataset/MUSeg
 7z x \
   /root/rivermind-data/MUSeg.7z \
-  -o/root/rivermind-data/MUSeg
+  -o/root/rivermind-data/dataset/MUSeg
 ```
+
+随后在 `/root/rivermind-data/DFormer` 运行 `python tools/prepare_museg.py`，默认输出到 `/root/rivermind-data/dataset/MUSeg_DFormer`。如果保留其他解压目录，必须显式传入 `--source-root` 和 `--output-root`。
 
 确认解压结果：
 
 ```bash
-ls -lah /root/rivermind-data/MUSeg
-du -sh /root/rivermind-data/MUSeg
+ls -lah /root/rivermind-data/dataset/MUSeg
+du -sh /root/rivermind-data/dataset/MUSeg
 ```
 
 确认数据完整后，如需释放压缩包占用的空间，再删除服务器副本：

@@ -37,7 +37,7 @@ C.dataset_path = osp.join(C.root_dir, "MUSeg_DFormer")
 MUSeg 是面向地下矿山场景的 RGB-D 语义分割数据集。本项目需要关注以下信息：
 
 - 3,171 组对齐的 RGB-D 数据；
-- 1,916 个采集组，来自 5 座煤矿和 1 座金矿；
+- 论文与官方说明报告 1,916 个采集位置；当前发布文件按文件名前四段可审计解析出 1,915 个唯一 location groups（official train 958、official test 957，交集为 0），该 1 组差异按数据版本差异保留；
 - 图像分辨率为 `1082 × 932`；
 - RGB 图像为 JPG；
 - Depth 图像为 PNG，原始像素保存实际距离信息；
