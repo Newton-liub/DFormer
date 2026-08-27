@@ -519,6 +519,29 @@ def audit_protocol(
             dataset=getattr(imported_config, "dataset_name", None),
             backbone=getattr(imported_config, "backbone", None),
         )
+        contract = protocol.input_contract
+        normalization = contract["normalization"]
+        config_contract = {
+            "channel_order": getattr(imported_config, "channel_order", None),
+            "normalization_identity": getattr(imported_config, "normalization_identity", None),
+            "mean": [float(value) for value in getattr(imported_config, "norm_mean", [])],
+            "std": [float(value) for value in getattr(imported_config, "norm_std", [])],
+        }
+        expected_contract = {
+            "channel_order": contract["channel_order"],
+            "normalization_identity": normalization["identity"],
+            "mean": [float(value) for value in normalization["mean"]],
+            "std": [float(value) for value in normalization["std"]],
+        }
+        if config_contract != expected_contract:
+            report.error(
+                "input_contract_mismatch",
+                "training config input contract differs from protocol",
+                expected=expected_contract,
+                actual=config_contract,
+            )
+        else:
+            report.ok("input_contract", "training config input contract matches protocol", **expected_contract)
         if check_dataset_files:
             data_check = Preflight()
             check_dataset(imported_config, data_check, sample_count)

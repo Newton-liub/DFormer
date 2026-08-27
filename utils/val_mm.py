@@ -99,12 +99,13 @@ def evaluate(model, dataloader, config, device, engine, save_dir=None, sliding=F
         if len(labels.shape) == 2:
             labels = labels.unsqueeze(0)
         # print(images.shape,labels.shape)
-        images = [images.to(device), modal_xs.to(device)]
+        images = images.to(device)
+        modal_xs = modal_xs.to(device)
         labels = labels.to(device)
         if sliding:
             preds = slide_inference(model, images, modal_xs, config).softmax(dim=1)
         else:
-            preds = model(images[0], images[1]).softmax(dim=1)
+            preds = model(images, modal_xs).softmax(dim=1)
         # print(preds.shape,labels.shape)
         B, H, W = labels.shape
         metrics.update(preds, labels)
@@ -201,10 +202,8 @@ def slide_inference(model, imgs, modal_xs, config):
 
     h_crop, w_crop = config.eval_crop_size
 
-    # new add:
-    if h_crop > imgs.shape[-2] or w_crop > imgs.shape[-1]:
-        imgs = F.interpolate(imgs, size=(h_crop, w_crop), mode="bilinear", align_corners=True)
-        modal_xs = F.interpolate(modal_xs, size=(h_crop, w_crop), mode="bilinear", align_corners=True)
+    # Small images are forwarded at their original geometry. The grid logic
+    # below produces one crop and therefore preserves the metric grid.
 
     h_stride, w_stride = [
         int(config.eval_stride_rate * config.eval_crop_size[0]),

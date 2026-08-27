@@ -1,6 +1,8 @@
 # MUSeg Stage-05 development seed 1 启动前报告
 
-> **历史启动前快照：** 本报告准确记录 v1 protocol 尚未启动时的状态。后续已在提交 `56a7ed7...` 上重新物化 `museg-development-long500-v2` 并启动 seed 1；当前状态见 `doc/main/MUSeg-current-status.md` 和 `doc/reports/2026-08-26-museg-stage05-seed1-running-handoff.md`。
+> **历史启动前快照：** 本报告准确记录 v1 protocol 尚未启动时的状态。后续已在提交 `56a7ed7...` 上重新物化 `museg-development-long500-v2` 并启动 seed 1；seed 1 后来已完成，当前状态见 `doc/main/MUSeg-current-status.md`，完成后的详细进度见 `doc/reports/2026-08-26-museg-stage05-seed1-local-closure-handoff.md`。
+>
+> **口径勘误：** 正文“输入 640×480”只表示训练随机裁剪尺寸，不表示 seed 1 的 validation 统一 resize 到 640×480；validation 几何事实与待定方案见 `doc/main/MUSeg-open-decisions.md`。其余指标、哈希和形成时点事实保持不变。
 
 - 生成时间：2026-08-25
 - 当前状态：**技术 preflight 通过；训练未启动；等待用户手动授权与启动**

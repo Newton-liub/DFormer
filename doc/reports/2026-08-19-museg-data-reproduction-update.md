@@ -143,4 +143,4 @@ python tools/prepare_museg.py --overwrite
 - 原始输入：`../dataset/MUSeg`；
 - 转换输出：`../dataset/MUSeg_DFormer`。
 
-禁止删除原始 `MUSeg`，禁止分别为 train/test 计算量化范围，禁止把数据集、转换结果或 checkpoint 加入 Git。稳定的数据重建规则见 `doc/dataset.md`；当前云端训练入口见 `doc/plans/MUSeg-4090云端训练交接计划.md`。
+禁止删除原始 `MUSeg`，禁止分别为 train/test 计算量化范围，禁止把数据集、转换结果或 checkpoint 加入 Git。稳定的数据重建规则见 `doc/dataset.md`。本文形成时曾指向现已删除的早期 4090 交接计划；当前事实、执行边界和恢复点只看 `doc/main/MUSeg-current-status.md`，Stage-04 历史证据见 `doc/reports/2026-08-25-museg-stage04-cloud-qualification-handoff.md`。

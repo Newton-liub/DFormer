@@ -95,6 +95,10 @@ parser.add_argument("--train-source", default=None)
 parser.add_argument("--val-source", default=None)
 parser.add_argument("--test-source", default=None)
 parser.add_argument("--pretrained-model", default=None)
+parser.add_argument("--channel-order", choices=("BGR", "RGB"), default=None)
+parser.add_argument("--normalization-identity", default=None)
+parser.add_argument("--normalization-mean", nargs=3, type=float, default=None)
+parser.add_argument("--normalization-std", nargs=3, type=float, default=None)
 parser.add_argument("--expected-split-sha256", default=None, help="legacy alias for expected train split SHA-256")
 parser.add_argument("--expected-train-split-sha256", default=None)
 parser.add_argument("--expected-val-split-sha256", default=None)
@@ -189,6 +193,20 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         config.test_source = os.path.abspath(args.test_source)
     if args.pretrained_model is not None:
         config.pretrained_model = os.path.abspath(args.pretrained_model)
+    if args.channel_order is not None:
+        config.channel_order = args.channel_order
+    if args.normalization_identity is not None:
+        config.normalization_identity = args.normalization_identity
+    if args.normalization_mean is not None:
+        config.norm_mean = np.asarray(args.normalization_mean, dtype=np.float32)
+    if args.normalization_std is not None:
+        if any(value <= 0 for value in args.normalization_std):
+            parser.error("--normalization-std values must be positive")
+        config.norm_std = np.asarray(args.normalization_std, dtype=np.float32)
+    if getattr(config, "channel_order", None) not in {"BGR", "RGB"}:
+        parser.error("config.channel_order must be explicitly set to BGR or RGB")
+    if not str(getattr(config, "normalization_identity", "")).strip():
+        parser.error("config.normalization_identity must be explicitly set")
     config.eval_interval = int(getattr(config, "eval_interval", 10))
     config.eval_start_epoch = int(getattr(config, "eval_start_epoch", 1))
     config.save_interval = int(
@@ -509,6 +527,10 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         "eval_start_epoch": config.eval_start_epoch,
         "eval_interval": config.eval_interval,
         "save_interval": config.save_interval,
+        "channel_order": config.channel_order,
+        "normalization_identity": config.normalization_identity,
+        "normalization_mean": [float(value) for value in config.norm_mean],
+        "normalization_std": [float(value) for value in config.norm_std],
     }
     checkpoint_protocol = CheckpointProtocol(
         phase=config.experiment_phase,

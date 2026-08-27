@@ -75,7 +75,15 @@ def build_museg_run_config(
             "dataset": config.dataset_name,
             "model": config.backbone,
             "backbone": config.backbone,
-            "input_modalities": ["RGB", str(getattr(config, "x", "Depth"))],
+            "input_modalities": ["color", str(getattr(config, "x", "Depth"))],
+            "input_contract": {
+                "channel_order": str(config.channel_order),
+                "normalization": {
+                    "identity": str(config.normalization_identity),
+                    "mean": [float(value) for value in config.norm_mean],
+                    "std": [float(value) for value in config.norm_std],
+                },
+            },
             "depth_version": "single-channel" if bool(getattr(config, "x_is_single_channel", False)) else "configured",
             "splits": dict(split_metadata),
         },

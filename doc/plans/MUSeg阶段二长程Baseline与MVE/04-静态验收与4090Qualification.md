@@ -1,6 +1,8 @@
 # 04：静态验收与 RTX 4090 qualification 计划
 
-> **历史快照：** 本阶段的 Gate C、3-epoch qualification、连续/恢复等价演练和 Gate D 后来均已完成。以下计划与“停在 batch probe”文字按当时状态保留；当前唯一入口见 `doc/main/MUSeg-current-status.md`。
+> **文档角色：Stage-04 历史计划与执行记录，不承担实时状态。** 本阶段的 Gate C、3-epoch qualification、连续/恢复等价演练和 Gate D 后来均已完成。以下计划和状态段落按形成时点保留；当前事实、授权和恢复点只看 `doc/main/MUSeg-current-status.md`。
+>
+> **状态标记核验：2026-08-27。** 正文中的“当前”“下一步”“尚未运行”均表示 2026-08-25 的交接切面，不得据此重跑旧 workload。
 
 > 任务类型：代码资格验收、短跑、恢复演练和 batch 选择。
 >
@@ -16,7 +18,7 @@
 - 云端仓库目录、py310、数据、预训练权重和输出根已按总索引核实。
 - 工作区干净，当前 commit 和 materialized protocol manifest 已记录。
 
-阶段 04 的代码/无卡验收、云端 RTX 4090 环境核验、真实 CUDA B1、protocol 物化、完整 preflight 和 SwanLab online smoke 均已完成。当前停在 batch probe 的独立授权边界：尚未运行 batch 4/8/12/16 probe、门禁 C、3-epoch qualification、连续/恢复演练或门禁 D。当前云端证据绑定代码提交 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`；后续文档提交同步到云端后，继续 exact-commit qualification 前必须重新物化协议并处理身份变化。
+阶段 04 在本文形成时已完成代码/无卡验收、云端 RTX 4090 环境核验、真实 CUDA B1、protocol 物化、完整 preflight 和 SwanLab online smoke，并停在 batch probe 的独立授权边界；当时尚未运行 batch 4/8/12/16 probe、门禁 C、3-epoch qualification、连续/恢复演练或门禁 D。形成时云端证据绑定代码提交 `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`；后续文档提交同步到云端后，继续 exact-commit qualification 前必须重新物化协议并处理身份变化。后续完成状态只看当前入口。
 
 ## 2. 静态验收
 
@@ -116,7 +118,7 @@ preflight 必须 0 error；每个 warning 先报告并由 Sol/用户决定。
 - qualification 输出明确标注“非 baseline、非正式性能”。
 - Sol 解释所有 warning/异常并签署门禁 D，允许进入 05。
 
-## 11. 当前交接状态（2026-08-25）
+## 11. 形成时点交接状态（2026-08-25）
 
 ### 11.1 状态结论
 
@@ -154,7 +156,7 @@ preflight 必须 0 error；每个 warning 先报告并由 Sol/用户决定。
 
 SwanLab online smoke 保持 fail-fast，但本地只使用 fake/disabled 路径；实际安装版本的认证方式、远端 record ID/URL 和用户凭据均必须在有卡 cloud preflight 时验证。若需要用户通过 `swanlab login` 或配置 API key，本阶段将先暂停。
 
-### 11.5 当前无卡验证
+### 11.5 形成时点无卡验证
 
 本轮最终无卡验收命令：
 
@@ -172,7 +174,7 @@ git -c core.whitespace=cr-at-eol diff --check
 - Python compile、两个 4090 Shell 的 `bash -n` 和 CRLF 兼容的 `git diff --check` 均通过。
 - 这些结果仅证明本地 CPU/fake/static 链路；不证明真实 DFormerv2-S、CUDA、4090 遥测、SwanLab online、B1 或连续/恢复等价性。
 
-### 11.6 当前下一步与暂停边界
+### 11.6 形成时点下一步与暂停边界
 
 1. 先提交并推送本轮交接文档，在云端 fast-forward 后确认本地/云端文档提交一致且工作区干净。
 2. 文档提交改变了 Git commit；保留当前绑定 `4f84ee3...` 的 B1/preflight 证据不动，归档旧 protocol，并为新干净提交重新物化 protocol。严格 exact-commit 门禁下，batch probe 前必须在最终文档提交上重跑 B1 和完整 preflight，不得继续消费旧 protocol 或改写旧报告身份。
@@ -206,7 +208,7 @@ git -c core.whitespace=cr-at-eol diff --check
 ### 11.11 形成时点的云端交接状态（B1 与完整 preflight 已通过）
 
 - 云端官方仓库：`/root/rivermind-data/DFormer`；qualification 根：`/root/cloud-ssd/museg-stage04-qualification`。
-- 当前 SSH：`ssh -p 24569 root@cpod-1tyvjsiu6ahe.podtcp.compshare.cn`；重启后端口可能改变，以控制台为准。
+- 形成时 SSH：`ssh -p 24569 root@cpod-1tyvjsiu6ahe.podtcp.compshare.cn`；该端口仅作历史记录，不得作为当前连接入口。
 - 通过证据绑定 Git commit `4f84ee33c93c3c8be83cb2ad029879c26a5346e9`，当时本地/云端工作区均干净。
 - 通过证据绑定 protocol SHA-256 `cb741c26897ac32f5a76204180932b03a80ff5ef9fd29ddd218a5ddfb64387e7`。
 - RTX 4090 环境：24,564 MiB，driver 610.57.04，Python 3.10.16，PyTorch 2.1.2+cu118，CUDA 11.8，cuDNN 8.7.0。
@@ -216,5 +218,5 @@ git -c core.whitespace=cr-at-eol diff --check
 - 完整 preflight：`/root/cloud-ssd/museg-stage04-qualification/preflight-full.json`，SHA-256 `c127a792d85b2f315a53b5494b80b68293a435887abeb551de6c973a570e7b4d`，`pass=true`、0 errors、0 warnings。
 - full preflight 已验证 Git、config、冻结 split/authority、`phase=qualification`、`test_role=sealed_unread`、预训练身份、输出根、四模态抽样、RTX 4090/CUDA 环境和 SwanLab 0.9.7 非交互式 online 初始化。
 - SwanLab online smoke 必须由用户在同一进程环境中隐藏输入 `SWANLAB_API_KEY`；`swanlab login` 的本地登录状态不会通过当前项目的环境凭据门禁。执行者不得自动登录或接触密钥。
-- 当前尚未运行 batch probe、短训或恢复演练。下一 GPU workload 是 batch 4/8/12/16 各 60 steps 的 probe，必须先取得用户单独明确授权，并在完成后停在门禁 C。
+- 形成时尚未运行 batch probe、短训或恢复演练；当时记录的下一 GPU workload 是 batch 4/8/12/16 各 60 steps 的 probe。后续这些工作和 Gate D 已完成，不得按本段重复执行。
 - 形成时点的跨对话基础知识和 token 节省规则见 `doc/reports/2026-08-25-museg-stage04-cloud-qualification-handoff.md`；当前恢复点只看 `doc/main/MUSeg-current-status.md`。

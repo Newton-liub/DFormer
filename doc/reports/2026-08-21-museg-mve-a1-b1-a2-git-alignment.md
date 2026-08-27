@@ -181,4 +181,4 @@ A1/B1 本地测试：
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-历史云端 MVE/A2 的执行结论、任务记录和结果已归档在本报告及 `doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`。原 `doc/临时` 执行文档已在后续计划清理中合并删除；当前唯一待执行入口为 `doc/plans/MUSeg-4090云端训练交接计划.md`。
+历史云端 MVE/A2 的执行结论、任务记录和结果已归档在本报告及 `doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`。原 `doc/临时` 执行文档已在后续计划清理中合并删除；本文形成时使用的早期 4090 待执行入口后来也已删除，当前唯一实时入口为 `doc/main/MUSeg-current-status.md`。

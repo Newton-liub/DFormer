@@ -16,6 +16,7 @@
 - 分析日期：2026-08-27
 - 初始工作区：不干净；只有用户已有的未跟踪 `doc/临时/计划.md`，不属于覆盖分母且未修改。
 - 本轮新增非基线路径：`doc/guides/project/README.md`、`doc/guides/project/file-catalog.md`。
+- 后续文档治理差异（2026-08-27）：经用户确认删除早期 4090 云端训练交接计划；活动计划旧 05–11 又迁移为新 05–08，并新增日期化迁移审计。下方职责目录按当前工作树列新路径，不再列已删除路径；这些变化不改写上述 `c9ad268...` 历史基线计数。
 
 覆盖方法：以 `git -c core.quotepath=false ls-files -z` 为唯一分母，从本文件的逐路径条目提取仓库相对路径：普通条目使用反引号列表项，`.mim/configs/` 使用清单代码块中的裸路径行。只统计这些条目，不把正文中的交叉引用重复计数；随后检查集合差、重复项、路径存在性和旧路径残留。二进制和 official-test 路径也纳入说明，只限制内容读取，不从覆盖中排除。
 
@@ -69,7 +70,7 @@
 - `doc/dataset.md` — MUSeg 数据准备、目录、固定深度量化、标签映射、split 和 BGR/official-test 边界的稳定入口。
 - `doc/main/MUSeg-current-status.md` — 当前事实、正在进行事项、边界、证据位置和恢复点的唯一实时入口；允许按规则更新。
 - `doc/main/MUSeg-open-decisions.md` — 开放问题、已处置选择及历史解释；只有真实研究选择或执行边界变化时更新。
-- `doc/guides/README.md` — 稳定操作指南总索引，不承担实验状态。
+- `doc/guides/README.md` — 稳定操作指南总索引及计划/报告/审计的文档状态头规范，不承担实验状态。
 - `doc/guides/cloud/README.md` — 云端操作指南入口与生命周期提示。
 - `doc/guides/cloud/compshare-filebrowser-legacy.md` — CompShare File Browser 旧界面说明；历史/legacy，使用前核对平台现状。
 - `doc/guides/cloud/openlist-quark-download.md` — OpenList/夸克文件获取的稳定操作说明；外部服务与凭据可能变化。
@@ -79,6 +80,7 @@
 以下均是日期化证据或交接，不替代当前状态；`report-index.json` 提供元数据索引和 Canvas 版本登记。
 
 - `doc/audits/2026-08-26-markdown-consistency-audit.md` — 2026-08-26 文档一致性审计的历史时点结论。
+- `doc/audits/2026-08-27-museg-plan-conflict-migration-audit.md` — 活动计划冲突、颜色/geometry 契约与旧 05–11 到新 05–08 的日期化迁移审计。
 - `doc/reports/2026-08-19-museg-data-reproduction-update.md` — MUSeg 全量转换复现与核验报告。
 - `doc/reports/2026-08-19-museg-dformer-data-processing-review.md` — 数据集论文、格式、深度、标签和 DFormer 接口评审。
 - `doc/reports/2026-08-19-museg-minimum-validation-paths.md` — 最小验证路径与证据阈值设计报告。
@@ -96,20 +98,16 @@
 
 `doc/plans/README.md` 规定计划目录的历史语义；其余文件记录阶段设计、门禁和形成时点的执行状态。当前 workload 必须先由当前状态确认。
 
-- `doc/plans/README.md` — 阶段计划索引与历史读取规则。
-- `doc/plans/MUSeg-4090云端训练交接计划.md` — 早期 4090 云端训练交接计划，历史材料。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md` — Stage-01 至 Stage-11 总索引和门禁依赖。
+- `doc/plans/README.md` — 阶段计划索引、历史读取规则与状态头要求。
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md` — 历史基础 01–04、活动 05–08 及 Protocol/MVE Evidence/Gate E/F 的依赖索引。
 - `doc/plans/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md` — development split 协议与生成工具设计。
 - `doc/plans/MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md` — checkpoint、validation 和恢复改造设计。
 - `doc/plans/MUSeg阶段二长程Baseline与MVE/03-三种子编排Preflight与SwanLab改造.md` — seed 编排、preflight 和 SwanLab 设计。
 - `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` — 静态验收、probe 和 qualification 设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/05-开发长程训练与协议冻结.md` — development 长程协议设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/06-正式三种子Baseline与Test解封.md` — 正式 baseline 和独立 test 解封门禁设计，尚不能当作已执行事实。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/07-A2正式筛查工具扩展.md` — A2 筛查工具扩展设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/08-A2正式运行与B2门禁.md` — A2 运行和 B2 进入条件设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/09-B2几何规格与金标准.md` — B2 geometry 规格与金标准设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/10-B2实现与零训练筛选.md` — B2 实现和零训练筛选设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/11-B2短微调与完整对照.md` — B2 短微调与完整对照设计。
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/05-协议校准与Development-B0收口.md` — 颜色/归一化、validation geometry、五项后评估和 development reference B0 收口计划。
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/06-MVE问题验证与B2条件分支.md` — B1 稳定性回归、A2 判据及 B2 规格/实现/zero-train/short 条件分支。
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/07-模块配对筛选与GateE冻结.md` — 通用模块/B2 的统一 paired screening、B0-only 分支和 Gate E 冻结。
+- `doc/plans/MUSeg阶段二长程Baseline与MVE/08-正式三种子与Official-Test解封.md` — formal B0/最终 variant paired 三 seed、Gate F 与一次性 official-test 解封。
 
 ### 5.4 Canvas 与论文
 

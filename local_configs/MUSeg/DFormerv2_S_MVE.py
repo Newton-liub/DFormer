@@ -39,6 +39,11 @@ C.class_names = [
 C.background = 255
 C.image_height = 480
 C.image_width = 640
+# MUSeg currently preserves OpenCV BGR arrays while applying the historical
+# ImageNet statistics positionally. This identity is explicit so future RGB
+# calibration cannot silently reuse the same baseline identity.
+C.channel_order = "BGR"
+C.normalization_identity = "imagenet-rgb-statistics-in-array-order-v1"
 C.norm_mean = np.array([0.485, 0.456, 0.406])
 C.norm_std = np.array([0.229, 0.224, 0.225])
 

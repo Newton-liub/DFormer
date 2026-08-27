@@ -131,6 +131,9 @@ class RGBXDataset(data.Dataset):
         self.dataset_name = setting["dataset_name"]
         self.x_modal = setting.get("x_modal", ["d"])
         self.backbone = setting["backbone"]
+        self.channel_order = setting.get("channel_order")
+        if self.channel_order not in {"BGR", "RGB"}:
+            raise ValueError("dataset setting channel_order must be explicitly set to BGR or RGB")
 
     def __len__(self):
         if self._file_length is not None:
@@ -154,11 +157,7 @@ class RGBXDataset(data.Dataset):
             self.x_modal,
             item_name,
         )
-        if self.dataset_name == "SUNRGBD" and self.backbone.startswith("DFormerv2"):
-            rgb_mode = "RGB"  # some checkpoints are run by BGR and some are on RGB, need to select
-        else:
-            rgb_mode = "BGR"
-        rgb = self._open_image(path_dict["rgb_path"], rgb_mode)
+        rgb = self._open_image(path_dict["rgb_path"], self.channel_order)
 
         gt = self._open_image(path_dict["gt_path"], cv2.IMREAD_GRAYSCALE, dtype=np.uint8)
         if self._transform_gt:

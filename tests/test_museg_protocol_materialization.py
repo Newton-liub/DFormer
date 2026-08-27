@@ -99,6 +99,9 @@ def test_materializer_writes_valid_immutable_protocol(tmp_path: Path, monkeypatc
     assert digest == _sha(manifest)
     assert protocol.git["required_commit"] == commit
     assert protocol.training["batch_size"] == 4
+    assert protocol.schema_version == "museg-training-protocol-v3"
+    assert protocol.input_contract["channel_order"] == "BGR"
+    assert protocol.input_contract["normalization"]["identity"] == "imagenet-rgb-statistics-in-array-order-v1"
     assert protocol.authority_identity()["manifest_sha256"] == _sha(authority / "manifest.json")
     report = audit_protocol(protocol, repo_root=repo, check_git=False)
     assert not any(error["code"] == "split_authority_mismatch" for error in report.errors)
@@ -126,3 +129,28 @@ def test_materializer_rejects_dirty_repository_before_writing(tmp_path: Path, mo
             swanlab_workspace="workspace", repo_root=repo,
         )
     assert not target.exists()
+
+
+def test_v3_protocol_requires_explicit_input_contract(tmp_path: Path, monkeypatch) -> None:
+    authority = _patch_authority(tmp_path, monkeypatch)
+    repo = tmp_path / "clean repo"
+    _clean_repo(repo)
+    weight = tmp_path / "weight.pth"
+    weight.write_bytes(b"pretrained")
+    target = tmp_path / "generated" / "qualification.json"
+    materializer.materialize(
+        output=target,
+        output_root=tmp_path / "outputs",
+        official_train=authority / "official-train.txt",
+        pretrained=weight,
+        batch_size=4,
+        swanlab_mode="offline",
+        swanlab_project="project",
+        swanlab_workspace="workspace",
+        repo_root=repo,
+    )
+    raw = json.loads(target.read_text(encoding="utf-8"))
+    raw.pop("input_contract")
+    target.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(ProtocolError, match="input_contract"):
+        load_protocol(target)

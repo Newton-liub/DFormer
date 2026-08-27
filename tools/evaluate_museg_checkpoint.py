@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as dt
 import hashlib
 import importlib
@@ -24,6 +25,18 @@ from torch.utils.data import DataLoader, Dataset
 from models.builder import EncoderDecoder
 
 GEOMETRIES = ("original-full", "resize-480x640", "sliding-480x640")
+CHANNEL_ORDERS = ("BGR", "RGB")
+RESIZE_HEIGHT = 480
+RESIZE_WIDTH = 640
+SLIDING_STRIDE_RATE = 2 / 3
+
+
+def apply_channel_order(image_bgr: np.ndarray, channel_order: str) -> np.ndarray:
+    if channel_order == "BGR":
+        return image_bgr
+    if channel_order == "RGB":
+        return cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+    raise ValueError(f"unsupported channel order: {channel_order!r}")
 
 
 def file_sha256(path: Path) -> str:
@@ -46,11 +59,19 @@ def split_entries(path: Path) -> list[str]:
 
 
 class MUSegPostEvalDataset(Dataset):
-    def __init__(self, dataset_root: Path, entries: list[str], geometry: str, config: Any):
+    def __init__(
+        self,
+        dataset_root: Path,
+        entries: list[str],
+        geometry: str,
+        config: Any,
+        channel_order: str,
+    ):
         self.dataset_root = dataset_root
         self.entries = entries
         self.geometry = geometry
         self.config = config
+        self.channel_order = channel_order
 
     def __len__(self) -> int:
         return len(self.entries)
@@ -66,10 +87,11 @@ class MUSegPostEvalDataset(Dataset):
         if rgb.shape[:2] != depth.shape or depth.shape != label.shape:
             raise ValueError(f"modality geometry mismatch for val-dev sample {sample_id}")
         original_height, original_width = label.shape
+        rgb = apply_channel_order(rgb, self.channel_order)
         if self.geometry == "resize-480x640":
-            rgb = cv2.resize(rgb, (640, 480), interpolation=cv2.INTER_LINEAR)
-            depth = cv2.resize(depth, (640, 480), interpolation=cv2.INTER_LINEAR)
-            label = cv2.resize(label, (640, 480), interpolation=cv2.INTER_NEAREST)
+            rgb = cv2.resize(rgb, (RESIZE_WIDTH, RESIZE_HEIGHT), interpolation=cv2.INTER_LINEAR)
+            depth = cv2.resize(depth, (RESIZE_WIDTH, RESIZE_HEIGHT), interpolation=cv2.INTER_LINEAR)
+        input_height, input_width = rgb.shape[:2]
         depth = cv2.merge([depth, depth, depth])
         rgb = rgb.astype(np.float32) / 255.0
         rgb = (rgb - np.asarray(self.config.norm_mean, dtype=np.float32)) / np.asarray(
@@ -86,6 +108,8 @@ class MUSegPostEvalDataset(Dataset):
             "sample_id": sample_id,
             "original_height": original_height,
             "original_width": original_width,
+            "input_height": input_height,
+            "input_width": input_width,
         }
 
 
@@ -139,6 +163,40 @@ def sliding_logits(model: nn.Module, rgb: torch.Tensor, depth: torch.Tensor, *, 
     return logits_sum / counts
 
 
+def restore_logits_to_metric_grid(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+    """Restore model logits to the untouched original label grid."""
+    target_size = tuple(int(value) for value in labels.shape[-2:])
+    if tuple(logits.shape[-2:]) == target_size:
+        return logits
+    return F.interpolate(logits, size=target_size, mode="bilinear", align_corners=False)
+
+
+def geometry_contract(geometry: str, output_sizes_hw: Sequence[tuple[int, int]]) -> dict[str, Any]:
+    input_contract: dict[str, Any] = {
+        "name": geometry,
+        "color_interpolation": "opencv-linear" if geometry == "resize-480x640" else "none",
+        "depth_interpolation": "opencv-linear" if geometry == "resize-480x640" else "none",
+        "resize_size_hw": [RESIZE_HEIGHT, RESIZE_WIDTH] if geometry == "resize-480x640" else None,
+    }
+    if geometry == "sliding-480x640":
+        input_contract["sliding"] = {
+            "crop_size_hw": [RESIZE_HEIGHT, RESIZE_WIDTH],
+            "stride_rate": SLIDING_STRIDE_RATE,
+            "stride_hw": [int(RESIZE_HEIGHT * SLIDING_STRIDE_RATE), int(RESIZE_WIDTH * SLIDING_STRIDE_RATE)],
+            "padding": "right-and-bottom zero padding only for inputs smaller than crop",
+            "overlap_reduction": "mean logits over full-coverage count map",
+        }
+    return {
+        "input_geometry": input_contract,
+        "metric_geometry": {
+            "name": "original-label-grid",
+            "label_resize": "none",
+            "logits_restore_interpolation": "pytorch-bilinear-align_corners-false",
+            "output_sizes_hw": [list(size) for size in sorted(set(output_sizes_hw))],
+        },
+    }
+
+
 def update_confusion(hist: np.ndarray, logits: torch.Tensor, labels: torch.Tensor, num_classes: int, ignore_label: int = 255) -> None:
     predictions = logits.argmax(dim=1).detach().cpu().numpy().astype(np.int64)
     targets = labels.detach().cpu().numpy().astype(np.int64)
@@ -189,7 +247,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--amp", action=argparse.BooleanOptionalAction, default=True)
-    parser.add_argument("--rgb-order", choices=("BGR",), default="BGR")
+    parser.add_argument("--channel-order", "--rgb-order", dest="channel_order", choices=CHANNEL_ORDERS)
+    parser.add_argument("--normalization-identity")
+    parser.add_argument("--normalization-mean", nargs=3, type=float)
+    parser.add_argument("--normalization-std", nargs=3, type=float)
     return parser.parse_args(argv)
 
 
@@ -203,12 +264,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     started = dt.datetime.now(dt.timezone.utc)
     start_clock = time.monotonic()
     report: dict[str, Any] = {
-        "schema_version": "museg-checkpoint-post-evaluation-v1",
+        "schema_version": "museg-checkpoint-post-evaluation-v2",
         "generated_at_utc": started.isoformat(),
         "status": "failed",
         "official_test_included": False,
         "split_role": "val_dev",
-        "channel_order": "BGR",
         "batch_size": args.batch_size,
         "geometry": args.geometry,
         "validation_amp": args.amp,
@@ -230,10 +290,33 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.expected_split_sha256 and split_sha != args.expected_split_sha256.lower():
             raise ValueError("split SHA-256 mismatch")
         entries = split_entries(split)
-        config = importlib.import_module(args.config).C
+        config = copy.copy(importlib.import_module(args.config).C)
+        channel_order = args.channel_order or getattr(config, "channel_order", None)
+        normalization_identity = args.normalization_identity or getattr(config, "normalization_identity", None)
+        if channel_order not in CHANNEL_ORDERS:
+            raise ValueError("config or CLI must explicitly provide channel_order=BGR or RGB")
+        if not isinstance(normalization_identity, str) or not normalization_identity.strip():
+            raise ValueError("config or CLI must explicitly provide a normalization identity")
+        if (args.normalization_mean is None) != (args.normalization_std is None):
+            raise ValueError("normalization mean and std overrides must be supplied together")
+        if args.normalization_mean is not None and args.normalization_identity is None:
+            raise ValueError("normalization overrides require an explicit normalization identity")
+        if args.normalization_mean is not None:
+            if any(value <= 0 for value in args.normalization_std):
+                raise ValueError("normalization std values must be positive")
+            config.norm_mean = np.asarray(args.normalization_mean, dtype=np.float32)
+            config.norm_std = np.asarray(args.normalization_std, dtype=np.float32)
+        report["input_contract"] = {
+            "channel_order": channel_order,
+            "normalization": {
+                "identity": normalization_identity,
+                "mean": [float(value) for value in config.norm_mean],
+                "std": [float(value) for value in config.norm_std],
+            },
+        }
         device = torch.device(args.device)
         model = load_model(config, checkpoint, device)
-        dataset = MUSegPostEvalDataset(dataset_root, entries, args.geometry, config)
+        dataset = MUSegPostEvalDataset(dataset_root, entries, args.geometry, config, channel_order)
         loader = DataLoader(
             dataset,
             batch_size=1,
@@ -242,6 +325,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             pin_memory=device.type == "cuda",
         )
         hist = np.zeros((int(config.num_classes), int(config.num_classes)), dtype=np.int64)
+        output_sizes_hw: list[tuple[int, int]] = []
         for batch in loader:
             rgb = batch["rgb"].to(device, non_blocking=True)
             depth = batch["depth"].to(device, non_blocking=True)
@@ -252,9 +336,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                 enabled=args.amp and device.type == "cuda",
             ):
                 if args.geometry == "sliding-480x640":
-                    logits = sliding_logits(model, rgb, depth)
+                    logits = sliding_logits(
+                        model,
+                        rgb,
+                        depth,
+                        height=RESIZE_HEIGHT,
+                        width=RESIZE_WIDTH,
+                        stride_rate=SLIDING_STRIDE_RATE,
+                    )
                 else:
                     logits = model(rgb, depth)
+                logits = restore_logits_to_metric_grid(logits, labels)
+            output_sizes_hw.append(tuple(int(value) for value in labels.shape[-2:]))
             update_confusion(hist, logits, labels, int(config.num_classes), int(config.background))
         report.update(
             {
@@ -265,6 +358,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "checkpoint": {"path": str(checkpoint), "sha256": checkpoint_sha},
                 "config_module": args.config,
                 "model": str(config.backbone),
+                **geometry_contract(args.geometry, output_sizes_hw),
                 "metrics_percent": metrics_from_confusion(hist, config.class_names),
                 "environment": {
                     "python": platform.python_version(),

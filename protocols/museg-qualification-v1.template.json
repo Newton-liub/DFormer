@@ -1,5 +1,5 @@
 {
-  "schema_version": "museg-training-protocol-v2",
+  "schema_version": "museg-training-protocol-v3",
   "protocol_id": "museg-qualification-v1",
   "schedule_version": "qualification-3epoch-v1",
   "phase": "qualification",
@@ -19,6 +19,14 @@
     "path": "__MATERIALIZED_PRETRAINED_PATH__",
     "size_bytes": 1,
     "sha256": "__MATERIALIZED_PRETRAINED_SHA256__"
+  },
+  "input_contract": {
+    "channel_order": "BGR",
+    "normalization": {
+      "identity": "imagenet-rgb-statistics-in-array-order-v1",
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
   },
   "training": {
     "epochs": 3,

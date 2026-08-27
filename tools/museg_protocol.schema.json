@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://dformer.local/schemas/museg-training-protocol-v2.json",
-  "title": "MUSeg training protocol manifest v2",
+  "$id": "https://dformer.local/schemas/museg-training-protocol-v3.json",
+  "title": "MUSeg training protocol manifest v3",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version", "protocol_id", "schedule_version", "phase", "model", "config_module",
-    "git", "seeds", "output_root", "split_authority", "official_train", "pretrained", "training", "swanlab"
+    "git", "seeds", "output_root", "split_authority", "official_train", "pretrained", "input_contract", "training", "swanlab"
   ],
   "properties": {
-    "schema_version": {"const": "museg-training-protocol-v2"},
+    "schema_version": {"const": "museg-training-protocol-v3"},
     "protocol_id": {"type": "string", "minLength": 1, "pattern": "^(?!\\.{1,2}$)[^/\\\\\\u0000]+$"},
     "schedule_version": {"type": "string", "minLength": 1},
     "phase": {"enum": ["qualification", "development", "official"]},
@@ -44,6 +44,25 @@
         "sha256": {"$ref": "#/$defs/sha256"}
       }
     },
+    "input_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["channel_order", "normalization"],
+      "properties": {
+        "channel_order": {"enum": ["BGR", "RGB"]},
+        "normalization": {
+          "type": "object", "additionalProperties": false,
+          "required": ["identity", "mean", "std"],
+          "properties": {
+            "identity": {"type": "string", "minLength": 1},
+            "mean": {"$ref": "#/$defs/channel_triplet"},
+            "std": {
+              "type": "array", "minItems": 3, "maxItems": 3,
+              "items": {"type": "number", "exclusiveMinimum": 0}
+            }
+          }
+        }
+      }
+    },
     "training": {
       "type": "object", "additionalProperties": false,
       "required": ["epochs", "batch_size", "val_batch_size", "workers", "eval_start_epoch", "eval_interval", "save_interval", "amp", "compile", "syncbn", "sliding", "mst"],
@@ -64,5 +83,8 @@
       }
     }
   },
-  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"}}
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"},
+    "channel_triplet": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}
+  }
 }

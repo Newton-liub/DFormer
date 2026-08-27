@@ -154,6 +154,7 @@ def get_train_loader(engine, dataset, config):
         "test_source": getattr(config, "test_source", None),
         "dataset_name": config.dataset_name,
         "backbone": config.backbone,
+        "channel_order": config.channel_order,
     }
     train_preprocess = TrainPre(config.norm_mean, config.norm_std, config.x_is_single_channel, config)
 
@@ -207,6 +208,7 @@ def get_val_loader(engine, dataset, config, val_batch_size=1):
         "test_source": getattr(config, "test_source", None),
         "dataset_name": config.dataset_name,
         "backbone": config.backbone,
+        "channel_order": config.channel_order,
     }
     val_preprocess = ValPre(config.norm_mean, config.norm_std, config.x_is_single_channel, config)
 

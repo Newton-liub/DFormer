@@ -14,8 +14,9 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 
-PROTOCOL_SCHEMA_VERSION = "museg-training-protocol-v2"
-RUN_MANIFEST_SCHEMA_VERSION = "museg-run-manifest-v2"
+PROTOCOL_SCHEMA_VERSION = "museg-training-protocol-v3"
+LEGACY_PROTOCOL_SCHEMA_VERSION = "museg-training-protocol-v2"
+RUN_MANIFEST_SCHEMA_VERSION = "museg-run-manifest-v3"
 ENVIRONMENT_SCHEMA_VERSION = "museg-environment-v1"
 COMMAND_SCHEMA_VERSION = "museg-command-v1"
 FROZEN_SPLIT_SCHEMA_VERSION = "museg-dev-split-manifest-v1"
@@ -270,6 +271,27 @@ class ProtocolManifest:
         return self.output_root / self.protocol_id / self.phase
 
     @property
+    def input_contract(self) -> Mapping[str, Any]:
+        value = self.raw.get("input_contract")
+        if isinstance(value, Mapping):
+            return value
+        # Version-2 manifests predate the explicit field. Preserve their
+        # historical runtime behavior while marking the source as legacy.
+        return MappingProxyType(
+            {
+                "channel_order": "BGR",
+                "normalization": MappingProxyType(
+                    {
+                        "identity": "imagenet-rgb-statistics-in-array-order-v1",
+                        "mean": (0.485, 0.456, 0.406),
+                        "std": (0.229, 0.224, 0.225),
+                    }
+                ),
+                "record_origin": "legacy-v2-museg-default",
+            }
+        )
+
+    @property
     def training(self) -> Mapping[str, Any]:
         return _require_mapping(self.raw, "training")
 
@@ -336,8 +358,12 @@ def load_protocol(path: str | os.PathLike[str]) -> ProtocolManifest:
         "schema_version", "protocol_id", "schedule_version", "phase", "model", "config_module",
         "git", "seeds", "output_root", "split_authority", "official_train", "pretrained", "training", "swanlab",
     }
+    schema_version = raw.get("schema_version")
+    if schema_version == PROTOCOL_SCHEMA_VERSION:
+        required.add("input_contract")
+    allowed = required | ({"input_contract"} if schema_version == LEGACY_PROTOCOL_SCHEMA_VERSION else set())
     missing = sorted(required - set(raw))
-    extra = sorted(set(raw) - required)
+    extra = sorted(set(raw) - allowed)
     if missing or extra:
         fragments = []
         if missing:
@@ -345,8 +371,11 @@ def load_protocol(path: str | os.PathLike[str]) -> ProtocolManifest:
         if extra:
             fragments.append(f"unsupported fields: {', '.join(extra)}")
         raise ProtocolError("protocol manifest has " + "; ".join(fragments))
-    if raw["schema_version"] != PROTOCOL_SCHEMA_VERSION:
-        raise ProtocolError(f"unsupported protocol schema {raw['schema_version']!r}; expected {PROTOCOL_SCHEMA_VERSION!r}")
+    if schema_version not in {PROTOCOL_SCHEMA_VERSION, LEGACY_PROTOCOL_SCHEMA_VERSION}:
+        raise ProtocolError(
+            f"unsupported protocol schema {schema_version!r}; expected {PROTOCOL_SCHEMA_VERSION!r} "
+            f"or legacy {LEGACY_PROTOCOL_SCHEMA_VERSION!r}"
+        )
     for name in ("protocol_id", "schedule_version", "model", "config_module", "output_root"):
         if not isinstance(raw[name], str) or not raw[name].strip():
             raise ProtocolError(f"protocol field {name!r} must be a non-empty string")
@@ -358,6 +387,35 @@ def load_protocol(path: str | os.PathLike[str]) -> ProtocolManifest:
         raise ProtocolError("seeds must be a non-empty non-negative integer array")
     if len(set(seeds)) != len(seeds):
         raise ProtocolError("seeds must be unique")
+    if schema_version == PROTOCOL_SCHEMA_VERSION:
+        input_contract = _require_mapping(raw, "input_contract")
+        _validate_exact_keys(
+            input_contract,
+            frozenset({"channel_order", "normalization"}),
+            "input_contract",
+        )
+        if input_contract.get("channel_order") not in {"BGR", "RGB"}:
+            raise ProtocolError("input_contract.channel_order must be BGR or RGB")
+        normalization = input_contract.get("normalization")
+        if not isinstance(normalization, Mapping):
+            raise ProtocolError("input_contract.normalization must be an object")
+        _validate_exact_keys(
+            normalization,
+            frozenset({"identity", "mean", "std"}),
+            "input_contract.normalization",
+        )
+        if not isinstance(normalization.get("identity"), str) or not str(normalization["identity"]).strip():
+            raise ProtocolError("input_contract.normalization.identity must be a non-empty string")
+        for field in ("mean", "std"):
+            values = normalization.get(field)
+            if (
+                not isinstance(values, list)
+                or len(values) != 3
+                or any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values)
+            ):
+                raise ProtocolError(f"input_contract.normalization.{field} must contain three numbers")
+        if any(float(value) <= 0 for value in normalization["std"]):
+            raise ProtocolError("input_contract.normalization.std values must be positive")
     git = _require_mapping(raw, "git")
     _validate_exact_keys(git, frozenset({"required_commit"}), "git")
     commit = git.get("required_commit")

@@ -39,7 +39,7 @@ C.dataset_path = osp.join(C.root_dir, "MUSeg_DFormer")
 - `tools/prepare_museg.py` 生成官方 `train.txt` 和 `test.txt`，用于保存官方来源身份和完整数据结构；这不等于 development 训练可以读取 official test。
 - 当前 development 训练与验证必须使用 `data/splits/MUSeg/dev-v1/` 中冻结的 `train-dev.txt`、`val-dev.txt`、manifest 和 audit report。
 - official test 当前保持 `sealed_unread`，不得用于选择 epoch、checkpoint、seed、validation 几何、A2 条件或 B2 结构；解封只能按后续独立门禁执行。
-- 当前 baseline 谱系的彩色张量通道顺序冻结为 BGR。目录仍可使用 `RGB/` 表示彩色模态，但涉及 loader、protocol 和实验身份时必须显式记录 `channel_order=BGR`。
+- 历史 seed 1 的彩色张量事实是 OpenCV BGR；未来 baseline 谱系的颜色顺序已重新打开，必须由 `doc/main/MUSeg-open-decisions.md` 所述 provenance 与 paired calibration 决定。目录仍可使用 `RGB/` 表示彩色模态，但涉及 loader、protocol 和实验身份时必须显式记录 `channel_order` 与 normalization identity。
 
 ## 项目需要的数据集信息
 

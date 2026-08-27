@@ -10,6 +10,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import numpy as np
 
 import tools.museg_protocol as museg_protocol
 from tools.museg_protocol import ProtocolError, load_protocol
@@ -140,6 +141,10 @@ def test_single_seed_launcher_passes_protocol_arguments_and_writes_json(tmp_path
     assert command["argv"][0:2] == [sys.executable, str(trainer)]
     for value in ("--epochs", "20", "--batch-size", "8", "--seed", "11"):
         assert value in command["argv"]
+    assert command["argv"][command["argv"].index("--channel-order") + 1] == "BGR"
+    assert command["argv"][command["argv"].index("--normalization-identity") + 1] == "imagenet-rgb-statistics-in-array-order-v1"
+    assert run["input_contract"]["channel_order"] == "BGR"
+    assert run["input_contract"]["record_origin"] == "legacy-v2-museg-default"
     assert run["exit_code"] == 0
     assert run["protocol_manifest_sha256"] == _sha(protocol)
     assert (run_dir / "launcher.log").is_file()
@@ -313,6 +318,8 @@ def test_swanlab_metadata_contract_is_complete() -> None:
         lr=6e-5, lr_power=0.9, warm_up_epoch=2, weight_decay=0.01,
         train_scale_array=[1.0], eval_scale_array=[1.0], eval_flip=False,
         eval_start_epoch=5, eval_interval=5, save_interval=5, pretrained_model="weights.pth",
+        channel_order="BGR", normalization_identity="imagenet-rgb-statistics-in-array-order-v1",
+        norm_mean=np.asarray([0.485, 0.456, 0.406]), norm_std=np.asarray([0.229, 0.224, 0.225]),
     )
     args = SimpleNamespace(amp=True, compile=False, syncbn=False, sliding=False, mst=False, val_amp=True)
     metadata = build_museg_run_config(

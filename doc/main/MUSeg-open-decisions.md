@@ -1,6 +1,6 @@
 # MUSeg 实验口径与处置状态
 
-> 状态时间：2026-08-26 09:42 UTC
+> 状态时间：2026-08-27 07:28 UTC
 > 本文件保留问题缘由，同时明确区分“仍待决定”“本轮已处置”和“仅保留历史解释”。
 > 已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
@@ -8,25 +8,28 @@
 
 **大白话问题：** 文档曾把“输入 640×480”写成统一模型输入，但 seed 1 实际只把训练样本随机裁剪到高 480、宽 640；`sliding=false` 时，validation 使用转换数据的原始高 932、宽 1082 整图前向。不同几何会改变 val mIoU，不能把结果直接混为同一口径。
 
-**当前状态：仍待决定，正在补充本地后评估证据。**
+**当前状态：仍待决定。原图计分契约已修复并通过聚焦 CPU 测试，五项 val-dev 后评估尚未运行。**
 
 - seed 1 的训练与在线 validation 事实保持为：训练裁剪 480×640，validation 原分辨率整图，`sliding=false`。
-- 已冻结同一 val-dev、BGR、batch 1 和 official-test 不参与的本地后评估工具。
-- 计划比较最佳 checkpoint 的原分辨率整图、固定 resize 480×640、sliding-window 480×640，并比较 epoch-500 的后两种几何。
-- 当前尚无有效后评估指标；模型构造路径正在修正，因此不能提前选择几何。
+- post-evaluator 已改为所有 geometry 保留原始 Label：resize 只改变模型输入，logits 恢复到原图计分；sliding 保持全图覆盖。报告显式记录 input/metric geometry、插值、stride、padding 和输出尺寸。
+- production `ValPre`/original-full、resize 原图计分、sliding 覆盖、strict checkpoint load 和 official-test 拒绝的聚焦 CPU 测试已通过；完整验收仍待完成。
+- 五项后评估仍保持待运行：best 的 original/resize/sliding，以及 epoch-500 的 resize/sliding。当前没有新指标，不能提前选择 geometry。
+- 选择顺序为：在线 original-full 可复现、原始像素支持一致、无长宽比扭曲、显存可控、确定性和 per-class 稳定；固定 resize 只作诊断，original-full/sliding-480×640 为主要候选。
 
-决定前，所有报告把“480×640”写成训练裁剪尺寸，不概括为统一 validation 输入尺寸；后评估结果只用于确定未来协议，不改写 seed 1 的原始曲线或 best 身份。
+决定前，“480×640”只表示训练裁剪或明确命名的推理输入，不概括为统一 validation 尺寸；后评估只冻结未来 protocol，不改写 seed 1 原始曲线或 best 身份。
 
 ## 2. MUSeg 颜色通道顺序
 
 **大白话问题：** 文档通常用“RGB”表示彩色模态，但 OpenCV loader 对 MUSeg 实际保留 BGR 通道顺序；如果改成 RGB，预训练兼容性和全部结果身份都会变化。
 
-**当前状态：已处置。当前 baseline 谱系冻结 BGR。**
+**当前状态：用户已重新打开。legacy BGR 只作为历史 reference；未来颜色谱系待 pretrained provenance、三臂诊断和 paired calibration 决定。**
 
-- seed 1 以及后续同一 baseline 谱系继续使用 BGR，不在 seed 间切换。
-- protocol、评估证据和报告应显式记录 `channel_order=BGR`。
-- 只有决定重建 baseline 谱系时才重新讨论 RGB；届时必须新建 protocol、重新 qualification，并重跑全部 seeds。
-- 文档仍可用“彩色图像模态”描述数据目录，但涉及张量事实时必须写明当前 loader 为 BGR。
+- seed 1 的历史事实保持为 OpenCV BGR 数组，并按位置应用 `[0.485,0.456,0.406]` / `[0.229,0.224,0.225]`；不回写其 protocol 或结果。
+- 当前权重已核验身份为 110,203,103 bytes、SHA-256 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6`，但仓库内未发现把该 SHA 绑定到上游发布资产及训练通道语义的元数据，来源语义仍待核验。
+- 配置、protocol v3、launcher/run manifest、production loader 和 post-evaluator 已加入显式 `channel_order` 与 normalization identity；v2 历史 protocol 只按 legacy 来源补录运行记录，不伪装成原始 manifest 字段。
+- 固定 checkpoint 的 legacy BGR、RGB+RGB mean、BGR+反向 mean 三臂只诊断敏感性，不能直接与 seed 1 的 `52.84` 决定新 baseline。
+- 真正选择必须使用独立 `color-geometry-screening-B0` protocol，使候选与 legacy BGR 从相同 pretrained、seed、数据顺序、预算和 evaluator 成对重训；接近噪声容差时两臂一起补第二 seed。
+- 若最终离开 legacy BGR，当前 seed 1 只保留 `development-reference-B0` 历史身份；新谱系重新 qualification 和 B0，不能跨谱系混入 mean±std。
 
 ## 3. A2 自然无效深度分层是否为 B2 硬门槛
 
@@ -69,3 +72,16 @@
 - 验收 pass/fail 只决定研究结论，不决定实例是否继续运行和计费。
 - 每次启动前在 CompShare 控制面设置最晚停止兜底；脚本内关机只作为第一道保障。
 - 本次原始失败行为与证据保持不变，不为符合新策略而改写。
+
+## 7. Development 三 seed 的执行时机
+
+**大白话问题：** 三 seed 能估计随机方差，但在模块方向尚未冻结时为每个候选都跑三次成本很高。当前需要区分“快速发现可行模块”和“形成可发表的正式消融结论”。
+
+**当前状态：已处置。经用户于 2026-08-27 确认，development seeds 2/3 暂缓；先完成 seed 1 后评估，再进入单 seed 配对筛选，正式三 seed 延后到架构与消融组合冻结之后。**
+
+- 当前 seed 1 只作为经过长程训练和独立裁决的 development 参考 B0，不称为三 seed 正式 baseline，也不直接与论文 official-test 数值作严格复现比较。
+- 快速筛选必须在同一 train-dev/val-dev、seed、预训练、训练预算、优化器、增强、checkpoint 规则和 validation 几何下成对重跑 B0 与候选模块；改变总 epoch 时必须新建 screening protocol，并在同一短协议下重跑 B0，不能直接对比现有 500-epoch 的 `52.84`。
+- 单 seed 结果只用于淘汰和候选排序；方向性较好但增益接近噪声的候选可增加第二 seed 作为中间确认，但第二 seed 不替代正式三 seed。
+- 架构、超参数和最终消融组合冻结后，B0 与每个最终模块必须使用同一预注册三 seed 成对从头训练，报告每 seed 配对差、mean、sample std 和 per-class 指标；不得只给模块跑三 seed 而复用当前单 seed B0。
+- official test 在开发与筛选期间继续 `sealed_unread`；只有正式 B0/最终模块的 checkpoint、哈希和协议全部冻结并通过 Gate F 后，才按预登记清单一次性评估。
+- B2 不在当前 seed 1 baseline 中，也不能作为普通候选绕过专用门禁。若要纳入本轮正式矩阵，必须在 Gate E 前完成新 Stage-06 的 `A2-pass + 用户批准`、规格/金标准、B2-zero-train、B2-short，再回到新 Stage-07 完成 B2-screening；Gate E 未纳入而在 official test 后启动时，登记为独立后续研究。

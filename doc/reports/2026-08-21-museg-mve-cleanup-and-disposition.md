@@ -138,13 +138,11 @@ DFormerv2 的 geometry prior 使用深度差异。项目中原始无效深度以
 
 其中需要长期保留的 A1/B1/A2 结论、任务结果、checkpoint 和停止状态已经写入本报告及 `doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md`。在 4090 正式训练准备完成后，上述临时计划已过时并被删除，避免新对话误用旧 commit、旧仓库路径和 epoch-10 screening 流程。
 
-### 5.3 当前待执行入口
+### 5.3 形成时点的待执行入口（后续已删除）
 
-当前唯一待执行计划为：
+本文形成时，唯一待执行计划是后来删除的早期 4090 云端训练交接计划。其历史职责已由 Stage-01 至 Stage-11 计划、Stage-04 日期化报告和当前状态入口覆盖；当前事实、执行边界和恢复点只看 `doc/main/MUSeg-current-status.md`。
 
-`doc/plans/MUSeg-4090云端训练交接计划.md`
-
-该文件汇总已完成事项、无需重复的检查、当前项目基线、RTX 4090 batch 探测、SwanLab online 正式训练和结果验收步骤。历史结论继续以 `doc/reports/` 下的报告为证据，不再以临时计划作为审计入口。
+该计划曾汇总已完成事项、无需重复的检查、当时项目基线、RTX 4090 batch 探测、SwanLab online 正式训练和结果验收步骤。历史结论继续以 `doc/reports/` 下的报告为证据，不再以已删除计划作为审计入口。
 
 ### 5.4 清理边界
 
@@ -179,7 +177,8 @@ DFormerv2 的 geometry prior 使用深度差异。项目中原始无效深度以
 ## 七、复现入口与证据路径
 
 - A1/B1 测试：`python -m unittest discover -s tests -p "test_*.py" -v`；
-- 当前待执行计划：`doc/plans/MUSeg-4090云端训练交接计划.md`；
+- 当前事实与恢复点：`doc/main/MUSeg-current-status.md`；
+- 阶段计划索引：`doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`，不承担实时状态；
 - 历史 A1/B1/A2 综合分析：`doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md`；
 - 历史清理与处置记录：`doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`；
 - 本地证据：`cloud/museg-epoch10-a2-20260821`；

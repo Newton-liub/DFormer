@@ -153,6 +153,8 @@ def _bool_flag(name: str, enabled: bool) -> str:
 
 def build_training_argv(args: argparse.Namespace, protocol, run_dir: Path, run_id: str) -> list[str]:
     training = protocol.training
+    input_contract = protocol.input_contract
+    normalization = input_contract["normalization"]
     train_role, val_role, test_role = protocol.phase_roles()
     if args.direct:
         command = [args.python, args.train_program]
@@ -168,6 +170,10 @@ def build_training_argv(args: argparse.Namespace, protocol, run_dir: Path, run_i
         "--train-source", str(protocol.split_path(train_role)),
         "--test-source", str(protocol.split_path(test_role)),
         "--pretrained-model", str(protocol.resolve_declared_path(str(protocol.pretrained["path"]))),
+        "--channel-order", str(input_contract["channel_order"]),
+        "--normalization-identity", str(normalization["identity"]),
+        "--normalization-mean", *(str(value) for value in normalization["mean"]),
+        "--normalization-std", *(str(value) for value in normalization["std"]),
         "--expected-train-split-sha256", str(protocol.splits[train_role]["sha256"]),
         "--expected-train-samples", str(protocol.splits[train_role]["samples"]),
         "--expected-test-split-sha256", str(protocol.splits[test_role]["sha256"]),
@@ -430,6 +436,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "split_authority": protocol.authority_identity(),
                 "splits": protocol.splits,
                 "pretrained": protocol.pretrained,
+                "input_contract": {
+                    "channel_order": protocol.input_contract["channel_order"],
+                    "normalization": dict(protocol.input_contract["normalization"]),
+                    **(
+                        {"record_origin": protocol.input_contract["record_origin"]}
+                        if "record_origin" in protocol.input_contract
+                        else {}
+                    ),
+                },
                 "seed": args.seed,
                 "run_id": run_id,
                 "output_dir": str(run_dir),
