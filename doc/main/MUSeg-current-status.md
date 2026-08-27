@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一入口
 
-> 状态时间：2026-08-27 07:28 UTC
+> 状态时间：2026-08-27 08:41 UTC
 > 当前阶段：计划与预处理/后评估契约重构已完成 CPU 验收；Protocol Gate 尚未通过，五项 val-dev 后评估、颜色 provenance 与 paired calibration 待执行
 > 本文件是 MUSeg 当前状态的唯一入口；其他阶段计划、审计和正式报告按各自日期保留为历史证据。
 
@@ -22,10 +22,8 @@
 
 ## 2. 证据取回与云实例状态
 
-- 完整不可变归档已保存到仓库外 `D:\0Project\DFormer-stage05-archive\museg-stage05-seed772961337`。
-- 原始归档大小为 `3,865,057,280` bytes，本地 SHA-256 为 `4f6b079b707266ee358d2522fc6e4e034a5380d09ba8c65696df7aaa3e383c66`，与云端清单一致。
-- 最佳 checkpoint 与 epoch-500 checkpoint 已保存到 `D:\0Project\DFormer-stage05-evidence\checkpoints`，本地 SHA-256 分别与云端期望值 `b62ca049...`、`0b88ab02...` 一致。
-- val-dev 本地后评估包、日志、运行 JSON、原始报告和 `acceptance-v2.json` 已保存到 `D:\0Project\DFormer-stage05-evidence`；不含 official test。
+- 完整不可变归档当前可访问于仓库内暂存路径 `D:\0Project\DFormer\cloud\DFormer-stage05-archive\museg-stage05-seed772961337\museg-stage05-seed772961337-original.tar`；该路径是用户从 `D:\0Project\DFormer-stage05-archive` 手动移动后的当前位置。文件大小为 `3,865,057,280` bytes，本地 SHA-256 为 `4f6b079b707266ee358d2522fc6e4e034a5380d09ba8c65696df7aaa3e383c66`，与 sidecar 清单一致。归档内已直接列出 `best-val-miou.pth` 与 `epoch-500.pth`，但两个 checkpoint 尚未从归档提取为独立本地实体。
+- 当前 `D:\0Project\DFormer\cloud\DFormer-stage05-evidence` 仍主要包含日志、配置、验收 JSON、manifest 和 split 列表；完整 val-dev 数据包实体及独立 checkpoint 尚未在该目录发现。
 - CompShare 实例 `cpod-1tyvjsiu6ahe` 已在本地哈希复核完成后停止，复查状态为 `Stopped`。
 - 本次暴露了自动关机风险：训练完成后未按预期及时停止。未来所有终态都必须先同步证据并核验哈希，再停止实例，同时在控制面预设最晚停止兜底；验收结果不得控制是否继续计费。
 
