@@ -1,6 +1,6 @@
 # MUSeg 实验口径与处置状态
 
-> 状态时间：2026-08-27 07:28 UTC
+> 状态时间：2026-08-28 03:10 UTC
 > 本文件保留问题缘由，同时明确区分“仍待决定”“本轮已处置”和“仅保留历史解释”。
 > 已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
@@ -8,12 +8,12 @@
 
 **大白话问题：** 文档曾把“输入 640×480”写成统一模型输入，但 seed 1 实际只把训练样本随机裁剪到高 480、宽 640；`sliding=false` 时，validation 使用转换数据的原始高 932、宽 1082 整图前向。不同几何会改变 val mIoU，不能把结果直接混为同一口径。
 
-**当前状态：仍待决定。原图计分契约已修复并通过聚焦 CPU 测试，五项 val-dev 后评估尚未运行。**
+**当前状态：五项 val-dev 后评估已完成；geometry 仍待按预注册优先级和独立 calibration 决定。原图计分契约已修复并通过聚焦 CPU 测试。**
 
 - seed 1 的训练与在线 validation 事实保持为：训练裁剪 480×640，validation 原分辨率整图，`sliding=false`。
 - post-evaluator 已改为所有 geometry 保留原始 Label：resize 只改变模型输入，logits 恢复到原图计分；sliding 保持全图覆盖。报告显式记录 input/metric geometry、插值、stride、padding 和输出尺寸。
 - production `ValPre`/original-full、resize 原图计分、sliding 覆盖、strict checkpoint load 和 official-test 拒绝的聚焦 CPU 测试已通过；完整验收仍待完成。
-- 五项后评估仍保持待运行：best 的 original/resize/sliding，以及 epoch-500 的 resize/sliding。当前没有新指标，不能提前选择 geometry。
+- 五项后评估已完成：best 的 original-full/resize/sliding mIoU 为 `52.98`/`56.31`/`51.89`，epoch-500 的 resize/sliding 为 `56.73`/`52.08`；五项都在原始 Label grid 计分，均为 318 样本且 official test 未参与。结果只能用于 geometry 诊断，不改写 seed 1 原始曲线或 best 身份。
 - 选择顺序为：在线 original-full 可复现、原始像素支持一致、无长宽比扭曲、显存可控、确定性和 per-class 稳定；固定 resize 只作诊断，original-full/sliding-480×640 为主要候选。
 
 决定前，“480×640”只表示训练裁剪或明确命名的推理输入，不概括为统一 validation 尺寸；后评估只冻结未来 protocol，不改写 seed 1 原始曲线或 best 身份。
@@ -22,12 +22,12 @@
 
 **大白话问题：** 文档通常用“RGB”表示彩色模态，但 OpenCV loader 对 MUSeg 实际保留 BGR 通道顺序；如果改成 RGB，预训练兼容性和全部结果身份都会变化。
 
-**当前状态：用户已重新打开。legacy BGR 只作为历史 reference；未来颜色谱系待 pretrained provenance、三臂诊断和 paired calibration 决定。**
+**当前状态：pretrained 上游身份与 RGB 语义已由官方资产和预训练代码闭合；固定 checkpoint 三臂诊断显示强输入契约敏感性，legacy BGR 仍只作为历史 reference，未来颜色谱系继续由独立 paired calibration 决定。**
 
 - seed 1 的历史事实保持为 OpenCV BGR 数组，并按位置应用 `[0.485,0.456,0.406]` / `[0.229,0.224,0.225]`；不回写其 protocol 或结果。
-- 当前权重已核验身份为 110,203,103 bytes、SHA-256 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6`，但仓库内未发现把该 SHA 绑定到上游发布资产及训练通道语义的元数据，来源语义仍待核验。
+- 当前权重已闭合为官方上游资产：Hugging Face `bbynku/DFormerv2` 中 `DFormerv2/pretrained/DFormerv2_Small_pretrained.pth` 的大小为 110,203,103 bytes，LFS SHA-256 为 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6`，与本项目权重完全一致。官方 README 将其列为 ImageNet-1K RGB-D pretrained；官方 `VCIP-RGBD/RGBD-Pretrain` 数据代码默认以 PIL `RGB` 读取彩色图并使用 RGB 顺序 ImageNet mean/std，因此 pretrained 上游通道语义判定为 RGB。
 - 配置、protocol v3、launcher/run manifest、production loader 和 post-evaluator 已加入显式 `channel_order` 与 normalization identity；v2 历史 protocol 只按 legacy 来源补录运行记录，不伪装成原始 manifest 字段。
-- 固定 checkpoint 的 legacy BGR、RGB+RGB mean、BGR+反向 mean 三臂只诊断敏感性，不能直接与 seed 1 的 `52.84` 决定新 baseline。
+- 固定 best checkpoint 的三臂 original-full 诊断已完成：legacy BGR、RGB+RGB mean/std、BGR+反向 mean/std 的 mIoU 分别为 `52.98`、`33.85`、`49.53`。该结果证明 checkpoint 对通道/统计强敏感，但不能决定新 baseline 胜负。
 - 真正选择必须使用独立 `color-geometry-screening-B0` protocol，使候选与 legacy BGR 从相同 pretrained、seed、数据顺序、预算和 evaluator 成对重训；接近噪声容差时两臂一起补第二 seed。
 - 若最终离开 legacy BGR，当前 seed 1 只保留 `development-reference-B0` 历史身份；新谱系重新 qualification 和 B0，不能跨谱系混入 mean±std。
 

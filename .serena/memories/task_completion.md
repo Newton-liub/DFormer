@@ -1,0 +1,4 @@
+- For MUSeg documentation/code changes, run targeted checks first, then `python -m pytest tests` and `python -m compileall -q tools utils local_configs tests` when practical.
+- Inspect the final diff and confirm no protected raw evidence (`acceptance.json`, `failed.json`, `training_result.json`, `liu-test-exp/**`) was rewritten.
+- Before final response, update `doc/main/MUSeg-current-status.md` whenever verified experiment state, evidence, gate, cloud, commit, or recovery facts change; documentation-only wording fixes with no state change do not require a status timestamp update.
+- Keep official test sealed and do not create cloud resources or start training without explicit authorization and a frozen protocol.

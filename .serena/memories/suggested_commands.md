@@ -1,0 +1,4 @@
+- From project root on Windows PowerShell: `python -m pytest tests` runs the repository test suite; avoid unqualified `pytest` when historical cloud code is present because collection may include stale paths/imports.
+- Syntax check: `python -m compileall -q tools utils local_configs tests`.
+- Inspect tracked changes with `git status --short` and `git diff -- <path>`; do not push without user confirmation.
+- Use explicit paths for MUSeg tools/protocols and preserve official-test sealing during development.

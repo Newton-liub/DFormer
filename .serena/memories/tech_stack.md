@@ -1,0 +1,4 @@
+- Python project with PyTorch-based DFormer/MUSeg training and evaluation.
+- Experiment orchestration is implemented by Python tools plus shell launchers; JSON protocols/manifests/configuration are first-class evidence artifacts.
+- Validation and post-evaluation use OpenCV/PIL-style image pipelines and explicit channel/normalization contracts.
+- CUDA/GPU runs are optional for local checks; CPU tests and `compileall` provide the baseline verification path.

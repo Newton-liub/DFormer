@@ -113,6 +113,13 @@ def test_load_model_skips_separate_pretrained_initialization(monkeypatch: pytest
             self.weight = nn.Parameter(torch.zeros(1))
 
     monkeypatch.setattr("tools.evaluate_museg_checkpoint.EncoderDecoder", _CheckpointOnlyModel)
+    original_torch_load = torch.load
+
+    def _capturing_torch_load(*args: object, **kwargs: object) -> object:
+        captured["torch_load_weights_only"] = kwargs.get("weights_only")
+        return original_torch_load(*args, **kwargs)
+
+    monkeypatch.setattr("tools.evaluate_museg_checkpoint.torch.load", _capturing_torch_load)
     checkpoint = tmp_path / "checkpoint.pth"
     torch.save({"model": {"weight": torch.ones(1)}}, checkpoint)
 
@@ -121,6 +128,7 @@ def test_load_model_skips_separate_pretrained_initialization(monkeypatch: pytest
     assert captured["criterion"] is None
     assert captured["norm_layer"] is nn.BatchNorm2d
     assert captured["syncbn"] is False
+    assert captured["torch_load_weights_only"] is False
     torch.testing.assert_close(model.weight, torch.ones(1))
     assert model.training is False
 

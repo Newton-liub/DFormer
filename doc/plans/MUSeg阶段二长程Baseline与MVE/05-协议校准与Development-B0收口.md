@@ -25,7 +25,7 @@
 
 production loader 不再根据 dataset/backbone 名称为 MUSeg 猜颜色顺序。Stage-01 的亮度统计仅是 split 分布统计，不证明模型输入通道语义。
 
-当前已核验权重身份仅包括文件名、110,203,103 bytes 和 SHA-256 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6`；仓库内没有把该 SHA 绑定到上游发布资产及训练通道语义的元数据。因此 provenance 结论保持“具体来源语义待核验”，不得从权重数值猜测。
+已通过上游公开资产闭合权重 provenance：Hugging Face 官方 `bbynku/DFormerv2` 的 `DFormerv2/pretrained/DFormerv2_Small_pretrained.pth` 为 110,203,103 bytes，LFS SHA-256 与本项目权重的 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6` 完全一致。官方 README 将其列为 ImageNet-1K RGB-D pretrained；官方 `VCIP-RGBD/RGBD-Pretrain` 数据代码默认用 PIL `RGB` 并按 RGB 顺序使用 ImageNet mean/std，因此 pretrained 上游通道语义判定为 RGB。该结论只闭合初始化来源，不自动决定 MUSeg 后续应采用 RGB；历史 seed 1 的 BGR 微调事实和 paired calibration 要求保持不变。
 
 ### 2.1 三臂颜色诊断
 

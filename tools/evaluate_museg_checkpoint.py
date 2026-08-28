@@ -118,7 +118,9 @@ def load_model(config: Any, checkpoint_path: Path, device: torch.device) -> nn.M
     # criterion prevents EncoderDecoder from trying to load a separate
     # pretrained backbone before the strict checkpoint restore below.
     model = EncoderDecoder(cfg=config, criterion=None, norm_layer=nn.BatchNorm2d, syncbn=False)
-    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    # These trusted legacy checkpoints contain NumPy metadata; PyTorch 2.6+
+    # defaults to weights_only=True, which cannot deserialize the full payload.
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     if not isinstance(checkpoint, dict):
         raise ValueError("checkpoint must decode to a mapping")
     state = checkpoint.get("model", checkpoint.get("state_dict", checkpoint))
