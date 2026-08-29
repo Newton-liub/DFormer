@@ -407,11 +407,11 @@ qualification 只有 2–3 epochs，用于检查数据、显存、日志、验�
 
 ## 十四、复核入口
 
-- 总索引与门禁：`doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
-- Stage 01：`doc/plans/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
-- Stage 02：`doc/plans/MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md`
-- Stage 03：`doc/plans/MUSeg阶段二长程Baseline与MVE/03-三种子编排Preflight与SwanLab改造.md`
-- Stage 04：`doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md`
+- 总索引与门禁：`doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
+- Stage 01：`doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
+- Stage 02：`doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md`
+- Stage 03：`doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/03-三种子编排Preflight与SwanLab改造.md`
+- Stage 04：`doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md`
 - 冻结数据证据：`data/splits/MUSeg/dev-v1`
 - Protocol v2：`tools/museg_protocol.py`、`tools/museg_protocol.schema.json`
 - Qualification 物化：`protocols/museg-qualification-v1.template.json`、`tools/materialize_museg_protocol.py`

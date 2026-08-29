@@ -178,7 +178,7 @@ DFormerv2 的 geometry prior 使用深度差异。项目中原始无效深度以
 
 - A1/B1 测试：`python -m unittest discover -s tests -p "test_*.py" -v`；
 - 当前事实与恢复点：`doc/main/MUSeg-current-status.md`；
-- 阶段计划索引：`doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`，不承担实时状态；
+- 阶段计划索引：`doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`，不承担实时状态；
 - 历史 A1/B1/A2 综合分析：`doc/reports/2026-08-21-museg-mve-a1-b1-a2-git-alignment.md`；
 - 历史清理与处置记录：`doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md`；
 - 本地证据：`cloud/museg-epoch10-a2-20260821`；

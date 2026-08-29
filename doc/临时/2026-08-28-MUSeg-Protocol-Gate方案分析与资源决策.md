@@ -305,13 +305,15 @@ paired calibration 若使用 4090，建议固定以下生命周期：
 - `doc/main/MUSeg-current-status.md`：当前事实、阻塞项和唯一恢复入口。
 - `doc/main/MUSeg-open-decisions.md`：geometry、颜色、三 seed 时机等研究口径。
 
-### 13.2 活动计划
+### 13.2 当前计划与历史计划
 
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`：全阶段结构与四个活动门禁。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/05-协议校准与Development-B0收口.md`：当前 Protocol Gate 计划。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/06-MVE问题验证与B2条件分支.md`：A2/B2 条件支线。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/07-模块配对筛选与GateE冻结.md`：模块筛选和 Gate E。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/08-正式三种子与Official-Test解封.md`：正式三 seed、Gate F 和 official test。
+- `doc/plans/MUSeg-DFormerv2快速Baseline/00-总方向规划.md`：当前 DFormerv2-S MUSeg baseline 的总方向；细节后续另行规划。
+- `doc/plans/archive/README.md`：归档说明。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`：已封存的阶段结构、门禁定义和历史执行依据。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/05-协议校准与Development-B0收口.md`：已封存的 Protocol Gate 计划。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/06-MVE问题验证与B2条件分支.md`：已封存的 A2/B2 条件支线。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/07-模块配对筛选与GateE冻结.md`：已封存的模块筛选和 Gate E 计划。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/08-正式三种子与Official-Test解封.md`：已封存的正式三 seed、Gate F 和 official test 计划。
 
 ### 13.3 本轮报告与机器证据
 

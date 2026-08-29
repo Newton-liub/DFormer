@@ -227,8 +227,8 @@
 
 ### 8.3 协议与门禁文档
 
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md`
 
 `.gitignore` 已增加窄范围白名单，只让上述五个冻结产物进入 Git 视野；原始 MUSeg 数据、临时候选目录和大体量输出仍保持忽略。
 

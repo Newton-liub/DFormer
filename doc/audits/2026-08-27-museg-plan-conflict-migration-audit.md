@@ -9,7 +9,7 @@
 
 本次审计覆盖：
 
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/00` 与旧 05–11；
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00` 与旧 05–11；
 - MUSeg production loader、训练 protocol/launcher/run metadata；
 - `tools/evaluate_museg_checkpoint.py` 的颜色与计分几何；
 - `utils/val_mm.py` 的 legacy sliding 接口；

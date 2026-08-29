@@ -1,24 +1,36 @@
 # MUSeg 实验口径与处置状态
 
-> 状态时间：2026-08-28 03:10 UTC
+> 状态时间：2026-08-29 20:35 UTC
 > 本文件保留问题缘由，同时明确区分“仍待决定”“本轮已处置”和“仅保留历史解释”。
 > 已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
-## 1. Validation 空间尺寸
+## 1. 新 DFormerv2-MUSeg baseline 方向
+
+**大白话结论：** 新计划不是把模型改成 DFormer v1，而是使用 DFormerv2-S 在 MUSeg 上复现 DFormerv2 官方论文公开的训练与测试口径，建立可供后续模块比较的基础模型。
+
+**当前状态：方向已确认，细节尚未冻结。**
+
+- 训练方向：采用官方公开的随机尺度训练增强，尺度候选为 `0.5、0.75、1.0、1.25、1.5、1.75`，之后裁剪到 `480×640`，并保持 RGB/Depth/Label 同步变换。
+- 测试方向：采用官方论文公开的 multi-scale flip 推理，尺度为 `0.5、0.75、1.0、1.25、1.5`，暂不把滑动窗口静默混入主基线。
+- 输出方向：每个尺度的预测恢复到 MUSeg 原始 Label 网格后融合和计分；`480×640` 是训练或明确命名的模型输入尺寸，不自动等于最终 metric geometry。
+- 这只是公开 DFormerv2 方法在 MUSeg 上的适配，不声称复现 MUSeg 论文没有公开的内部测试代码。具体 evaluator、颜色/归一化、预算、seed、checkpoint 规则和云资源上限由后续详细计划冻结。
+- 旧 `Stage-01` 至 `Stage-05` 计划和其未完成的 Protocol Gate 已封存；历史 seed 1 的单尺度结果只作为 reference，不与新 baseline 混合统计。
+
+## 2. Validation 空间尺寸
 
 **大白话问题：** 文档曾把“输入 640×480”写成统一模型输入，但 seed 1 实际只把训练样本随机裁剪到高 480、宽 640；`sliding=false` 时，validation 使用转换数据的原始高 932、宽 1082 整图前向。不同几何会改变 val mIoU，不能把结果直接混为同一口径。
 
-**当前状态：五项 val-dev 后评估已完成；geometry 仍待按预注册优先级和独立 calibration 决定。原图计分契约已修复并通过聚焦 CPU 测试。**
+**当前状态：历史 seed 1 的五项后评估已完成；新 baseline 的测试几何改为优先实现 DFormerv2 论文公开的 multi-scale flip 方向，具体 evaluator 和资源细节待新计划细化。原图计分仍作为输出对齐原则。**
 
 - seed 1 的训练与在线 validation 事实保持为：训练裁剪 480×640，validation 原分辨率整图，`sliding=false`。
 - post-evaluator 已改为所有 geometry 保留原始 Label：resize 只改变模型输入，logits 恢复到原图计分；sliding 保持全图覆盖。报告显式记录 input/metric geometry、插值、stride、padding 和输出尺寸。
 - production `ValPre`/original-full、resize 原图计分、sliding 覆盖、strict checkpoint load 和 official-test 拒绝的聚焦 CPU 测试已通过；完整验收仍待完成。
 - 五项后评估已完成：best 的 original-full/resize/sliding mIoU 为 `52.98`/`56.31`/`51.89`，epoch-500 的 resize/sliding 为 `56.73`/`52.08`；五项都在原始 Label grid 计分，均为 318 样本且 official test 未参与。结果只能用于 geometry 诊断，不改写 seed 1 原始曲线或 best 身份。
-- 选择顺序为：在线 original-full 可复现、原始像素支持一致、无长宽比扭曲、显存可控、确定性和 per-class 稳定；固定 resize 只作诊断，original-full/sliding-480×640 为主要候选。
+- 历史五项后评估的几何排序只用于诊断，不作为新 baseline 的冻结依据。新计划优先实现 DFormerv2 论文的 multi-scale flip；单尺度 original-full、固定 resize 和 sliding 保留为命名清晰的对照或资源备选。
 
 决定前，“480×640”只表示训练裁剪或明确命名的推理输入，不概括为统一 validation 尺寸；后评估只冻结未来 protocol，不改写 seed 1 原始曲线或 best 身份。
 
-## 2. MUSeg 颜色通道顺序
+## 3. MUSeg 颜色通道顺序
 
 **大白话问题：** 文档通常用“RGB”表示彩色模态，但 OpenCV loader 对 MUSeg 实际保留 BGR 通道顺序；如果改成 RGB，预训练兼容性和全部结果身份都会变化。
 
@@ -31,7 +43,7 @@
 - 真正选择必须使用独立 `color-geometry-screening-B0` protocol，使候选与 legacy BGR 从相同 pretrained、seed、数据顺序、预算和 evaluator 成对重训；接近噪声容差时两臂一起补第二 seed。
 - 若最终离开 legacy BGR，当前 seed 1 只保留 `development-reference-B0` 历史身份；新谱系重新 qualification 和 B0，不能跨谱系混入 mean±std。
 
-## 3. A2 自然无效深度分层是否为 B2 硬门槛
+## 4. A2 自然无效深度分层是否为 B2 硬门槛
 
 **大白话问题：** 人工 corruption 可以证明模型对深度破坏敏感，但当前自然缺失深度证据可能不足以证明现实世界中存在同样机制。若把两者都设为硬门槛，会让“能否做 B2”和“能否声称现实机制”混在一起。
 
@@ -41,7 +53,7 @@
 - 若自然缺失/无效深度分层证据不足，只能声明“在人工 corruption 条件下观察到敏感性或改进”，不得扩展为真实缺失机制、现实鲁棒性或部署收益。
 - 正式 A2/B2 开发筛查只使用 `val-dev`；official test 等最终模型和协议冻结后再通过独立门禁一次性解封。
 
-## 4. Qualification 与长程训练的 step 计数
+## 5. Qualification 与长程训练的 step 计数
 
 **大白话问题：** Stage-04 计划为 3×128=384 次 loop 尝试，报告记录 376 次成功 optimizer update；Stage-05 理论网格为 64,000 次，最终记录 63,973 次有效更新。AMP 可能跳过少量更新，但旧遥测把“尝试”和“成功”混写，导致验收误判。
 
@@ -52,7 +64,7 @@
 - 未来非 probe 运行分别记录实际 loop attempts、completed optimizer updates 和 skipped optimizer steps，并写入遥测 schema 版本。
 - 学习率与调度语义必须在新运行中由结构化计数验证，不用修改原始 `acceptance.json` 或 `training_result.json` 来补齐旧证据。
 
-## 5. `run_kind=qualification` 的历史字段名
+## 6. `run_kind=qualification` 的历史字段名
 
 **大白话问题：** seed 1 明明是 development 长程训练，命令却记录 `run_kind=qualification`。这是旧代码把“所有非 probe 运行”都叫 qualification，不代表研究 phase 真的是 qualification。
 
@@ -62,7 +74,7 @@
 - seed 1 的原始命令、manifest 和结果仍保留 `run_kind=qualification`，不得改写；其真实研究阶段继续由 `experiment_phase=development` 和 protocol role 决定。
 - 新的 development 长程运行应使用 `standard`；`qualification` 只为历史兼容或真正 qualification 保留。
 
-## 6. 云端终态与关机
+## 7. 云端终态与关机
 
 **大白话问题：** 本次 SwanLab 已显示完成，但自动流程没有及时关机，人工等待约 23 分钟后仍需手动处理，验收失败路径还曾明确记录 `automatic_shutdown=false`。如果让验收结果决定是否关机，失败时会持续计费。
 
@@ -73,7 +85,7 @@
 - 每次启动前在 CompShare 控制面设置最晚停止兜底；脚本内关机只作为第一道保障。
 - 本次原始失败行为与证据保持不变，不为符合新策略而改写。
 
-## 7. Development 三 seed 的执行时机
+## 8. Development 三 seed 的执行时机
 
 **大白话问题：** 三 seed 能估计随机方差，但在模块方向尚未冻结时为每个候选都跑三次成本很高。当前需要区分“快速发现可行模块”和“形成可发表的正式消融结论”。
 

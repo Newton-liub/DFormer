@@ -94,22 +94,26 @@
 - `doc/reports/2026-08-26-museg-stage05-seed1-running-handoff.md` — 训练运行中历史快照。
 - `doc/reports/report-index.json` — 正式报告和 Canvas 元数据索引；其中“latest”字段按索引维护时点理解，不能覆盖当前状态。
 
-### 5.3 历史计划
+### 5.3 当前计划
 
-`doc/plans/README.md` 规定计划目录的历史语义；其余文件记录阶段设计、门禁和形成时点的执行状态。当前 workload 必须先由当前状态确认。
+- `doc/plans/MUSeg-DFormerv2快速Baseline/00-总方向规划.md` — DFormerv2-S 快速 MUSeg baseline 的总方向；训练和测试细节后续另行规划。
 
-- `doc/plans/README.md` — 阶段计划索引、历史读取规则与状态头要求。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md` — 历史基础 01–04、活动 05–08 及 Protocol/MVE Evidence/Gate E/F 的依赖索引。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md` — development split 协议与生成工具设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md` — checkpoint、validation 和恢复改造设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/03-三种子编排Preflight与SwanLab改造.md` — seed 编排、preflight 和 SwanLab 设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` — 静态验收、probe 和 qualification 设计。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/05-协议校准与Development-B0收口.md` — 颜色/归一化、validation geometry、五项后评估和 development reference B0 收口计划。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/06-MVE问题验证与B2条件分支.md` — B1 稳定性回归、A2 判据及 B2 规格/实现/zero-train/short 条件分支。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/07-模块配对筛选与GateE冻结.md` — 通用模块/B2 的统一 paired screening、B0-only 分支和 Gate E 冻结。
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/08-正式三种子与Official-Test解封.md` — formal B0/最终 variant paired 三 seed、Gate F 与一次性 official-test 解封。
+### 5.4 历史计划
 
-### 5.4 Canvas 与论文
+`doc/plans/README.md` 规定计划目录的历史语义；归档文件记录阶段设计、门禁和形成时点的执行状态，不能作为当前 workload 授权依据。
+
+- `doc/plans/archive/README.md` — 计划归档说明。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md` — 历史基础 01–04、活动 05–08 及 Protocol/MVE Evidence/Gate E/F 的依赖索引。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md` — development split 协议与生成工具设计。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md` — checkpoint、validation 和恢复改造设计。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/03-三种子编排Preflight与SwanLab改造.md` — seed 编排、preflight 和 SwanLab 设计。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` — 静态验收、probe 和 qualification 设计。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/05-协议校准与Development-B0收口.md` — 颜色/归一化、validation geometry、五项后评估和 development reference B0 收口计划。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/06-MVE问题验证与B2条件分支.md` — B1 稳定性回归、A2 判据及 B2 规格/实现/zero-train/short 条件分支。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/07-模块配对筛选与GateE冻结.md` — 通用模块/B2 的统一 paired screening、B0-only 分支和 Gate E 冻结。
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/08-正式三种子与Official-Test解封.md` — formal B0/最终 variant paired 三 seed、Gate F 与一次性 official-test 解封。
+
+### 5.5 Canvas 与论文
 
 Canvas 是可视化汇报源，已发布版本只读；`old/` 为归档。TSX 由 Canvas 运行时消费，不参与模型训练。
 

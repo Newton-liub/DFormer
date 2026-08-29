@@ -3,7 +3,7 @@
 > 形成日期：2026-08-25
 > 历史边界：本文件保存 Stage-04 qualification 当时的环境、失败史、证据身份和恢复规则。Stage-04 Gate D 与后续 Stage-05 seed 1 均已完成，本文不再是当前恢复入口。
 > 阅读规则：正文中的“当前”“尚未执行”“下一项”等表述一律按形成时点理解，不得据此重复运行 probe、Gate C、qualification 或 Gate D。
-> 当前入口：项目事实、边界和恢复点只以 `doc/main/MUSeg-current-status.md` 为准；Stage-04 详细历史证据以 `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 为准。
+> 当前入口：项目事实、边界和恢复点只以 `doc/main/MUSeg-current-status.md` 为准；Stage-04 详细历史证据以 `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 为准。
 > 安全边界：本文件不得保存 API Key、密码、登录 cookie、完整环境变量或其他凭据。
 
 ## 1. 历史复核最小阅读集
@@ -11,12 +11,12 @@
 需要复核 Stage-04 形成时点时，只需先读：
 
 1. 本文件；
-2. `doc/plans/MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的第 11.11 节历史交接记录；
+2. `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/04-静态验收与4090Qualification.md` 的第 11.11 节历史交接记录；
 3. 与历史证据对应的工具脚本及其 `--help`/参数解析；默认只读复核，不重新执行旧 workload。
 
 只有发生门禁、协议或跨阶段争议时，才补读：
 
-- `doc/plans/MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`；
+- `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md`；
 - 对应的 01–03 计划或测试。
 
 无需默认重读 01–03 全文、研究报告、Canvas、全部测试、历史终端日志或整个仓库。

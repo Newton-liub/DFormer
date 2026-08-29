@@ -1,5 +1,7 @@
 # 06：MVE 问题验证与 B2 条件分支
 
+> **已封存：** 本文件属于 2026-08-29 封存的历史计划，仅保留形成时点的设计、执行记录和证据指针；当前计划见 `doc/plans/MUSeg-DFormerv2快速Baseline/00-总方向规划.md`。
+
 > **文档角色：** 条件式研究计划，不承担实时状态或运行授权。
 > **形成或核验时点：** 2026-08-27。
 > **实时入口：** `doc/main/MUSeg-current-status.md`；A2 自然证据边界见 `doc/main/MUSeg-open-decisions.md`。
