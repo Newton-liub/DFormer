@@ -1,7 +1,7 @@
 # MUSeg 当前状态与唯一入口
 
-> 状态时间：2026-08-30 10:13 UTC
-> 当前阶段：single-seed RGB development B0 的本地实现、CPU 定点检查、本机尺度 1.5 GPU 技术检查和无卡自动关机云门禁均已完成；主 evaluator 运行位置冻结为本地 RTX 5060 Laptop。下一步是另行授权正式 RTX 4090 B0 训练；训练、长评估和 official test 尚未执行
+> 状态时间：2026-08-30 14:28 UTC
+> 当前阶段：single-seed RGB development B0 的本地实现、CPU 定点检查、本机尺度 1.5 GPU 技术检查和无卡自动关机云门禁均已完成；主 evaluator 运行位置冻结为本地 RTX 5060 Laptop。用户已授权正式 RTX 4090 B0 训练并开启实例，但当前仍等待外部控制代理回传最晚停止 schedule 的控制面复核；训练、长评估和 official test 尚未执行
 > 本文件是 MUSeg 当前状态的唯一入口；其他阶段计划、审计和正式报告按各自日期保留为历史证据。
 
 ## 1. 当前结论
@@ -44,5 +44,5 @@
 - 无卡 lifecycle-test 云门禁已在 CompShare 实例 `cpod-1tyvjsiu6ahe` 通过：实例以 `GPU=0`、2 vCPU、4 GiB 内存运行，查询价为 `0.13`/小时；控制面最晚停止兜底设为 `2026-08-30T10:41:15Z` 并复核成功。durable job `job-20260830T101210Z-8c5b24ea` 退出码为 0；本地取回并逐项核验 `terminal-result.json`、`summary.json` 和 evidence manifest 的大小与 SHA-256，manifest SHA-256 为 `f9f00d7bdee84cfa8c5cab5ab47b3388fb2ad709ec03ff404c1b8207d5d37742`。控制面 stop 成功，实例于 `2026-08-30T10:13:25Z` 达到 `Stopped`，未需要人工补发普通停止命令；controller result SHA-256 为 `b81fcdeafca9e578d377f3a6c07aa939813d2a238c86f3649cd5288853f0ce48`，证据目录为 `cloud/museg-lifecycle-gates/museg-lifecycle-cpod-1tyvjsiu6ahe-20260830T1012Z/`。报告明确记录 `simulation=true`、`produced_metrics=false`、`official_test_included=false`。大白话说，正式训练前要求的“模拟完成、拿回并核验证据、自动停止计费实例”整条链已经在真实控制面上跑通。
 - lifecycle-test 的代码实现仍保持隔离的 `run_kind=lifecycle-test`、`simulation=true` 模拟器和本地控制器设计；本次云门禁只验证一次成功终态，不产生或替代 B0 训练结果。
 - 本轮最终聚焦 CPU 检查为 66 passed；修改 Python 文件的 `py_compile` 通过，静态诊断无报错，`git diff --check` 无 whitespace error。检查覆盖 Quick-B0 protocol/materialization/launcher、top-3 候选与恢复、FP32 多尺度翻转及技术检查无指标契约、lifecycle simulation 和成功/失败终态 stop 顺序。pytest 仍报告既有 `GradScaler` deprecation warning 和本机临时/缓存目录权限 warning；这些 warning 未为追求零 warning 而扩大处理。
-- 本轮除已获批的本机 GPU 技术检查外，已执行一次无卡 lifecycle-test 云门禁；门禁模拟器未加载模型、未使用 GPU、未生成指标且未读取 official test。没有运行 B0 训练、长耗时评估、完整测试套件或 official test；这些项目未运行，不能写成通过。Quick-B0 protocol 仍是需要在干净提交上 materialize 的模板，尚未生成绑定最终 Git commit 的可运行 manifest。远端未推送。
-- 当前唯一方案仍为 `doc/plans/MUSeg-DFormerv2快速Baseline/02-一次性B0执行方案.md`。任务 1“本地实现与定点检查”和任务 2“无卡自动关机门禁”均已完成，主 evaluator 运行位置冻结为本地。下一准确恢复点是：向用户报告正式 RTX 4090 B0 的预计时长、预计费用、checkpoint 同步方式和控制面最晚停止时刻；获得正式训练授权后，在干净提交上 materialize protocol 并只启动一次 B0 训练。当前不启动 B0 训练、长评估或 official test。
+- 本轮除已获批的本机 GPU 技术检查外，已执行一次无卡 lifecycle-test 云门禁；门禁模拟器未加载模型、未使用 GPU、未生成指标且未读取 official test。没有运行 B0 训练、长耗时评估、完整测试套件或 official test；这些项目未运行，不能写成通过。该条记录任务 1 收口时状态；后续外部控制面交接已推送，见下一条。Quick-B0 protocol 仍是需要在干净提交上 materialize 的模板，尚未生成绑定最终 Git commit 的可运行 manifest。
+- 当前唯一方案仍为 `doc/plans/MUSeg-DFormerv2快速Baseline/02-一次性B0执行方案.md`。任务 1“本地实现与定点检查”和任务 2“无卡自动关机门禁”均已完成，主 evaluator 运行位置冻结为本地。2026-08-30 用户已授权任务 3“一次 B0 训练”并开启实例 `cpod-1tyvjsiu6ahe`；本对话直接核验该实例当前为 RTX 4090、24,564 MiB 显存、无 GPU 计算进程，仓库起始工作区干净且 `main=origin/main`，SwanLab `0.9.7` 已安装且非交互 API key 环境变量已设置，GNU Screen `4.09.00` 可用。SwanLab online 初始化尚待正式 preflight 直接验证，B0 Screen 会话和训练进程尚未启动。当前云主机没有 CompShare 控制面凭据，因此外部控制代理交接已写入 `doc/临时/museg-b0-external-controller.md` 并以提交 `56787157dd95e161a744b7684041dc18aeadaef9` 推送 GitHub；交接要求将实例最晚停止 schedule 设为 `2026-08-31T22:30:00Z`，在训练终态取回并核验候选证据后执行普通 stop 和 `Stopped` 复核。大白话说，训练所需显卡、可视化凭据和防断线工具都在，但只有另一控制窗口证明自动停机兜底已经生效后，才会真正启动这一次训练。下一准确恢复点是：从 GitHub 拉取并直接核验 `doc/临时/museg-b0-external-controller-receipt.md` 的 schedule 回执；随后在新的干净提交上 materialize protocol、只运行一次正式 preflight，并通过独立 Screen 启动唯一一次 B0。当前没有运行 B0 训练、长评估、完整测试套件或 official test。
