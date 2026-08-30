@@ -542,6 +542,46 @@ def audit_protocol(
             )
         else:
             report.ok("input_contract", "training config input contract matches protocol", **expected_contract)
+        if protocol.checkpoint_policy:
+            config_checkpoint_policy = dict(getattr(imported_config, "checkpoint_retention_policy", {}))
+            config_checkpoint_policy["candidate_manifest"] = getattr(
+                imported_config, "checkpoint_candidate_manifest", None
+            )
+            expected_checkpoint_policy = dict(protocol.checkpoint_policy)
+            if config_checkpoint_policy != expected_checkpoint_policy:
+                report.error(
+                    "checkpoint_policy_mismatch",
+                    "training config checkpoint policy differs from protocol",
+                    expected=expected_checkpoint_policy,
+                    actual=config_checkpoint_policy,
+                )
+            elif getattr(imported_config, "save_epoch_checkpoints", True):
+                report.error(
+                    "checkpoint_policy_mismatch",
+                    "top-k retention requires periodic epoch checkpoint saving to be disabled",
+                )
+            else:
+                report.ok(
+                    "checkpoint_policy",
+                    "training config checkpoint retention matches protocol",
+                    **expected_checkpoint_policy,
+                )
+        if protocol.optimizer_telemetry:
+            config_telemetry = dict(getattr(imported_config, "optimizer_telemetry_policy", {}))
+            expected_telemetry = dict(protocol.optimizer_telemetry)
+            if config_telemetry != expected_telemetry:
+                report.error(
+                    "optimizer_telemetry_mismatch",
+                    "training config optimizer telemetry differs from protocol",
+                    expected=expected_telemetry,
+                    actual=config_telemetry,
+                )
+            else:
+                report.ok(
+                    "optimizer_telemetry",
+                    "training config optimizer telemetry matches protocol",
+                    **expected_telemetry,
+                )
         if check_dataset_files:
             data_check = Preflight()
             check_dataset(imported_config, data_check, sample_count)

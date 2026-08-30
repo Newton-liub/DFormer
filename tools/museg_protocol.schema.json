@@ -15,6 +15,26 @@
     "phase": {"enum": ["qualification", "development", "official"]},
     "model": {"type": "string", "minLength": 1},
     "config_module": {"type": "string", "minLength": 1},
+    "run_kind": {"enum": ["qualification", "standard", "probe", "lifecycle-test"]},
+    "simulation": {"type": "boolean"},
+    "checkpoint_policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["selector_geometry", "selector_scale", "selector_flip", "top_k", "retain_latest", "tie_break", "candidate_manifest"],
+      "properties": {
+        "selector_geometry": {"const": "original-full"}, "selector_scale": {"const": 1.0},
+        "selector_flip": {"const": false}, "top_k": {"const": 3}, "retain_latest": {"const": true},
+        "tie_break": {"const": "earlier_epoch"}, "candidate_manifest": {"type": "string", "minLength": 1, "pattern": "^(?!\\.{1,2}$)[^/\\\\\\u0000]+$"}
+      }
+    },
+    "optimizer_telemetry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "required_counters", "invariant"],
+      "properties": {
+        "schema_version": {"const": "museg-optimizer-telemetry-v1"},
+        "required_counters": {"const": ["attempted_steps", "completed_optimizer_steps", "skipped_optimizer_steps"]},
+        "invariant": {"const": "attempted_steps=completed_optimizer_steps+skipped_optimizer_steps"}
+      }
+    },
     "git": {
       "type": "object", "additionalProperties": false, "required": ["required_commit"],
       "properties": {"required_commit": {"type": "string", "pattern": "^[0-9a-fA-F]{40}$"}}

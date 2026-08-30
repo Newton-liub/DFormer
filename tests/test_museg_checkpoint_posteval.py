@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -10,11 +11,17 @@ import torch
 import torch.nn as nn
 
 from tools.evaluate_museg_checkpoint import (
+    MSFLIP_GEOMETRY,
     MUSegPostEvalDataset,
+    build_msflip_views,
+    file_sha256,
     geometry_contract,
     load_model,
+    main as evaluate_main,
     metrics_from_confusion,
+    msflip_whole_logits,
     restore_logits_to_metric_grid,
+    select_largest_val_sample,
     sliding_logits,
     split_entries,
     update_confusion,
@@ -101,6 +108,21 @@ def test_split_identity_rejects_duplicates_and_official_test_names(tmp_path: Pat
     good.write_text("RGB/official-test-a.jpg\n", encoding="utf-8")
     with pytest.raises(ValueError, match="official test"):
         split_entries(good)
+
+
+def test_largest_sample_selection_reads_only_val_dev_label_geometry(tmp_path: Path) -> None:
+    label_root = tmp_path / "Label"
+    label_root.mkdir()
+    assert cv2.imwrite(str(label_root / "small.png"), np.ones((4, 8), dtype=np.uint8))
+    assert cv2.imwrite(str(label_root / "largest.png"), np.ones((7, 7), dtype=np.uint8))
+
+    entry, size = select_largest_val_sample(
+        tmp_path,
+        ["RGB/small.jpg", "RGB/largest.jpg"],
+    )
+
+    assert entry == "RGB/largest.jpg"
+    assert size == (7, 7)
 
 
 def test_load_model_skips_separate_pretrained_initialization(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -203,3 +225,104 @@ def test_resize_changes_only_model_input_and_restores_original_metric_grid(tmp_p
     assert contract["input_geometry"]["resize_size_hw"] == [480, 640]
     assert contract["metric_geometry"]["name"] == "original-label-grid"
     assert contract["metric_geometry"]["output_sizes_hw"] == [[5, 7]]
+
+
+def test_msflip_views_resize_flip_pad_unpad_and_fuse_on_original_grid() -> None:
+    rgb = np.arange(5 * 7 * 3, dtype=np.uint8).reshape(5, 7, 3)
+    depth = np.arange(5 * 7, dtype=np.uint8).reshape(5, 7)
+    config = _config()
+    views = build_msflip_views(rgb, depth, config, scales=(1.0,))
+
+    assert len(views) == 2
+    assert [view["flipped"] for view in views] == [False, True]
+    assert all(view["scaled_size_hw"] == (5, 7) for view in views)
+    assert all(view["padded_size_hw"] == (32, 32) for view in views)
+
+    logits, records = msflip_whole_logits(
+        _PointModel(),
+        views,
+        original_size_hw=(5, 7),
+        amp=False,
+        measure_timing=True,
+    )
+    rgb_value = torch.from_numpy(rgb[:, :, 0].astype(np.float32) / 255.0)
+    depth_value = torch.from_numpy((depth.astype(np.float32) / 255.0 - 0.48) / 0.28)
+    expected_value = (rgb_value + depth_value).unsqueeze(0).unsqueeze(0)
+    expected = torch.cat((expected_value, -expected_value), dim=1)
+
+    torch.testing.assert_close(logits, expected)
+    assert [record["flipped"] for record in records] == [False, True]
+    assert all(record["elapsed_seconds"] >= 0 for record in records)
+    with pytest.raises(ValueError, match="FP32"):
+        msflip_whole_logits(
+            _PointModel(),
+            views,
+            original_size_hw=(5, 7),
+            amp=True,
+        )
+    contract = geometry_contract(MSFLIP_GEOMETRY, [(5, 7)], records)
+    msflip = contract["input_geometry"]["multi_scale_flip"]
+    assert msflip["scales"] == [0.5, 0.75, 1.0, 1.25, 1.5]
+    assert msflip["padding"]["divisor"] == 32
+    assert contract["metric_geometry"]["name"] == "original-label-grid"
+
+
+def test_technical_check_runs_only_scale_1_5_two_views_without_metrics(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sample_id = _write_sample(tmp_path)
+    split = tmp_path / "val-dev.txt"
+    split.write_text(f"RGB/{sample_id}.jpg\n", encoding="utf-8")
+    checkpoint = tmp_path / "checkpoint.pth"
+    checkpoint.write_bytes(b"checkpoint identity only")
+    output = tmp_path / "technical-check.json"
+    config = _config()
+    config.num_classes = 2
+    config.class_names = ["first", "second"]
+    config.background = 255
+    config.backbone = "PointModel"
+    monkeypatch.setattr(
+        "tools.evaluate_museg_checkpoint.importlib.import_module",
+        lambda _: SimpleNamespace(C=config),
+    )
+    monkeypatch.setattr(
+        "tools.evaluate_museg_checkpoint.load_model",
+        lambda *_: _PointModel().float().eval(),
+    )
+
+    status = evaluate_main(
+        [
+            "--config",
+            "unit.fake_config",
+            "--dataset-root",
+            str(tmp_path),
+            "--split",
+            str(split),
+            "--split-role",
+            "val_dev",
+            "--checkpoint",
+            str(checkpoint),
+            "--output",
+            str(output),
+            "--technical-check",
+            "--expected-checkpoint-sha256",
+            file_sha256(checkpoint),
+            "--expected-split-sha256",
+            file_sha256(split),
+            "--device",
+            "cpu",
+        ]
+    )
+
+    report = json.loads(output.read_text(encoding="utf-8"))
+    assert status == 0
+    assert report["status"] == "completed"
+    assert report["metrics_computed"] is False
+    assert "metrics_percent" not in report
+    assert report["sample_selection"]["sample_id"] == sample_id
+    assert [(view["scale"], view["flipped"]) for view in report["views"]] == [
+        (1.5, False),
+        (1.5, True),
+    ]
+    assert report["forward_precision"] == "fp32"

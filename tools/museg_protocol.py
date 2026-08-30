@@ -259,6 +259,22 @@ class ProtocolManifest:
         return str(self.raw["config_module"])
 
     @property
+    def run_kind(self) -> str:
+        return str(self.raw.get("run_kind", "qualification"))
+
+    @property
+    def simulation(self) -> bool:
+        return bool(self.raw.get("simulation", False))
+
+    @property
+    def checkpoint_policy(self) -> Mapping[str, Any]:
+        return _require_mapping(self.raw, "checkpoint_policy") if "checkpoint_policy" in self.raw else MappingProxyType({})
+
+    @property
+    def optimizer_telemetry(self) -> Mapping[str, Any]:
+        return _require_mapping(self.raw, "optimizer_telemetry") if "optimizer_telemetry" in self.raw else MappingProxyType({})
+
+    @property
     def seeds(self) -> tuple[int, ...]:
         return tuple(int(seed) for seed in self.raw["seeds"])
 
@@ -361,7 +377,10 @@ def load_protocol(path: str | os.PathLike[str]) -> ProtocolManifest:
     schema_version = raw.get("schema_version")
     if schema_version == PROTOCOL_SCHEMA_VERSION:
         required.add("input_contract")
-    allowed = required | ({"input_contract"} if schema_version == LEGACY_PROTOCOL_SCHEMA_VERSION else set())
+    allowed = required | {
+        "run_kind", "simulation", "checkpoint_policy", "optimizer_telemetry",
+        *({"input_contract"} if schema_version == LEGACY_PROTOCOL_SCHEMA_VERSION else set()),
+    }
     missing = sorted(required - set(raw))
     extra = sorted(set(raw) - allowed)
     if missing or extra:
@@ -416,6 +435,47 @@ def load_protocol(path: str | os.PathLike[str]) -> ProtocolManifest:
                 raise ProtocolError(f"input_contract.normalization.{field} must contain three numbers")
         if any(float(value) <= 0 for value in normalization["std"]):
             raise ProtocolError("input_contract.normalization.std values must be positive")
+    run_kind = raw.get("run_kind", "qualification")
+    if run_kind not in {"qualification", "standard", "probe", "lifecycle-test"}:
+        raise ProtocolError("run_kind must be qualification, standard, probe, or lifecycle-test")
+    simulation = raw.get("simulation", False)
+    if not isinstance(simulation, bool):
+        raise ProtocolError("simulation must be boolean")
+    if run_kind == "lifecycle-test" and simulation is not True:
+        raise ProtocolError("lifecycle-test protocols must set simulation=true")
+    if run_kind != "lifecycle-test" and simulation:
+        raise ProtocolError("simulation=true is reserved for lifecycle-test protocols")
+    checkpoint_policy = raw.get("checkpoint_policy")
+    if checkpoint_policy is not None:
+        if not isinstance(checkpoint_policy, Mapping):
+            raise ProtocolError("checkpoint_policy must be an object")
+        _validate_exact_keys(
+            checkpoint_policy,
+            frozenset({"selector_geometry", "selector_scale", "selector_flip", "top_k", "retain_latest", "tie_break", "candidate_manifest"}),
+            "checkpoint_policy",
+        )
+        selector_scale = checkpoint_policy.get("selector_scale")
+        if (
+            checkpoint_policy.get("selector_geometry") != "original-full"
+            or isinstance(selector_scale, bool)
+            or not isinstance(selector_scale, (int, float))
+            or float(selector_scale) != 1.0
+            or checkpoint_policy.get("selector_flip") is not False
+        ):
+            raise ProtocolError("checkpoint_policy must identify original-full scale 1.0 without flip")
+        if checkpoint_policy.get("top_k") != 3 or checkpoint_policy.get("retain_latest") is not True or checkpoint_policy.get("tie_break") != "earlier_epoch":
+            raise ProtocolError("checkpoint_policy must be top-3/latest with earlier-epoch tie break")
+        if not isinstance(checkpoint_policy.get("candidate_manifest"), str) or not checkpoint_policy["candidate_manifest"].strip():
+            raise ProtocolError("checkpoint_policy.candidate_manifest must be a non-empty string")
+        _require_path_component(checkpoint_policy["candidate_manifest"], "checkpoint_policy.candidate_manifest")
+    telemetry = raw.get("optimizer_telemetry")
+    if telemetry is not None:
+        if not isinstance(telemetry, Mapping):
+            raise ProtocolError("optimizer_telemetry must be an object")
+        _validate_exact_keys(telemetry, frozenset({"schema_version", "required_counters", "invariant"}), "optimizer_telemetry")
+        if telemetry.get("schema_version") != "museg-optimizer-telemetry-v1" or telemetry.get("required_counters") != ["attempted_steps", "completed_optimizer_steps", "skipped_optimizer_steps"] or telemetry.get("invariant") != "attempted_steps=completed_optimizer_steps+skipped_optimizer_steps":
+            raise ProtocolError("optimizer_telemetry does not declare the supported counter invariant")
+
     git = _require_mapping(raw, "git")
     _validate_exact_keys(git, frozenset({"required_commit"}), "git")
     commit = git.get("required_commit")

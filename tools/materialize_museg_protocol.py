@@ -77,7 +77,7 @@ def materialize(
     commit = _git_clean_commit(repo)
     template = read_json(Path(template_path).resolve())
     if not isinstance(template, dict):
-        raise ProtocolError("qualification protocol template root must be an object")
+        raise ProtocolError("protocol template root must be an object")
     target = Path(output).expanduser().resolve()
     if target.exists():
         raise ProtocolError(f"protocol output already exists: {target}")
@@ -109,7 +109,7 @@ def materialize(
     }
     rendered = str(raw)
     if _PLACEHOLDER in rendered:
-        raise ProtocolError("qualification protocol contains unresolved materialization placeholders")
+        raise ProtocolError("protocol contains unresolved materialization placeholders")
     # Verify all split and weight identities before any new protocol evidence is written.
     temporary = target.with_suffix(target.suffix + ".validation")
     try:

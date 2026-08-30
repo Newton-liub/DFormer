@@ -16,6 +16,7 @@ from utils.training_checkpoint import (
     CheckpointCompatibilityError,
     CheckpointCorruptionError,
     CheckpointProtocol,
+    TopKCheckpointSelector,
     TrainingSources,
     build_split_metadata,
     atomic_save_checkpoint,
@@ -116,6 +117,63 @@ def test_best_metric_uses_strict_improvement_and_rejects_non_finite() -> None:
     assert select_best_metric(0.5, 4, 0.3, 5) == (False, 0.5, 4)
     with pytest.raises(FloatingPointError, match="non-finite"):
         select_best_metric(0.5, 4, float("nan"), 5)
+
+
+def test_top_k_selector_retains_earlier_ties_and_finalizes_deduplicated_manifest(tmp_path: Path) -> None:
+    checkpoint_dir = tmp_path / "checkpoint"
+    rolling_manifest = tmp_path / "checkpoint-candidates.json"
+    policy = {"top_k": 3, "retain_latest": True, "tie_break": "earlier_epoch"}
+    selector = TopKCheckpointSelector(
+        checkpoint_dir,
+        top_k=3,
+        rolling_manifest_path=rolling_manifest,
+        policy=policy,
+    )
+
+    def save_checkpoint(path: str) -> None:
+        epoch = Path(path).stem.removeprefix("selector-epoch-")
+        Path(path).write_bytes(f"checkpoint-{epoch}".encode("ascii"))
+
+    for epoch, miou in ((10, 0.5), (20, 0.6), (30, 0.6), (40, 0.7), (50, 0.4)):
+        selector.consider(epoch=epoch, selector_miou=miou, save_checkpoint=save_checkpoint)
+
+    assert [(item.epoch, item.selector_miou) for item in selector.candidates] == [
+        (40, 0.7),
+        (20, 0.6),
+        (30, 0.6),
+    ]
+    assert not (checkpoint_dir / "selector-epoch-10.pth").exists()
+    assert not (checkpoint_dir / "selector-epoch-50.pth").exists()
+    assert rolling_manifest.is_file()
+
+    resumed_dir = tmp_path / "resumed-checkpoint"
+    selector = TopKCheckpointSelector(
+        resumed_dir,
+        top_k=3,
+        rolling_manifest_path=tmp_path / "resumed-candidates.json",
+        policy=policy,
+        resume_manifest_path=rolling_manifest,
+    )
+    assert [(item.epoch, item.selector_miou) for item in selector.candidates] == [
+        (40, 0.7),
+        (20, 0.6),
+        (30, 0.6),
+    ]
+
+    latest = resumed_dir / "latest.pth"
+    latest.write_bytes((resumed_dir / "selector-epoch-40.pth").read_bytes())
+    manifest_path = tmp_path / "checkpoint-candidates.json"
+    payload = selector.finalize(
+        manifest_path=manifest_path,
+        latest_path=latest,
+        latest_epoch=50,
+        policy=policy,
+    )
+
+    assert manifest_path.is_file()
+    assert payload["finalized"] is True
+    assert len(payload["evaluation_candidates"]) == 3
+    assert payload["evaluation_candidates"][0]["sources"] == ["selector_top_k", "latest"]
 
 
 def _run_step(model: torch.nn.Module, optimizer: torch.optim.Optimizer, step: int) -> None:

@@ -32,6 +32,7 @@ from utils.lr_policy import WarmUpPolyLR
 from utils.pyt_utils import all_reduce_tensor
 from utils.training_checkpoint import (
     CheckpointProtocol,
+    TopKCheckpointSelector,
     build_split_metadata,
     file_sha256,
     get_git_commit,
@@ -78,6 +79,11 @@ parser.add_argument("--swanlab-run-name", default=None)
 parser.add_argument("--show_image", "-s", default=False, action="store_true")
 parser.add_argument("--save_path", default=None)
 parser.add_argument("--checkpoint-dir", "--checkpoint_dir", dest="checkpoint_dir")
+parser.add_argument("--checkpoint-top-k", type=int, default=None)
+parser.add_argument("--checkpoint-retain-latest", action="store_true")
+parser.add_argument("--checkpoint-tie-break", choices=("earlier_epoch",), default=None)
+parser.add_argument("--checkpoint-candidate-manifest", default=None)
+parser.add_argument("--checkpoint-resume-candidate-manifest", default=None)
 parser.add_argument("--continue_fpath")
 parser.add_argument("--resume", dest="continue_fpath", help="resume from a versioned epoch-boundary checkpoint")
 parser.add_argument("--eval-interval", type=int, default=None)
@@ -218,6 +224,26 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         parser.error("--eval-start-epoch must be within the configured epochs")
     if config.save_interval <= 0:
         parser.error("--save-interval must be positive")
+    if args.checkpoint_top_k is not None:
+        if args.checkpoint_top_k <= 0:
+            parser.error("--checkpoint-top-k must be positive")
+        if not args.checkpoint_retain_latest:
+            parser.error("top-k checkpoint selection requires --checkpoint-retain-latest")
+        if args.checkpoint_tie_break != "earlier_epoch":
+            parser.error("top-k checkpoint selection requires earlier_epoch tie breaking")
+        candidate_manifest = str(args.checkpoint_candidate_manifest or "")
+        if not candidate_manifest or os.path.basename(candidate_manifest) != candidate_manifest:
+            parser.error("--checkpoint-candidate-manifest must be a file name")
+        config.checkpoint_retention_policy = {
+            "selector_geometry": "original-full",
+            "selector_scale": 1.0,
+            "selector_flip": False,
+            "top_k": args.checkpoint_top_k,
+            "retain_latest": True,
+            "tie_break": args.checkpoint_tie_break,
+        }
+        config.checkpoint_candidate_manifest = candidate_manifest
+        config.save_epoch_checkpoints = False
     sources = resolve_training_sources(config)
     config.experiment_phase = sources.phase
     config.train_source = sources.train_source
@@ -531,6 +557,12 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         "normalization_identity": config.normalization_identity,
         "normalization_mean": [float(value) for value in config.norm_mean],
         "normalization_std": [float(value) for value in config.norm_std],
+        "checkpoint_retention_policy": dict(
+            getattr(config, "checkpoint_retention_policy", {})
+        ),
+        "checkpoint_candidate_manifest": getattr(
+            config, "checkpoint_candidate_manifest", None
+        ),
     }
     checkpoint_protocol = CheckpointProtocol(
         phase=config.experiment_phase,
@@ -571,6 +603,21 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     miou = 0.0
     best_miou = engine.state.best_val_miou
     best_miou_epoch = engine.state.best_val_epoch
+    checkpoint_selector = None
+    checkpoint_policy = dict(getattr(config, "checkpoint_retention_policy", {}))
+    if checkpoint_policy and is_primary:
+        checkpoint_selector = TopKCheckpointSelector(
+            config.checkpoint_dir,
+            top_k=int(checkpoint_policy["top_k"]),
+            rolling_manifest_path=os.path.join(
+                config.log_dir, config.checkpoint_candidate_manifest
+            ),
+            policy={
+                **checkpoint_policy,
+                "candidate_manifest": config.checkpoint_candidate_manifest,
+            },
+            resume_manifest_path=args.checkpoint_resume_candidate_manifest,
+        )
     train_timer = gpu_timer()
     eval_timer = gpu_timer()
     log_interval = args.log_interval or max(1, int(config.niters_per_epoch * 0.1))
@@ -945,6 +992,12 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     )
                 print("miou", miou, "best", best_miou)
             if is_primary:
+                if checkpoint_selector is not None:
+                    checkpoint_selector.consider(
+                        epoch=epoch,
+                        selector_miou=float(miou),
+                        save_checkpoint=engine.save_checkpoint,
+                    )
                 logger.info(f"Epoch {epoch} validation result: mIoU {miou}, best mIoU {best_miou}")
                 tracker.log(
                     {
@@ -960,7 +1013,10 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         if is_primary:
             os.makedirs(config.checkpoint_dir, exist_ok=True)
             engine.save_checkpoint(os.path.join(config.checkpoint_dir, "latest.pth"))
-            if should_save_epoch(epoch, config.nepochs, config.save_interval):
+            if (
+                getattr(config, "save_epoch_checkpoints", True)
+                and should_save_epoch(epoch, config.nepochs, config.save_interval)
+            ):
                 engine.save_checkpoint(
                     os.path.join(config.checkpoint_dir, f"epoch-{epoch}.pth")
                 )
@@ -992,6 +1048,29 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         )
     if is_primary:
         latest_checkpoint = os.path.join(config.checkpoint_dir, "latest.pth")
+        candidate_manifest_path = None
+        candidate_manifest = None
+        if checkpoint_selector is not None:
+            candidate_manifest_path = os.path.join(
+                config.log_dir, config.checkpoint_candidate_manifest
+            )
+            candidate_manifest = checkpoint_selector.finalize(
+                manifest_path=candidate_manifest_path,
+                latest_path=latest_checkpoint,
+                latest_epoch=int(epoch),
+                policy={
+                    **checkpoint_policy,
+                    "candidate_manifest": config.checkpoint_candidate_manifest,
+                },
+            )
+        optimizer_telemetry_satisfied = (
+            attempted_steps == train_steps_completed + skipped_optimizer_steps
+        )
+        if not optimizer_telemetry_satisfied:
+            raise RuntimeError(
+                "optimizer telemetry invariant failed: attempted_steps must equal "
+                "completed_optimizer_steps + skipped_optimizer_steps"
+            )
         write_json(
             os.path.join(config.log_dir, "training_result.json"),
             {
@@ -1007,6 +1086,13 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 "attempted_steps": attempted_steps,
                 "skipped_optimizer_steps": skipped_optimizer_steps,
                 "optimizer_telemetry_schema_version": "museg-optimizer-telemetry-v1",
+                "optimizer_telemetry_invariant": {
+                    "expression": (
+                        "attempted_steps == completed_optimizer_steps + "
+                        "skipped_optimizer_steps"
+                    ),
+                    "satisfied": optimizer_telemetry_satisfied,
+                },
                 "probe_warmup_steps": args.probe_warmup_steps if args.run_kind == "probe" else None,
                 "probe_telemetry_jsonl": os.path.abspath(probe_telemetry_path) if probe_telemetry_path else None,
                 "best_val_miou": float(best_miou) if best_miou is not None else None,
@@ -1019,6 +1105,13 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     "path": os.path.abspath(latest_checkpoint),
                     "sha256": file_sha256(latest_checkpoint),
                 } if os.path.isfile(latest_checkpoint) else None,
+                "checkpoint_candidates": {
+                    "path": os.path.abspath(candidate_manifest_path),
+                    "sha256": file_sha256(candidate_manifest_path),
+                    "selector_top_k": candidate_manifest["selector_top_k"],
+                    "latest": candidate_manifest["latest"],
+                    "evaluation_candidates": candidate_manifest["evaluation_candidates"],
+                } if candidate_manifest_path and candidate_manifest else None,
                 "official_test_included": False,
             },
         )

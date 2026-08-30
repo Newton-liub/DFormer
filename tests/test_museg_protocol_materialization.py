@@ -114,6 +114,38 @@ def test_materializer_writes_valid_immutable_protocol(tmp_path: Path, monkeypatc
         )
 
 
+def test_quick_b0_template_materializes_protocol_v3_extensions(tmp_path: Path, monkeypatch) -> None:
+    authority = _patch_authority(tmp_path, monkeypatch)
+    repo = tmp_path / "clean repo"
+    _clean_repo(repo)
+    weight = tmp_path / "weight.pth"
+    weight.write_bytes(b"pretrained")
+    target = tmp_path / "generated" / "quick-b0.json"
+    template = Path(__file__).parents[1] / "protocols" / "museg-dformerv2-s-rgb-quick-b0-v1.template.json"
+
+    manifest, _ = materializer.materialize(
+        output=target,
+        output_root=tmp_path / "outputs",
+        official_train=authority / "official-train.txt",
+        pretrained=weight,
+        batch_size=10,
+        swanlab_mode="offline",
+        swanlab_project="project",
+        swanlab_workspace="workspace",
+        template_path=template,
+        repo_root=repo,
+    )
+    protocol = load_protocol(manifest)
+
+    assert protocol.run_kind == "standard"
+    assert protocol.simulation is False
+    assert protocol.seeds == (772961337,)
+    assert protocol.checkpoint_policy["top_k"] == 3
+    assert protocol.checkpoint_policy["candidate_manifest"] == "checkpoint-candidates.json"
+    assert protocol.optimizer_telemetry["schema_version"] == "museg-optimizer-telemetry-v1"
+    assert protocol.input_contract["channel_order"] == "RGB"
+
+
 def test_materializer_rejects_dirty_repository_before_writing(tmp_path: Path, monkeypatch) -> None:
     authority = _patch_authority(tmp_path, monkeypatch)
     repo = tmp_path / "dirty repo"

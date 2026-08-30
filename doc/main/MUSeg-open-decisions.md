@@ -1,6 +1,6 @@
 # MUSeg 实验口径与处置状态
 
-> 状态时间：2026-08-30 06:06 UTC
+> 状态时间：2026-08-30 09:55 UTC
 > 本文件保留问题缘由，同时明确区分“仍待决定”“本轮已处置”和“仅保留历史解释”。
 > 已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
@@ -8,7 +8,7 @@
 
 **大白话结论：** 新计划使用 DFormerv2-S 和其公开训练/测试方法建立内部 B0，作为后续模块消融的共同起点；目标是结果量级合理、链路可信和比较口径一致，不是三 seed 完整复现论文。
 
-**当前状态：方向、RGB 和 single-seed B0 角色已确认；实现与资源细节尚未冻结。**
+**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、top 3 + latest 和 protocol v3 已冻结并完成本地实现；本机尺度 1.5 FP32 技术检查已通过，主 evaluator 运行位置据此冻结为本地。真实云资源门禁仍待单独授权和核验。**
 
 - 训练方向：采用官方公开的随机尺度训练增强，尺度候选为 `0.5、0.75、1.0、1.25、1.5、1.75`，之后裁剪到 `480×640`，并保持 RGB/Depth/Label 同步变换。
 - 测试方向：采用官方论文公开的 multi-scale flip 推理，尺度为 `0.5、0.75、1.0、1.25、1.5`，暂不把滑动窗口静默混入主基线。
@@ -20,7 +20,9 @@
 
 **大白话问题：** 文档曾把“输入 640×480”写成统一模型输入，但 seed 1 实际只把训练样本随机裁剪到高 480、宽 640；`sliding=false` 时，validation 使用转换数据的原始高 932、宽 1082 整图前向。不同几何会改变 val mIoU，不能把结果直接混为同一口径。
 
-**当前状态：历史 seed 1 的五项后评估已完成；新 baseline 的测试几何改为优先实现 DFormerv2 论文公开的 multi-scale flip 方向，具体 evaluator 和资源细节待新计划细化。原图计分仍作为输出对齐原则。**
+**当前状态：历史 seed 1 的五项后评估已完成；新 baseline 已实现并冻结 `msflip-whole-original-grid-v1`：五尺度、水平翻转、右/下补零到 32 倍数、FP32 平均 pre-softmax logits，并恢复到原始 Label 网格计分。本机最大样本尺度 1.5 的 FP32 原图/翻转技术检查已通过，主 evaluator 运行位置冻结为本地。**
+
+- 技术检查样本为 `06-01-01-0352-230920140646-10-99`，原始 `932×1082`，尺度 1.5 后 `1398×1623`，padding 后 `1408×1632`；两个 view 用时 `2.095559`/`1.079008` 秒，峰值 allocated/reserved 为 `4,977,021,952`/`6,511,656,960` bytes，未 OOM。证据见 `cloud/DFormer-stage05-evidence/posteval/quick-b0-scale1.5-max-sample-fp32-technical-check.json`，其中 `metrics_computed=false`。按最大样本保守外推最多 4 个候选约 `2.8` 小时，低于 8 小时硬上限。大白话说，本次只确认本机能承载冻结 evaluator，不产生任何模型好坏结论。
 
 - seed 1 的训练与在线 validation 事实保持为：训练裁剪 480×640，validation 原分辨率整图，`sliding=false`。
 - post-evaluator 已改为所有 geometry 保留原始 Label：resize 只改变模型输入，logits 恢复到原图计分；sliding 保持全图覆盖。报告显式记录 input/metric geometry、插值、stride、padding 和输出尺寸。
@@ -97,5 +99,5 @@
 - 后续模块可以复用这一个 B0 结果作为对照，但模块版本必须从同一 pretrained 独立训练，并保持相同 `train-dev`/`val-dev`、seed、数据顺序、epoch、优化器、增强、checkpoint 规则和主 evaluator。不能从 B0 最终 checkpoint 接着训练模块后再称为公平消融。
 - 若后续改变训练预算、优化器、增强、数据或 evaluator，现有 B0 不再是严格配对对照；需要限定结论，或在新协议下重训匹配的 B0。
 - 单 seed 足够用于模块探索、淘汰和初步消融，但不能估计随机方差。若模块增益很小、接近训练波动或要支撑重要结论，应对 B0 和该模块增加成对重复或额外 seed；当前不预先要求三 seed，也不因此阻塞模块设计。
-- 主 evaluator 可以在本地或云端运行。机器位置不改变实验身份，但必须绑定 checkpoint/split 哈希、冻结代码与配置、输入契约、前向精度、环境和 `official_test_included=false`。本机已核验为 RTX 5060 Laptop 8 GB，历史单尺度 318 样本约 108 秒；本地最多 4 个主评估候选按 2–4 小时规划、硬上限 8 小时，最终运行位置取决于尺度 1.5 显存检查。
+- 主 evaluator 可以在本地或云端运行。机器位置不改变实验身份，但必须绑定 checkpoint/split 哈希、冻结代码与配置、输入契约、前向精度、环境和 `official_test_included=false`。本机 RTX 5060 Laptop 8 GB 的最大样本尺度 1.5 FP32 检查已通过，最多 4 个候选按保守外推约 `2.8` 小时并落在 2–4 小时预算内，因此当前运行位置已冻结为本地，硬上限仍为 8 小时。
 - official test 在 B0 和模块开发期间继续 `sealed_unread`；是否以及何时解封由未来独立门禁决定，当前 single-seed 方向不构成解封授权。

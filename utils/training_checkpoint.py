@@ -8,11 +8,12 @@ import math
 import os
 import random
 import re
+import shutil
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 import numpy as np
 import torch
@@ -66,6 +67,236 @@ class CheckpointCorruptionError(CheckpointError):
 class CheckpointCompatibilityError(CheckpointError):
     """Raised when a checkpoint does not match the frozen training protocol."""
 
+
+
+CANDIDATE_MANIFEST_SCHEMA_VERSION = "museg-checkpoint-candidates-v1"
+
+
+@dataclass(frozen=True)
+class SelectorCandidate:
+    epoch: int
+    selector_miou: float
+    path: str
+    sha256: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+class TopKCheckpointSelector:
+    """Retain selector checkpoints by mIoU, preferring earlier epochs on ties."""
+
+    def __init__(
+        self,
+        checkpoint_dir: str | os.PathLike[str],
+        *,
+        top_k: int = 3,
+        rolling_manifest_path: str | os.PathLike[str] | None = None,
+        policy: Mapping[str, Any] | None = None,
+        resume_manifest_path: str | os.PathLike[str] | None = None,
+    ) -> None:
+        if top_k <= 0:
+            raise ValueError("top_k must be positive")
+        self.checkpoint_dir = Path(checkpoint_dir).resolve()
+        self.top_k = int(top_k)
+        self.rolling_manifest_path = (
+            Path(rolling_manifest_path).resolve() if rolling_manifest_path is not None else None
+        )
+        self.policy = dict(policy or {})
+        self._candidates: list[SelectorCandidate] = []
+        if resume_manifest_path is not None:
+            self._restore(Path(resume_manifest_path).resolve())
+        else:
+            self._write_rolling_manifest()
+
+    @property
+    def candidates(self) -> tuple[SelectorCandidate, ...]:
+        return tuple(self._candidates)
+
+    def _write_payload(self, destination: Path, payload: Mapping[str, Any]) -> None:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f".{destination.name}.", suffix=".tmp", dir=destination.parent
+        )
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
+                json.dump(payload, stream, ensure_ascii=False, indent=2, sort_keys=True)
+                stream.write("\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary_name, destination)
+        finally:
+            Path(temporary_name).unlink(missing_ok=True)
+
+    def _write_rolling_manifest(self) -> None:
+        if self.rolling_manifest_path is None:
+            return
+        self._write_payload(
+            self.rolling_manifest_path,
+            {
+                "schema_version": CANDIDATE_MANIFEST_SCHEMA_VERSION,
+                "finalized": False,
+                "policy": self.policy,
+                "selector_top_k": [candidate.to_dict() for candidate in self._candidates],
+                "latest": None,
+                "evaluation_candidates": [],
+            },
+        )
+
+    def _restore(self, manifest_path: Path) -> None:
+        try:
+            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise CheckpointCorruptionError(
+                f"cannot read selector resume manifest {manifest_path}: {exc}"
+            ) from exc
+        if not isinstance(payload, dict) or payload.get("schema_version") != CANDIDATE_MANIFEST_SCHEMA_VERSION:
+            raise CheckpointCorruptionError("selector resume manifest has an invalid schema")
+        if payload.get("policy") != self.policy:
+            raise CheckpointCompatibilityError("selector resume manifest policy mismatch")
+        records = payload.get("selector_top_k")
+        if not isinstance(records, list) or len(records) > self.top_k:
+            raise CheckpointCorruptionError("selector resume manifest has invalid top-k records")
+        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        restored: list[SelectorCandidate] = []
+        for record in records:
+            if not isinstance(record, dict):
+                raise CheckpointCorruptionError("selector resume manifest contains a non-object record")
+            source = Path(str(record.get("path", ""))).resolve()
+            sha256 = str(record.get("sha256", ""))
+            epoch = record.get("epoch")
+            selector_miou = record.get("selector_miou")
+            if (
+                not source.is_file()
+                or file_sha256(source) != sha256
+                or isinstance(epoch, bool)
+                or not isinstance(epoch, int)
+                or epoch <= 0
+                or isinstance(selector_miou, bool)
+                or not isinstance(selector_miou, (int, float))
+                or not math.isfinite(float(selector_miou))
+            ):
+                raise CheckpointCorruptionError("selector resume manifest record failed identity validation")
+            destination = self.checkpoint_dir / f"selector-epoch-{epoch}.pth"
+            shutil.copyfile(source, destination)
+            if file_sha256(destination) != sha256:
+                raise CheckpointCorruptionError("copied selector checkpoint SHA-256 mismatch")
+            restored.append(
+                SelectorCandidate(
+                    epoch=epoch,
+                    selector_miou=float(selector_miou),
+                    path=str(destination),
+                    sha256=sha256,
+                )
+            )
+        self._candidates = sorted(
+            restored, key=lambda item: (-item.selector_miou, item.epoch)
+        )
+        self._write_rolling_manifest()
+
+    def consider(
+        self,
+        *,
+        epoch: int,
+        selector_miou: float,
+        save_checkpoint: Callable[[str], None],
+    ) -> bool:
+        if epoch <= 0:
+            raise ValueError("candidate epoch must be positive")
+        if not math.isfinite(selector_miou):
+            raise FloatingPointError(f"non-finite selector mIoU at epoch {epoch}: {selector_miou}")
+        if any(candidate.epoch == epoch for candidate in self._candidates):
+            raise ValueError(f"selector candidate epoch {epoch} was already considered")
+
+        rankable = [(candidate.selector_miou, candidate.epoch) for candidate in self._candidates]
+        rankable.append((float(selector_miou), int(epoch)))
+        retained_keys = set(sorted(rankable, key=lambda item: (-item[0], item[1]))[: self.top_k])
+        if (float(selector_miou), int(epoch)) not in retained_keys:
+            return False
+
+        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        path = self.checkpoint_dir / f"selector-epoch-{epoch}.pth"
+        save_checkpoint(str(path))
+        if not path.is_file():
+            raise CheckpointError(f"checkpoint saver did not create selector candidate: {path}")
+        candidate = SelectorCandidate(
+            epoch=int(epoch),
+            selector_miou=float(selector_miou),
+            path=str(path),
+            sha256=file_sha256(path),
+        )
+        previous = list(self._candidates)
+        self._candidates = sorted(
+            [*self._candidates, candidate],
+            key=lambda item: (-item.selector_miou, item.epoch),
+        )[: self.top_k]
+        retained_paths = {item.path for item in self._candidates}
+        for removed in previous:
+            if removed.path not in retained_paths:
+                Path(removed.path).unlink(missing_ok=True)
+        if candidate.path not in retained_paths:
+            path.unlink(missing_ok=True)
+            return False
+        self._write_rolling_manifest()
+        return True
+
+    def finalize(
+        self,
+        *,
+        manifest_path: str | os.PathLike[str],
+        latest_path: str | os.PathLike[str],
+        latest_epoch: int,
+        policy: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        latest = Path(latest_path).resolve()
+        if not latest.is_file():
+            raise CheckpointError(f"latest checkpoint is missing: {latest}")
+        latest_record = {
+            "epoch": int(latest_epoch),
+            "path": str(latest),
+            "sha256": file_sha256(latest),
+        }
+        deduplicated: dict[str, dict[str, Any]] = {}
+        for candidate in self._candidates:
+            if file_sha256(Path(candidate.path)) != candidate.sha256:
+                raise CheckpointCorruptionError(
+                    f"selector candidate SHA-256 changed before finalization: {candidate.path}"
+                )
+            deduplicated[candidate.sha256] = {
+                "path": candidate.path,
+                "sha256": candidate.sha256,
+                "epoch": candidate.epoch,
+                "sources": ["selector_top_k"],
+                "selector_miou": candidate.selector_miou,
+            }
+        existing = deduplicated.get(latest_record["sha256"])
+        if existing is None:
+            deduplicated[latest_record["sha256"]] = {
+                **latest_record,
+                "sources": ["latest"],
+                "selector_miou": next(
+                    (
+                        item.selector_miou
+                        for item in self._candidates
+                        if item.epoch == int(latest_epoch)
+                    ),
+                    None,
+                ),
+            }
+        else:
+            existing["sources"].append("latest")
+
+        payload = {
+            "schema_version": CANDIDATE_MANIFEST_SCHEMA_VERSION,
+            "finalized": True,
+            "policy": dict(policy),
+            "selector_top_k": [candidate.to_dict() for candidate in self._candidates],
+            "latest": latest_record,
+            "evaluation_candidates": list(deduplicated.values()),
+        }
+        destination = Path(manifest_path).resolve()
+        self._write_payload(destination, payload)
+        return payload
 
 @dataclass(frozen=True)
 class TrainingSources:

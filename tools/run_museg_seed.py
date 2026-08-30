@@ -54,7 +54,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", help="qualification-only isolated output override")
     parser.add_argument("--batch-size", type=int, help="qualification-only batch override")
     parser.add_argument("--max-train-iters", type=int, help="qualification-only bounded probe")
-    parser.add_argument("--run-kind", choices=("qualification", "standard", "probe"), default="qualification")
+    parser.add_argument(
+        "--run-kind",
+        choices=("qualification", "standard", "probe"),
+        default=None,
+        help="defaults to the protocol run_kind; an explicit value must match it",
+    )
     parser.add_argument("--probe-warmup-steps", type=int, default=10, help="probe-only performance warmup steps")
     parser.add_argument(
         "--stop-after-completed-epoch",
@@ -210,6 +215,23 @@ def build_training_argv(args: argparse.Namespace, protocol, run_dir: Path, run_i
             "--expected-val-samples", str(protocol.splits[val_role]["samples"]),
         ]
     command += ["--run-kind", args.run_kind]
+    if protocol.checkpoint_policy:
+        command += [
+            "--checkpoint-top-k", str(protocol.checkpoint_policy["top_k"]),
+            "--checkpoint-tie-break", str(protocol.checkpoint_policy["tie_break"]),
+            "--checkpoint-candidate-manifest", str(protocol.checkpoint_policy["candidate_manifest"]),
+            "--checkpoint-retain-latest",
+        ]
+        if args.resume:
+            resume_manifest = (
+                Path(args.resume).resolve().parent.parent
+                / str(protocol.checkpoint_policy["candidate_manifest"])
+            )
+            if not resume_manifest.is_file():
+                raise ProtocolError(
+                    f"resume requires selector candidate state: {resume_manifest}"
+                )
+            command += ["--checkpoint-resume-candidate-manifest", str(resume_manifest)]
     if args.run_kind == "probe":
         command += [
             "--probe-warmup-steps", str(args.probe_warmup_steps),
@@ -253,6 +275,55 @@ def _validate_resume(args: argparse.Namespace) -> dict[str, Any] | None:
     return {"checkpoint": str(checkpoint), "checkpoint_sha256": actual, "parent_run_id": args.resume_parent_run_id}
 
 
+
+def _validate_candidate_manifest(protocol, run_dir: Path, result: dict[str, Any]) -> None:
+    policy = protocol.checkpoint_policy
+    record = result.get("checkpoint_candidates")
+    if not isinstance(record, dict):
+        raise ProtocolError("training_result.json must identify the finalized checkpoint candidate manifest")
+    path_value = record.get("path")
+    sha_value = record.get("sha256")
+    if not isinstance(path_value, str) or not isinstance(sha_value, str):
+        raise ProtocolError("training_result.json checkpoint candidate manifest path/SHA-256 is invalid")
+    manifest_path = Path(path_value).resolve()
+    if not manifest_path.is_relative_to(run_dir.resolve()):
+        raise ProtocolError("checkpoint candidate manifest must remain inside the seed output directory")
+    if manifest_path.name != policy["candidate_manifest"] or not manifest_path.is_file():
+        raise ProtocolError("checkpoint candidate manifest is missing or has the wrong file name")
+    actual_manifest_sha = file_sha256(manifest_path)
+    if actual_manifest_sha.lower() != sha_value.lower():
+        raise ProtocolError("checkpoint candidate manifest SHA-256 mismatch")
+    manifest = read_json(manifest_path)
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != "museg-checkpoint-candidates-v1":
+        raise ProtocolError("checkpoint candidate manifest has an invalid schema")
+    if manifest.get("finalized") is not True or manifest.get("policy") != dict(policy):
+        raise ProtocolError("checkpoint candidate manifest is not finalized under the protocol policy")
+    for field in ("selector_top_k", "latest", "evaluation_candidates"):
+        if record.get(field) != manifest.get(field):
+            raise ProtocolError(
+                f"training_result.json embedded checkpoint candidate {field} does not match manifest"
+            )
+    selector = manifest.get("selector_top_k")
+    candidates = manifest.get("evaluation_candidates")
+    if not isinstance(selector, list) or len(selector) > int(policy["top_k"]):
+        raise ProtocolError("checkpoint candidate manifest exceeds selector top_k")
+    if not isinstance(candidates, list) or not 1 <= len(candidates) <= int(policy["top_k"]) + 1:
+        raise ProtocolError("checkpoint candidate manifest has an invalid deduplicated candidate count")
+    seen_hashes: set[str] = set()
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            raise ProtocolError("checkpoint candidate manifest contains a non-object candidate")
+        candidate_path_value = candidate.get("path")
+        candidate_sha = candidate.get("sha256")
+        if not isinstance(candidate_path_value, str) or not isinstance(candidate_sha, str):
+            raise ProtocolError("checkpoint candidate manifest contains an invalid path/SHA-256")
+        candidate_path = Path(candidate_path_value).resolve()
+        if not candidate_path.is_relative_to(run_dir.resolve()) or not candidate_path.is_file():
+            raise ProtocolError("checkpoint candidate is missing or outside the seed output directory")
+        if candidate_sha.lower() in seen_hashes or file_sha256(candidate_path).lower() != candidate_sha.lower():
+            raise ProtocolError("checkpoint candidate hashes are duplicated or mismatched")
+        seen_hashes.add(candidate_sha.lower())
+
 def _validate_training_result(
     protocol,
     run_dir: Path,
@@ -295,6 +366,23 @@ def _validate_training_result(
         return
     if result.get("controlled_stop_after_completed_epoch") is None and result.get("final_epoch") != protocol.training["epochs"]:
         raise ProtocolError(f"{run_kind} training_result.json ended before the protocol epoch count")
+    if protocol.optimizer_telemetry:
+        counters = [
+            result.get("attempted_steps"),
+            result.get("completed_optimizer_steps"),
+            result.get("skipped_optimizer_steps"),
+        ]
+        if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in counters):
+            raise ProtocolError("training_result.json optimizer telemetry counters are invalid")
+        if counters[0] != counters[1] + counters[2]:
+            raise ProtocolError("training_result.json optimizer telemetry invariant is violated")
+        invariant = result.get("optimizer_telemetry_invariant")
+        if not isinstance(invariant, dict) or invariant.get("satisfied") is not True:
+            raise ProtocolError("training_result.json must explicitly record the optimizer telemetry invariant")
+        if result.get("optimizer_telemetry_schema_version") != protocol.optimizer_telemetry["schema_version"]:
+            raise ProtocolError("training_result.json optimizer telemetry schema mismatch")
+    if protocol.checkpoint_policy:
+        _validate_candidate_manifest(protocol, run_dir, result)
     if protocol.phase in {"qualification", "development", "official"}:
         checkpoint = result.get("checkpoint")
         if not isinstance(checkpoint, dict):
@@ -318,6 +406,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         protocol = load_protocol(args.protocol_manifest)
         protocol.validate_consumed_splits()
+        if protocol.run_kind == "lifecycle-test":
+            raise ProtocolError("lifecycle-test protocols must use the dedicated lifecycle simulator")
+        if args.run_kind is not None and args.run_kind != protocol.run_kind:
+            raise ProtocolError(
+                f"--run-kind {args.run_kind!r} does not match protocol run_kind {protocol.run_kind!r}"
+            )
+        args.run_kind = protocol.run_kind
         if args.seed not in protocol.seeds:
             raise ProtocolError(f"seed {args.seed} is not declared by the protocol manifest")
         if (
@@ -432,6 +527,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "schedule_version": protocol.schedule_version,
                 "phase": protocol.phase,
                 "model": protocol.model,
+                "run_kind": protocol.run_kind,
+                "simulation": protocol.simulation,
+                "checkpoint_policy": dict(protocol.checkpoint_policy),
+                "optimizer_telemetry": dict(protocol.optimizer_telemetry),
                 "git": environment["git"],
                 "split_authority": protocol.authority_identity(),
                 "splits": protocol.splits,

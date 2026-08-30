@@ -66,7 +66,13 @@ def frozen_authority(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(museg_protocol, "FROZEN_AUDIT_SHA256", _sha(audit_path))
 
 
-def _write_protocol(tmp_path: Path, *, phase: str = "development", seeds=(11, 22, 33)) -> Path:
+def _write_protocol(
+    tmp_path: Path,
+    *,
+    phase: str = "development",
+    seeds=(11, 22, 33),
+    run_kind: str | None = None,
+) -> Path:
     tmp_path.mkdir(parents=True, exist_ok=True)
     weight = tmp_path / "pretrained #.pth"
     weight.write_bytes(b"fake pretrained weights")
@@ -97,6 +103,8 @@ def _write_protocol(tmp_path: Path, *, phase: str = "development", seeds=(11, 22
         },
         "swanlab": {"mode": "disabled", "project": "test", "workspace": "test"},
     }
+    if run_kind is not None:
+        manifest["run_kind"] = run_kind
     path = tmp_path / "protocol #.json"
     path.write_text(json.dumps(manifest), encoding="utf-8")
     return path
@@ -152,7 +160,9 @@ def test_single_seed_launcher_passes_protocol_arguments_and_writes_json(tmp_path
 
 
 def test_standard_run_kind_is_forwarded_for_future_full_runs(tmp_path: Path) -> None:
-    protocol = _write_protocol(tmp_path, phase="development", seeds=(11,))
+    protocol = _write_protocol(
+        tmp_path, phase="development", seeds=(11,), run_kind="standard"
+    )
     trainer = _write_fake_trainer(tmp_path)
 
     assert run_seed_main([
