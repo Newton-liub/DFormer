@@ -1,6 +1,6 @@
 # MUSeg 实验口径与处置状态
 
-> 状态时间：2026-08-30 09:55 UTC
+> 状态时间：2026-08-30 10:13 UTC
 > 本文件保留问题缘由，同时明确区分“仍待决定”“本轮已处置”和“仅保留历史解释”。
 > 已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
@@ -8,7 +8,7 @@
 
 **大白话结论：** 新计划使用 DFormerv2-S 和其公开训练/测试方法建立内部 B0，作为后续模块消融的共同起点；目标是结果量级合理、链路可信和比较口径一致，不是三 seed 完整复现论文。
 
-**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、top 3 + latest 和 protocol v3 已冻结并完成本地实现；本机尺度 1.5 FP32 技术检查已通过，主 evaluator 运行位置据此冻结为本地。真实云资源门禁仍待单独授权和核验。**
+**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、top 3 + latest 和 protocol v3 已冻结并完成本地实现；本机尺度 1.5 FP32 技术检查和真实无卡自动关机云门禁均已通过，主 evaluator 运行位置据此冻结为本地。正式 B0 训练仍待单独授权。**
 
 - 训练方向：采用官方公开的随机尺度训练增强，尺度候选为 `0.5、0.75、1.0、1.25、1.5、1.75`，之后裁剪到 `480×640`，并保持 RGB/Depth/Label 同步变换。
 - 测试方向：采用官方论文公开的 multi-scale flip 推理，尺度为 `0.5、0.75、1.0、1.25、1.5`，暂不把滑动窗口静默混入主基线。
@@ -80,14 +80,15 @@
 
 **大白话问题：** 本次 SwanLab 已显示完成，但自动流程没有及时关机，人工等待约 23 分钟后仍需手动处理，验收失败路径还曾明确记录 `automatic_shutdown=false`。如果让验收结果决定是否关机，失败时会持续计费。
 
-**当前状态：策略已确定；用户于 2026-08-30 要求在正式 RTX 4090 任务前增加无卡自动关机实测，实际云资源操作尚未授权。**
+**当前状态：策略与实现均已验证。用户于 2026-08-30 授权实例 `cpod-1tyvjsiu6ahe` 的无卡实测；durable 模拟 job、证据取回与 SHA-256 核验、控制面 stop 和 `Stopped` 复查全部通过，正式 B0 训练仍待单独授权。**
 
 - 生产生命周期由本地控制器处理共同终态：workload 成功、失败或人工中止后，都先取回必要证据并核验哈希，再调用 CompShare 控制面 stop；验收 pass/fail 只决定研究结论，不决定是否停止计费。
 - 实例内 `shutdown -h` 不能单独证明平台进入 `Stopped`。自动关机验收必须使用控制面 stop，并等待和复查实例状态为 `Stopped`。
 - 正式 RTX 4090 前，用 `run_kind=lifecycle-test`、`simulation=true` 的无卡任务模拟成功 workload、测试报告、证据 manifest 和 SHA-256；测试产物不得进入 B0 指标或被训练裁决器接受。
 - 无卡实测通过条件为报告与哈希匹配、自动 stop 成功、实例在 timeout 内进入 `Stopped`，且不需要人工补发普通停止命令；失败则阻塞正式 B0。
 - 每次无卡测试和正式训练启动前都使用 `instance schedule set --at` 设置控制面最晚停止兜底，并用 `instance schedule show` 复核；脚本或本地控制器自动 stop 是第一道保障，schedule 是断联兜底。
-- 实际创建、启动、停止实例或修改 schedule 前仍需用户对资源、最长时间和预计费用单独授权。
+- 2026-08-30 无卡门禁使用实例 `cpod-1tyvjsiu6ahe`：`GPU=0`，durable job `job-20260830T101210Z-8c5b24ea` 退出码 0，证据 manifest SHA-256 为 `f9f00d7bdee84cfa8c5cab5ab47b3388fb2ad709ec03ff404c1b8207d5d37742`；自动 stop 后实例于 `2026-08-30T10:13:25Z` 达到 `Stopped`，无需人工补发普通停止命令。证据见 `cloud/museg-lifecycle-gates/museg-lifecycle-cpod-1tyvjsiu6ahe-20260830T1012Z/`。
+- 正式训练启动前仍需用户对训练实例、最长时间和预计费用单独授权，并重新设置与复核该次运行的最晚停止 schedule。
 
 ## 8. Single-seed B0 与后续模块消融
 

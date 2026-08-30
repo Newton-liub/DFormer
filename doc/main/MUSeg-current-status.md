@@ -1,7 +1,7 @@
 # MUSeg 当前状态与唯一入口
 
-> 状态时间：2026-08-30 09:55 UTC
-> 当前阶段：single-seed RGB development B0 的本地实现、CPU 定点检查和本机尺度 1.5 GPU 技术检查已完成；主 evaluator 运行位置已冻结为本地 RTX 5060 Laptop。无卡云门禁、训练、长评估和 official test 未执行，且仍需后续单独授权
+> 状态时间：2026-08-30 10:13 UTC
+> 当前阶段：single-seed RGB development B0 的本地实现、CPU 定点检查、本机尺度 1.5 GPU 技术检查和无卡自动关机云门禁均已完成；主 evaluator 运行位置冻结为本地 RTX 5060 Laptop。下一步是另行授权正式 RTX 4090 B0 训练；训练、长评估和 official test 尚未执行
 > 本文件是 MUSeg 当前状态的唯一入口；其他阶段计划、审计和正式报告按各自日期保留为历史证据。
 
 ## 1. 当前结论
@@ -27,7 +27,7 @@
 - 完整不可变归档当前可访问于仓库内暂存路径 `D:\0Project\DFormer\cloud\DFormer-stage05-archive\museg-stage05-seed772961337\museg-stage05-seed772961337-original.tar`；文件大小为 `3,865,057,280` bytes，本地 SHA-256 为 `4f6b079b707266ee358d2522fc6e4e034a5380d09ba8c65696df7aaa3e383c66`，与 sidecar 清单一致。
 - 后评估资产已位于 `D:\0Project\DFormer\cloud\DFormer-stage05-evidence`：独立 `best-val-miou.pth` 与 `epoch-500.pth` 的 SHA-256 分别为 `b62ca049e6a647aca109c70e80823cec8e36ae1cc1df27e3bcf2b1d215b160bf` 与 `0b88ab022db5188fd3439ea4e3af2098fe81e7c85757d1d91db33e831df2ff79`；本地 val-dev bundle 为 318 样本、954 个 RGB/Depth/Label 文件，split SHA-256 为 `1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83` 且 `official_test_included=false`。五份 v2 结果位于其 `posteval/` 子目录；旧 `best-original-full.json` 是 v1 失败现场，继续保留但不计入五项结果。
 - 本机尺度 1.5 GPU 技术检查证据为 `cloud/DFormer-stage05-evidence/posteval/quick-b0-scale1.5-max-sample-fp32-technical-check.json`。报告绑定上述 checkpoint/split SHA、Quick-B0 RGB 输入契约、FP32/TF32 disabled、两个 view 的完整几何与耗时、峰值显存，并显式记录 `metrics_computed=false`、`official_test_included=false`；它是资源可行性证据，不是研究指标。
-- CompShare 实例 `cpod-1tyvjsiu6ahe` 已在本地哈希复核完成后停止，复查状态为 `Stopped`。
+- CompShare 实例 `cpod-1tyvjsiu6ahe` 于 2026-08-30 以无卡模式运行 lifecycle-test 门禁并通过，随后由控制面 stop 在 `2026-08-30T10:13:25Z` 达到 `Stopped`；未需要人工补发普通停止命令。
 - 本次暴露了自动关机风险：训练完成后未按预期及时停止。正式 RTX 4090 B0 前新增无卡 lifecycle-test 门禁：模拟成功 workload 和测试报告，本地控制器取回证据并核验哈希后调用 CompShare 控制面 stop，等待实例达到 `Stopped`；启动前另设 `instance schedule` 最晚停止兜底。大白话说，先用不占 GPU 的廉价任务证明“做完、拿回证据、自动停止”整条链，失败就不启动正式训练。
 
 ## 3. 当前正在进行
@@ -41,7 +41,8 @@
 - 2026-08-27 经用户确认删除语义重复且含过时“当前门禁”的 `doc/plans/MUSeg-4090云端训练交接计划.md`；其导航和三份历史报告中的旧引用已改为当前状态入口、Stage-04 计划或日期化报告。`00`/`04` 的形成时点边界、`05` 的训练裁剪与 validation 几何区别、`08` 已处置的自然证据门禁、seed 1 预启动报告的 validation 几何勘误及运行中交接的后继状态均已澄清；`doc/guides/README.md` 与 `doc/plans/README.md` 已规定统一文档状态头。Stage-01 至 Stage-04 的设计证据继续保留，不据此重跑历史 workload。
 - 全仓指南任务的历史静态验收和提交 `1fbb0da` 保持不变；本次没有重算或改写该指南的 1,141 个路径基线。2026-08-30 前次文档阶段末的 `git status` 快照显示 5 份未提交 Markdown：已修改 `doc/main/MUSeg-current-status.md`、`doc/main/MUSeg-open-decisions.md`、`doc/plans/MUSeg-DFormerv2快速Baseline/00-总方向规划.md`，新建 `01-新对话最小上下文与当前任务.md` 与 `02-一次性B0执行方案.md`；旧 `02-阶段A-详细协议方案.md` 已从工作区删除且未被 Git 跟踪。该条只保留历史工作区快照；当前代码与文档改动以本节后续任务 1 记录为准。
 - 2026-08-30 已完成任务 1“本地实现与定点检查”的 CPU 范围：新增独立 Quick-B0 config 与 protocol-v3 模板；protocol/preflight/launcher 绑定 `run_kind=standard`、RGB 输入、top 3 + latest 规则和 optimizer 遥测；训练链按单尺度 mIoU 动态保留 top 3（同分优先更早 epoch）、持续覆盖 `latest.pth`，每次候选变化都原子更新可恢复的 rolling manifest，恢复运行会校验并复制父运行候选状态，训练结束再写出按 checkpoint SHA-256 去重的不可变候选清单；post-evaluator 新增 `msflip-whole-original-grid-v1`，按 5 个尺度×原图/水平翻转共 10 个 view，在 normalization 后仅右/下补零到 32 倍数，unflip/去 padding 后恢复原始 Label 网格并以 FP32 平均 pre-softmax logits。大白话说，训练只保存真正需要进入最终比较的候选，最终评估也已按预先约定的原图计分方式实现。
-- lifecycle-test 已实现为隔离的 `run_kind=lifecycle-test`、`simulation=true` 模拟器和本地控制器：模拟器不加载模型、不生成指标；控制器先设置并复核 CompShare 最晚停止 schedule，再运行模拟、核验报告/manifest/SHA-256，并在共同 `finally` 中对成功或失败 workload 都调用控制面 stop、复查 `Stopped`、落盘 controller result。这里只完成代码与 mock CPU 检查；没有连接或改变任何云实例。大白话说，自动关机链的程序骨架已就绪，但真实云平台门禁还没跑，不能据此说自动关机已经验收通过。
+- 无卡 lifecycle-test 云门禁已在 CompShare 实例 `cpod-1tyvjsiu6ahe` 通过：实例以 `GPU=0`、2 vCPU、4 GiB 内存运行，查询价为 `0.13`/小时；控制面最晚停止兜底设为 `2026-08-30T10:41:15Z` 并复核成功。durable job `job-20260830T101210Z-8c5b24ea` 退出码为 0；本地取回并逐项核验 `terminal-result.json`、`summary.json` 和 evidence manifest 的大小与 SHA-256，manifest SHA-256 为 `f9f00d7bdee84cfa8c5cab5ab47b3388fb2ad709ec03ff404c1b8207d5d37742`。控制面 stop 成功，实例于 `2026-08-30T10:13:25Z` 达到 `Stopped`，未需要人工补发普通停止命令；controller result SHA-256 为 `b81fcdeafca9e578d377f3a6c07aa939813d2a238c86f3649cd5288853f0ce48`，证据目录为 `cloud/museg-lifecycle-gates/museg-lifecycle-cpod-1tyvjsiu6ahe-20260830T1012Z/`。报告明确记录 `simulation=true`、`produced_metrics=false`、`official_test_included=false`。大白话说，正式训练前要求的“模拟完成、拿回并核验证据、自动停止计费实例”整条链已经在真实控制面上跑通。
+- lifecycle-test 的代码实现仍保持隔离的 `run_kind=lifecycle-test`、`simulation=true` 模拟器和本地控制器设计；本次云门禁只验证一次成功终态，不产生或替代 B0 训练结果。
 - 本轮最终聚焦 CPU 检查为 66 passed；修改 Python 文件的 `py_compile` 通过，静态诊断无报错，`git diff --check` 无 whitespace error。检查覆盖 Quick-B0 protocol/materialization/launcher、top-3 候选与恢复、FP32 多尺度翻转及技术检查无指标契约、lifecycle simulation 和成功/失败终态 stop 顺序。pytest 仍报告既有 `GradScaler` deprecation warning 和本机临时/缓存目录权限 warning；这些 warning 未为追求零 warning 而扩大处理。
-- 本轮只运行了上述一次实际 GPU 技术检查；第一次直接脚本启动在导入 `models` 前失败，未核验数据、加载模型或初始化 GPU，随后以模块入口完成获批检查。没有运行训练、长耗时评估、云资源操作、无卡云实测、完整测试套件或 official test；这些项目未运行，不能写成通过。Quick-B0 protocol 仍是需要在干净提交上 materialize 的模板，尚未生成绑定最终 Git commit 的可运行 manifest。远端未推送。
-- 当前唯一方案仍为 `doc/plans/MUSeg-DFormerv2快速Baseline/02-一次性B0执行方案.md`。任务 1“本地实现与定点检查”已完成，主 evaluator 运行位置已冻结为本地。下一准确恢复点是：取得具体实例、最长时间和预计费用授权后，执行无卡 `lifecycle-test` 云门禁；门禁通过且再次取得正式训练授权后，才 materialize 干净提交绑定的 protocol 并启动一次 B0 训练。当前不启动云资源、B0 训练、长评估或 official test。
+- 本轮除已获批的本机 GPU 技术检查外，已执行一次无卡 lifecycle-test 云门禁；门禁模拟器未加载模型、未使用 GPU、未生成指标且未读取 official test。没有运行 B0 训练、长耗时评估、完整测试套件或 official test；这些项目未运行，不能写成通过。Quick-B0 protocol 仍是需要在干净提交上 materialize 的模板，尚未生成绑定最终 Git commit 的可运行 manifest。远端未推送。
+- 当前唯一方案仍为 `doc/plans/MUSeg-DFormerv2快速Baseline/02-一次性B0执行方案.md`。任务 1“本地实现与定点检查”和任务 2“无卡自动关机门禁”均已完成，主 evaluator 运行位置冻结为本地。下一准确恢复点是：向用户报告正式 RTX 4090 B0 的预计时长、预计费用、checkpoint 同步方式和控制面最晚停止时刻；获得正式训练授权后，在干净提交上 materialize protocol 并只启动一次 B0 训练。当前不启动 B0 训练、长评估或 official test。
