@@ -1,19 +1,19 @@
 # MUSeg 实验口径与处置状态
 
-> 状态时间：2026-08-29 20:35 UTC
+> 状态时间：2026-08-30 06:06 UTC
 > 本文件保留问题缘由，同时明确区分“仍待决定”“本轮已处置”和“仅保留历史解释”。
 > 已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
 ## 1. 新 DFormerv2-MUSeg baseline 方向
 
-**大白话结论：** 新计划不是把模型改成 DFormer v1，而是使用 DFormerv2-S 在 MUSeg 上复现 DFormerv2 官方论文公开的训练与测试口径，建立可供后续模块比较的基础模型。
+**大白话结论：** 新计划使用 DFormerv2-S 和其公开训练/测试方法建立内部 B0，作为后续模块消融的共同起点；目标是结果量级合理、链路可信和比较口径一致，不是三 seed 完整复现论文。
 
-**当前状态：方向已确认，细节尚未冻结。**
+**当前状态：方向、RGB 和 single-seed B0 角色已确认；实现与资源细节尚未冻结。**
 
 - 训练方向：采用官方公开的随机尺度训练增强，尺度候选为 `0.5、0.75、1.0、1.25、1.5、1.75`，之后裁剪到 `480×640`，并保持 RGB/Depth/Label 同步变换。
 - 测试方向：采用官方论文公开的 multi-scale flip 推理，尺度为 `0.5、0.75、1.0、1.25、1.5`，暂不把滑动窗口静默混入主基线。
 - 输出方向：每个尺度的预测恢复到 MUSeg 原始 Label 网格后融合和计分；`480×640` 是训练或明确命名的模型输入尺寸，不自动等于最终 metric geometry。
-- 这只是公开 DFormerv2 方法在 MUSeg 上的适配，不声称复现 MUSeg 论文没有公开的内部测试代码。具体 evaluator、颜色/归一化、预算、seed、checkpoint 规则和云资源上限由后续详细计划冻结。
+- 这是公开 DFormerv2 方法在 MUSeg 上的适配，用于建立后续模块的内部对照；不声称复现 MUSeg 作者未公开的测试代码，也不以论文数值完全相等或三 seed 统计作为当前 B0 门槛。具体 evaluator、预算、checkpoint 规则和运行位置由当前执行方案冻结。
 - 旧 `Stage-01` 至 `Stage-05` 计划和其未完成的 Protocol Gate 已封存；历史 seed 1 的单尺度结果只作为 reference，不与新 baseline 混合统计。
 
 ## 2. Validation 空间尺寸
@@ -32,16 +32,16 @@
 
 ## 3. MUSeg 颜色通道顺序
 
-**大白话问题：** 文档通常用“RGB”表示彩色模态，但 OpenCV loader 对 MUSeg 实际保留 BGR 通道顺序；如果改成 RGB，预训练兼容性和全部结果身份都会变化。
+**大白话问题：** 历史 MUSeg loader 使用 OpenCV BGR，但官方预训练模型看到的是 RGB。项目刚起步时，是先做两种颜色的配对训练，还是先选择与预训练一致的输入？
 
-**当前状态：pretrained 上游身份与 RGB 语义已由官方资产和预训练代码闭合；固定 checkpoint 三臂诊断显示强输入契约敏感性，legacy BGR 仍只作为历史 reference，未来颜色谱系继续由独立 paired calibration 决定。**
+**当前状态：本轮已处置。用户于 2026-08-30 确认 quick B0 直接使用 RGB，取消 RGB/BGR 双臂；这是输入一致性选择，不是颜色性能胜负结论。**
 
 - seed 1 的历史事实保持为 OpenCV BGR 数组，并按位置应用 `[0.485,0.456,0.406]` / `[0.229,0.224,0.225]`；不回写其 protocol 或结果。
 - 当前权重已闭合为官方上游资产：Hugging Face `bbynku/DFormerv2` 中 `DFormerv2/pretrained/DFormerv2_Small_pretrained.pth` 的大小为 110,203,103 bytes，LFS SHA-256 为 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6`，与本项目权重完全一致。官方 README 将其列为 ImageNet-1K RGB-D pretrained；官方 `VCIP-RGBD/RGBD-Pretrain` 数据代码默认以 PIL `RGB` 读取彩色图并使用 RGB 顺序 ImageNet mean/std，因此 pretrained 上游通道语义判定为 RGB。
-- 配置、protocol v3、launcher/run manifest、production loader 和 post-evaluator 已加入显式 `channel_order` 与 normalization identity；v2 历史 protocol 只按 legacy 来源补录运行记录，不伪装成原始 manifest 字段。
-- 固定 best checkpoint 的三臂 original-full 诊断已完成：legacy BGR、RGB+RGB mean/std、BGR+反向 mean/std 的 mIoU 分别为 `52.98`、`33.85`、`49.53`。该结果证明 checkpoint 对通道/统计强敏感，但不能决定新 baseline 胜负。
-- 真正选择必须使用独立 `color-geometry-screening-B0` protocol，使候选与 legacy BGR 从相同 pretrained、seed、数据顺序、预算和 evaluator 成对重训；接近噪声容差时两臂一起补第二 seed。
-- 若最终离开 legacy BGR，当前 seed 1 只保留 `development-reference-B0` 历史身份；新谱系重新 qualification 和 B0，不能跨谱系混入 mean±std。
+- 新 quick B0 明确执行 OpenCV BGR→RGB，再使用 RGB 顺序 ImageNet mean/std。大白话说，这让下游输入保持官方预训练模型已经学习过的通道含义，是当前变量最少、依据最直接的起点。
+- 固定历史 best checkpoint 的三臂 original-full 诊断结果仍保留：legacy BGR、RGB+RGB mean/std、BGR+反向 mean/std 的 mIoU 分别为 `52.98`、`33.85`、`49.53`。它只证明旧 checkpoint 对输入契约强敏感，不能用于判断重新训练后的 RGB/BGR 胜负。
+- 本轮不做 `color-geometry-screening-B0`、短程颜色训练或第二 seed，也不把“选择 RGB”表述为“RGB 在 MUSeg 上统计显著优于 BGR”。如果未来研究问题明确变成颜色谱系比较，才需要另立 paired calibration protocol 并从相同 pretrained 成对重训。
+- 历史 BGR seed 1 继续保留 `development-reference-B0` 身份；新 RGB quick B0 使用独立 protocol identity，两者不混入同一 mean±std 或当作配对实验。
 
 ## 4. A2 自然无效深度分层是否为 B2 硬门槛
 
@@ -78,22 +78,24 @@
 
 **大白话问题：** 本次 SwanLab 已显示完成，但自动流程没有及时关机，人工等待约 23 分钟后仍需手动处理，验收失败路径还曾明确记录 `automatic_shutdown=false`。如果让验收结果决定是否关机，失败时会持续计费。
 
-**当前状态：策略已确定，指南与模板仍待最终落地核验。**
+**当前状态：策略已确定；用户于 2026-08-30 要求在正式 RTX 4090 任务前增加无卡自动关机实测，实际云资源操作尚未授权。**
 
-- 成功、失败和人工中止都先同步必要证据，完成本地或独立位置的哈希复核，再停止实例。
-- 验收 pass/fail 只决定研究结论，不决定实例是否继续运行和计费。
-- 每次启动前在 CompShare 控制面设置最晚停止兜底；脚本内关机只作为第一道保障。
-- 本次原始失败行为与证据保持不变，不为符合新策略而改写。
+- 生产生命周期由本地控制器处理共同终态：workload 成功、失败或人工中止后，都先取回必要证据并核验哈希，再调用 CompShare 控制面 stop；验收 pass/fail 只决定研究结论，不决定是否停止计费。
+- 实例内 `shutdown -h` 不能单独证明平台进入 `Stopped`。自动关机验收必须使用控制面 stop，并等待和复查实例状态为 `Stopped`。
+- 正式 RTX 4090 前，用 `run_kind=lifecycle-test`、`simulation=true` 的无卡任务模拟成功 workload、测试报告、证据 manifest 和 SHA-256；测试产物不得进入 B0 指标或被训练裁决器接受。
+- 无卡实测通过条件为报告与哈希匹配、自动 stop 成功、实例在 timeout 内进入 `Stopped`，且不需要人工补发普通停止命令；失败则阻塞正式 B0。
+- 每次无卡测试和正式训练启动前都使用 `instance schedule set --at` 设置控制面最晚停止兜底，并用 `instance schedule show` 复核；脚本或本地控制器自动 stop 是第一道保障，schedule 是断联兜底。
+- 实际创建、启动、停止实例或修改 schedule 前仍需用户对资源、最长时间和预计费用单独授权。
 
-## 8. Development 三 seed 的执行时机
+## 8. Single-seed B0 与后续模块消融
 
-**大白话问题：** 三 seed 能估计随机方差，但在模块方向尚未冻结时为每个候选都跑三次成本很高。当前需要区分“快速发现可行模块”和“形成可发表的正式消融结论”。
+**大白话问题：** 当前需要的是模块设计的可信共同起点，而不是先花三倍成本形成论文级随机方差统计。怎样既节省资源，又避免后续比较失去公平性？
 
-**当前状态：已处置。经用户于 2026-08-27 确认，development seeds 2/3 暂缓；先完成 seed 1 后评估，再进入单 seed 配对筛选，正式三 seed 延后到架构与消融组合冻结之后。**
+**当前状态：已处置。用户于 2026-08-30 确认本轮只训练一个 single-seed RGB B0；它作为后续模块消融的固定内部基线，不以三 seed 完整论文复现为当前目标。**
 
-- 当前 seed 1 只作为经过长程训练和独立裁决的 development 参考 B0，不称为三 seed 正式 baseline，也不直接与论文 official-test 数值作严格复现比较。
-- 快速筛选必须在同一 train-dev/val-dev、seed、预训练、训练预算、优化器、增强、checkpoint 规则和 validation 几何下成对重跑 B0 与候选模块；改变总 epoch 时必须新建 screening protocol，并在同一短协议下重跑 B0，不能直接对比现有 500-epoch 的 `52.84`。
-- 单 seed 结果只用于淘汰和候选排序；方向性较好但增益接近噪声的候选可增加第二 seed 作为中间确认，但第二 seed 不替代正式三 seed。
-- 架构、超参数和最终消融组合冻结后，B0 与每个最终模块必须使用同一预注册三 seed 成对从头训练，报告每 seed 配对差、mean、sample std 和 per-class 指标；不得只给模块跑三 seed 而复用当前单 seed B0。
-- official test 在开发与筛选期间继续 `sealed_unread`；只有正式 B0/最终模块的 checkpoint、哈希和协议全部冻结并通过 Gate F 后，才按预登记清单一次性评估。
-- B2 不在当前 seed 1 baseline 中，也不能作为普通候选绕过专用门禁。若要纳入本轮正式矩阵，必须在 Gate E 前完成新 Stage-06 的 `A2-pass + 用户批准`、规格/金标准、B2-zero-train、B2-short，再回到新 Stage-07 完成 B2-screening；Gate E 未纳入而在 official test 后启动时，登记为独立后续研究。
+- B0 的验收重点是训练与评估链可信、指标量级合理、没有明显类别或数值异常，并完整绑定 pretrained、split、seed、config、checkpoint 和 evaluator 身份；不要求与论文数字完全相等。
+- 后续模块可以复用这一个 B0 结果作为对照，但模块版本必须从同一 pretrained 独立训练，并保持相同 `train-dev`/`val-dev`、seed、数据顺序、epoch、优化器、增强、checkpoint 规则和主 evaluator。不能从 B0 最终 checkpoint 接着训练模块后再称为公平消融。
+- 若后续改变训练预算、优化器、增强、数据或 evaluator，现有 B0 不再是严格配对对照；需要限定结论，或在新协议下重训匹配的 B0。
+- 单 seed 足够用于模块探索、淘汰和初步消融，但不能估计随机方差。若模块增益很小、接近训练波动或要支撑重要结论，应对 B0 和该模块增加成对重复或额外 seed；当前不预先要求三 seed，也不因此阻塞模块设计。
+- 主 evaluator 可以在本地或云端运行。机器位置不改变实验身份，但必须绑定 checkpoint/split 哈希、冻结代码与配置、输入契约、前向精度、环境和 `official_test_included=false`。本机已核验为 RTX 5060 Laptop 8 GB，历史单尺度 318 样本约 108 秒；本地最多 4 个主评估候选按 2–4 小时规划、硬上限 8 小时，最终运行位置取决于尺度 1.5 显存检查。
+- official test 在 B0 和模块开发期间继续 `sealed_unread`；是否以及何时解封由未来独立门禁决定，当前 single-seed 方向不构成解封授权。
