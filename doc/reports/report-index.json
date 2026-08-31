@@ -1,14 +1,23 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.10",
+  "nextCanvasVersion": "0.0.11",
   "latestFormalReport": {
-    "path": "doc/reports/2026-08-26-museg-stage05-seed1-running-handoff.md",
-    "periodStart": "2026-08-26",
-    "periodEnd": "2026-08-26",
+    "path": "doc/reports/2026-08-31-museg-stage05-seed1-training-lessons.md",
+    "periodStart": "2026-08-25",
+    "periodEnd": "2026-08-28",
     "baseCommit": "56a7ed711df2252e6228fc777d7cb92eb2510ef6",
-    "status": "stage05-seed1-running-read-only-verified"
+    "status": "stage05-seed1-historical-lessons-verified"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-08-31-museg-stage05-seed1-training-lessons.md",
+      "topic": "museg-stage05-seed1-training-lessons",
+      "periodStart": "2026-08-25",
+      "periodEnd": "2026-08-28",
+      "baseCommit": "56a7ed711df2252e6228fc777d7cb92eb2510ef6",
+      "verification": "archive-swanlab-log-json-posteval-cross-check",
+      "status": "formal-historical-lessons"
+    },
     {
       "path": "doc/reports/2026-08-26-museg-stage05-seed1-running-handoff.md",
       "topic": "museg-stage05-seed1-running-handoff",
@@ -163,6 +172,15 @@
       "relatedReport": "doc/audits/2026-08-26-markdown-consistency-audit.md",
       "createdAt": "2026-08-26",
       "status": "historical-running-snapshot"
+    },
+    {
+      "version": "0.0.10",
+      "name": "museg-stage05-seed1-training-lessons",
+      "source": "doc/canvases/0.0.10-museg-stage05-seed1-training-lessons.canvas.tsx",
+      "publishedFilename": "0.0.10-museg-stage05-seed1-training-lessons.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-31-museg-stage05-seed1-training-lessons.md",
+      "createdAt": "2026-08-31",
+      "status": "formal-historical-lessons"
     }
   ]
 }
