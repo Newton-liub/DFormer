@@ -176,6 +176,41 @@ def test_top_k_selector_retains_earlier_ties_and_finalizes_deduplicated_manifest
     assert payload["evaluation_candidates"][0]["sources"] == ["selector_top_k", "latest"]
 
 
+def test_top8_selector_retains_eight_candidates_plus_distinct_latest(tmp_path: Path) -> None:
+    checkpoint_dir = tmp_path / "checkpoint"
+    policy = {"top_k": 8, "retain_latest": True, "tie_break": "earlier_epoch"}
+    selector = TopKCheckpointSelector(
+        checkpoint_dir,
+        top_k=8,
+        rolling_manifest_path=tmp_path / "rolling.json",
+        policy=policy,
+    )
+
+    def save_checkpoint(path: str) -> None:
+        epoch = Path(path).stem.removeprefix("selector-epoch-")
+        Path(path).write_bytes(f"checkpoint-{epoch}".encode("ascii"))
+
+    for epoch in range(10, 110, 10):
+        selector.consider(
+            epoch=epoch,
+            selector_miou=float(epoch),
+            save_checkpoint=save_checkpoint,
+        )
+
+    assert [item.epoch for item in selector.candidates] == [100, 90, 80, 70, 60, 50, 40, 30]
+    latest = checkpoint_dir / "latest.pth"
+    latest.write_bytes(b"checkpoint-latest-distinct")
+    payload = selector.finalize(
+        manifest_path=tmp_path / "checkpoint-candidates.json",
+        latest_path=latest,
+        latest_epoch=100,
+        policy=policy,
+    )
+
+    assert len(payload["selector_top_k"]) == 8
+    assert len(payload["evaluation_candidates"]) == 9
+
+
 def _run_step(model: torch.nn.Module, optimizer: torch.optim.Optimizer, step: int) -> None:
     optimizer.param_groups[0]["lr"] = 0.1 * (1.0 - step / 3.0)
     x = torch.tensor([[1.0]])

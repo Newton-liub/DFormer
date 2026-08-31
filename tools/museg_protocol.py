@@ -463,8 +463,15 @@ def load_protocol(path: str | os.PathLike[str]) -> ProtocolManifest:
             or checkpoint_policy.get("selector_flip") is not False
         ):
             raise ProtocolError("checkpoint_policy must identify original-full scale 1.0 without flip")
-        if checkpoint_policy.get("top_k") != 3 or checkpoint_policy.get("retain_latest") is not True or checkpoint_policy.get("tie_break") != "earlier_epoch":
-            raise ProtocolError("checkpoint_policy must be top-3/latest with earlier-epoch tie break")
+        top_k = checkpoint_policy.get("top_k")
+        if (
+            isinstance(top_k, bool)
+            or not isinstance(top_k, int)
+            or not 1 <= top_k <= 8
+            or checkpoint_policy.get("retain_latest") is not True
+            or checkpoint_policy.get("tie_break") != "earlier_epoch"
+        ):
+            raise ProtocolError("checkpoint_policy must retain latest with top_k between 1 and 8 and earlier-epoch tie break")
         if not isinstance(checkpoint_policy.get("candidate_manifest"), str) or not checkpoint_policy["candidate_manifest"].strip():
             raise ProtocolError("checkpoint_policy.candidate_manifest must be a non-empty string")
         _require_path_component(checkpoint_policy["candidate_manifest"], "checkpoint_policy.candidate_manifest")

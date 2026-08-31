@@ -74,6 +74,7 @@
 - `doc/guides/cloud/README.md` — 云端操作指南入口与生命周期提示。
 - `doc/guides/cloud/compshare-filebrowser-legacy.md` — CompShare File Browser 旧界面说明；历史/legacy，使用前核对平台现状。
 - `doc/guides/cloud/openlist-quark-download.md` — OpenList/夸克文件获取的稳定操作说明；外部服务与凭据可能变化。
+- `doc/guides/cloud/museg-storage-backup-cleanup.md` — MUSeg 训练归档、本地哈希核验、OpenList 可选副本、只读空间审计与人工确认删除门禁。
 
 ### 5.2 审计、报告和索引
 
@@ -163,6 +164,8 @@ Canvas 是可视化汇报源，已发布版本只读；`old/` 为归档。TSX �
 
 - `local_configs/MUSeg/DFormerv2_S_MVE.py` — MUSeg 基础配置：15 前景类、背景 ignore 255、BGR loader、Depth 单模态、HAM decoder、480×640 训练尺寸；默认 official split 字段仅是历史/基础值。
 - `local_configs/MUSeg/DFormerv2_S_4090.py` — 当前审计运行配置入口：绑定冻结 train-dev/val-dev、split SHA/计数、环境可覆盖数据/输出/预训练路径和 4090 训练参数。
+- `local_configs/MUSeg/DFormerv2_S_QuickB0.py` — 当前冻结 RGB Quick-B0 v1 配置，使用 top 3 + latest；历史运行身份不得由后续策略覆盖。
+- `local_configs/MUSeg/DFormerv2_S_QuickB0_Top8.py` — 后续训练的独立 v2 top-8 配置；保持同一训练口径并最多形成 8 个 selector 候选加 latest。
 - `local_configs/MUSeg/DFormerv2_S_20Epoch.py` — 旧 20-epoch 云绝对路径配置，直接指向 official train/test；当前 development 已作废，不应恢复。
 
 ### 8.2 公共基础、NYUv2 与 SUNRGBD
@@ -227,6 +230,8 @@ Canvas 是可视化汇报源，已发布版本只读；`old/` 为归档。TSX �
 
 - `protocols/museg-qualification-v1.template.json` — 3-epoch qualification 模板；Git、路径、预训练 SHA 等字段需物化，允许 qualification 范围的 batch/output override。
 - `protocols/museg-development-long500-v2.template.json` — 500-epoch development 三 seed 模板；固定 required commit、seed、batch、schedule、评估/checkpoint 策略、split authority 和预训练身份。模板不证明 seeds 已全部运行。
+- `protocols/museg-dformerv2-s-rgb-quick-b0-v1.template.json` — 当前冻结 single-seed RGB Quick-B0 v1 模板，预登记 top 3 + latest。
+- `protocols/museg-dformerv2-s-rgb-quick-b0-v2-top8.template.json` — 后续运行的独立 v2 模板，预登记 top 8 + latest 且不改写 v1 身份。
 
 ## 11. MUSeg 工具 `tools/`
 
@@ -239,6 +244,7 @@ Canvas 是可视化汇报源，已发布版本只读；`old/` 为归档。TSX �
 - `tools/museg_protocol.py` — `SplitAuthority`、`ProtocolManifest`、`load_protocol`；绑定冻结 manifest/audit，严格验证协议字段、路径、phase 和 consumed splits。
 - `tools/materialize_museg_protocol.py` — 把模板中的 Git、输出根、official train、预训练路径/SHA 和可选运行参数物化到机器本地 manifest。
 - `tools/preflight_train.py` — `Preflight`、`AuditReport`、`audit_protocol`；检查包、Git、配置、数据、GPU、SwanLab、split、phase、预训练和输出边界。
+- `tools/audit_museg_cloud_storage.py` — 对显式清理候选、保护路径、符号链接和 checkpoint 空间预算生成只读 JSON 审计；不实现删除。
 
 ### 11.2 训练、probe、qualification 与汇总
 
@@ -272,6 +278,7 @@ Canvas 是可视化汇报源，已发布版本只读；`old/` 为归档。TSX �
 - `tests/test_a2_masks.py` — A2 mask 统计、生成和异常输入。
 - `tests/test_masked_loss.py` — 全 ignore/部分有效标签下安全 masked loss 回归。
 - `tests/test_museg_checkpoint_posteval.py` — 后评估 split 拒绝规则、几何和不依赖单独预训练的 strict checkpoint 加载。
+- `tests/test_museg_cloud_storage_audit.py` — 只读数据盘审计的路径越界、保护重叠、符号链接和无删除行为测试。
 - `tests/test_museg_dev_split.py` — split 生成、冻结 manifest/audit、成员和哈希回归。
 - `tests/test_museg_protocol_materialization.py` — protocol 模板物化、字段替换、哈希和错误路径。
 - `tests/test_museg_seed_acceptance_adjudication.py` — 独立 acceptance v2 哈希与裁决回归。

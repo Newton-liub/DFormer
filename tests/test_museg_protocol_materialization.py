@@ -146,6 +146,44 @@ def test_quick_b0_template_materializes_protocol_v3_extensions(tmp_path: Path, m
     assert protocol.input_contract["channel_order"] == "RGB"
 
 
+def test_future_top8_template_materializes_separate_protocol_identity(tmp_path: Path, monkeypatch) -> None:
+    authority = _patch_authority(tmp_path, monkeypatch)
+    repo = tmp_path / "clean repo"
+    _clean_repo(repo)
+    weight = tmp_path / "weight.pth"
+    weight.write_bytes(b"pretrained")
+    target = tmp_path / "generated" / "quick-b0-top8.json"
+    template = (
+        Path(__file__).parents[1]
+        / "protocols"
+        / "museg-dformerv2-s-rgb-quick-b0-v2-top8.template.json"
+    )
+
+    manifest, _ = materializer.materialize(
+        output=target,
+        output_root=tmp_path / "outputs",
+        official_train=authority / "official-train.txt",
+        pretrained=weight,
+        batch_size=10,
+        swanlab_mode="offline",
+        swanlab_project="project",
+        swanlab_workspace="workspace",
+        template_path=template,
+        repo_root=repo,
+    )
+    protocol = load_protocol(manifest)
+
+    assert protocol.protocol_id == "museg-dformerv2-s-rgb-quick-b0-v2-top8"
+    assert protocol.config_module == "local_configs.MUSeg.DFormerv2_S_QuickB0_Top8"
+    assert protocol.checkpoint_policy["top_k"] == 8
+
+    raw = json.loads(manifest.read_text(encoding="utf-8"))
+    raw["checkpoint_policy"]["top_k"] = 9
+    manifest.write_text(json.dumps(raw), encoding="utf-8")
+    with pytest.raises(ProtocolError, match="between 1 and 8"):
+        load_protocol(manifest)
+
+
 def test_materializer_rejects_dirty_repository_before_writing(tmp_path: Path, monkeypatch) -> None:
     authority = _patch_authority(tmp_path, monkeypatch)
     repo = tmp_path / "dirty repo"
