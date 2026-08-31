@@ -97,13 +97,18 @@
 
 ### 5.3 当前计划
 
-- `doc/plans/MUSeg-DFormerv2快速Baseline/00-总方向规划.md` — DFormerv2-S 快速 MUSeg baseline 的总方向；训练和测试细节后续另行规划。
+- `doc/plans/MUSeg-A2-B2深度有效性/00-总方向规划.md` — 当前 A2/B2 深度有效性小阶段的目标、条件分支和授权边界。
+- `doc/plans/MUSeg-A2-B2深度有效性/01-新对话最小上下文与当前任务.md` — 新对话最小读取入口、搜索/验证预算和当前任务卡。
+- `doc/plans/MUSeg-A2-B2深度有效性/02-A2正式验证与B2条件分支.md` — 正式 A2、条件式 B2 与零训练验证的三任务唯一当前方案。
 
 ### 5.4 历史计划
 
 `doc/plans/README.md` 规定计划目录的历史语义；归档文件记录阶段设计、门禁和形成时点的执行状态，不能作为当前 workload 授权依据。
 
 - `doc/plans/archive/README.md` — 计划归档说明。
+- `doc/plans/archive/2026-08-MUSeg-DFormerv2快速Baseline/00-总方向规划.md` — 已完成 RGB Quick-B0 的历史总方向、共同身份和阶段边界。
+- `doc/plans/archive/2026-08-MUSeg-DFormerv2快速Baseline/01-新对话最小上下文与当前任务.md` — Quick-B0 阶段的历史接续规范和任务入口。
+- `doc/plans/archive/2026-08-MUSeg-DFormerv2快速Baseline/02-一次性B0执行方案.md` — 已完成的四任务 B0 训练、主评估和证据收口协议。
 - `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/00-总索引与执行门禁.md` — 历史基础 01–04、活动 05–08 及 Protocol/MVE Evidence/Gate E/F 的依赖索引。
 - `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/01-开发划分协议与生成工具.md` — development split 协议与生成工具设计。
 - `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/02-训练验证Checkpoint与恢复改造.md` — checkpoint、validation 和恢复改造设计。

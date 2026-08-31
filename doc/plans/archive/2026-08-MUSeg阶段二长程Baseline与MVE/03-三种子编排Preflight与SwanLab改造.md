@@ -1,6 +1,6 @@
 # 03：三种子编排、preflight、4090 脚本与 SwanLab 改造计划
 
-> **已封存：** 本文件属于 2026-08-29 封存的历史计划，仅保留形成时点的设计、执行记录和证据指针；当前计划见 `doc/plans/MUSeg-DFormerv2快速Baseline/00-总方向规划.md`。
+> **已封存：** 本文件属于 2026-08-29 封存的历史计划，仅保留形成时点的设计、执行记录和证据指针；当前计划见 `doc/plans/MUSeg-A2-B2深度有效性/00-总方向规划.md`。
 
 > **历史阶段记录：** Stage-03 与 Gate B 已完成。以下尚未运行真实 GPU/SwanLab 的表述是 Stage-03 结束时快照，已被 Stage-04/05 证据取代；当前入口见 `doc/main/MUSeg-current-status.md`。
 
