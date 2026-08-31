@@ -8,7 +8,7 @@
 
 **大白话结论：** 新计划使用 DFormerv2-S 和其公开训练/测试方法建立内部 B0，作为后续模块消融的共同起点；目标是结果量级合理、链路可信和比较口径一致，不是三 seed 完整复现论文。
 
-**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、当前运行的 top 3 + latest 和 protocol v3 已冻结；本机尺度 1.5 FP32 技术检查和真实无卡自动关机云门禁均已通过。正式 B0 已在冻结 v1 身份下启动，最近一次直接核验为 epoch 382/500；本对话没有复查或干预云端。后续训练的独立 v2 top 8 + latest 设置只在本地完成，尚未提交或同步云端。**
+**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、当前运行的 top 3 + latest 和 protocol v3 均已冻结并执行完成。唯一 Quick-B0 已完成 500 epoch 和 4 个候选的五尺度翻转主评估，最终 B0 为 epoch 420，主 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；official test 继续保持 `sealed_unread`。后续训练的独立 v2 top 8 + latest 设置已提交，但不改变本次 v1 结论。**
 
 - 训练方向：采用官方公开的随机尺度训练增强，尺度候选为 `0.5、0.75、1.0、1.25、1.5、1.75`，之后裁剪到 `480×640`，并保持 RGB/Depth/Label 同步变换。
 - 测试方向：采用官方论文公开的 multi-scale flip 推理，尺度为 `0.5、0.75、1.0、1.25、1.5`，暂不把滑动窗口静默混入主基线。
@@ -20,7 +20,7 @@
 
 **大白话问题：** 文档曾把“输入 640×480”写成统一模型输入，但 seed 1 实际只把训练样本随机裁剪到高 480、宽 640；`sliding=false` 时，validation 使用转换数据的原始高 932、宽 1082 整图前向。不同几何会改变 val mIoU，不能把结果直接混为同一口径。
 
-**当前状态：历史 seed 1 的五项后评估已完成；新 baseline 已实现并冻结 `msflip-whole-original-grid-v1`：五尺度、水平翻转、右/下补零到 32 倍数、FP32 平均 pre-softmax logits，并恢复到原始 Label 网格计分。本机最大样本尺度 1.5 的 FP32 原图/翻转技术检查已通过，主 evaluator 运行位置冻结为本地。**
+**当前状态：历史 seed 1 的五项后评估已完成；新 baseline 的 `msflip-whole-original-grid-v1` 已按冻结契约完成 4 个候选的正式主评估。最终 epoch 420 在 318 个 `val-dev` 样本的原始 Label 网格上取得 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；FP32、TF32 disabled、RGB 输入和 `official_test_included=false` 身份均已核验。**
 
 - 技术检查样本为 `06-01-01-0352-230920140646-10-99`，原始 `932×1082`，尺度 1.5 后 `1398×1623`，padding 后 `1408×1632`；两个 view 用时 `2.095559`/`1.079008` 秒，峰值 allocated/reserved 为 `4,977,021,952`/`6,511,656,960` bytes，未 OOM。证据见 `cloud/DFormer-stage05-evidence/posteval/quick-b0-scale1.5-max-sample-fp32-technical-check.json`，其中 `metrics_computed=false`。按最大样本保守外推最多 4 个候选约 `2.8` 小时，低于 8 小时硬上限。大白话说，本次只确认本机能承载冻结 evaluator，不产生任何模型好坏结论。
 
@@ -80,7 +80,7 @@
 
 **大白话问题：** 本次 SwanLab 已显示完成，但自动流程没有及时关机，人工等待约 23 分钟后仍需手动处理，验收失败路径还曾明确记录 `automatic_shutdown=false`。如果让验收结果决定是否关机，失败时会持续计费。
 
-**当前状态：策略与实现均已验证。用户于 2026-08-30 授权实例 `cpod-1tyvjsiu6ahe` 的无卡实测；durable 模拟 job、证据取回与 SHA-256 核验、控制面 stop 和 `Stopped` 复查全部通过。正式 B0 随后已在冻结 v1 身份下获授权并启动；本对话没有执行任何云端或生命周期操作。**
+**当前状态：策略与实现均已验证。无卡 lifecycle-test、正式 B0 训练、证据取回、普通 stop 和 `Stopped` 复查均已完成；本次主评估仅使用本地 RTX 5060 Laptop，没有执行云端或生命周期操作。**
 
 - 生产生命周期由本地控制器处理共同终态：workload 成功、失败或人工中止后，都先取回必要证据并核验哈希，再调用 CompShare 控制面 stop；验收 pass/fail 只决定研究结论，不决定是否停止计费。
 - 实例内 `shutdown -h` 不能单独证明平台进入 `Stopped`。自动关机验收必须使用控制面 stop，并等待和复查实例状态为 `Stopped`。
@@ -94,20 +94,20 @@
 
 **大白话问题：** 当前需要的是模块设计的可信共同起点，而不是先花三倍成本形成论文级随机方差统计。怎样既节省资源，又避免后续比较失去公平性？
 
-**当前状态：已处置。用户于 2026-08-30 确认本轮只训练一个 single-seed RGB B0；它作为后续模块消融的固定内部基线，不以三 seed 完整论文复现为当前目标。**
+**当前状态：已处置并完成。single-seed RGB B0 已冻结为 epoch 420，主 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；它是后续模块消融的固定内部基线，不是三 seed 完整论文复现。**
 
 - B0 的验收重点是训练与评估链可信、指标量级合理、没有明显类别或数值异常，并完整绑定 pretrained、split、seed、config、checkpoint 和 evaluator 身份；不要求与论文数字完全相等。
 - 后续模块可以复用这一个 B0 结果作为对照，但模块版本必须从同一 pretrained 独立训练，并保持相同 `train-dev`/`val-dev`、seed、数据顺序、epoch、优化器、增强、checkpoint 规则和主 evaluator。不能从 B0 最终 checkpoint 接着训练模块后再称为公平消融。
 - 若后续改变训练预算、优化器、增强、数据或 evaluator，现有 B0 不再是严格配对对照；需要限定结论，或在新协议下重训匹配的 B0。
 - 单 seed 足够用于模块探索、淘汰和初步消融，但不能估计随机方差。若模块增益很小、接近训练波动或要支撑重要结论，应对 B0 和该模块增加成对重复或额外 seed；当前不预先要求三 seed，也不因此阻塞模块设计。
-- 主 evaluator 可以在本地或云端运行。机器位置不改变实验身份，但必须绑定 checkpoint/split 哈希、冻结代码与配置、输入契约、前向精度、环境和 `official_test_included=false`。本机 RTX 5060 Laptop 8 GB 的最大样本尺度 1.5 FP32 检查已通过；当前 v1 最多 4 个候选按保守外推约 `2.8` 小时，后续 v2 最多 9 个候选约 `6.3` 小时，二者均低于 8 小时硬上限。
+- 主 evaluator 已在本地 RTX 5060 Laptop 上完成：4 个候选全部绑定 checkpoint/split 哈希、冻结代码与协议、RGB 输入契约、FP32、环境和 `official_test_included=false`；内部计时合计 `94.044` 分钟，低于 8 小时硬上限。
 - official test 在 B0 和模块开发期间继续 `sealed_unread`；是否以及何时解封由未来独立门禁决定，当前 single-seed 方向不构成解封授权。
 
 ## 9. 后续 checkpoint 数量与数据盘清理
 
 **大白话问题：** 训练期使用的是低成本单尺度 validation，最终选择使用五尺度翻转主 evaluator；如果只保留少量单尺度高分点，可能漏掉主 evaluator 更好的 checkpoint。增加候选又会增加磁盘和本地评估时间，怎样取得可控平衡？
 
-**当前状态：已处置并仅在本地实现。当前冻结 v1 继续使用 top 3 + latest；后续独立 v2 使用 top 8 + latest，最多 9 个去重候选。云端清理采用只读审计、已取回本地归档的 SHA-256 核验、可选 OpenList 副本和用户逐路径确认，不自动删除。**
+**当前状态：已处置。当前冻结 v1 的 top 3 + latest 已完成主评估，并实际观察到 selector 排名与主 evaluator 排名不同：selector 第一的 epoch 480 只排主评估第三，最终胜者为 epoch 420。后续独立 v2 使用 top 8 + latest、最多 9 个去重候选；v2 与只读清理门禁已提交，不回写本次 v1。**
 
 - protocol v3 继续兼容历史 top 3，并允许正整数 `top_k`，上限固定为 8；后续配置和模板使用独立 `museg-dformerv2-s-rgb-quick-b0-v2-top8` 身份，不回写当前运行的 config、protocol 或候选清单。
 - top 8 仍按同一 original-full、尺度 1.0、无 flip 的 mIoU 排序，同分优先更早 epoch；`latest.pth` 持续覆盖，最终清单按 checkpoint SHA-256 去重。因此候选最多是 9 个，而不是每 10 epoch 的全部 50 个 checkpoint。
@@ -115,4 +115,4 @@
 - 本机保守外推从当前 v1 的最多 4 个约 `2.8` 小时扩展到后续最多 9 个约 `6.3` 小时，仍低于 8 小时硬上限；继续串行评估，不并发复制模型争抢显存。
 - `tools/audit_museg_cloud_storage.py` 只生成候选占用、剩余空间和 checkpoint 纯文件预算，不提供删除参数。候选必须是数据盘下的显式现存路径，且不能与仓库、当前输出、共享数据、official-test/split authority、预训练权重或其他保护路径重叠。
 - 删除前必须先把归档取回本地并重新核验 SHA-256；OpenList 个人云盘副本是额外备份，不以任务页面的“成功”单独替代哈希证据。实际删除必须由用户确认每个规范化绝对路径后人工逐项执行，禁止通配符或模糊名称清理。
-- 本地设置尚未提交、推送或同步云端。后续训练仍需从干净 commit 物化新 protocol、通过正式 preflight，并分别取得训练和云生命周期授权。
+- v2 与清理门禁已随提交 `773c508e68d21491ad71d53f5967c3f76dc69ae6` 推送到 `origin/main`。后续使用 v2 仍需从干净 commit 物化新 protocol、通过正式 preflight，并分别取得训练和云生命周期授权。

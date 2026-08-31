@@ -1,14 +1,32 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.11",
+  "nextCanvasVersion": "0.0.12",
   "latestFormalReport": {
-    "path": "doc/reports/2026-08-31-museg-stage05-seed1-training-lessons.md",
-    "periodStart": "2026-08-25",
-    "periodEnd": "2026-08-28",
-    "baseCommit": "56a7ed711df2252e6228fc777d7cb92eb2510ef6",
-    "status": "stage05-seed1-historical-lessons-verified"
+    "path": "doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md",
+    "periodStart": "2026-08-17",
+    "periodEnd": "2026-08-31",
+    "baseCommit": "3975f7d66c78e9bed6b9053071bb274199d550e9",
+    "status": "formal-quick-b0-comprehensive-group-report"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md",
+      "topic": "museg-dformerv2-quick-baseline-comprehensive",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-31",
+      "baseCommit": "3975f7d66c78e9bed6b9053071bb274199d550e9",
+      "verification": "upstream-pretrained-split-training-four-candidate-main-evaluation-cost-boundary-and-future-roadmap-cross-check",
+      "status": "formal-quick-b0-comprehensive-group-report"
+    },
+    {
+      "path": "doc/reports/2026-08-31-museg-quick-b0-main-evaluation.md",
+      "topic": "museg-quick-b0-main-evaluation",
+      "periodStart": "2026-08-31",
+      "periodEnd": "2026-08-31",
+      "baseCommit": "3975f7d66c78e9bed6b9053071bb274199d550e9",
+      "verification": "four-candidate-fp32-msflip-original-grid-evaluation-and-sha256-adjudication",
+      "status": "formal-quick-b0-final"
+    },
     {
       "path": "doc/reports/2026-08-31-museg-stage05-seed1-training-lessons.md",
       "topic": "museg-stage05-seed1-training-lessons",
@@ -181,6 +199,15 @@
       "relatedReport": "doc/reports/2026-08-31-museg-stage05-seed1-training-lessons.md",
       "createdAt": "2026-08-31",
       "status": "formal-historical-lessons"
+    },
+    {
+      "version": "0.0.11",
+      "name": "museg-dformerv2-quick-baseline-comprehensive",
+      "source": "doc/canvases/0.0.11-museg-dformerv2-quick-baseline-comprehensive.canvas.tsx",
+      "publishedFilename": "0.0.11-museg-dformerv2-quick-baseline-comprehensive.canvas.tsx",
+      "relatedReport": "doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md",
+      "createdAt": "2026-08-31",
+      "status": "formal-quick-b0-comprehensive-group-report"
     }
   ]
 }
