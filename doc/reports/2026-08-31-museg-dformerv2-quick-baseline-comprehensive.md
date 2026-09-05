@@ -340,7 +340,7 @@ B2 的核心目标是：两个 depth patch 都有效时保留原 depth decay；�
 
 ## 十二、由本项目开启的“方向1”论文路线
 
-`liu-test-exp/方案1/研究方案设计专用提示词.md` 中的方向1是 **DFormerv2-S 冻结输出上的后验校准**。后验校准不修改 RGB-D 融合骨干，而是在冻结 checkpoint 输出 logits 后，研究模型给出的概率是否可信、错误是否能被有效排序、风险阈值能否迁移。
+`doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/参考资料/研究方案设计专用提示词.md` 中的方向1是 **DFormerv2-S 冻结输出上的后验校准**。后验校准不修改 RGB-D 融合骨干，而是在冻结 checkpoint 输出 logits 后，研究模型给出的概率是否可信、错误是否能被有效排序、风险阈值能否迁移。
 
 ### 12.1 为什么可以从当前 B0 开始
 

@@ -1,4 +1,4 @@
-- MUSeg documentation distinguishes live state (`doc/main`), dated evidence reports (`doc/reports`), plans (`doc/plans`), audits (`doc/audits`), guides, and temporary handoff analysis (`doc/临时`).
+- MUSeg documentation distinguishes live state (`doc/main`), dated evidence reports (`doc/reports`), plans (`doc/plans`), audits, guides, and archived historical handoff material.
 - Every MUSeg run must make input channel order, normalization identity, validation input geometry, metric geometry, split identity, checkpoint identity, and official-test inclusion explicit.
 - Historical evidence and raw acceptance/result files are immutable; corrections use new protocol/evaluator identities or additive reports.
 - Never call a single-seed, short-run, fixed-checkpoint diagnostic a formal baseline; never mix color lineages, budgets, or evaluators in one aggregate.

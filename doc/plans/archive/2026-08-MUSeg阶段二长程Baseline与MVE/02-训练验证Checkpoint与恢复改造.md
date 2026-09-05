@@ -1,6 +1,6 @@
 # 02：训练、验证、checkpoint 与恢复链路改造计划
 
-> **已封存：** 本文件属于 2026-08-29 封存的历史计划，仅保留形成时点的设计、执行记录和证据指针；当前计划见 `doc/plans/MUSeg-A2-B2深度有效性/00-总方向规划.md`。
+> **后继候选计划：** `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md`（该后继计划现已延期，未执行）。
 
 > **历史阶段记录：** Stage-02 已完成并提交。以下“尚未提交/Gate B 未完成”等文字是当时快照；当前入口见 `doc/main/MUSeg-current-status.md`。
 

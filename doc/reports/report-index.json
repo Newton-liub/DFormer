@@ -10,6 +10,42 @@
   },
   "reports": [
     {
+      "path": "doc/reports/2026-08-19-museg-dformer-data-processing-review.md",
+      "topic": "museg-dformer-data-processing-review",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-08-19",
+      "baseCommit": "ad6852e520eb4ea229251a81494da085dcf84592",
+      "verification": "dataset-paper-code-and-full-local-reproduction-review",
+      "status": "historical-formal"
+    },
+    {
+      "path": "doc/reports/2026-08-25-museg-stage04-cloud-qualification-handoff.md",
+      "topic": "museg-stage04-cloud-qualification-handoff",
+      "periodStart": "2026-08-25",
+      "periodEnd": "2026-08-25",
+      "baseCommit": "4f84ee33c93c3c8be83cb2ad029879c26a5346e9",
+      "verification": "historical-stage04-cloud-qualification-handoff",
+      "status": "historical-running-handoff"
+    },
+    {
+      "path": "doc/reports/2026-08-26-museg-stage05-seed1-local-closure-handoff.md",
+      "topic": "museg-stage05-seed1-local-closure-handoff",
+      "periodStart": "2026-08-26",
+      "periodEnd": "2026-08-26",
+      "baseCommit": "56a7ed711df2252e6228fc777d7cb92eb2510ef6",
+      "verification": "historical-local-closure-handoff-superseded-by-final-evidence",
+      "status": "historical-work-in-progress-handoff"
+    },
+    {
+      "path": "doc/reports/2026-08-28-museg-stage05-posteval-protocol-gate.md",
+      "topic": "museg-stage05-posteval-protocol-gate",
+      "periodStart": "2026-08-28",
+      "periodEnd": "2026-08-28",
+      "baseCommit": "56a7ed711df2252e6228fc777d7cb92eb2510ef6",
+      "verification": "historical-posteval-identity-and-geometry-gate",
+      "status": "historical-gate-snapshot"
+    },
+    {
       "path": "doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md",
       "topic": "museg-dformerv2-quick-baseline-comprehensive",
       "periodStart": "2026-08-17",

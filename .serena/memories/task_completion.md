@@ -1,4 +1,4 @@
-- For MUSeg documentation/code changes, run targeted checks first, then `python -m pytest tests` and `python -m compileall -q tools utils local_configs tests` when practical.
-- Inspect the final diff and confirm no protected raw evidence (`acceptance.json`, `failed.json`, `training_result.json`, `liu-test-exp/**`) was rewritten.
-- Before final response, update `doc/main/MUSeg-current-status.md` whenever verified experiment state, evidence, gate, cloud, commit, or recovery facts change; documentation-only wording fixes with no state change do not require a status timestamp update.
-- Keep official test sealed and do not create cloud resources or start training without explicit authorization and a frozen protocol.
+- 纯文档、计划、规则和报告改动默认只做内容、链接、差异和格式检查，不运行完整项目测试。
+- 代码改动只运行覆盖本次行为风险的最小定点检查；完整测试、GPU、训练、云端和 official test 需另行授权。
+- 只读检查或历史报告不代表当前实验状态；未实际执行的操作不得写成通过。
+- `doc/main/MUSeg-current-status.md` 是 MUSeg 唯一实时状态入口，提交前同步已核验的状态变化。

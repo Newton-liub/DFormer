@@ -293,3 +293,66 @@
 
 未在Excel中找到的论文编号:
 RE52
+
+================================================================================
+
+以下为本次整理新增的项目内部编号、DFormerv2 论文条目和未编号的 DFormer++ 候选条目；上方原始论文条目及其内容保持不变。
+
+编号: PR001
+类型: 项目内部事实
+来源: DFormer 项目 [`doc/main/MUSeg-current-status.md`]
+简要意义: MUSeg 当前事实入口；记录冻结的 DFormerv2-S Quick-B0、epoch 420 checkpoint、数据身份、official test 封存状态和当前授权边界。
+--------------------------------------------------------------------------------
+
+编号: PR002
+类型: 项目内部计划
+来源: DFormer 项目 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md`]
+简要意义: 记录 A2/B2 深度有效性方向的身份冻结、顺序任务、门禁和授权边界。
+--------------------------------------------------------------------------------
+
+编号: PR003
+类型: 项目内部计划
+来源: DFormer 项目 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/00-总方向规划.md`]
+简要意义: 记录方向1双路径的共享身份、最短验证目标和当前协议设计边界。
+--------------------------------------------------------------------------------
+
+编号: PR004
+类型: 项目内部计划
+来源: DFormer 项目 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/02-问题与方案双路径-MVE.md`]
+简要意义: 记录路径 A/B 的同源 float32 logits、Depth 退化、全局温度缩放、指标和停止门禁。
+--------------------------------------------------------------------------------
+
+编号: PR005
+类型: 项目内部研究设计
+来源: DFormer 项目 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/参考资料/研究方案设计专用提示词.md`]
+简要意义: 记录 DFormerv2-S 后验校准研究的对象、问题假设、方法边界和评价设计输入。
+--------------------------------------------------------------------------------
+
+编号: PR006
+类型: 项目内部索引
+来源: DFormer 项目 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/补充内容/段落主题1_论文编号.txt`]
+简要意义: 记录本副本中追加的项目编号和论文索引，供方向1后续计划补充参考资料。
+--------------------------------------------------------------------------------
+
+编号: RE006
+发表年份: 2025
+作者: Bo-Wen Yin; Jiao-Long Cao; Ming-Ming Cheng; Qibin Hou
+标题: DFormerv2: Geometry Self-Attention for RGBD Semantic Segmentation
+期刊/出版物: 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pp. 19345–19355
+论文链接: https://arxiv.org/abs/2504.04701
+DOI: https://doi.org/10.1109/CVPR52734.2025.01802
+摘要: Recent advances in scene understanding benefit a lot from depth maps because of the 3D geometry information, especially in complex conditions such as low light and overexposure. This paper presents DFormerv2, an RGB-D encoder that uses depth maps as geometry priors rather than encoding depth with a separate neural network. It extracts geometric relationships from depth and spatial distances between image patch tokens, then uses them to allocate attention weights in geometry self-attention. Experiments on RGB-D semantic segmentation benchmarks show strong performance with lower computational cost.
+核验说明: arXiv 页面标注 Accepted by CVPR 2025；CVPR DOI 元数据核验题名、作者、会议和页码；官方代码仓库将该论文列为 CVPR 2025，并同时区分 ICLR 2024 的 DFormer 和后续的 DFormerv2。当前项目没有发现正式题名为“DFormer2”的独立论文。
+简要意义: 为当前项目冻结的 DFormerv2-S RGB-D 基线提供模型原理、Depth 几何先验和多尺度翻转评估的论文依据；不直接证明 Depth 退化会导致概率失校准，也不直接提供全局温度缩放方法。
+--------------------------------------------------------------------------------
+
+## 补充候选：DFormer++（暂不分配新的 RE 编号）
+
+发表年份: 2026
+作者: Bo-Wen Yin; Jiao-Long Cao; Di Xu; Ming-Ming Cheng; Qibin Hou
+标题: DFormer++: Improving RGBD Representation Learning for Semantic Segmentation
+期刊/出版物: IEEE Transactions on Pattern Analysis and Machine Intelligence, 48(7), 7195–7208
+DOI: https://doi.org/10.1109/TPAMI.2026.3658114
+核验说明: DOI 元数据已核验题名、作者、期刊、卷期、页码和年份。该文是 DFormer 系列的后续工作，但正式题名为 `DFormer++`，不是 `DFormer2`。
+与当前项目的关系: 作为 DFormer 系列后续研究保留供后续方案细化时参考；当前方向1固定的模型仍是已完成 Quick-B0 的 `DFormerv2-S`，不能用 DFormer++ 的论文或模型身份替换现有 checkpoint，也不把它作为当前实验的直接方法依据。
+--------------------------------------------------------------------------------

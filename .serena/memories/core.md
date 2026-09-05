@@ -1,0 +1,7 @@
+- Python research repository centered on DFormer/MUSeg segmentation experiments.
+- MUSeg live facts, active boundaries, recovery point, and evidence pointers: `doc/main/MUSeg-current-status.md`.
+- Research choices that affect future runs (validation geometry, color contract, A2/B2, seed timing): `doc/main/MUSeg-open-decisions.md`.
+- Do not treat plans/reports/temp handoffs as the live state; they are supporting evidence or historical snapshots.
+- MUSeg official test remains sealed until formal protocol/checkpoint freeze and Gate F.
+- Keep large data, checkpoints, archives, credentials, and run artifacts out of Git.
+- Focused experiment tooling is under `tools/`; tests are under `tests/`; runtime configs are under `local_configs/`, `protocols/`, and `data/splits/`.

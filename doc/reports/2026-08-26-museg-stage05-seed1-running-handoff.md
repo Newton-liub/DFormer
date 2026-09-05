@@ -1,6 +1,6 @@
 # MUSeg Stage-05 development seed 1 运行中交接报告
 
-> **文档角色：历史运行中快照。** 本报告只描述 2026-08-26 03:33 UTC 的运行状态；seed 1 后来已完成 500/500 epochs，实例已停止。当前事实和恢复点只看 `doc/main/MUSeg-current-status.md`，完成后的详细进度见 `doc/reports/2026-08-26-museg-stage05-seed1-local-closure-handoff.md`。
+> **后继关系：** 本文的运行中快照已由后续本地收口、正式主评估和当前状态文件取代；不应从本文恢复任务。
 >
 > 正文中的“当前”“正在运行”“下一门禁”均按核验时点解释，不得据此恢复旧进程、连接旧端口或重新启动 workload。
 

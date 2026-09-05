@@ -1,6 +1,6 @@
 # 04：静态验收与 RTX 4090 qualification 计划
 
-> **已封存：** 本文件属于 2026-08-29 封存的历史计划，仅保留形成时点的设计、执行记录和证据指针；当前计划见 `doc/plans/MUSeg-A2-B2深度有效性/00-总方向规划.md`。
+> **后继候选计划：** `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md`（该后继计划现已延期，未执行）。
 
 > **文档角色：Stage-04 历史计划与执行记录，不承担实时状态。** 本阶段的 Gate C、3-epoch qualification、连续/恢复等价演练和 Gate D 后来均已完成。以下计划和状态段落按形成时点保留；当前事实、授权和恢复点只看 `doc/main/MUSeg-current-status.md`。
 >

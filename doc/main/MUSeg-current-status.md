@@ -1,58 +1,56 @@
-# MUSeg 当前状态与唯一入口
+# MUSeg 当前状态与唯一实时入口
 
-> 状态时间：2026-09-01 06:32 UTC
-> 当前阶段：single-seed RGB development Quick-B0 已完成并封存；A2/B2 深度有效性小计划已建立，当前恢复点为任务 1“冻结 A2 协议并准备本地实现/定点检查”，并行的方向1最短验证路径计划已完成重组但仍未授权执行；尚未执行正式 A2、实现 B2 或方向1校准实验；最终 B0 仍为 epoch 420，主 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`，official test 继续保持 `sealed_unread`
-> 本文件是 MUSeg 当前状态的唯一入口；其他阶段计划、审计和正式报告按各自日期保留为历史证据。
+> **状态时间：** 2026-09-05 UTC
+> **当前阶段：** 已完成的 RGB Quick-B0 作为稳定研究起点；文档与目录治理已完成并已在本地基准提交/tag 中固定。当前没有已授权的 MUSeg 研究执行项。
+> **大白话说明：** 现在先把已完成基线和历史材料整理成不会误导后续工作的 Git 起点；A2/B2 与方向1都还没有开始，不能从计划文字直接恢复实验。
+> 本文件是 MUSeg 当前事实、授权边界、证据入口和恢复规则的唯一实时入口；计划、报告、审计和 Canvas 只承担各自形成时点的历史或详细证据职责。
 
-## 1. 当前结论
+## 1. 稳定基线
 
-- Stage-01 至 Stage-03 已完成，Gate B 已签署。
-- 原 `doc/plans/MUSeg阶段二长程Baseline与MVE/` 已于 2026-08-29 移入 `doc/plans/archive/2026-08-MUSeg阶段二长程Baseline与MVE/` 封存；已完成的 Quick-B0 计划也于 2026-08-31 移入 `doc/plans/archive/2026-08-MUSeg-DFormerv2快速Baseline/`，两者都只保留历史设计、执行证据和后继指针，不再作为当前运行授权依据。新的当前总方向见 `doc/plans/MUSeg-A2-B2深度有效性/00-总方向规划.md`；`01-新对话最小上下文与当前任务.md` 是最小读取入口；唯一当前方案见 `02-A2正式验证与B2条件分支.md`。本阶段只有“A2 协议与本地准备、正式 A2 与裁决、条件式 B2 与零训练验证”3 个顺序任务；当前只进入任务 1 的规划恢复点，完整 A2、B2 实现、GPU、训练、云资源和 official test 均未获授权。大白话说，可信 B0 已经存档，下一步先把深度破坏实验规则写死并做本地准备，不能直接跳到 B2 或新训练。
-- 颜色/归一化契约已显式进入配置、protocol v3、materializer、launcher、run manifest/config、preflight、production loader 和 post-evaluator；历史 v2 protocol 仍可读取并标记补录来源。当前 seed 1 仍是 legacy BGR 历史事实。上游 provenance 已由官方 Hugging Face 资产闭合：`DFormerv2_Small_pretrained.pth` 的 LFS SHA-256 和大小与本项目权重完全一致；官方 RGB-D ImageNet 预训练代码使用 PIL RGB 与 RGB 顺序 ImageNet mean/std，因此 pretrained 通道语义为 RGB。用户于 2026-08-30 决定本次 quick B0 直接采用 RGB，取消颜色双臂。大白话说，新 B0 选择与预训练一致的输入作为可信起点；这不是“RGB 在 MUSeg 上优于重训 BGR”的性能实验结论。
-- 本轮 CPU 预检已完成：聚焦契约/切分测试 41 passed，`tests/` 全量 CPU 测试 118 passed，`python -m compileall -q tools utils local_configs tests` 通过，7 个 Git 跟踪 JSON 可解析，val-dev 为 318 条唯一记录且与 official-test 无交集；默认无参数 `pytest` 仍会收集历史 `cloud/museg-epoch10-a2-20260821/code` 和 `utils/engine/dist_test.py` 并因缺失历史路径/导入路径失败，该收集问题不涉及当前 `tests/` 契约结果。两个 checkpoint、val-dev split 和完整归档 SHA-256 已独立复核。
-- Stage-04 的 batch 选择、3-epoch qualification、checkpoint 连续/恢复等价性和 Gate D 已完成；batch 10 已用于开发长程训练。Stage-04 当前没有未完成执行项；376/384 次有效 update 的旧遥测差异只保留为历史限制，不要求重跑。
-- Stage-05 seed 1（seed `772961337`）已完成 500/500 个 epoch，训练进程退出码为 0；云端运行绑定提交 `56a7ed711df2252e6228fc777d7cb92eb2510ef6` 和 protocol `museg-development-long500-v2`。直接核验该提交确认：基线已使用历史 MVE 的 B1 `safe_masked_mean` 数值稳定性修复；B2 depth-validity mask/gating 尚未实现，未进入本次基线。A1 已证实全背景或空有效像素时 masked loss 的空集合归约数值风险；B1 可直接作为新 DFormerv2-MUSeg baseline 的必要稳定性修复，但不是性能提升模块，不应单独宣称带来 mIoU 提升。
-- Stage-05 seed 1 五项 val-dev 后评估已完成：best checkpoint 的 original-full/resize/sliding mIoU 分别为 `52.98`/`56.31`/`51.89`，epoch-500 的 resize/sliding 分别为 `56.73`/`52.08`。五项均为 318 样本、原始 Label grid 计分，checkpoint/split SHA 匹配且 `official_test_included=false`。这些是单 seed 几何诊断，不是三 seed 正式 baseline；resize 数值最高但存在长宽比改变，不能据单一最高 mIoU 直接冻结 geometry。详细中间报告见 `doc/reports/2026-08-28-museg-stage05-posteval-protocol-gate.md`。
-- 固定 best checkpoint 的三臂 original-full 颜色诊断已完成：legacy BGR、RGB+RGB mean/std、BGR+反向 mean/std 的 mIoU 分别为 `52.98`、`33.85`、`49.53`；三臂均为同一 checkpoint/split SHA、318 样本、原始 Label grid，且 official test 未参与。这证明现有 checkpoint 对输入契约强敏感，但不能判断重新训练后的 RGB/BGR 胜负；本轮已按上游输入一致性直接选择 RGB，只有未来明确研究颜色性能时才需要 paired 重训。
-- 历史 Stage-05 seed 1 整体已完成其原协议内工作，但不作为新目标的正式 DFormerv2-MUSeg baseline：其训练使用固定 `train_scale_array=[1.0]`，历史验证使用单尺度原图整图，未实现 DFormerv2 论文风格的多尺度翻转评估。其五项后评估、颜色诊断和所有 checkpoint/归档证据继续保留，不回写。
-- 50/50 个 val-dev 验证点齐全；最佳结果为 mIoU `52.84`，对应 epoch 460。该结果是单 seed development 结果，不是三 seed 正式 baseline。
-- 最终记录 `63,973` 次有效 optimizer update。相对 64,000 次理论 loop 网格的少量 AMP 跳过不阻塞本次训练完成结论；未来遥测已改为分别记录尝试、完成和跳过计数。
-- 原始 v1 `acceptance.json` 仍为失败且未改写，唯一失败项是旧版 `milestones_complete` 遥测规则；原始 `failed.json` 同样保持不变。
-- 独立 `acceptance-v2.json` 为 `pass=true`：重新哈希原报告列出的全部 18 项证据（含 12 个 checkpoint），核验 500 个 epoch 末核心日志、50 个验证点、best/final 身份和 official-test 封存状态。
-- official test 继续保持 `sealed_unread`：原始裁决记录 `official_test_read=false`，训练结果记录 `official_test_included=false`，运行配置记录 `sealed_unread=true`。
-- 已在 `main` 的 `c9ad268b5ee3ab685a4f93c945bfcdd843c49ab9` 基线上完成稳定项目指南 `doc/guides/project/README.md` 与逐文件目录 `doc/guides/project/file-catalog.md`：Git 跟踪路径 1,141/1,141 已说明，排除 0、缺失 0、重复 0。该目录是结构与导航证据，不替代本文件的实时事实。
+- **模型与输入：** `DFormerv2-S RGB Quick-B0`，使用 RGB 输入契约 `rgb-imagenet-rgb-order-v1`；B1 `safe_masked_mean` 数值稳定性修复保留在基线中。
+- **最终 checkpoint：** epoch 420 的 `selector-epoch-420.pth`，SHA-256 为 `f246a3afc50334c81302b7bfebdadf7cf37d00326bf1c3aa54f6a151754e3a1c`。
+- **开发 split：** `val-dev` 共 318 条，split SHA-256 为 `1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83`；official test 仍为 `sealed_unread`（封存未读）。
+- **主 evaluator：** `msflip-whole-original-grid-v1`，5 个尺度分别使用原图与水平翻转，共 10 个 view；输出恢复到 MUSeg 原始 Label 网格，以 FP32 平均 pre-softmax logits 后计分。
+- **主指标：** mIoU `58.79`、mAcc `69.91`、mF1 `72.73`。
+- **基线性质：** 这是 single-seed、RGB、development Quick-B0，作为后续模块探索的固定内部对照；它不是三 seed 的完整论文复现，也不是颜色优劣实验结论。
+- **权威证据：** 主评估裁决见 `doc/reports/2026-08-31-museg-quick-b0-main-evaluation.md`；综合报告见 `doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md`；完整本地证据位于仓库外的 `cloud/DFormer-quick-b0-evidence/museg-dformerv2-s-rgb-quick-b0-v1/`（该目录不纳入 Git）。
 
-## 2. 证据取回与云实例状态
+## 2. 当前研究方向状态
 
-- 完整不可变归档当前可访问于仓库内暂存路径 `D:\0Project\DFormer\cloud\DFormer-stage05-archive\museg-stage05-seed772961337\museg-stage05-seed772961337-original.tar`；文件大小为 `3,865,057,280` bytes，本地 SHA-256 为 `4f6b079b707266ee358d2522fc6e4e034a5380d09ba8c65696df7aaa3e383c66`，与 sidecar 清单一致。
-- 后评估资产已位于 `D:\0Project\DFormer\cloud\DFormer-stage05-evidence`：独立 `best-val-miou.pth` 与 `epoch-500.pth` 的 SHA-256 分别为 `b62ca049e6a647aca109c70e80823cec8e36ae1cc1df27e3bcf2b1d215b160bf` 与 `0b88ab022db5188fd3439ea4e3af2098fe81e7c85757d1d91db33e831df2ff79`；本地 val-dev bundle 为 318 样本、954 个 RGB/Depth/Label 文件，split SHA-256 为 `1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83` 且 `official_test_included=false`。五份 v2 结果位于其 `posteval/` 子目录；旧 `best-original-full.json` 是 v1 失败现场，继续保留但不计入五项结果。
-- 本机尺度 1.5 GPU 技术检查证据为 `cloud/DFormer-stage05-evidence/posteval/quick-b0-scale1.5-max-sample-fp32-technical-check.json`。报告绑定上述 checkpoint/split SHA、Quick-B0 RGB 输入契约、FP32/TF32 disabled、两个 view 的完整几何与耗时、峰值显存，并显式记录 `metrics_computed=false`、`official_test_included=false`；它是资源可行性证据，不是研究指标。
-- CompShare 实例 `cpod-1tyvjsiu6ahe` 于 2026-08-30 以无卡模式运行 lifecycle-test 门禁并通过，随后由控制面 stop 在 `2026-08-30T10:13:25Z` 达到 `Stopped`；未需要人工补发普通停止命令。
-- 本次暴露了自动关机风险：训练完成后未按预期及时停止。正式 RTX 4090 B0 前新增无卡 lifecycle-test 门禁：模拟成功 workload 和测试报告，本地控制器取回证据并核验哈希后调用 CompShare 控制面 stop，等待实例达到 `Stopped`；启动前另设 `instance schedule` 最晚停止兜底。大白话说，先用不占 GPU 的廉价任务证明“做完、拿回证据、自动停止”整条链，失败就不启动正式训练。
+- 当前没有已授权的代码实现、实验、GPU、训练、云资源或 official test 操作。
+- A2/B2 深度有效性方向已迁入 `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/`，状态为**延期、未执行、未授权、当前不处于恢复点**。
+- 方向1后验校准与 Depth 退化双路径计划已迁入 `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/`，状态同样为**延期、未执行、未授权、当前不处于恢复点**。
+- 两套延期计划只保留未来重新启用时的候选设计。重新启用必须先从稳定基准建立独立研究分支，重新确认数据、protocol、evaluator 和授权；计划中的“当前任务”“下一步”或“恢复点”不构成执行依据。
+- 方向1仍需使用的研究设计提示词和论文编号索引已经随计划收进其 `参考资料/` 与 `补充内容/`，不再作为活跃草稿目录入口。
 
-## 3. 当前事项与边界
+## 3. 数据、评估和 official-test 边界
 
-- `tools/evaluate_museg_checkpoint.py` 使用 `criterion=None` 跳过单独 pretrained 初始化、以 `strict=True` 加载完整 checkpoint，并为 PyTorch 2.6+ 显式使用 `weights_only=False` 读取已核验可信旧 checkpoint；post-evaluation v2 契约显式记录 input contract，所有 geometry 在原始 Label grid 计分。
-- 五项后评估与 identity/geometry 核验、固定 checkpoint 三臂诊断已完成；这些结果只属于历史 seed 1 的诊断。当前 B0 只训练一个 RGB seed，并作为后续模块消融的固定内部基线，不以三 seed 完整论文重现为目标；模块只有在 pretrained、split、seed、数据顺序、预算、优化器、增强、checkpoint 规则和主 evaluator 不变时才能直接复用该 B0 对照。大白话说，先把一个共同起点做可靠，再让模块在完全相同条件下独立训练比较；小增益或重要结论才考虑额外成对重复。
-- 训练期每 10 epoch 用单尺度 original-full validation 动态保留 top 3 和 `latest.pth`，训练后对去重后的最多 4 个候选运行五尺度翻转主 evaluator，并由主 evaluator mIoU 选择最终 checkpoint。本机已直接核验为 RTX 5060 Laptop GPU 8,151 MiB、Ryzen 9 8945HX 16 核 32 线程、约 15.2 GiB RAM、`D:` 约 120.5 GiB 可用；`df2` 环境为 Python 3.10.20、PyTorch 2.7.0+cu128 且 CUDA 可用，base 环境当前存在重复 OpenMP runtime 导入错误，不用于正式 evaluator。2026-08-30 的获批技术检查使用 val-dev 标签像素数最大的样本 `06-01-01-0352-230920140646-10-99`（原图 `932×1082`），尺度 1.5 后为 `1398×1623`、右/下补齐为 `1408×1632`；FP32 原图/翻转两个 view 分别用时 `2.095559` 秒和 `1.079008` 秒，峰值 allocated/reserved 显存分别为 `4,977,021,952`/`6,511,656,960` bytes，未 OOM。按这一个最大样本的两 view 实测保守按像素倍率外推，最多 4 个五尺度翻转候选约 `2.8` 小时，加模型加载开销仍落在 2–4 小时计划预算且低于 8 小时硬上限，因此主 evaluator 运行位置冻结为本地 RTX 5060 Laptop。大白话说，8 GB 本机已经实际跑过最吃显存的尺度，显存与时间都满足本地完成最多四个候选的门槛。
-- 云端 RTX 4090 理论算力和显存更强，但 batch 1、CPU resize/解码、磁盘 I/O 和同步可能使实际 evaluator 与本地耗时接近。当前规则是本地尺度 1.5 检查通过且最多 4 个候选外推低于 8 小时则本地运行，否则在原 4090 实例按本地 SSD、模型单次加载、`inference_mode`、pinned/non-blocking transfer 和冻结 worker/prefetch 的方式串行评估；不通过盲目并发扩大显存竞争。
-- 唯一实时入口维护规则已写入 `.cursor/rules/museg-current-status.mdc` 和 README；每次 MUSeg 对话必须在最终答复前同步持久状态变化，无事实变化时不更新时间。
-- 文档职责已进一步收口：Stage-04 云端交接和 2026-08-19 数据处理评审已归入 `doc/reports/`，File Browser/OpenList 操作说明已归入 `doc/guides/cloud/`，`doc/dataset.md` 继续作为稳定数据入口；有效引用已同步更新。最终一致性检查已通过：旧路径无残留，报告索引 JSON 可解析，归档 Canvas 无诊断，完整暂存 whitespace/rename 检查通过。逐文件复核确认普通差异与忽略 CRLF 后的实质差异一致，没有纯换行污染进入提交；文档治理提交 `c9ad268b5ee3ab685a4f93c945bfcdd843c49ab9` 已直接核验为当前 `origin/main`。
-- 2026-08-27 经用户确认删除语义重复且含过时“当前门禁”的 `doc/plans/MUSeg-4090云端训练交接计划.md`；其导航和三份历史报告中的旧引用已改为当前状态入口、Stage-04 计划或日期化报告。`00`/`04` 的形成时点边界、`05` 的训练裁剪与 validation 几何区别、`08` 已处置的自然证据门禁、seed 1 预启动报告的 validation 几何勘误及运行中交接的后继状态均已澄清；`doc/guides/README.md` 与 `doc/plans/README.md` 已规定统一文档状态头。Stage-01 至 Stage-04 的设计证据继续保留，不据此重跑历史 workload。
-- 全仓指南任务的历史静态验收和提交 `1fbb0da` 保持不变；本次没有重算或改写该指南的 1,141 个路径基线。2026-08-30 前次文档阶段末的 `git status` 快照显示 5 份未提交 Markdown：已修改 `doc/main/MUSeg-current-status.md`、`doc/main/MUSeg-open-decisions.md`、`doc/plans/MUSeg-DFormerv2快速Baseline/00-总方向规划.md`，新建 `01-新对话最小上下文与当前任务.md` 与 `02-一次性B0执行方案.md`；旧 `02-阶段A-详细协议方案.md` 已从工作区删除且未被 Git 跟踪。该条只保留历史工作区快照；当前代码与文档改动以本节后续任务 1 记录为准。
-- 2026-08-30 已完成任务 1“本地实现与定点检查”的 CPU 范围：新增独立 Quick-B0 config 与 protocol-v3 模板；protocol/preflight/launcher 绑定 `run_kind=standard`、RGB 输入、top 3 + latest 规则和 optimizer 遥测；训练链按单尺度 mIoU 动态保留 top 3（同分优先更早 epoch）、持续覆盖 `latest.pth`，每次候选变化都原子更新可恢复的 rolling manifest，恢复运行会校验并复制父运行候选状态，训练结束再写出按 checkpoint SHA-256 去重的不可变候选清单；post-evaluator 新增 `msflip-whole-original-grid-v1`，按 5 个尺度×原图/水平翻转共 10 个 view，在 normalization 后仅右/下补零到 32 倍数，unflip/去 padding 后恢复原始 Label 网格并以 FP32 平均 pre-softmax logits。大白话说，训练只保存真正需要进入最终比较的候选，最终评估也已按预先约定的原图计分方式实现。
-- 无卡 lifecycle-test 云门禁已在 CompShare 实例 `cpod-1tyvjsiu6ahe` 通过：实例以 `GPU=0`、2 vCPU、4 GiB 内存运行，查询价为 `0.13`/小时；控制面最晚停止兜底设为 `2026-08-30T10:41:15Z` 并复核成功。durable job `job-20260830T101210Z-8c5b24ea` 退出码为 0；本地取回并逐项核验 `terminal-result.json`、`summary.json` 和 evidence manifest 的大小与 SHA-256，manifest SHA-256 为 `f9f00d7bdee84cfa8c5cab5ab47b3388fb2ad709ec03ff404c1b8207d5d37742`。控制面 stop 成功，实例于 `2026-08-30T10:13:25Z` 达到 `Stopped`，未需要人工补发普通停止命令；controller result SHA-256 为 `b81fcdeafca9e578d377f3a6c07aa939813d2a238c86f3649cd5288853f0ce48`，证据目录为 `cloud/museg-lifecycle-gates/museg-lifecycle-cpod-1tyvjsiu6ahe-20260830T1012Z/`。报告明确记录 `simulation=true`、`produced_metrics=false`、`official_test_included=false`。大白话说，正式训练前要求的“模拟完成、拿回并核验证据、自动停止计费实例”整条链已经在真实控制面上跑通。
-- lifecycle-test 的代码实现仍保持隔离的 `run_kind=lifecycle-test`、`simulation=true` 模拟器和本地控制器设计；本次云门禁只验证一次成功终态，不产生或替代 B0 训练结果。
-- 本轮最终聚焦 CPU 检查为 66 passed；修改 Python 文件的 `py_compile` 通过，静态诊断无报错，`git diff --check` 无 whitespace error。检查覆盖 Quick-B0 protocol/materialization/launcher、top-3 候选与恢复、FP32 多尺度翻转及技术检查无指标契约、lifecycle simulation 和成功/失败终态 stop 顺序。pytest 仍报告既有 `GradScaler` deprecation warning 和本机临时/缓存目录权限 warning；这些 warning 未为追求零 warning 而扩大处理。
-- 本轮除已获批的本机 GPU 技术检查外，已执行一次无卡 lifecycle-test 云门禁；门禁模拟器未加载模型、未使用 GPU、未生成指标且未读取 official test。没有运行 B0 训练、长耗时评估、完整测试套件或 official test；这些项目未运行，不能写成通过。该条记录任务 1 收口时状态；后续外部控制面交接已推送，见下一条。Quick-B0 protocol 仍是需要在干净提交上 materialize 的模板，尚未生成绑定最终 Git commit 的可运行 manifest。
-- 当前唯一方案仍为 `doc/plans/MUSeg-DFormerv2快速Baseline/02-一次性B0执行方案.md`。任务 1“本地实现与定点检查”和任务 2“无卡自动关机门禁”均已完成，主 evaluator 运行位置冻结为本地。正式训练的控制面 schedule 回执已由外部代理以提交 `3975f7d66c78e9bed6b9053071bb274199d550e9` 推送并由训练主窗口直接核验：实例 `cpod-1tyvjsiu6ahe` 的 shutdown schedule 为 `2026-08-31T22:30:00Z`，`scheduled=true` 且设置后实例仍为 `Running`。在该干净提交上物化的 protocol 位于 `protocols/generated/museg-dformerv2-s-rgb-quick-b0-v1-20260830.json`，SHA-256 为 `6822e4cdfd9c6985c323123fc4d24a9f06ed269fada55203b1707fc5ab612bbd`；唯一一次正式 preflight 为 `pass=true`、0 errors、0 warnings，直接核验 RTX 4090、RGB/config、权重与 split 身份、official test 封存，并成功完成 SwanLab 非交互 online 初始化，preflight run 为 `le7k3k3s`。首次 Screen 启动在 `2026-08-30T14:36:18Z` 因启动环境未导出仓库 `PYTHONPATH`，在导入 `utils.metrics_new` 前退出码 1；未进入模型训练，失败现场完整保留于 `outputs/museg-dformerv2-s-rgb-quick-b0-v1/development/seed-772961337-failed-launch-20260830T143618Z/`。随后只做针对该根因的导入检查并显式导出 `PYTHONPATH`，同一冻结 B0 于 `2026-08-30T14:38:48Z` 在 detached Screen `museg-quick-b0-772961337` 中重新启动；run ID 为 `museg-dformerv2-s-rgb-quick-b0-v1-development-DFormerv2-S-development-single-b0-500epoch-v1-seed-772961337`，输出目录为 `outputs/museg-dformerv2-s-rgb-quick-b0-v1/development/seed-772961337/`，SwanLab run 为 `nn1ujllm`。epoch 1 于 `2026-08-30T14:40:44Z` 完成，记录有限 `loss=3.1753`、`total_loss=3.1621`，optimizer attempted/completed/skipped 为 `128/119/9`，`latest.pth` 已保存；Screen、launcher、trainer 和 GPU 进程继续存活，GPU 当时使用约 21,030 MiB，训练日志给出的初始 ETA 为 `2026-08-31 04:58:47`。大白话说，第一次只是启动命令缺少 Python 搜索路径，真正训练没有发生；修正同一个启动环境后，唯一 B0 正常启动并由 Screen 防止 SSH 断线中止。该启动时点的恢复点曾是等待 500 epoch 或技术终态；训练终态、证据下载与实例停止的后继事实见本节最新一条。
-- 2026-08-31 已在本地为**后续训练**新增独立 `museg-dformerv2-s-rgb-quick-b0-v2-top8` config/protocol 模板：protocol v3 继续兼容历史 top 3，同时把 `top_k` 的结构边界扩展为正整数且最大 8；新 v2 预登记 top 8 + 持续覆盖的 `latest.pth`，训练结束后按 checkpoint SHA-256 去重，最多 9 个候选进入五尺度翻转主 evaluator。按已核验最大样本保守外推，9 个候选串行评估约 `6.3` 小时，仍低于 8 小时硬上限。大白话说，后续训练会多留几个单尺度高分点，降低它与最终主验证排序不一致时漏掉好 checkpoint 的风险，但不保证完全消除排序差异。
-- 同一批本地设置新增 `tools/audit_museg_cloud_storage.py` 和 `doc/guides/cloud/museg-storage-backup-cleanup.md`：审计工具只接受显式数据盘根、候选和保护路径，拒绝根目录、越界、保护重叠、重复项和逃出数据盘的符号链接，只报告占用、剩余空间与最多 9 个 checkpoint 的纯文件预算，**没有删除实现**。删除门禁冻结为“归档取回本地并核验 SHA-256，可选复制归档与 sidecar 到 OpenList 个人云盘，用户确认每个绝对路径后人工逐项删除”。大白话说，工具只列出哪些旧目录可能清理，真正删除必须在以后单独确认，不能用通配符批量清盘。
-- 本轮最小本地验证为：v1/v2 protocol 物化与上限、只读存储审计共 `6 passed, 1 skipped`，其中 skip 仅因当前 Windows 不允许测试创建目录符号链接；top-3 回归与 top-8 最多 9 个去重候选为 `2 passed`。修改 Python 的 `py_compile`、新 top-8 config 导入、2 个 JSON 解析、静态诊断和 `git diff --check` 均通过。没有运行完整测试套件、GPU、训练、主 evaluator、云端命令或 official test；这些项目不能写成通过。
-- 上述 v2 和清理门禁已随提交 `773c508e68d21491ad71d53f5967c3f76dc69ae6` 推送到 `origin/main`；它们只约束后续训练，不改变本次冻结 v1 的 top 3 + latest 身份或终态。未来使用 v2 前仍需从干净 commit 物化新 protocol、运行正式 preflight，并另行授权训练与云生命周期操作。
-- 2026-08-31 01:03 UTC 对运行主机的只读快照确认：detached Screen `museg-quick-b0-772961337`、launcher、trainer 和 RTX 4090 workload 仍存活；epoch 382/500 已完成，累计 optimizer attempted/completed/skipped 为 `48,896/48,873/23`，`latest.pth` 已更新，日志 ETA 为约 `2026-08-31 04:13 UTC`。最近一次 epoch 380 validation mIoU 为 `54.35`，当前训练期 original-full top 3 为 epoch 350 `55.54`（SHA-256 `4d17cb38318a3ba764642ba75b90c9f8d87a0be058a6f7a97b61225a45347da9`）、epoch 230 `55.32`（`841d800603ccb4aeb3b60f62d4a00272577fa3909ffccedf57322b8863d2095d`）和 epoch 270 `54.77`（`8c591417511d60d11a9385111e83dafaec74ce4c6b80fb74cb048024ea18df0a`）；rolling manifest 仍为 `finalized=false`，因此这些只是训练中的候选，不是最终 B0 结论。快照时 GPU 使用 `21,122/24,564 MiB`，最近日志未命中 `ERROR`、Traceback、CUDA OOM 或 NaN。大白话说，训练已完成约四分之三并正常向前推进，目前最好的低成本验证点是 epoch 350，但还要等训练完成和五尺度翻转主评估后才能确定最终 checkpoint。
-- 2026-08-31 终态收口已直接完成：唯一 Quick-B0 于 `2026-08-31T04:16:27.983518Z` 完成 `500/500` epoch，`run_museg_seed.py` 已退出且 `train.exit_code=0`；optimizer attempted/completed/skipped 为 `64,000/63,971/29`，满足 `attempted = completed + skipped`。`checkpoint-candidates.json` 已 `finalized=true`，4 个按 SHA-256 去重的候选为：epoch 480 `selector-epoch-480.pth`，`321,011,270` bytes，`50a8febc4a4876fc4b0b3f882f92361b8deb2ad0bc02216c6d28fde6ef5e12f8`；epoch 420 `selector-epoch-420.pth`，`321,011,270` bytes，`f246a3afc50334c81302b7bfebdadf7cf37d00326bf1c3aa54f6a151754e3a1c`；epoch 440 `selector-epoch-440.pth`，`321,011,270` bytes，`096125ac3cca1c215f085cfb164aed3a9e25b6784ce8334d3bc051f9419aec47`；epoch 500 `latest.pth`，`320,977,354` bytes，`00ba9f7dbd31677b630664040406eed809e7204f46941e1f5a2baa9d37d44f67`。完整 active seed、materialized protocol、preflight、两份 Screen 日志、首次失败启动现场和全部候选已下载到 `D:\0Project\DFormer\cloud\DFormer-quick-b0-evidence\museg-dformerv2-s-rgb-quick-b0-v1`；本地重算 protocol SHA-256、候选 manifest SHA-256 `9c7297e1c6c4a8e5929108bccfd9b720ac110640f3bc28cdec2cb40c796d1942`、4 个 checkpoint 大小与 SHA-256，以及 seed/run ID/Git commit/split/official-test/optimizer 身份均通过，结构化复核见 `local-verification.json`。CompShare 控制面普通 stop 于 `2026-08-31T04:33:16.795325Z` 请求成功，并于 `2026-08-31T04:33:31.827620Z` 经 wait 和 status 双重确认为 `Stopped`；固定 schedule 未触发，也没有第二次 stop。official test 仍为 `sealed_unread`。该条保留主评估启动前的准确恢复点；后继最终结果见下一条。大白话说，云端训练和计费实例已经安全收口，当时只剩本地比较 4 个候选。
-- 2026-08-31 主评估与证据收口已直接完成：从训练提交 `3975f7d66c78e9bed6b9053071bb274199d550e9` 建立 detached 干净 worktree，按原始字节复原 materialized protocol 并验证 SHA-256 `6822e4cdfd9c6985c323123fc4d24a9f06ed269fada55203b1707fc5ab612bbd`，Windows 路径映射后的 `val-dev` 仍为 318 样本且 split SHA-256 `1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83`。4 个候选在本地 RTX 5060 Laptop、`df2` 环境中以 `msflip-whole-original-grid-v1` 串行完成；全部报告均为 `status=completed`、`metrics_computed=true`、FP32/TF32 disabled、RGB、原始 Label 网格、`official_test_included=false`。主评估排序为：epoch 420 `58.79/69.91/72.73`，epoch 440 `58.73/69.54/72.67`，epoch 480 `58.43/69.34/72.44`，epoch 500 `57.68/68.84/71.81`，顺序为 mIoU/mAcc/mF1。按预登记规则，最终 B0 冻结为 epoch 420 的 `selector-epoch-420.pth`，大小 `321,011,270` bytes，SHA-256 `f246a3afc50334c81302b7bfebdadf7cf37d00326bf1c3aa54f6a151754e3a1c`。4 项 evaluator 内部计时合计 `94.044` 分钟，均未 OOM；胜者 15 类指标全部有限，最低 IoU 为 container `24.67`。首次命令因未导出仓库 `PYTHONPATH` 在模型导入前退出，未产生指标；只修正启动环境后完整重跑。结构化裁决为 `cloud/DFormer-quick-b0-evidence/museg-dformerv2-s-rgb-quick-b0-v1/posteval/main-evaluation-adjudication.json`，SHA-256 `20336eabfdefcf8661ed33c781a0104784950cde07d59e4d1c343c8579c27b05`；正式报告为 `doc/reports/2026-08-31-museg-quick-b0-main-evaluation.md`。大白话说，训练期单尺度最好的 epoch 480 并不是严格主评估最好的模型；以后做同口径模块消融时，应把 epoch 420 作为固定 B0 对照。本次 B0 四任务已全部完成；下一阶段是另立模块设计与独立训练任务，不自动授权新训练、云资源或 official test。
-- 2026-08-31 已生成覆盖作者当前公开 DFormerv2 主线、MUSeg 适配、Quick-B0 主结果、历史颜色/几何对比、A1/B1/A2/B2、费用边界和后续方向1的组会总报告 `doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md`，并生成版本化 Canvas 源文件 `doc/canvases/0.0.11-museg-dformerv2-quick-baseline-comprehensive.canvas.tsx`。报告索引已登记该报告与 Canvas，下一 Canvas 版本为 `0.0.12`。本次只新增事实整理与展示产物，不改变 epoch 420、checkpoint SHA-256、主指标或 official-test 身份；B2 和后验校准“方向1”仍只是后续候选计划，不构成新训练、云资源、代码实现或 official-test 授权。简单说，基线结论没有变化，只是已经整理成可直接用于组会的完整讲述和图表入口。
-- 2026-08-31 13:19 UTC 已完成阶段计划切换：`doc/plans/MUSeg-DFormerv2快速Baseline/` 的 3 份文件已封存到 `doc/plans/archive/2026-08-MUSeg-DFormerv2快速Baseline/`，并建立 `doc/plans/MUSeg-A2-B2深度有效性/` 的总方向、新对话最小上下文和唯一当前方案。新阶段按 3 个顺序任务组织；当前恢复点是任务 1，先冻结完整 `val-dev` A2 的 q/mask/fill/seed、自然无效深度分层和裁决阈值，再准备 corruption/evaluator 与最小 CPU 定点检查。历史 epoch-10、16 张 official-test pilot 不作为正式 A2 或 B2 入口；B2 只有在 `A2-pass + 用户明确批准` 后才允许进入规格、实现和 `B2-zero-train`。本次只完成文档归档、导航和计划建立，没有修改研究代码，没有执行正式 A2、B2、项目测试、GPU、训练、长评估、云端命令或 official test。大白话说，下一阶段已经有了小而明确的路线图，但真正实验和模块实现都还没有开始。
-- 2026-09-01 已按已批准计划删除旧的 `doc/plans/MUSeg-方向1后验校准/`，并重建为 `doc/plans/MUSeg-方向1最短验证路径/` 三层文档：总方向、最小上下文与当前任务卡、问题—方案双路径 MVE。新计划把路径 A 定义为可控 Depth 退化的问题—假设验证，把路径 B 定义为未校准 Softmax 与全局正温度缩放的方案—假设验证；每个关键主张均保留 `REXXX` 引用映射。当前仅完成计划和导航重组，方向1仍处于共享身份与 MVE 协议草案恢复点，没有导出 logits、拟合温度、生成退化数据或运行正式评价。大白话说，这次只是把研究路线改成两条可互相校验的最短验证路径，没有开始校准实验，也没有改变 B0、A2/B2 或 official-test 状态。
+- B0、A2/B2 候选方向和未来模块消融都必须显式绑定 checkpoint、split、输入契约、metric geometry、evaluator、protocol 和产物哈希。
+- `val-dev` 已参与 B0 checkpoint 选择；它不能在没有新数据职责和新 protocol 的情况下直接改作方向1的独立 calibration/evaluation 集。
+- A2/B2 若未来重新启用，只能先在 `val-dev` 上按新 protocol 处理；人工 corruption 证据与自然无效深度证据的外推边界按 `MUSeg-open-decisions.md` 执行。
+- official test 在模型选择、阈值冻结、方向筛选、开发评估和恢复流程中继续保持 `sealed_unread`；任何解封都需要独立门禁和单独授权。
+- 本轮只做文档、归档、链接、上下文和 Git 元数据治理，不运行项目测试、完整 A2、GPU、训练、长耗时评估、云端操作或 official test。
+
+## 4. 证据位置与历史解释
+
+- 正式报告和 Canvas 元数据入口：`doc/reports/report-index.json`。
+- 历史计划入口：`doc/plans/`；已完成 Quick-B0 与更早阶段计划位于 `doc/plans/archive/`。
+- 未执行候选计划入口：`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`。
+- 稳定项目指南：`doc/guides/project/README.md`；当前文件职责索引：`doc/guides/project/file-catalog.md`；完整旧目录作为日期化历史快照保留在同目录。
+- 2026-09-05 上下文归档清单：`doc/archive-manifests/2026-09-05-context-cleanup.md`；归档 ZIP 在本地 `archive-export/`，已被 `.gitignore` 排除。
+- 历史报告中的“正在运行”“当前计划”或“待闭合”只按报告形成时点理解；若报告正文没有后继指针，以本文件和报告索引为准，不把历史措辞当作当前事实。
+
+## 5. Git 基准与治理状态
+
+- **整理状态：** 已完成本轮文档、归档清单、目录迁移、引用治理和 Git 元数据治理；整理提交为本文件所在的 `HEAD`，annotated tag `museg-research-base-v1` 将指向该最终提交，远端不推送。
+- 整理提交和 tag 创建后，工作区应保持干净；最终直接核验 tag 指向、工作区状态以及 `main` 与 `origin/main` 的差异。
+- 稳定基准治理指南：`doc/guides/project/research-branch-governance.md`。未来每篇论文或独立研究使用 `research/<topic>` 分支，并从该稳定基准创建。
+- Git 整理完成后，后续方向不得从 B0 最终 checkpoint 续训后冒充公平消融；必须从同一官方 pretrained 独立训练，并建立新的 config、protocol 和证据身份。
+
+## 6. 恢复规则
+
+1. 每个 MUSeg 对话先读取本文件；涉及研究选择时再读取 `doc/main/MUSeg-open-decisions.md`。
+2. 先确认本文件中的当前授权边界和恢复点；延期计划、历史报告和旧交接材料不能单独触发恢复。
+3. 新方向先建立独立 `research/<topic>` 分支，冻结 protocol/config/evaluator/split 身份，再按具体操作取得授权。
+4. 任何训练、checkpoint、指标、official-test、云实例、证据位置、阻塞项、恢复步骤、提交或发布状态变化，都必须在最终答复前更新本文件。
+5. 纯文档或只读检查没有持久事实变化时，不更新时间；历史指标和原始 acceptance/result 文件不得为匹配新口径而改写。

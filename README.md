@@ -6,6 +6,7 @@
 
 - **MUSeg 当前状态与恢复点：** `doc/main/MUSeg-current-status.md`
 - **项目架构与接手指南：** `doc/guides/project/README.md`
+- **稳定研究分支治理：** `doc/guides/project/research-branch-governance.md`
 - **完整 Git 跟踪文件目录：** `doc/guides/project/file-catalog.md`
 - **MUSeg 数据准备：** `doc/dataset.md`，默认目录为仓库上一级的 `../dataset/`
 - **MUSeg 实验口径与处置状态：** `doc/main/MUSeg-open-decisions.md`

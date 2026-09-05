@@ -1,14 +1,16 @@
 # MUSeg 实验口径与处置状态
 
-> 状态时间：2026-08-31 03:04 UTC
-> 本文件保留问题缘由，同时明确区分“仍待决定”“本轮已处置”和“仅保留历史解释”。
-> 已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
+> **状态时间：** 2026-09-05 UTC。
+> **文档角色：** 研究选择与边界记录，不承担实时状态或执行授权。
+> **实时入口：** [`MUSeg-current-status.md`](MUSeg-current-status.md)。稳定基准与分支规则见 [`research-branch-governance.md`](../guides/project/research-branch-governance.md)。
+> **候选计划：** A2/B2 与方向1均已延期、未执行、未授权；索引见 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`](../plans/deferred/2026-09-MUSeg-unexecuted/README.md)。
+> 本文件保留问题缘由，并区分“仍待决定”“本轮已处置”和“仅保留历史解释”。已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
 ## 1. 新 DFormerv2-MUSeg baseline 方向
 
 **大白话结论：** 新计划使用 DFormerv2-S 和其公开训练/测试方法建立内部 B0，作为后续模块消融的共同起点；目标是结果量级合理、链路可信和比较口径一致，不是三 seed 完整复现论文。
 
-**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、当前运行的 top 3 + latest 和 protocol v3 均已冻结并执行完成。唯一 Quick-B0 已完成 500 epoch 和 4 个候选的五尺度翻转主评估，最终 B0 为 epoch 420，主 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；official test 继续保持 `sealed_unread`。后续训练的独立 v2 top 8 + latest 设置已提交，但不改变本次 v1 结论。**
+**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、历史运行所用的 top 3 + latest 和 protocol v3 均已冻结并执行完成。唯一 Quick-B0 已完成 500 epoch 和 4 个候选的五尺度翻转主评估，最终 B0 为 epoch 420，主 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；official test 继续保持 `sealed_unread`。后续训练的独立 v2 top 8 + latest 设置已提交，但不改变本次 v1 结论。**
 
 - 训练方向：采用官方公开的随机尺度训练增强，尺度候选为 `0.5、0.75、1.0、1.25、1.5、1.75`，之后裁剪到 `480×640`，并保持 RGB/Depth/Label 同步变换。
 - 测试方向：采用官方论文公开的 multi-scale flip 推理，尺度为 `0.5、0.75、1.0、1.25、1.5`，暂不把滑动窗口静默混入主基线。
@@ -18,19 +20,19 @@
 
 ## 2. Validation 空间尺寸
 
-**大白话问题：** 文档曾把“输入 640×480”写成统一模型输入，但 seed 1 实际只把训练样本随机裁剪到高 480、宽 640；`sliding=false` 时，validation 使用转换数据的原始高 932、宽 1082 整图前向。不同几何会改变 val mIoU，不能把结果直接混为同一口径。
+**当前边界：** Quick-B0 的主 evaluator 已固定为 `msflip-whole-original-grid-v1`；本节其余关于 seed 1 的 validation geometry 和后评估只保留为历史诊断，不构成当前 Quick-B0 的待决选择。
 
 **当前状态：历史 seed 1 的五项后评估已完成；新 baseline 的 `msflip-whole-original-grid-v1` 已按冻结契约完成 4 个候选的正式主评估。最终 epoch 420 在 318 个 `val-dev` 样本的原始 Label 网格上取得 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；FP32、TF32 disabled、RGB 输入和 `official_test_included=false` 身份均已核验。**
 
 - 技术检查样本为 `06-01-01-0352-230920140646-10-99`，原始 `932×1082`，尺度 1.5 后 `1398×1623`，padding 后 `1408×1632`；两个 view 用时 `2.095559`/`1.079008` 秒，峰值 allocated/reserved 为 `4,977,021,952`/`6,511,656,960` bytes，未 OOM。证据见 `cloud/DFormer-stage05-evidence/posteval/quick-b0-scale1.5-max-sample-fp32-technical-check.json`，其中 `metrics_computed=false`。按最大样本保守外推最多 4 个候选约 `2.8` 小时，低于 8 小时硬上限。大白话说，本次只确认本机能承载冻结 evaluator，不产生任何模型好坏结论。
 
-- seed 1 的训练与在线 validation 事实保持为：训练裁剪 480×640，validation 原分辨率整图，`sliding=false`。
+- 历史 seed 1 的训练与在线 validation 事实保持为：训练裁剪 480×640，validation 原分辨率整图，`sliding=false`。
 - post-evaluator 已改为所有 geometry 保留原始 Label：resize 只改变模型输入，logits 恢复到原图计分；sliding 保持全图覆盖。报告显式记录 input/metric geometry、插值、stride、padding 和输出尺寸。
-- production `ValPre`/original-full、resize 原图计分、sliding 覆盖、strict checkpoint load 和 official-test 拒绝的聚焦 CPU 测试已通过；完整验收仍待完成。
+- 历史后评估链的 production `ValPre`/original-full、resize 原图计分、sliding 覆盖、strict checkpoint load 和 official-test 拒绝的聚焦 CPU 测试已通过；这些检查覆盖历史后评估链路，不再作为当前 Quick-B0 的未闭合事项。
 - 五项后评估已完成：best 的 original-full/resize/sliding mIoU 为 `52.98`/`56.31`/`51.89`，epoch-500 的 resize/sliding 为 `56.73`/`52.08`；五项都在原始 Label grid 计分，均为 318 样本且 official test 未参与。结果只能用于 geometry 诊断，不改写 seed 1 原始曲线或 best 身份。
 - 历史五项后评估的几何排序只用于诊断，不作为新 baseline 的冻结依据。新计划优先实现 DFormerv2 论文的 multi-scale flip；单尺度 original-full、固定 resize 和 sliding 保留为命名清晰的对照或资源备选。
 
-决定前，“480×640”只表示训练裁剪或明确命名的推理输入，不概括为统一 validation 尺寸；后评估只冻结未来 protocol，不改写 seed 1 原始曲线或 best 身份。
+当前口径是：`480×640`只表示训练裁剪或明确命名的模型输入，不概括为统一 validation 尺寸；Quick-B0 的当前计分口径由 `msflip-whole-original-grid-v1` 固定。历史后评估只作为 geometry 诊断，不改写 seed 1 原始曲线或 best 身份。
 
 ## 3. MUSeg 颜色通道顺序
 

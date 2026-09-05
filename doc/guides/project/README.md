@@ -20,14 +20,15 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 
 ## 2. 推荐阅读顺序
 
-- **第一次接手项目**：本文件 → 当前状态 → 开放决策 → `doc/dataset.md` → `file-catalog.md`。
+- **当前状态与唯一恢复入口**：`doc/main/MUSeg-current-status.md`。
+- **稳定分支治理**：`doc/guides/project/research-branch-governance.md`；A2/B2 与方向1现为延期、未执行候选计划。
 - **只运行上游模型**：根 `README.md` 的上游说明 → `local_configs/NYUDepthv2/` 或 `local_configs/SUNRGBD/` → 根脚本 → `utils/`。
 - **处理 MUSeg 数据**：`doc/dataset.md` → `tools/prepare_museg.py` → `tools/splits/` → `data/splits/MUSeg/dev-v1/`。
 - **修改模型**：`models/builder.py` → `models/encoders/` → `models/decoders/` → `models/losses/` → 对应配置和测试。
 - **启动 MUSeg 训练**：当前状态与开放决策 → protocol 模板 → `tools/materialize_museg_protocol.py` → `tools/preflight_train.py` → MUSeg 启动器。启动前还要核对当前门禁，不得仅依赖本指南。
 - **运行本地后评估**：当前状态 → `tools/evaluate_museg_checkpoint.py` → `tests/test_museg_checkpoint_posteval.py`；validation 几何选择仍以开放决策为准。
 - **检查实验报告和证据**：当前状态 → `doc/reports/report-index.json` → 对应日期化报告 → 报告列出的结构化证据位置。
-- **恢复中断任务**：只从当前状态文件的“当前正在进行”“下一次更新条件”和权威链路恢复，不从历史计划中的“下一步”恢复。
+- **恢复中断任务**：只从当前状态文件的“当前事项”“下一次更新条件”和权威链路恢复；延期计划中的原拟议任务不构成恢复授权。
 
 ## 3. 顶层目录和根文件
 
@@ -72,7 +73,7 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 
 冻结 split 的 `manifest.json` 记录来源、生成器、样本/组关系、统计、哈希和警告；`audit-report.json` 独立复核 schema、成员关系、隔离、计数和哈希。development 配置消费 `train-dev.txt` 与 `val-dev.txt`。`official-test.txt` 保留官方 test 的冻结字节身份，但 development 训练、checkpoint 选择、validation 几何选择、A2/B2 开发均不得消费其内容。
 
-`utils/dataloader/dataloader.py::get_train_loader` 和 `get_val_loader` 将配置路径传给 `RGBXDataset`。当前 MUSeg loader 通过 OpenCV 保留彩色张量为 **BGR**；“RGB/”只是彩色模态目录名。训练预处理在 `TrainPre` 中执行随机尺度、镜像、裁剪和归一化；validation 预处理与滑窗/整图行为由评估入口控制。训练 crop 480×640 不能概括成统一 validation 输入尺寸。
+`utils/dataloader/dataloader.py::get_train_loader` 和 `get_val_loader` 将配置路径传给 `RGBXDataset`。当前冻结的 MUSeg Quick-B0 通过 OpenCV 执行 BGR→RGB，并使用 RGB 顺序 ImageNet mean/std；“RGB/”仍只是彩色模态目录名。训练预处理在 `TrainPre` 中执行随机尺度、镜像、裁剪和归一化；validation 预处理与滑窗/整图行为由评估入口控制。训练 crop 480×640 不能概括成统一 validation 输入尺寸。
 
 ## 5. 模型架构
 
@@ -114,7 +115,7 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 
 - **在线 validation**：`utils/train.py` 按配置的开始 epoch 和间隔调用 `utils.val_mm.evaluate`；best checkpoint 采用严格大于策略，平局保留更早的已评估 epoch。
 - **上游独立评估/推理**：`utils/eval.py` 和 `utils/infer.py` 由根示例脚本驱动，默认不是 MUSeg 审计入口。
-- **本地 checkpoint 后评估**：`tools/evaluate_museg_checkpoint.py` 只接受非空、唯一且身份不暗示 official test 的 split；支持 `original-full`、`resize-480x640` 和 `sliding-480x640`。它保持 BGR、严格加载完整 checkpoint、累计 confusion matrix，并输出含 checkpoint/split SHA、几何、样本数、指标和 official-test 标志的 JSON。
+- **本地 checkpoint 后评估**：`tools/evaluate_museg_checkpoint.py` 只接受非空、唯一且身份不暗示 official test 的 split；支持 `original-full`、`resize-480x640` 和 `sliding-480x640`。当前 Quick-B0 主 evaluator 为 `msflip-whole-original-grid-v1`，按 RGB 契约将输出恢复到原始 Label 网格并统计。
 - **独立裁决**：`tools/adjudicate_museg_seed_acceptance.py` 从原始报告和不可变证据重新核对哈希、训练完成、验证点、best/final 身份与 official-test 边界，生成独立裁决文件；不得改写原始 `acceptance.json`、`failed.json` 或 `training_result.json`。
 
 原分辨率整图、固定 resize 和 sliding 的研究取舍仍见开放决策文件。后评估可以为未来协议提供证据，但不能回写已完成运行的原始曲线或 best 身份。

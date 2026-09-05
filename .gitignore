@@ -6,6 +6,10 @@ __pycache__/
 # Local browser automation artifacts
 .playwright-mcp/
 
+# Local archive exports and OS metadata
+archive-export/
+.DS_Store
+
 #paper
 doc/paper/
 
@@ -182,6 +186,7 @@ cython_debug/
 #.idea/
 
 core.*
+!.serena/memories/core.md
 checkpoints
 datasets/NYU*
 datasets/rgbd*

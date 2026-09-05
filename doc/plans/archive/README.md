@@ -4,7 +4,8 @@
 
 - 当前事实、阻塞项和恢复点只看 `doc/main/MUSeg-current-status.md`。
 - 当前研究选择只看 `doc/main/MUSeg-open-decisions.md`。
-- 当前计划位于 `doc/plans/MUSeg-A2-B2深度有效性/00-总方向规划.md`。
+- 当前稳定基准和未来研究分支见 `doc/guides/project/research-branch-governance.md`。
+- 未执行候选计划见 `doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`。
 - 已封存计划不再作为新的代码、训练、评估、云资源或 official-test 运行授权依据。
 - `2026-08-MUSeg-DFormerv2快速Baseline/` 保存已经完成的 RGB Quick-B0 总方向、新对话历史入口和一次性 B0 执行方案；最终 B0 身份仍以实时状态和正式报告为准。
 - `2026-08-MUSeg阶段二长程Baseline与MVE/` 保存 Stage-01 至 Stage-08、MVE、Protocol Gate 和历史执行设计。
