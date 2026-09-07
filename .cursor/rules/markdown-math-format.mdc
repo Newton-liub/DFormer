@@ -1,0 +1,21 @@
+---
+description: Format mathematical formulas in Markdown for Obsidian-compatible rendering
+globs: "**/*.md"
+alwaysApply: false
+---
+
+# Markdown 公式格式
+
+创建或修改 Markdown 文件时，按以下规则书写数学公式：
+
+- 行间公式使用成对的 `$$` 包裹，并将公式单独放在定界符之间：
+
+  ```markdown
+  $$
+  E = mc^2
+  $$
+  ```
+
+- 行内公式使用成对的 `$` 包裹，例如：`质能方程为 $E = mc^2$。`
+- 不使用 `\(...\)`、`\[...\]` 或仅依赖渲染器自动识别的裸公式替代上述格式。
+- 只转换数学公式；代码块、行内代码以及普通文本中的美元符号保持原样。
