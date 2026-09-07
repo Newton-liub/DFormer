@@ -42,7 +42,9 @@
 
 ## 5. Git 基准与治理状态
 
-- **整理状态：** 已完成本轮文档、归档清单、目录迁移、引用治理和 Git 元数据治理；整理提交为本文件所在的 `HEAD`，annotated tag `museg-research-base-v1` 将指向该最终提交，远端不推送。
+- **整理状态：** 已完成本轮文档、归档清单、目录迁移、引用治理和 Git 元数据治理；整理提交为 `de731aa611db1ba3a6511153c29f7e568f91da09`，随后在 `main` 上追加 Cursor skill 提交 `be07e96390a75b1d7651c1bf29979153d7f74a49`。本地 annotated tag `museg-research-base-v1` 当前指向 `main` 的最新提交，远端不推送。
+- **2026-09-07 Git 状态：** `main` 已包含稳定文档提交和其后的 skill 提交，当前本地 `main` 比 `origin/main` 超前 1 个提交；本地标签名 `museg-research-base-v1` 已移动到 `main` 最新提交。研发分支 `research/lowlight-dust-rgbd-recovery` 已从该标签创建并作为当前工作分支；此前的临时维护分支和旧研发分支已删除。
+- **大白话说明：** `doc` 和 `skill` 现在属于同一条 `main` 历史；标签代表包含这两个提交的最新本地基准，新研发工作从这个位置开始，远端 `origin/main` 没有被推送或改写。
 - 整理提交和 tag 创建后，工作区应保持干净；最终直接核验 tag 指向、工作区状态以及 `main` 与 `origin/main` 的差异。
 - 稳定基准治理指南：`doc/guides/project/research-branch-governance.md`。未来每篇论文或独立研究使用 `research/<topic>` 分支，并从该稳定基准创建。
 - Git 整理完成后，后续方向不得从 B0 最终 checkpoint 续训后冒充公平消融；必须从同一官方 pretrained 独立训练，并建立新的 config、protocol 和证据身份。
