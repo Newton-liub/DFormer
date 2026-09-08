@@ -109,13 +109,13 @@
 
 **大白话问题：** 原草案把 `RE447` 当作 paired/cluster bootstrap 的依据，但全文实际是深海采矿车辆路径规划论文，只使用 AHP-FCE 专家判断矩阵和一致性检验，不能说明怎样对 MUSeg 的相关样本做置信区间。
 
-**当前状态：处置 1 已全文核对并判定不适用；处置 2 与处置 3 仍待用户选择。**
+**当前状态：已处置。处置 1 已全文核对并判定不适用；用户于 2026-09-08 同意，对通用且相对简单的分析操作不再强制补参考文献，因此采用项目预注册统计设计，不继续扩大文献检索。**
 
 - **已排除的处置 1：** `RE447`（Lu et al., *Ocean Engineering*, 2024，DOI `10.1016/j.oceaneng.2024.119500`）没有 paired bootstrap、cluster bootstrap、95% confidence interval、scene/location 重采样或扩样后重复裁决规则。详细证据见 [`00-待补充论文内容清单.md`](../plans/2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md) 的 P0-6。
-- **候选处置 2：** 另选直接统计来源。当前检索到 Field and Welsh, *Bootstrapping clustered data*, *Journal of the Royal Statistical Society: Series B*, 2007，DOI `10.1111/j.1467-9868.2007.00593.x`，可作为 cluster bootstrap 候选；其正文及与本项目 paired image/scene 结构的适配尚未核验，当前不写成已采用依据。
-- **候选处置 3：** 将 paired/cluster bootstrap 明确写成项目预注册统计设计，并引用权威统计论文和固定软件实现；重采样单位、层级、次数、CI 类型、seed、效应量与扩样规则须在查看结果前冻结。
-- **Boundary IoU 来源状态：** Cheng et al., *Boundary IoU: Improving Object-Centric Image Segmentation Evaluation*, CVPR 2021，DOI `10.1109/CVPR46437.2021.01508` 及作者官方 API 已核对。原始 binary-mask 公式对称地比较 prediction/ground-truth 的内侧边界区域，论文 analysis 以 image diagonal 的 2% 归一化带宽；MUSeg 的 one-vs-rest、ignore、空类和 macro aggregation 仍须在结果前独立冻结。
-- **共同边界：** 统计来源选择与 Boundary IoU 多类扩展口径完成前，不冻结 `60/120` 样本、95% CI、重采样次数或主边界裁决实现；official test 继续 `sealed_unread`。
+- **采用的处置：** 同一图像各条件保持配对，以冻结的 location group 为相关性边界，对 group 有放回重采样并保留组内全部样本；重采样次数、seed、效应量、95% percentile interval 和联合裁决在查看结果前写入 `DVC-A1-valdev-boundary-zero-v1` protocol。该做法明确标为本项目预注册统计流程，不归因于 `RE447`，也不声称是唯一统计选择。
+- **数据职责边界：** `val-dev` 已参与 checkpoint 选择，因此不再把其中一部分命名为独立评价集 `E`。首轮 DVC 没有拟合自由度，直接在全 `val-dev` 上形成 paired development evidence；不改称 independent test。
+- **Boundary IoU 处置：** Cheng et al., *Boundary IoU: Improving Object-Centric Image Segmentation Evaluation*, CVPR 2021，DOI `10.1109/CVPR46437.2021.01508` 及作者官方 API 已核对。后继 protocol 固定 one-vs-rest、ignore、空类和 macro aggregation，历史 corruption-band mIoU 不复用为 Boundary IoU。
+- **共同边界：** official test 继续 `sealed_unread`；不为获得显著结果而追加剂量、seed、样本或阈值。若未来引入复杂层级模型、BCa 区间、序贯检验或多重比较，再单独补直接统计依据并建立新 protocol identity。
 
 ## 10. 后续 checkpoint 数量与数据盘清理
 

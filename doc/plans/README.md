@@ -9,8 +9,10 @@
 
 ## 未执行候选计划
 
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：新建的几何可信 RGB-D 问题/方案双路径 MVE 计划；当前处于资料补充与协议设计门禁，未授权实验。
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md)：用户补充关键论文方法与实验片段的清单；P0 闭合后再完成实验设计。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；文献与项目事实门禁已完成，代码和实验未授权。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md)：当前待用户审批的详细问题验证子计划，合并共享 protocol、最小实现门禁与开发评价。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md)：仅在 `DVC-A1=supported` 且用户再次批准后才细化的 Oracle GSA 门控方向。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md)：已完成的关键论文方法、实验片段和收缩裁决。
 - [`deferred/2026-09-MUSeg-unexecuted/README.md`](deferred/2026-09-MUSeg-unexecuted/README.md)：延期区总说明。
 - [`deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md`](deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md)：A2/B2 深度有效性候选方向；未执行、未授权。
 - [`deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/00-总方向规划.md`](deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/00-总方向规划.md)：后验校准与 Depth 退化双路径候选方向；未执行、未授权。

@@ -1,8 +1,8 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **状态时间：** 2026-09-07 UTC
-> **当前阶段：** 已完成的 RGB Quick-B0 作为稳定研究起点；新建“几何可信 RGB-D 双路径 MVE”候选计划，当前停在论文资料补充门禁，没有已授权的 MUSeg 代码或实验执行项。
-> **大白话说明：** 新方向现在只确定了“先验证问题、再验证最小门控”的计划骨架；关键论文方法和统计正文补齐前不会冻结实验细节，也不会开始读数据、改代码或跑实验。
+> **状态时间：** 2026-09-08 UTC
+> **当前阶段：** 已完成的 RGB Quick-B0 作为稳定研究起点；“几何可信 RGB-D 双路径 MVE”已完成文献与项目事实门禁，并形成一个详细问题验证子计划和一个条件式 Oracle 子计划，当前等待用户审批实现，仍没有已授权的 MUSeg 代码或实验执行项。
+> **大白话说明：** 新方向已从宽泛草案收缩为“先验证受控深度边界置零是否特别伤害语义边界，再看已知坏区时少信 GSA 深度先验是否有上限价值”；计划已经写好，但代码、数据读取和 GPU 评价都还没有获批或开始。
 > 本文件是 MUSeg 当前事实、授权边界、证据入口和恢复规则的唯一实时入口；计划、报告、审计和 Canvas 只承担各自形成时点的历史或详细证据职责。
 
 ## 1. 稳定基线
@@ -18,8 +18,9 @@
 ## 2. 当前研究方向状态
 
 - 当前没有已授权的代码实现、实验、GPU、训练、云资源或 official test 操作。
-- 2026-09-07 新建 `doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/`，用于把“深度边界问题验证 → 最小几何可信门控验证”整理为新候选方向。`参考资料/00-待补充论文内容清单.md` 已完成现有 P0/P1 论文正文的定点提取，补入方法、公式、协议、结果、证据行号和对本计划的谨慎裁决。论文证据已明确：DFormerv2 的 Depth 在四级 GSA 前直接平均池化；PR029/PR089/PR090 的置信融合或缺失模态回退都依赖专门训练，不能直接支持冻结 logits 门控；RE042 可复现但会引入 RGB guidance；RE053/RE188 仍不足以闭合米制三维评价。Boundary IoU 的 CVPR 2021 原始论文、DOI 和作者实现已补齐，原始 binary-mask 公式及按图像对角线 2% 归一化带宽已有依据，但 MUSeg ignore/空类/macro aggregation 仍需预注册。`RE447` 全文和 DOI 也已核对：该文使用 AHP-FCE 与 20 位专家 judgment-matrix consistency check，不包含 paired/cluster bootstrap、95% CI 或 scene/location 重采样，因此统计处置 1 判定不适用。当前唯一恢复点是在 `RE447` 处置 2（另选直接统计来源）与处置 3（项目预注册统计设计加权威实现依据）之间选择，并冻结 Boundary IoU 的 MUSeg 多类扩展口径；随后才进入本地项目事实定点核对。在资料与项目身份闭合前，不冻结 shared protocol，也不创建可执行实验任务。
-- 大白话说明：这项新工作目前只是有边界的研究计划和资料清单，不代表实验已经获批或开始。
+- 2026-09-08 已完成 `doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/` 的文献门禁和项目事实定点核对，并创建少量递进计划：详细的 `03-共享协议与DVC-A1问题验证.md` 与条件式的 `04-DVG-B1条件式Oracle门控.md`。文献裁决明确：DFormerv2 的 Depth 在四级 GSA 中形成几何先验；PR029/PR089/PR090 的置信融合或回退均依赖专门训练，不能支持冻结 logits 门控；RE042 会引入 RGB guidance；RE053/RE188 不足以闭合米制三维评价；Boundary IoU 原始论文和 2% 对角线带宽已有依据。`RE447` 全文已判定与 bootstrap 不适用；按用户要求，配对、location-group 重采样、固定 seed 和 percentile interval 作为项目预注册的一般统计流程，不再为简单通用操作扩大文献检索。项目事实核对确认 `val-dev` 为 318 条、196 个 location group，已参与 checkpoint 选择；`Depth16` 为 `uint16`、0 无效，现有输入采用 `round(D16*255/13932)`；历史 `boundary_band_mIoU` 不是标准 Boundary IoU。首轮因此删除三维、严格 RGB-only 回退、亮度引导补全、高置信阈值和可学习 logits 门控，只保留 `DVC-A1-valdev-boundary-zero-v1`，以及在其 `supported` 后才可能细化的 `DVG-B1-oracle-gsa-v1`。
+- **当前授权与恢复点：** 只有计划文档已完成。没有代码实现、数据读取、mask 生成、GPU、训练、云资源或 official test 授权。准确恢复点是用户审批 `03`；若仅批准实现，则先物化 protocol 和做 mask/q=0/Boundary IoU/1–2 样本的最小 preflight，完整 318 条 `val-dev` 五尺度翻转评价仍需另行明确批准。
+- **大白话说明：** 现在已经知道第一轮具体要改什么、怎么算、何时停，但还没有运行任何实验；下一步必须先获得用户对实现范围的确认。
 - A2/B2 深度有效性方向已迁入 `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/`，状态为**延期、未执行、未授权、当前不处于恢复点**。
 - 方向1后验校准与 Depth 退化双路径计划已迁入 `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/`，状态同样为**延期、未执行、未授权、当前不处于恢复点**。
 - 两套延期计划只保留未来重新启用时的候选设计。重新启用必须先从稳定基准建立独立研究分支，重新确认数据、protocol、evaluator 和授权；计划中的“当前任务”“下一步”或“恢复点”不构成执行依据。
@@ -31,11 +32,11 @@
 - `val-dev` 已参与 B0 checkpoint 选择；它不能在没有新数据职责和新 protocol 的情况下直接改作方向1的独立 calibration/evaluation 集。
 - A2/B2 若未来重新启用，只能先在 `val-dev` 上按新 protocol 处理；人工 corruption 证据与自然无效深度证据的外推边界按 `MUSeg-open-decisions.md` 执行。
 - official test 在模型选择、阈值冻结、方向筛选、开发评估和恢复流程中继续保持 `sealed_unread`；任何解封都需要独立门禁和单独授权。
-- 本轮只做计划文档、参考资料门禁、链接与差异核对，不运行项目测试、数据扫描、GPU、训练、长耗时评估、云端操作或 official test。
+- 本轮只完成计划文档、参考资料门禁、项目事实定点核对、链接与差异检查；没有运行项目测试、GPU、训练、长耗时评估、云端操作或 official test。
 
 ## 4. 证据位置与历史解释
 
-- 2026-09-07 的新候选方向恢复入口：`doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/01-新对话最小上下文与当前任务.md`；当前资料补充清单为同目录 `参考资料/00-待补充论文内容清单.md`。
+- 2026-09-08 的新候选方向恢复入口：`doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/01-新对话最小上下文与当前任务.md`；当前待审批的详细计划为同目录 `03-共享协议与DVC-A1问题验证.md`，条件式后继为 `04-DVG-B1条件式Oracle门控.md`。
 - 正式报告和 Canvas 元数据入口：`doc/reports/report-index.json`。
 - 历史计划入口：`doc/plans/`；已完成 Quick-B0 与更早阶段计划位于 `doc/plans/archive/`。
 - 未执行候选计划入口：`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`。
