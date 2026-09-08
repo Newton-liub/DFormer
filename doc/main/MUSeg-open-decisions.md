@@ -1,6 +1,6 @@
 # MUSeg 实验口径与处置状态
 
-> **状态时间：** 2026-09-05 UTC。
+> **状态时间：** 2026-09-08 UTC。
 > **文档角色：** 研究选择与边界记录，不承担实时状态或执行授权。
 > **实时入口：** [`MUSeg-current-status.md`](MUSeg-current-status.md)。稳定基准与分支规则见 [`research-branch-governance.md`](../guides/project/research-branch-governance.md)。
 > **候选计划：** A2/B2 与方向1均已延期、未执行、未授权；索引见 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`](../plans/deferred/2026-09-MUSeg-unexecuted/README.md)。
@@ -132,3 +132,16 @@
 - `tools/audit_museg_cloud_storage.py` 只生成候选占用、剩余空间和 checkpoint 纯文件预算，不提供删除参数。候选必须是数据盘下的显式现存路径，且不能与仓库、当前输出、共享数据、official-test/split authority、预训练权重或其他保护路径重叠。
 - 删除前必须先把归档取回本地并重新核验 SHA-256；OpenList 个人云盘副本是额外备份，不以任务页面的“成功”单独替代哈希证据。实际删除必须由用户确认每个规范化绝对路径后人工逐项执行，禁止通配符或模糊名称清理。
 - v2 与清理门禁已随提交 `773c508e68d21491ad71d53f5967c3f76dc69ae6` 推送到 `origin/main`。后续使用 v2 仍需从干净 commit 物化新 protocol、通过正式 preflight，并分别取得训练和云生命周期授权。
+
+## 11. DVC-A1 边界候选覆盖不足的后继协议
+
+**大白话问题：** 当前规则只把相邻有效深度的相对跳变不低于 `0.05` 视为边界。全量扫描后，约三成位置组完全没有能形成非空 q75 的样本；继续沿用会让这些组的 q75 等于 clean，直接放宽规则又会改变原来预注册的问题。
+
+**当前状态：开放、待用户处置。`DVC-A1-valdev-boundary-zero-v1` 已于 2026-09-08 在完整模型评价前裁决为 `protocol-blocked`。**
+
+- 直接核验事实：318 条 `val-dev` 的 mask 扫描全部完成；58/196 个 location group 的 `boundary-q75` 不可构造，占 `29.5918%`，高于 v1 预注册 `5%` 上限；非边界 q50 同面积候选不足为 0 条。
+- v1 合法终点：保持 `protocol-blocked`，不生成五条件 mIoU、Boundary IoU、bootstrap 或问题假设裁决；不得改写成 `not-supported`。
+- 当前禁止：不得静默降低 `0.05`、删除 58 个组、把空 q75 当正常剂量、把 5% 上限放宽到结果刚好可过，或先看完整模型结果再选择定义。
+- 待处置方向：可以基于 v1 `mask-manifest.json` 做不涉及模型输出的候选覆盖诊断，再选择固定更低的全局跳变阈值、每图/每组相对分位候选、或重新定义 q75 可构造性；每种选择改变的研究问题不同，必须明确写出结论边界。
+- 身份规则：任何候选定义、阈值、剂量规则或可构造上限变化都建立新 protocol identity，建议使用 `DVC-A1-valdev-boundary-zero-v2`；重新物化、完成最小 preflight 和全量 mask 门禁后，才可重新请求完整五条件 GPU 评价。
+- 证据：`doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`；仓库外 `cloud/DVC-A1-valdev-boundary-zero-v1/attempt-2/mask-manifest.json`，SHA-256 `60b988b3f9ffaabc5f6540cfccda48ddb5efd4d44ce360691bfaeea047e63f29`。

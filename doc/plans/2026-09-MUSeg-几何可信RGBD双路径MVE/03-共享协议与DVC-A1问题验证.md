@@ -1,13 +1,13 @@
 # MUSeg `DVC-A1-valdev-boundary-zero-v1`：共享协议与问题验证
 
 > **文档角色：** 第一个详细子计划；合并共享 protocol、最小实现门禁与 DVC 问题验证，避免拆分同一执行链。
-> **计划状态：** 待用户批准；没有已授权的代码、数据或实验操作。
+> **计划状态：** 已执行到合法终点 `protocol-blocked`；完整模型评价未开始，后继未解锁。
 > **形成或核验时点：** 2026-09-08。
 > **实时入口：** [`MUSeg-current-status.md`](../../main/MUSeg-current-status.md)。
 > **研究选择：** [`MUSeg-open-decisions.md`](../../main/MUSeg-open-decisions.md)。
 > **上级方向：** [`00-总方向规划.md`](./00-总方向规划.md)。
 > **前序关系：** [`02-文献补充与协议设计门禁.md`](./02-文献补充与协议设计门禁.md) 已完成。
-> **后继关系：** 只有本计划裁决为 `supported` 且用户再次批准，才进入 [`04-DVG-B1条件式Oracle门控.md`](./04-DVG-B1条件式Oracle门控.md)。
+> **后继关系：** 本计划于 2026-09-08 因 58/196 个 location group 的 q75 不可构造而 `protocol-blocked`；证据见 [`2026-09-08-museg-dvc-a1-protocol-gate.md`](../../reports/2026-09-08-museg-dvc-a1-protocol-gate.md)。[`04-DVG-B1条件式Oracle门控.md`](./04-DVG-B1条件式Oracle门控.md) 未解锁。
 
 ## 1. 目标、问题与结论边界
 

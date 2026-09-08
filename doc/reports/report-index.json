@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.12",
   "latestFormalReport": {
-    "path": "doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md",
-    "periodStart": "2026-08-17",
-    "periodEnd": "2026-08-31",
-    "baseCommit": "3975f7d66c78e9bed6b9053071bb274199d550e9",
-    "status": "formal-quick-b0-comprehensive-group-report"
+    "path": "doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md",
+    "periodStart": "2026-09-08",
+    "periodEnd": "2026-09-08",
+    "baseCommit": "d7c175372a7c58c71b0ebc9f79989e722d92fe8b",
+    "status": "formal-dvc-a1-protocol-blocked"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md",
+      "topic": "museg-dvc-a1-protocol-gate",
+      "periodStart": "2026-09-08",
+      "periodEnd": "2026-09-08",
+      "baseCommit": "d7c175372a7c58c71b0ebc9f79989e722d92fe8b",
+      "verification": "focused-tests-two-sample-gpu-preflight-and-318-sample-mask-protocol-gate",
+      "status": "formal-dvc-a1-protocol-blocked"
+    },
     {
       "path": "doc/reports/2026-08-19-museg-dformer-data-processing-review.md",
       "topic": "museg-dformer-data-processing-review",
