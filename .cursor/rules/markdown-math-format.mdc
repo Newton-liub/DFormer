@@ -1,12 +1,19 @@
 ---
-description: Format mathematical formulas in Markdown for Obsidian-compatible rendering
+description: Format mathematical formulas in Markdown files for Obsidian-compatible rendering
 globs: "**/*.md"
 alwaysApply: false
 ---
 
 # Markdown 公式格式
 
-创建或修改 Markdown 文件时，按以下规则书写数学公式：
+本规则只约束**写入 Markdown 文件**时的公式书写格式，不约束聊天对话输出。
+
+## 适用范围
+
+- 仅当内容会保存/写入为 `.md` 文件（如报告、计划、文档）时应用本规则。
+- 在聊天对话中直接展示公式时不套用本规则，按正常 Markdown 公式渲染书写即可（行内 `$...$`、行间 `$$...$$`），不受下文包裹规则的强制约束。
+
+## 写入 Markdown 文件时的格式要求
 
 - 行间公式使用成对的 `$$` 包裹，并将公式单独放在定界符之间：
 
