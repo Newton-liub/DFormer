@@ -9,8 +9,8 @@
 
 ## 未执行候选计划
 
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；文献与项目事实门禁已完成，代码和实验未授权。
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md)：已执行到 `protocol-blocked`；两样本 preflight 通过，但 58/196 个 location group 无法构造非空 q75，完整五条件模型评价未开始。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；v1 已在覆盖门禁停止，v2 全 138 个可构造位置组方案已规划但未授权实现或运行。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md)：保留 `DVC-A1-valdev-boundary-zero-v1` 的 `protocol-blocked` 记录，并追加 `DVC-A1-valdev-boundary-zero-v2` 的 138 组/218 样本条件性开发验证规划；尚未物化或运行 v2。
 - [`2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md)：仅在 `DVC-A1=supported` 且用户再次批准后才细化的 Oracle GSA 门控方向。
 - [`2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md)：已完成的关键论文方法、实验片段和收缩裁决。
 - [`deferred/2026-09-MUSeg-unexecuted/README.md`](deferred/2026-09-MUSeg-unexecuted/README.md)：延期区总说明。

@@ -1,8 +1,8 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **状态时间：** 2026-09-08 03:00 UTC
-> **当前阶段：** 已完成 `DVC-A1-valdev-boundary-zero-v1` 的 protocol、最小实现和两样本 GPU preflight；完整 318 条 `val-dev` 的 mask 门禁因 58/196 个 location group 无法构造非空 q75、超过预注册 5% 上限而裁决为 `protocol-blocked`，五条件完整模型评价未开始。
-> **大白话说明：** 代码和小样本链路已经跑通，但当前深度边界定义在约三成位置组里找不到可施加的 75% 边界破坏；按预先写好的规则必须先停下来重新决定边界定义，不能直接跑模型指标或进入 Oracle 门控。
+> **状态时间：** 2026-09-08 08:29 UTC
+> **当前阶段：** `DVC-A1-valdev-boundary-zero-v1` 保持 `protocol-blocked`；后继 `DVC-A1-valdev-boundary-zero-v2` 已冻结为阈值 `0.05` 下全部 138 个可构造 location group 的条件性开发验证，尚未修改代码、物化 protocol、执行 preflight 或运行完整模型评价。
+> **大白话说明：** v1 因约三成位置组无法施加 q75 而合法停止；现在已决定不降低阈值、不重划数据，改用独立 v2 在可施加该干预的全部 138 个位置组上验证，并如实报告全数据覆盖率。当前只保存了设计，实验还没有开始。
 > 本文件是 MUSeg 当前事实、授权边界、证据入口和恢复规则的唯一实时入口；计划、报告、审计和 Canvas 只承担各自形成时点的历史或详细证据职责。
 
 ## 1. 稳定基线
@@ -19,8 +19,9 @@
 
 - 2026-09-08 的计划门禁已确认：DFormerv2 的 Depth 在四级 GSA 中形成几何先验；现有置信融合/回退文献依赖专门训练，首轮不能支持冻结 logits 门控；三维评价、严格 RGB-only 回退、亮度引导补全、高置信阈值和可学习 logits 门控均已从首轮删除。`RE447` 不适合作 bootstrap 来源，配对 location-group 重采样采用项目预注册流程；历史 `boundary_band_mIoU` 不等同标准 Boundary IoU。详细裁决保留在本计划目录与 `MUSeg-open-decisions.md`。
 - `DVC-A1-valdev-boundary-zero-v1` 的 protocol 模板、专用物化/校验器、确定性 Depth16 corruption、标准 Boundary IoU、location-group bootstrap/裁决和五尺度翻转运行入口已实现于当前未提交工作区；聚焦测试为 `5 passed`，两条真实 `val-dev` 样本的 GPU preflight 已通过 q=0 decoded-array 等价、mask 确定性/嵌套/面积匹配、有限值、strict checkpoint load 和原始 `932×1082` Label 网格恢复。
-- 2026-09-08 的完整 mask 门禁已读取 318 条 `val-dev` 的 Depth16 并完成全部 mask 扫描：58/196 个 location group 无法构造非空 `boundary-q75`，比例 `29.5918%`，高于预注册上限 `5%`；非边界 q50 候选不足为 0 条。因此裁决为 `protocol-blocked`，完整 5 condition × 10 view 模型评价没有开始，也没有生成 mIoU、Boundary IoU、bootstrap 区间或 `supported/not-supported/inconclusive` 科学裁决。大白话说，当前操作定义覆盖不了足够多的位置，必须先改协议而不是硬跑指标。
-- **当前授权与恢复点：** 本轮获批的阶段 1–3 已执行到合法停止条件；训练、云资源和 official test 从未获批或执行。准确恢复点是处置 `MUSeg-open-decisions.md` 第 11 节的边界候选覆盖问题；不得结果后静默降低 `0.05` 阈值、删除 58 个组、把空 q75 当正常样本或放宽 5% 上限。任何语义变更必须建立 `DVC-A1-valdev-boundary-zero-v2` 或其他新 identity，重新物化、preflight 和 mask 门禁后，完整 GPU 评价仍需按新协议重新确认。
+- 2026-09-08 的完整 mask 门禁已读取 318 条 `val-dev` 的 Depth16 并完成全部 mask 扫描：58/196 个 location group 无法构造非空 `boundary-q75`，比例 `29.5918%`，高于预注册上限 `5%`；非边界 q50 候选不足为 0 条。因此裁决为 `protocol-blocked`，完整 5 condition × 10 view 模型评价没有开始，也没有生成 mIoU、Boundary IoU、bootstrap 区间或 `supported/not-supported/inconclusive` 科学裁决。大白话说，v1 的操作定义覆盖不了足够多的位置，所以按原规则停止；这个历史结论保持不变。
+- 2026-09-08 已处置后继研究选择：建立独立 `DVC-A1-valdev-boundary-zero-v2`，保持全局相对深度跳变阈值 `0.05` 和冻结 `val-dev` 不变，预先纳入至少一张图可构造非空 q75 的全部 138 个 location group，共 218 张图。31 张图在组级纳入后仍无实际 q75 置零，主分析必须保留并显式报告；另对 123 个组内每张图均可构造 q75 的组做预注册敏感性分析。大白话说，v2 只回答“在当前强边界定义确实可施加干预的地点上，模型是否对边界深度失效敏感”，不能代表全部 MUSeg 地点。
+- **当前授权与恢复点：** 本次只批准保存 `DVC-A1-valdev-boundary-zero-v2` 的研究设计和全 138 组范围，未授权代码修改、protocol 物化、preflight、完整 GPU 评价、训练、云资源或 official test。准确恢复点是先按 [`03-共享协议与DVC-A1问题验证.md`](../plans/2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md) 第 11 节物化并审核 v2 protocol 与 138 组/218 样本 evaluation allowlist；之后才可另行确认最小 preflight 和完整五条件本地 GPU 评价。v1 的 protocol、失败证据和 `protocol-blocked` 结论不得覆盖或回写，`DVG-B1` 继续未解锁。
 - **证据：** 日期化报告为 `doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`；仓库外权威运行证据位于 `cloud/DVC-A1-valdev-boundary-zero-v1/attempt-2/`。最终 protocol SHA-256 为 `7bca3c109905d7d4ed228359bf8cd2a20bee18cbcd3d4cbdfed871e09870fba2`，preflight SHA-256 为 `aeb0afff829fc5abcd86196cb6c27822055b90c7910711c2da956a2133dc0c45`，mask manifest SHA-256 为 `60b988b3f9ffaabc5f6540cfccda48ddb5efd4d44ce360691bfaeea047e63f29`，failure SHA-256 为 `b36d9bddfb33a4f69657dae976f94afa6e97282a42aec27663949502be08e216`；均记录 `official_test_included=false`。
 - A2/B2 深度有效性方向已迁入 `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/`，状态为**延期、未执行、未授权、当前不处于恢复点**。
 - 方向1后验校准与 Depth 退化双路径计划已迁入 `doc/plans/deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/`，状态同样为**延期、未执行、未授权、当前不处于恢复点**。
@@ -37,7 +38,7 @@
 
 ## 4. 证据位置与历史解释
 
-- 2026-09-08 的新候选方向入口：`doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/01-新对话最小上下文与当前任务.md`；`03-共享协议与DVC-A1问题验证.md` 已执行到 `protocol-blocked`，日期化证据报告为 `doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`；`04-DVG-B1条件式Oracle门控.md` 未解锁。
+- 2026-09-08 的新候选方向入口：`doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/01-新对话最小上下文与当前任务.md`；`03-共享协议与DVC-A1问题验证.md` 已保留 v1 的 `protocol-blocked` 记录并追加 v2 全 138 个可构造组规划，日期化 v1 证据报告为 `doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`；`04-DVG-B1条件式Oracle门控.md` 未解锁。
 - 正式报告和 Canvas 元数据入口：`doc/reports/report-index.json`。
 - 历史计划入口：`doc/plans/`；已完成 Quick-B0 与更早阶段计划位于 `doc/plans/archive/`。
 - 未执行候选计划入口：`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`。
