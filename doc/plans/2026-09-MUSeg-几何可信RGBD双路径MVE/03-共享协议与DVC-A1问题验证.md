@@ -1,13 +1,13 @@
 # MUSeg `DVC-A1-valdev-boundary-zero-v1`：共享协议与问题验证
 
-> **文档角色：** 第一个详细子计划；保留 v1 的执行记录，并在原方案上追加 A1-v2 的后继执行规划。
-> **计划状态：** v1 已执行到合法终点 `protocol-blocked`；v2 已完成研究口径规划，尚未物化 protocol、修改代码或运行评价。
-> **形成或核验时点：** 2026-09-08。
+> **文档角色：** 第一个详细子计划；保留 v1/v2 的执行记录，并追加 A1-v3 的定义修正与最小门禁结果。
+> **计划状态：** v1 已执行到合法终点 `protocol-blocked`；v2 已完成独立 allowlist 物化、完整评价并因有效配对组门禁以 `protocol-blocked` 收口；v3 已完成定义实现、218 张图 CPU 标签域审计、新 protocol 物化、两样本本地 GPU preflight 和完整 218 张图 × 5 condition GPU 评价，正式评价状态为 `completed`，预注册主裁决为 `not-supported`。
+> **形成或核验时点：** 2026-09-09 04:43 UTC。
 > **实时入口：** [`MUSeg-current-status.md`](../../main/MUSeg-current-status.md)。
 > **研究选择：** [`MUSeg-open-decisions.md`](../../main/MUSeg-open-decisions.md)。
 > **上级方向：** [`00-总方向规划.md`](./00-总方向规划.md)。
 > **前序关系：** [`02-文献补充与协议设计门禁.md`](./02-文献补充与协议设计门禁.md) 已完成。
-> **当前/后继关系：** 当前规划为 `DVC-A1-valdev-boundary-zero-v2` 的可构造位置组验证；v1 证据见 [`2026-09-08-museg-dvc-a1-protocol-gate.md`](../../reports/2026-09-08-museg-dvc-a1-protocol-gate.md)。[`04-DVG-B1条件式Oracle门控.md`](./04-DVG-B1条件式Oracle门控.md) 仍未解锁。
+> **当前/后继关系：** `DVC-A1-valdev-boundary-zero-v3-bgcontext` 的定义层、最小模型链门禁和完整 218 张图 × 5 condition GPU 评价均已完成；主分析按预注册规则裁决为 `not-supported`，完整结果见本文件第 12.5 节。v1/v2 历史证据保持原样。[`04-DVG-B1条件式Oracle门控.md`](./04-DVG-B1条件式Oracle门控.md) 已按用户要求完成基础设计，仍未授权代码、GPU、训练或云执行。
 
 ## 1. 目标、问题与结论边界
 
@@ -122,7 +122,9 @@ $$
 
 ### 阶段 3：完整开发评价
 
-只有 preflight 通过且用户另行明确批准 GPU 运行后，才对 318 条 `val-dev` 执行 5 个 condition 的完整五尺度翻转评价。不得把该授权外推为训练、云资源或 official test 授权。
+只有 preflight 通过且用户另行明确批准 GPU 运行后，才对冻结评价范围执行 5 个 condition 的完整五尺度翻转评价。该授权不外推为训练、云资源或 official test 授权。
+
+本阶段已完成：用户已授权 `DVC-A1-valdev-boundary-zero-v3-bgcontext` 的完整本地 GPU 评价，固定范围为 218 张图、138 个 location group 和 5 个 condition。
 
 ## 8. 交付物与证据位置
 
@@ -146,7 +148,7 @@ $$
 
 ## 10. 验证预算与状态更新
 
-本节保留 v1 形成时点的预算边界；v1 后续已按该边界完成代码、定点检查、两样本 preflight 和全量 mask 门禁，并在完整模型评价前以 `protocol-blocked` 收口，实际证据以状态头所链报告为准。本次 v2 修订仍只做规划，不运行项目测试、GPU、训练、云端或 official test。后续先按第 11.6 节另行物化 v2 protocol 和执行最小 preflight；完整评价须在其通过后再次确认。protocol 物化、preflight、正式评价或恢复点发生变化时，最终答复前更新实时状态文件。
+本节保留 v1/v2 形成时点的预算边界；v1 后续已按该边界完成代码、定点检查、两样本 preflight 和全量 mask 门禁，并在完整模型评价前以 `protocol-blocked` 收口。v2 随后已完成独立 protocol/allowlist 物化、聚焦测试、两样本本地 GPU preflight 和完整评价，最终因有效配对组门禁以 `protocol-blocked` 收口。v3 已完成标签契约修正、CPU 标签域审计、protocol 物化、两样本 GPU preflight、完整 GPU 评价、location-group bootstrap 和预注册裁决；未追加阈值搜索、多 seed、额外 condition、重划数据集或完整测试套件。
 
 ## 11. A1-v2 后继规划：可构造位置组的全量快速验证
 
@@ -224,7 +226,7 @@ v2 不改变 v1 的边界和剂量定义：
 
 ### 11.6 v2 执行阶段与门禁
 
-#### 阶段 1：物化 v2 protocol 和评估清单
+#### 阶段 1：物化 v2 protocol 和评估清单（已完成并验证）
 
 仅使用已有 v1 `mask-manifest.json` 和冻结 `val-dev` 清单，生成一个新的、只读派生的 v2 evaluation allowlist。它不是新的训练/验证划分，而是本次 MVE 的评价范围清单；建议文件名为 `val-dev-constructable-v2.txt`，内容为 138 个纳入组的全部 218 条样本。
 
@@ -238,7 +240,7 @@ v2 不改变 v1 的边界和剂量定义：
 
 若物化结果不是 138 组/218 张图，或派生清单不能证明每条样本来自原冻结 `val-dev`，立即 `stop`，不得继续运行。
 
-#### 阶段 2：v2 最小 preflight
+#### 阶段 2：v2 最小 preflight（修正前后均已完成，历史证据）
 
 对 v2 身份重新执行最小检查，因为 v1 的 preflight 不能替代新 protocol 的精确身份检查：
 
@@ -251,11 +253,13 @@ v2 不改变 v1 的边界和剂量定义：
 
 任一检查失败即 `stop`；修复若改变 mask 语义，必须建立新的 protocol identity，不能覆盖 v2。
 
-#### 阶段 3：138 组全量五条件评价
+实际完成证据：v2 protocol SHA-256 为 `bc71ee97421a97f1ae172ec5f1096bf026750a3e4fae539eccfffc2c53aca535`，allowlist SHA-256 为 `5589eb3378ed2e23180f6205e2d88cea39702ad4bfd5d4e1b739cf2f920a8d89`，preflight SHA-256 为 `9129103d5b3612f21dd7c86291a46a6a3102b4313b30357c4904ced639736e15`。两样本来自不同位置组，分别覆盖 q75 为空和 q75 非空情况；mask 稳定、嵌套、q50 同面积、q=0 decoded-array 等价、有限值、strict checkpoint load 和原始 `932×1082` Label 网格恢复均通过，且 `official_test_included=false`。详细证据见 [`2026-09-08-museg-dvc-a1-v2-materialization-preflight.md`](../../reports/2026-09-08-museg-dvc-a1-v2-materialization-preflight.md)。大白话说，新评价范围和最小模型链已闭合，但还没有运行完整评价或产生科学结论。
 
-preflight 通过后，对 138 个纳入位置组的全部 218 张图运行五个 condition 的完整五尺度翻转评价。运行顺序、batch、FP32 设置、日志字段和内存中生成退化 Depth 的规则与 v1 一致；不保存完整退化数据集，不保存无必要的 logits 或预测图。
+#### 阶段 3：138 组全量五条件评价（已完成但协议阻塞）
 
-正式运行前再次确认：本次只做本地开发评价，不训练、不使用云资源、不读取 official test。运行完成后，先核验每个 condition 的样本覆盖、mask hash 和数值有限性，再进行统计裁决。
+最终差异审查发现的两项缺口已修正：当前入口把 218 个纳入样本的各 condition mask SHA-256 逐一与冻结 v1 manifest 对照，并在统计阶段前强制主分析 138 组、敏感性分析 123 组及两个 effect 的有效配对组数。旧 protocol、allowlist 和修正前两样本 preflight 证据保持原样，不替代新身份检查。
+
+同一 v2 研究语义下的 protocol 已重新物化，protocol SHA-256 为 `3c6f33562692c8baee85786261de431583e9bdd9b6f8f51cd5ad0f042406f6bb`；allowlist 和构造性摘要哈希未改变。修正后的两样本本地 GPU preflight 已通过，随后按批准完成 218 张图完整评价。五个 condition 产物均已写出，每个包含 218 样本/138 组；统计时发现 `dose_effect` 只有 137 个有效配对组，因此运行以 `protocol-blocked` 结束。只读诊断确认无效组为 `06-01-01-0346`；123 组敏感性范围的两个 effect 均为 123/123 有效。
 
 ### 11.7 结果解释和后续分支
 
@@ -267,14 +271,98 @@ preflight 通过后，对 138 个纳入位置组的全部 218 张图运行五个
 
 ### 11.8 证据、验证预算和禁止事项
 
-v2 正式证据继续保存到仓库外独立目录，例如 `cloud/DVC-A1-valdev-boundary-zero-v2/`；仓库内只保存 protocol/template、必要代码、清单摘要和日期化报告，大型 mask、logits、预测、退化图像和运行日志不进 Git。
+v2 物化与 preflight 证据已保存到仓库外独立目录 `cloud/DVC-A1-valdev-boundary-zero-v2/`；仓库内保存 protocol template、必要代码和日期化报告，大型 mask、logits、预测、退化图像和运行日志不进 Git。
 
-计划阶段只做 Markdown 内容、链接和差异检查，不运行项目测试、GPU、训练、云任务或 official test。后续执行只使用本节列出的定点 preflight 和一次 138 组全量本地 GPU 评价；不自动追加阈值搜索、多 seed、额外 condition、重划数据集或完整测试套件。
+本轮 v2 执行已结束；v3 已完成标签契约实现、聚焦测试、218 张图 CPU 标签域审计、protocol 物化、两样本本地 GPU preflight，以及用户授权后的完整 138 组/218 样本五条件 GPU 评价。完整评价未新增阈值搜索、多 seed、额外 condition 或数据重划；正式统计和科学裁决按冻结 protocol 收口。
 
 v1 的 `protocol-blocked`、mask manifest 和失败日志保持原样，不能覆盖、改名或回写为 v2 结果。v2 若运行中断，保留已完成 condition、样本和哈希，只有在完全相同的 protocol/code/environment 下恢复；任何候选定义、剂量规则、纳入组规则或统计单位变化都建立新的 protocol identity。
 
-### 11.9 当前恢复点
+### 11.9 v2 历史恢复点
 
-本次计划更新完成后，准确恢复点是：**先物化并审核 `DVC-A1-valdev-boundary-zero-v2` 及其 138 组/218 样本评价清单，再执行 v2 preflight；尚未开始代码修改、protocol 物化或 GPU 评价。**
+本节记录 v2 的历史恢复点：**`DVC-A1-valdev-boundary-zero-v2` 的冻结 allowlist、构造性摘要、修正后 preflight、五个 condition 产物和失败证据均保持原样；完整评价已经结束，运行时长为 `5445.565` 秒，状态为 `protocol-blocked`。`dose_effect` 在主分析中只有 137/138 个有效配对组，无效组为 `06-01-01-0346`；123 组敏感性范围的两个 effect 均为 123/123。随后以独立 v3 protocol 处理标签域定义问题。**
 
-本次用户只确认 v2 的研究设计与全 138 组范围，不构成本对话中的代码修改、protocol 物化或 GPU 运行授权；这些执行不能被描述为已开始或已通过。完成 v2 物化、preflight 和全量评价后，必须更新 `MUSeg-current-status.md`，并在有科学裁决时同步更新 `MUSeg-open-decisions.md`。
+当前没有可用于科学裁决的正式 mIoU、Boundary IoU、bootstrap 区间或 `supported/not-supported/inconclusive` 结果；`DVG-B1` 仍未解锁。详细终态见 [`2026-09-09-museg-dvc-a1-v2-protocol-blocked.md`](../../reports/2026-09-09-museg-dvc-a1-v2-protocol-blocked.md)。
+
+## 12. A1-v3 定义修正：有效 background 与 true ignore 分离
+
+### 12.1 修正对象与独立身份
+
+v2 的唯一阻塞组 `06-01-01-0346` 并非没有前景：四张图的原始 Label 都包含 `cable`、`tube`、`rescue equipment`。阻塞原因是旧 Boundary IoU 输入把原始 Label background `0` 先映射为 evaluator ignore `255`，随后又按 ignore 安全距离排除了距离背景不超过 29 像素的区域，导致四张图的计分安全区为空、15 个前景类别全部双空 `None`。
+
+本次只修正 Boundary IoU 的标签域，不回写 v1/v2。新身份为 `DVC-A1-valdev-boundary-zero-v3-bgcontext`，其中 `bgcontext` 表示原始 background 作为有效几何上下文；真正的 void/ignore 才从安全区排除。v2 的阈值、allowlist、Depth corruption、五种 condition、checkpoint、evaluator、bootstrap 和裁决门槛均保持不变。
+
+### 12.2 两套标签契约
+
+- **训练/普通 mIoU 输入：** 继续使用原有 foreground-only 映射，raw Label `0` 映射为 `255`，raw Label `1..15` 映射为前景 `0..14`。
+- **v3 Boundary IoU 输入：** 从 raw Label 构造 metric target；raw foreground `1..15` 映射为 `0..14`，raw background `0` 映射为背景上下文 `15`，true ignore 使用 `255`。背景不是待报告类别，但参与 one-vs-rest 的边界几何定义。
+- `semantic_boundary_iou` 继续只报告 15 个前景类；`None` 仍表示某类别 prediction 和 target 双空并排除该类 pair，单侧为空仍计 `0`。只有图像/组没有任何定义前景类别时才触发定义层阻塞。
+
+### 12.3 已核验的定义层结果
+
+冻结 v1 manifest 派生的 v3 仍覆盖 218 张图、138 个 location group；其中 215 张图含前景，3 张全背景图保留在范围内，138 个组均至少包含一张前景图。原始标签值为 `0..15`，冻结标签中没有 true ignore，因此 v3 的 Boundary IoU 安全域为全图像素。
+
+对 `06-01-01-0346` 的四张图，v3 metric foreground ids 均为 `[1, 2, 13]`，有效安全域每图为 `1,008,424` 像素，定义层门禁通过。三张全背景图不被静默删除；若某 prediction 与 target 仅一侧有前景，继续按冻结规则计 `0`。
+
+### 12.4 v3 最小门禁结果与边界
+
+- 聚焦测试：`python -m pytest tests/test_dvc_a1.py -q`，`9 passed`；仅出现既有 pytest cache permission warning。
+- v3 protocol 已物化，protocol SHA-256 为 `f9960904f51cec11797ada6952c2102da4b2b6832d0bf7b529898bfae9c0f216`；allowlist SHA-256 为 `5589eb3378ed2e23180f6205e2d88cea39702ad4bfd5d4e1b739cf2f920a8d89`，沿用冻结 v1 派生清单；allowlist summary SHA-256 为 `6fa94de96f1b5b4e94c1feecdc4d821e05db1828be05b011f3b48f43ce408dfd`。
+- CPU 标签域审计状态为 `passed`，产物 SHA-256 为 `17a4ec36ba231c3be6ea1ed1f4f6e3b9f8380d8d0a619cc3530a6bfd903ad1db`。
+- 两样本 CUDA（Compute Unified Device Architecture，图形处理器计算平台）preflight 状态为 `passed`，产物 SHA-256 为 `829b580b6ed4ace977cf578e8391bcc759fc6d135fad72c2bd0dba958712dedd`；样本明确覆盖 `06-01-01-0346` 组，两个样本均通过 q=0 decoded-array 等价、mask hash 与冻结 v1 一致、嵌套、q50 同面积、有限 logits、原始 `932×1082` 网格和 v3 Boundary IoU 有定义检查。
+
+这些结果证明定义、身份和最小模型链门禁已闭合；完整评价和预注册裁决也已完成。当前 A1 的正式结果为 `not-supported`。根据用户明确要求，B 的基础设计已独立完成，但这不改变 A 的裁决，也不自动授权 B 的代码、GPU、训练或云执行。
+
+## 12.5 v3 完整开发评价结果与正式收口
+
+### 12.5.1 运行身份与执行事实
+
+用户已授权并完成 `DVC-A1-valdev-boundary-zero-v3-bgcontext` 的完整本地 GPU 开发评价。运行固定使用冻结的 218 张图、138 个 location group、5 个 condition、五尺度原图/水平翻转 evaluator、epoch 420 checkpoint，且 `official_test_included=false`。
+
+- 运行目录：`cloud/DVC-A1-valdev-boundary-zero-v3-bgcontext-full-20260909/`；
+- 执行记录：`executions/20260909T031128418493+0000-full.json`；启动时间为 `2026-09-09T03:11:28.418493+00:00`；
+- 执行状态：`completed`，退出码 `0`，运行时长 `5507.055` 秒，约 91 分 47 秒；
+- 环境：NVIDIA GeForce RTX 5060 Laptop GPU，PyTorch `2.7.0+cu128`，CUDA `12.8`，Python `3.13.9`，TF32 disabled；
+- protocol SHA-256：`d52b3dba2c7a34894b9f4cdf1d8e313e304415d1ea821a191b7753b97be74f5d`；
+- mask manifest SHA-256：`3da28ae84806c61b0178c9563e811eed9e6f16e3f0f4040ab5753b26abdc9e79`；
+- `summary.json` 状态为 `completed`，SHA-256：`951d8e2005a4c64ac809ffd3de9d7db367df955a46e81c46e89516bd64d9f220`；
+- 五个 condition 均生成独立 JSON 产物，每个包含 218 张图和 138 个 location group；具体产物路径及哈希由 `summary.json.condition_files` 固定记录。
+
+### 12.5.2 五个 condition 的总体指标
+
+以下是本次固定开发评价的描述性 mIoU、mAcc 和 mF1；它们不替代 Boundary IoU 的预注册主裁决：
+
+- `clean`：mIoU `54.64`，mAcc `64.23`，mF1 `67.59`；
+- `boundary-q25`：mIoU `54.66`，mAcc `64.27`，mF1 `67.60`；
+- `boundary-q50`：mIoU `54.74`，mAcc `64.33`，mF1 `67.67`；
+- `boundary-q75`：mIoU `54.64`，mAcc `64.32`，mF1 `67.57`；
+- `nonboundary-q50`：mIoU `54.43`，mAcc `64.02`，mF1 `67.39`。
+
+### 12.5.3 预注册主分析
+
+主分析覆盖 138 个 location group；`dose_effect` 和 `specificity_effect` 均为 `138/138` 有效配对组。Bootstrap 按冻结 location group 有放回重采样，seed 为 `20260908`，共 `10,000` 次，区间为双侧 95% percentile interval。
+
+- `dose_effect = boundary-q75 - clean`：点估计 `+0.0731348717` 个 Boundary-IoU 百分点；95% 区间为 `[-0.0620441424, +0.2226503089]`；
+- `specificity_effect = boundary-q50 - nonboundary-q50`：点估计 `+0.0323919541` 个 Boundary-IoU 百分点；95% 区间为 `[-0.3002343847, +0.2899672010]`；
+- 联合裁决：`not-supported`。
+
+该裁决来自预注册规则：`dose_effect` 点估计没有达到支持门槛（不高于 `-2.0` 个百分点且区间上界小于 `0`），并且 `specificity_effect` 点估计为正，满足 `not-supported` 条件。这里的 `not-supported` 只表示在固定可构造位置组的开发期人工 Depth 边界置零实验中，未观察到预注册的边界特异敏感性；它不表示自然故障机制不存在。
+
+### 12.5.4 敏感性与部分可构造组分析
+
+- **全可构造敏感性分析：** 预定义的 123 个“组内每张图均可构造非空 q75”的 location group 均完成配对分析；`dose_effect` 为 `+0.0685432136` 个百分点，95% 区间 `[-0.0798566517, +0.2315669493]`，`123/123` 配对组；`specificity_effect` 为 `+0.0163006238` 个百分点，95% 区间 `[-0.3561380011, +0.2962735383]`，`123/123` 配对组。该分析是预先定义的敏感性分析，不替代 138 组主分析。
+- **部分可构造组描述性分析：** 15 个包含至少一张 q75 不可构造图的 location group 保留在范围中；`dose_effect` 为 `+0.1107864683` 个百分点，95% 区间 `[-0.0711737998, +0.3810840876]`，`15/15` 配对组；`specificity_effect` 为 `+0.1643408630` 个百分点，95% 区间 `[-0.0656543536, +0.4910363898]`，`15/15` 配对组。该部分只作描述，不改变主裁决。
+- 218 张图中有 31 张图的 `boundary-q75` 实际置零数量为 `0`；这些图仍保留在主范围中，并未被伪装成发生了实际 q75 corruption。
+- `06-01-01-0346` 已在 v3 主范围内完成有效 Boundary IoU 计算，不再触发 v2 的标签域阻塞；其进入主分析的 group count 为 `1`。
+
+### 12.5.5 收口与交接边界
+
+v3 完整评价已闭合：定义修正、身份、mask 保护、五条件推理、配对组统计和预注册裁决均有独立证据。当前 A1 的正式结果为 `not-supported`，因此停止把“深度边界失效”作为首要瓶颈，不自动实现完整联合恢复，也不自动把 B 写成已验证。根据用户明确要求，`DVG-B1-oracle-gsa-v1` 已完成基础设计；其代码、GPU、训练和云执行仍需后续细化与单独授权。
+
+本次结果不支持以下扩展结论：
+
+- 不支持自然传感器故障或自然无效深度机制；
+- 不支持真实低照/粉尘因果机制或部署安全结论；
+- 不支持论文级泛化、跨数据集泛化或多 seed 方差结论；
+- 不读取 official test，official test 仍保持 `sealed_unread`。
+
+本轮未进行训练或云资源操作；不追加新的阈值、condition、seed、样本、数据划分或完整联合恢复。下一对话应以本节的 v3 `completed` / `not-supported` 终态为恢复点，优先读取本节记录的运行目录、`summary.json` 和执行记录，不把 v1/v2 的 `protocol-blocked` 历史状态误读为 v3 当前状态。

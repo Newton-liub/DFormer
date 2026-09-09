@@ -1,0 +1,142 @@
+{
+  "schema_version": "museg-dvc-a1-protocol-v2",
+  "protocol_id": "DVC-A1-valdev-boundary-zero-v2",
+  "research_role": "paired-development-sensitivity",
+  "model": {
+    "name": "DFormerv2-S RGB Quick-B0",
+    "config_module": "local_configs.MUSeg.DFormerv2_S_4090",
+    "checkpoint_path": "__MATERIALIZED_CHECKPOINT_PATH__",
+    "checkpoint_sha256": "f246a3afc50334c81302b7bfebdadf7cf37d00326bf1c3aa54f6a151754e3a1c"
+  },
+  "split": {
+    "role": "val_dev",
+    "path": "__MATERIALIZED_SPLIT_PATH__",
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+    "sample_count": 318,
+    "location_group_count": 196,
+    "location_group_rule": "first-four-ascii-hyphen-separated-stem-segments",
+    "mine_rule": "first-ascii-hyphen-separated-stem-segment"
+  },
+  "evaluation_scope": {
+    "role": "read-only-derived-evaluation-allowlist",
+    "source_protocol_id": "DVC-A1-valdev-boundary-zero-v1",
+    "source_mask_manifest_path": "__MATERIALIZED_SOURCE_MASK_MANIFEST_PATH__",
+    "source_mask_manifest_sha256": "60b988b3f9ffaabc5f6540cfccda48ddb5efd4d44ce360691bfaeea047e63f29",
+    "allowlist_path": "__MATERIALIZED_ALLOWLIST_PATH__",
+    "allowlist_sha256": "__MATERIALIZED_ALLOWLIST_SHA256__",
+    "allowlist_summary_sha256": "__MATERIALIZED_ALLOWLIST_SUMMARY_SHA256__",
+    "inclusion_rule": "location-group-has-at-least-one-nonempty-boundary-q75",
+    "included_sample_count": 218,
+    "included_location_group_count": 138,
+    "excluded_location_group_count": 58,
+    "q75_zero_sample_count": 31,
+    "fully_constructable_location_group_count": 123,
+    "partially_constructable_location_group_count": 15,
+    "sensitivity_scope": "groups-with-nonempty-boundary-q75-for-every-image",
+    "sensitivity_location_group_count": 123
+  },
+  "dataset": {
+    "root": "__MATERIALIZED_DATASET_ROOT__",
+    "rgb_directory": "RGB",
+    "depth16_directory": "Depth16",
+    "quantized_depth_directory": "Depth",
+    "label_directory": "Label"
+  },
+  "input_contract": {
+    "rgb": {
+      "channel_order": "RGB",
+      "normalization_identity": "rgb-imagenet-rgb-order-v1",
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    },
+    "depth": {
+      "raw_dtype": "uint16",
+      "invalid_value": 0,
+      "depth_max_raw": 13932,
+      "quantization": "np.rint(depth16.astype(np.float64)*255.0/13932).astype(np.uint8)",
+      "normalization_mean": 0.48,
+      "normalization_std": 0.28,
+      "resize_interpolation": "opencv-inter-linear"
+    },
+    "label": {
+      "raw_background": 0,
+      "foreground_ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "evaluator_ignore": 255
+    }
+  },
+  "evaluator": {
+    "identity": "DVC-A1-msflip-whole-original-grid-v2",
+    "base_identity": "msflip-whole-original-grid-v1",
+    "scales": [0.5, 0.75, 1.0, 1.25, 1.5],
+    "horizontal_flip": true,
+    "forward_precision": "fp32",
+    "logits_fusion": "mean-pre-softmax-fp32",
+    "metric_grid": "original-label-grid",
+    "batch_size": 1
+  },
+  "corruption": {
+    "seed": 20260908,
+    "relative_jump_threshold": 0.05,
+    "neighbor_pairs": ["horizontal", "vertical"],
+    "edge_seed_endpoints": "both",
+    "boundary_dilation": {"shape": "square", "kernel_size": 3, "iterations": 1},
+    "guard_band": {"metric": "chebyshev", "radius_pixels": 5},
+    "ranking": "splitmix64-v1(seed,sample_id,domain,flat_index)",
+    "dose_count_rounding": "floor",
+    "conditions": [
+      {"id": "clean", "domain": "boundary", "dose": 0.0},
+      {"id": "boundary-q25", "domain": "boundary", "dose": 0.25},
+      {"id": "boundary-q50", "domain": "boundary", "dose": 0.5},
+      {"id": "boundary-q75", "domain": "boundary", "dose": 0.75},
+      {"id": "nonboundary-q50", "domain": "nonboundary-matched", "dose": 0.5}
+    ],
+    "q75_unconstructable_location_group_fraction_limit": 0.0,
+    "nonboundary_shortage_policy": "protocol-blocked"
+  },
+  "boundary_iou": {
+    "class_mode": "one-vs-rest",
+    "boundary_side": "inside",
+    "distance_metric": "euclidean-l2",
+    "distance_ratio_of_image_diagonal": 0.02,
+    "distance_rounding": "max(1,round-half-to-even)",
+    "ignore_exclusion_radius": "same-as-boundary-distance",
+    "both_empty": "exclude-pair",
+    "one_empty": 0.0,
+    "image_aggregation": "macro-over-defined-foreground-classes",
+    "group_aggregation": "equal-mean-over-images"
+  },
+  "statistics": {
+    "unit": "location-group",
+    "bootstrap_algorithm": "numpy-pcg64",
+    "bootstrap_seed": 20260908,
+    "bootstrap_replicates": 10000,
+    "interval": "two-sided-95-percentile-linear",
+    "dose_effect": "boundary-q75-minus-clean",
+    "specificity_effect": "boundary-q50-minus-nonboundary-q50",
+    "mine_role": "descriptive-direction-only"
+  },
+  "adjudication": {
+    "supported": {
+      "dose_point_max_percentage_points": -2.0,
+      "dose_interval_upper_strictly_below": 0.0,
+      "specificity_point_strictly_below": 0.0,
+      "minimum_negative_mines": 4
+    },
+    "not_supported": {
+      "dose_point_strictly_above_percentage_points": -1.0,
+      "specificity_point_min_percentage_points": 0.0
+    }
+  },
+  "official_test": {
+    "state": "sealed_unread",
+    "included": false,
+    "reject_identity_substrings": ["official", "test"]
+  },
+  "evidence": {
+    "output_root": "__MATERIALIZED_EVIDENCE_ROOT__",
+    "save_logits": false,
+    "save_predictions": false,
+    "condition_outputs": "one-atomic-json-per-condition"
+  },
+  "code_identity": "__MATERIALIZED_CODE_IDENTITY__"
+}

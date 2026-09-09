@@ -1,23 +1,23 @@
 # MUSeg 阶段计划与历史执行记录
 
 > **文档角色：** 计划目录索引，不承担实时状态。
-> **核验时点：** 2026-09-05。
+> **核验时点：** 2026-09-08。
 > **实时入口：** `doc/main/MUSeg-current-status.md`；研究选择见 `doc/main/MUSeg-open-decisions.md`。
 > **后继关系：** 计划只记录设计和形成时点；当前事实与恢复步骤以实时状态为准。
 
 本目录保存 MUSeg 阶段设计、执行计划和历史记录。计划不单独构成代码、GPU、训练、云资源或 official test 授权。
 
-## 未执行候选计划
+## 当前与候选计划
 
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；v1 已在覆盖门禁停止，v2 全 138 个可构造位置组方案已规划但未授权实现或运行。
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md)：保留 `DVC-A1-valdev-boundary-zero-v1` 的 `protocol-blocked` 记录，并追加 `DVC-A1-valdev-boundary-zero-v2` 的 138 组/218 样本条件性开发验证规划；尚未物化或运行 v2。
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md)：仅在 `DVC-A1=supported` 且用户再次批准后才细化的 Oracle GSA 门控方向。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；v1/v2 历史终态保持不变，v3 已完成完整评价并裁决为 `not-supported`；B 的 Oracle 基础设计已完成，执行仍未授权。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md)：保留 v1/v2 的 `protocol-blocked` 记录；新增独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext`，记录完整评价和 `not-supported` 正式收口。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md)：在 `DVC-A1` 已完成但为 `not-supported` 后，按用户要求形成的 Oracle GSA 门控基础设计；仅授权文档设计，未授权代码、GPU、训练或云执行。
 - [`2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md)：已完成的关键论文方法、实验片段和收缩裁决。
 - [`deferred/2026-09-MUSeg-unexecuted/README.md`](deferred/2026-09-MUSeg-unexecuted/README.md)：延期区总说明。
 - [`deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md`](deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md)：A2/B2 深度有效性候选方向；未执行、未授权。
 - [`deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/00-总方向规划.md`](deferred/2026-09-MUSeg-unexecuted/MUSeg-方向1最短验证路径/00-总方向规划.md)：后验校准与 Depth 退化双路径候选方向；未执行、未授权。
 
-重新启用任一方向时，必须先读取实时状态和开放决策，从稳定基准建立独立研究分支，重新冻结数据、config、protocol、evaluator 和授权边界。延期计划中的“当前任务”“下一步”和“恢复点”只代表原形成时点的拟议流程。
+延期目录中的任一方向重新启用时，必须先读取实时状态和开放决策，从稳定基准建立独立研究分支，重新冻结数据、config、protocol、evaluator 和授权边界。延期计划中的“当前任务”“下一步”和“恢复点”只代表原形成时点的拟议流程。
 
 ## 已封存计划
 

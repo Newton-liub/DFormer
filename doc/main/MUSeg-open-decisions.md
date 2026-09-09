@@ -137,7 +137,7 @@
 
 **大白话问题：** 当前规则只把相邻有效深度的相对跳变不低于 `0.05` 视为边界。全量扫描后，约三成位置组完全没有能形成非空 q75 的样本；继续沿用 v1 会让这些组无法接受预定干预，直接放宽规则又会改变原来预注册的问题。
 
-**当前状态：本轮已处置为条件性开发验证方案。** `DVC-A1-valdev-boundary-zero-v1` 保持 `protocol-blocked`；后继建立独立身份 `DVC-A1-valdev-boundary-zero-v2`，保留阈值 `0.05`，不重划数据，只纳入至少一张图可构造非空 q75 的全部 138 个 location group。详细规划见 [`03-共享协议与DVC-A1问题验证.md`](../plans/2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md) 第 11 节。
+**当前状态：本轮已处置为条件性开发验证方案，并完成 v3 定义修正门禁。** `DVC-A1-valdev-boundary-zero-v1` 与 `DVC-A1-valdev-boundary-zero-v2` 保持各自的 `protocol-blocked` 历史终态；独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext` 保留 v2 数据和 corruption 不变量，仅分离有效 background 与 true ignore 的 Boundary IoU 标签契约。
 
 - 直接核验事实：318 条 `val-dev` 的 mask 扫描全部完成；58/196 个 location group 的 `boundary-q75` 不可构造，占 `29.5918%`，高于 v1 预注册 `5%` 上限；非边界 q50 同面积候选不足为 0 条。
 - v2 固定范围：138 个纳入组包含全部 218 张图；其中 31 张图的 q75 实际置零数仍为 0，123 个组内每张图均可构造 q75，另有 15 个组为部分可构造。主分析保留 138 组全部图像，并预注册 123 组敏感性分析，不在模型结果后择优。
@@ -145,7 +145,7 @@
 - v1 合法终点：保持 `protocol-blocked`，不生成五条件 mIoU、Boundary IoU、bootstrap 或问题假设裁决；不得改写成 `not-supported`。
 - v2 不变量：不降低 `0.05`，不重新划分 `train-dev`/`val-dev`，不重新训练或选择 checkpoint，不读取 official test；继续保留 `clean`、`boundary-q25/q50/q75` 和 `nonboundary-q50` 五个条件，以 location group 为 bootstrap 单位。
 - 当前禁止：不得覆盖或回写 v1，不得把 31 张 q75 空图伪装成实际受干预样本，不得根据模型结果删除组、修改阈值、追加条件或改成功门槛。
-- 当前授权边界：本次只批准保存研究设计和全 138 组范围；尚未授权代码修改、v2 protocol 物化、preflight 或 GPU 评价。
-- 准确恢复点：先物化并审核 v2 protocol 与 138 组/218 样本 evaluation allowlist，再按新身份执行最小 preflight；通过后另行确认完整五条件本地 GPU 评价。
-- v3 边界：若 v2 后仍需提高覆盖率，才另立只读 Depth16 覆盖协议，在模型输出前预定候选阈值并选择满足覆盖要求的最高阈值；不得把该候选方向当作 v2 的隐式自由度。
-- 证据：`doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`；仓库外 `cloud/DVC-A1-valdev-boundary-zero-v1/attempt-2/mask-manifest.json`，SHA-256 `60b988b3f9ffaabc5f6540cfccda48ddb5efd4d44ce360691bfaeea047e63f29`。
+- 当前执行状态：v2 protocol 与 138 组/218 样本 evaluation allowlist 已物化，两样本本地 GPU preflight 已通过；218 张图的完整五条件本地 GPU 评价已结束，五个 condition 均写出 218 样本/138 组，但 `dose_effect` 只有 137/138 个有效配对组，状态为 `protocol-blocked`。定义层只读诊断已确认无效组 `06-01-01-0346` 包含 4 张图；四张图虽有 `cable`、`tube`、`rescue equipment` 前景，但在 29 像素 ignore 安全距离下计分安全区均为空，故 15 个类别全部双空 `None`，图像级和组级 Boundary IoU 均未定义。详细证据见 `doc/reports/2026-09-09-museg-dvc-a1-v2-group-definition-diagnosis.md`；123 组敏感性范围的两个 effect 均为 123/123。
+- **v3 定义修正与处置：** v2 的唯一无效组 `06-01-01-0346` 的根因已确认是标签域混用：训练输入需要 raw background `0 -> evaluator ignore 255`，但 Boundary IoU 几何计算需要把 raw background 保留为有效 one-vs-rest 上下文。已建立独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext`，不改变 v2 的 0.05 阈值、218 张图/138 组 allowlist、五个 condition、checkpoint、evaluator、bootstrap 和裁决门槛。v3 的 metric target 使用 raw foreground `1..15 -> 0..14`、background `0 -> 15`、true ignore `255`；15 个前景类继续报告，背景不作为报告类别。218 张图 CPU 标签域审计通过，`06-01-01-0346` 四张图的有效安全域均为 `1,008,424` 像素，定义层不再为空；两样本本地 GPU preflight 也明确覆盖该组并通过。大白话说，这次修正让真实背景参与边界几何计算，但没有把背景变成待报告类别，也没有修改原 v2 的数据范围或退化强度。
+- **v3 当前边界：** v3 protocol SHA-256 为 `f9960904f51cec11797ada6952c2102da4b2b6832d0bf7b529898bfae9c0f216`，allowlist SHA-256 为 `5589eb3378ed2e23180f6205e2d88cea39702ad4bfd5d4e1b739cf2f920a8d89`，allowlist summary SHA-256 为 `6fa94de96f1b5b4e94c1feecdc4d821e05db1828be05b011f3b48f43ce408dfd`；CPU 标签域审计 SHA-256 为 `17a4ec36ba231c3be6ea1ed1f4f6e3b9f8380d8d0a619cc3530a6bfd903ad1db`，GPU preflight SHA-256 为 `829b580b6ed4ace977cf578e8391bcc759fc6d135fad72c2bd0dba958712dedd`。完整 218 张图 × 5 condition GPU 评价、bootstrap 和科学裁决均已完成，主裁决为 `not-supported`；训练、云资源、official test 和可学习门控仍未授权。用户明确要求在 A 未支持的情况下先推进 B，因此 `DVG-B1-oracle-gsa-v1` 已完成基础设计，但尚未进入代码或运行阶段。
+- 证据：v1 门禁报告为 `doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`，仓库外权威运行证据位于 `cloud/DVC-A1-valdev-boundary-zero-v1/attempt-2/`，其中 mask manifest SHA-256 为 `60b988b3f9ffaabc5f6540cfccda48ddb5efd4d44ce360691bfaeea047e63f29`；v2 物化与 preflight 报告为 `doc/reports/2026-09-08-museg-dvc-a1-v2-materialization-preflight.md`，仓库外证据位于 `cloud/DVC-A1-valdev-boundary-zero-v2/`。

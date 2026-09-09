@@ -216,12 +216,20 @@ def semantic_boundary_iou(
     *,
     num_classes: int = 15,
     ignore_label: int = 255,
+    background_label: int | None = None,
     distance_ratio: float = 0.02,
 ) -> dict[str, Any]:
+    """Compute foreground one-vs-rest Boundary IoU.
+
+    ``background_label`` is a valid geometric context and is not scored as a
+    foreground class. Only ``ignore_label`` is excluded from the metric domain.
+    """
     if prediction.ndim != 2 or target.ndim != 2 or prediction.shape != target.shape:
         raise ValueError("prediction and target must be aligned two-dimensional arrays")
     if num_classes <= 0:
         raise ValueError("num_classes must be positive")
+    if background_label is not None and (0 <= background_label < num_classes or background_label == ignore_label):
+        raise ValueError("background_label must be distinct from foreground and ignore labels")
     distance = boundary_distance_pixels(*target.shape, ratio=distance_ratio)
     safe = _ignore_safe_region(target == ignore_label, distance)
     class_values: list[float | None] = []

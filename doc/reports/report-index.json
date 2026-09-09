@@ -2,13 +2,67 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.12",
   "latestFormalReport": {
-    "path": "doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md",
-    "periodStart": "2026-09-08",
-    "periodEnd": "2026-09-08",
-    "baseCommit": "d7c175372a7c58c71b0ebc9f79989e722d92fe8b",
-    "status": "formal-dvc-a1-protocol-blocked"
+    "path": "doc/reports/2026-09-09-museg-dvc-a1-v3-bgcontext-fix.md",
+    "periodStart": "2026-09-09",
+    "periodEnd": "2026-09-09",
+    "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
+    "status": "formal-dvc-a1-v3-bgcontext-fix-complete"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-09-09-museg-dvc-a1-v3-bgcontext-fix.md",
+      "topic": "museg-dvc-a1-v3-bgcontext-fix",
+      "periodStart": "2026-09-09",
+      "periodEnd": "2026-09-09",
+      "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
+      "verification": "focused-tests-cpu-label-domain-audit-v3-protocol-materialization-and-two-sample-gpu-preflight",
+      "status": "formal-dvc-a1-v3-bgcontext-fix-complete"
+    },
+    {
+      "path": "doc/reports/2026-09-09-museg-dvc-a1-v2-group-definition-diagnosis.md",
+      "topic": "museg-dvc-a1-v2-group-definition-diagnosis",
+      "periodStart": "2026-09-09",
+      "periodEnd": "2026-09-09",
+      "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
+      "verification": "read-only-label-safe-region-and-boundary-iou-empty-domain-diagnosis",
+      "status": "formal-dvc-a1-v2-definition-diagnosis-complete"
+    },
+    {
+      "path": "doc/reports/2026-09-09-museg-dvc-a1-v2-protocol-blocked.md",
+      "topic": "museg-dvc-a1-v2-protocol-blocked",
+      "periodStart": "2026-09-09",
+      "periodEnd": "2026-09-09",
+      "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
+      "verification": "full-local-gpu-evaluation-termination-and-read-only-paired-group-diagnosis",
+      "status": "formal-dvc-a1-v2-protocol-blocked"
+    },
+    {
+      "path": "doc/reports/2026-09-08-museg-dvc-a1-v2-protection-preflight.md",
+      "topic": "museg-dvc-a1-v2-protection-preflight",
+      "periodStart": "2026-09-08",
+      "periodEnd": "2026-09-08",
+      "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
+      "verification": "two-sample-local-gpu-preflight-after-protection-fix",
+      "status": "formal-dvc-a1-v2-protection-preflight-passed-full-evaluation-pending"
+    },
+    {
+      "path": "doc/reports/2026-09-08-museg-dvc-a1-v2-protection-fix.md",
+      "topic": "museg-dvc-a1-v2-protection-fix",
+      "periodStart": "2026-09-08",
+      "periodEnd": "2026-09-08",
+      "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
+      "verification": "focused-tests-protocol-rematerialization-and-frozen-mask-reference-check",
+      "status": "formal-dvc-a1-v2-protection-fixed-preflight-pending"
+    },
+    {
+      "path": "doc/reports/2026-09-08-museg-dvc-a1-v2-materialization-preflight.md",
+      "topic": "museg-dvc-a1-v2-materialization-preflight",
+      "periodStart": "2026-09-08",
+      "periodEnd": "2026-09-08",
+      "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
+      "verification": "focused-tests-v2-protocol-allowlist-and-two-sample-local-gpu-preflight",
+      "status": "formal-dvc-a1-v2-preflight-passed"
+    },
     {
       "path": "doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md",
       "topic": "museg-dvc-a1-protocol-gate",
