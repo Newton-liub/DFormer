@@ -98,6 +98,20 @@ class EncoderDecoder(nn.Module):
             from .encoders.DFormerv2 import DFormerv2_S as backbone
 
             self.channels = [64, 128, 256, 512]
+
+        # DFormer++ (TPAMI 2026): depth-guided local-global attention encoder
+        elif cfg.backbone in ("DFormer++-T", "DFormerPP-T"):
+            from .encoders.DFormerPP import DFormerPP_T as backbone
+
+            self.channels = [48, 96, 192, 384]
+        elif cfg.backbone in ("DFormer++-S", "DFormerPP-S"):
+            from .encoders.DFormerPP import DFormerPP_S as backbone
+
+            self.channels = [72, 144, 288, 576]
+        elif cfg.backbone in ("DFormer++-B", "DFormerPP-B"):
+            from .encoders.DFormerPP import DFormerPP_B as backbone
+
+            self.channels = [72, 144, 288, 576]
         else:
             raise NotImplementedError
 
@@ -106,10 +120,19 @@ class EncoderDecoder(nn.Module):
         else:
             norm_cfg = dict(type="BN", requires_grad=True)
 
-        if cfg.drop_path_rate is not None:
-            self.backbone = backbone(drop_path_rate=cfg.drop_path_rate, norm_cfg=norm_cfg)
-        else:
-            self.backbone = backbone(drop_path_rate=0.1, norm_cfg=norm_cfg)
+        backbone_kwargs = dict(norm_cfg=norm_cfg)
+        if cfg.backbone in ("DFormer++-T", "DFormer++-S", "DFormer++-B", "DFormerPP-T", "DFormerPP-S", "DFormerPP-B"):
+            import numpy as np
+
+            # Match the journal finetuning setup for DFormer++.
+            backbone_kwargs.update(
+                pretrained=None,
+                img_size=np.array([cfg.image_height, cfg.image_width]),
+                pretrain_size=224,
+            )
+
+        drop_path_rate = cfg.drop_path_rate if cfg.drop_path_rate is not None else 0.1
+        self.backbone = backbone(drop_path_rate=drop_path_rate, **backbone_kwargs)
 
         self.aux_head = None
 
@@ -228,12 +251,12 @@ class EncoderDecoder(nn.Module):
         orisize = rgb.shape
         # print('builder',rgb.shape,modal_x.shape)
         x = self.backbone(rgb, modal_x)
-        if len(x) == 2:  # if output is (rgb,depth) only use rgb
+        if len(x) == 2:  # if output is (rgb, depth) only use rgb features
             x = x[0]
         out = self.decode_head.forward(x)
         out = F.interpolate(out, size=orisize[-2:], mode="bilinear", align_corners=False)
         if self.aux_head:
-            aux_fm = self.aux_head(x[0][self.aux_index])
+            aux_fm = self.aux_head(x[self.aux_index])
             aux_fm = F.interpolate(aux_fm, size=orisize[2:], mode="bilinear", align_corners=False)
             return out, aux_fm
         return out

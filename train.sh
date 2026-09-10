@@ -3,6 +3,7 @@ NNODES=1
 NODE_RANK=${NODE_RANK:-0}
 PORT=${PORT:-29158}
 MASTER_ADDR=${MASTER_ADDR:-"127.0.0.1"}
+CONFIG=${1:-local_configs.NYUDepthv2.DFormerPP_B}
 
 export CUDA_VISIBLE_DEVICES="0,1"
 export TORCHDYNAMO_VERBOSE=1
@@ -15,7 +16,7 @@ PYTHONPATH="$(dirname $0)/..":"$(dirname $0)":$PYTHONPATH \
     --nproc_per_node=$GPUS \
     --master_port=$PORT \
     utils/train.py \
-    --config=local_configs.NYUDepthv2.DFormerv2_S --gpus=$GPUS \
+    --config=$CONFIG --gpus=$GPUS \
     --no-sliding \
     --no-compile \
     --syncbn \
@@ -26,20 +27,10 @@ PYTHONPATH="$(dirname $0)/..":"$(dirname $0)":$PYTHONPATH \
     --pad_SUNRGBD \
     --no-use_seed
 
-# config for DFormers on NYUDepthv2
-# local_configs.NYUDepthv2.DFormer_Large
-# local_configs.NYUDepthv2.DFormer_Base
-# local_configs.NYUDepthv2.DFormer_Small
-# local_configs.NYUDepthv2.DFormer_Tiny
-# local_configs.NYUDepthv2.DFormer_v2_S
-# local_configs.NYUDepthv2.DFormer_v2_B
-# local_configs.NYUDepthv2.DFormer_v2_L
-
-# config for DFormers on SUNRGBD
-# local_configs.SUNRGBD.DFormer_Large
-# local_configs.SUNRGBD.DFormer_Base
-# local_configs.SUNRGBD.DFormer_Small
-# local_configs.SUNRGBD.DFormer_Tiny
-# local_configs.SUNRGBD.DFormer_v2_S
-# local_configs.SUNRGBD.DFormer_v2_B
-# local_configs.SUNRGBD.DFormer_v2_L
+# Usage:
+#   bash train.sh local_configs.NYUDepthv2.DFormerPP_B
+#   bash train.sh local_configs.NYUDepthv2.DFormerPP_S
+#   bash train.sh local_configs.NYUDepthv2.DFormerPP_T
+#   bash train.sh local_configs.NYUDepthv2.DFormer_Base
+#   bash train.sh local_configs.NYUDepthv2.DFormerv2_B
+#   bash train.sh local_configs.SUNRGBD.DFormerPP_B

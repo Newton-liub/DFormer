@@ -31,6 +31,10 @@ PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 
 # choose the dataset and DFormer for evaluating
 
+# NYUv2 DFormer++
+# --config=local_configs.NYUDepthv2.DFormerPP_B/S/T
+# --continue_fpath=checkpoints/trained/DFormerPP_Base/Small/Tiny_NYU.pth
+
 # NYUv2 DFormers
 # --config=local_configs.NYUDepthv2.DFormer_Large/Base/Small/Tiny
 # --continue_fpath=checkpoints/trained/NYUv2_DFormer_Large/Base/Small/Tiny.pth

@@ -34,6 +34,16 @@ This repository contains the official implementation of the following papers:
 > [Geometry prior demo](https://huggingface.co/spaces/bbynku/DFormerv2) |
 > [Jittor-Version(国产框架)](https://github.com/VCIP-RGBD/DFormer-Jittor) |
 
+> DFormer++: Improving RGBD Representation Learning for Semantic Segmentation<br/>
+> [Bo-Wen Yin](https://scholar.google.com/citations?user=xr_FRrEAAAAJ&hl=zh-CN&oi=sra),
+> [Jiao-Long Cao](https://github.com/caojiaolong),
+> Dan Xu,
+> [Ming-Ming Cheng](https://scholar.google.com/citations?hl=zh-CN&user=huWpVyEAAAAJ),
+> [Qibin Hou*](https://scholar.google.com/citations?user=fF8OFV8AAAAJ&hl=zh-CN)<br/>
+> IEEE TPAMI 2026.
+> [Paper Link](https://doi.org/10.1109/TPAMI.2026.3658114) |
+> [Code](https://github.com/VCIP-RGBD/DFormer)
+
 > OmniSegmentor: A Flexible Multi-Modal Learning Framework for Semantic Segmentation<br/>
 > [Bo-Wen Yin](https://scholar.google.com/citations?user=xr_FRrEAAAAJ&hl=zh-CN&oi=sra),
 > [Jiao-Long Cao](https://github.com/caojiaolong),
@@ -79,16 +89,25 @@ We invite all to contribute in making it more acessible and useful. If you have 
 <p align="center">
     <img src="figs/geo_attention.png" width="600"  width="1200"/> <br />
     <em> 
-    Figure 2: The geometry attention map in our DFormerv2 and the effect of other attention mechanisms. Our geometry attention is endowed with the 3D geometry perception ability and can focus on the related regions of the whole scene. 
+    Figure 3: The geometry attention map in our DFormerv2 and the effect of other attention mechanisms. Our geometry attention is endowed with the 3D geometry perception ability and can focus on the related regions of the whole scene. 
     A simple visualization demo is provided at 
     https://huggingface.co/spaces/bbynku/DFormerv2.
     </em>
-    
+</p>
+
+
+<p align="center">
+    <img src="figs/dformerpp/fig2_perf_cost.png" width="280"/> <br />
+    <em>
+    Figure 4: Performance–efficiency trade-off on NYU Depth v2. DFormer++ reaches <b>59.0% mIoU</b>
+    with a stronger accuracy–MACs balance than prior RGB-D segmentation methods.
+    </em>
 </p>
 
 
 ## 1. 🌟  NEWS 
 
+- [2026/01] **DFormer++** is published in IEEE TPAMI 2026. Code is available in this repo (`models/encoders/DFormerPP.py`).
 - [2025/09/19] Our OmniSegmentor has been accepted by Neurips 2025, the code are coming soon.
 - [2025/04/08] The code of DFormerv2 is available.
 - [2025/03/09] Our DFormerv2 has been accpeted by CVPR 2025.
@@ -110,8 +129,10 @@ conda install pytorch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 pytorch-cuda=
 
 pip install mmcv==2.1.0 -f https://download.openmmlab.com/mmcv/dist/cu118/torch2.1/index.html
 
-pip install tqdm opencv-python scipy tensorboardX tabulate easydict ftfy regex
+pip install tqdm opencv-python scipy tensorboardX tabulate easydict ftfy regex timm
 ```
+
+> Optional: install the [TransNeXt `swattention`](https://github.com/DaiShiResearch/TransNeXt) CUDA extension for faster local attention in DFormer++. Without it, a pure-PyTorch unfold fallback is used automatically.
 
 
 **1. Download Datasets and Checkpoints.**
@@ -131,7 +152,7 @@ Compred to the original datasets, we map the depth (.npy) to .png via 'plt.imsav
 
 - **Checkpoints:** 
 
-ImageNet-1K Pre-trained and NYUDepth or SUNRGBD trained DFormer-T/S/B/T and DFormerv2-S/B/L can be downloaded at:
+ImageNet-1K Pre-trained and NYUDepth / SUNRGBD trained DFormer, DFormerv2, and DFormer++ checkpoints can be downloaded at:
 <!-- 
 | Pre-trained | [GoogleDrive](https://drive.google.com/drive/folders/1YuW7qUtnguUFkhC-sfqGySrerjK0rZJX?usp=sharing) | [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/EhTTF_ZofnFIkz2WSDFAiiIBEIubZUpIwDQYwm9Hvxwu8Q?e=x8XumL) | [BaiduNetdisk](https://pan.baidu.com/s/1JlexzFqMcZOXPNiNkE1zRA?pwd=gct6) | 
 |:---: |:---:|:---:|:---:|
@@ -151,11 +172,11 @@ NYUDepth v2 trained DFormers T/S/B/L can be downloaded at
 |:---: |:---:|:---:|:---:| -->
 
 
-| Weights | DFormer | DFormerv2 |
-|-------|-------| -  |
-| Pretrained | [GoogleDrive](https://drive.google.com/drive/folders/1YuW7qUtnguUFkhC-sfqGySrerjK0rZJX?usp=sharing), [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/EhTTF_ZofnFIkz2WSDFAiiIBEIubZUpIwDQYwm9Hvxwu8Q?e=x8XumL), [BaiduNetdisk](https://pan.baidu.com/s/1JlexzFqMcZOXPNiNkE1zRA?pwd=gct6) | [BaiduNetdisk](https://pan.baidu.com/s/1alSvGtGpoW5TRyLxOt1Txw?pwd=i3pn), [HuggingFace](https://huggingface.co/bbynku/DFormerv2/tree/main/DFormerv2/pretrained) |
-|NYUDepthv2 |[GoogleDrive](https://drive.google.com/drive/folders/1P5HwnAvifEI6xiTAx6id24FUCt_i7GH8?usp=sharing), [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/ErAmlYuhS6FCqGQZNGZy0_EBYgJsK3pFTsi2q9g14MEE_A?e=VoKUAf), [BaiduNetdisk](https://pan.baidu.com/s/1AkvlsAvJPv21bz2sXlrADQ?pwd=6vuu) | [BaiduNetdisk](https://pan.baidu.com/s/1hi_XPCv1JDRBjwk8XN7e-A?pwd=3vym), [HuggingFace](https://huggingface.co/bbynku/DFormerv2/tree/main/DFormerv2/NYU) |
-|SUNRGBD|[GoogleDrive](https://drive.google.com/drive/folders/1b005OUO8QXzh0sJM4iykns_UdlbMNZb8?usp=sharing), [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/EiNdyUV486BFvb7H2yJWSCMBElOj-m6EppIy4dSXNX-yNw?e=fu2Che), [BaiduNetdisk](https://pan.baidu.com/s/1D6UMiBv6fApV5lafo9J04w?pwd=7ewv) | [BaiduNetdisk](https://pan.baidu.com/s/1NUOgzYmrXmwU7XA8RTRYPg?pwd=ytr7), [HuggingFace](https://huggingface.co/bbynku/DFormerv2/tree/main/DFormerv2/SUNRGBD) |
+| Weights | DFormer | DFormerv2 | DFormer++ |
+|-------|-------| -  | - |
+| Pretrained | [GoogleDrive](https://drive.google.com/drive/folders/1YuW7qUtnguUFkhC-sfqGySrerjK0rZJX?usp=sharing), [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/EhTTF_ZofnFIkz2WSDFAiiIBEIubZUpIwDQYwm9Hvxwu8Q?e=x8XumL), [BaiduNetdisk](https://pan.baidu.com/s/1JlexzFqMcZOXPNiNkE1zRA?pwd=gct6) | [BaiduNetdisk](https://pan.baidu.com/s/1alSvGtGpoW5TRyLxOt1Txw?pwd=i3pn), [HuggingFace](https://huggingface.co/bbynku/DFormerv2/tree/main/DFormerv2/pretrained) | Coming soon |
+|NYUDepthv2 |[GoogleDrive](https://drive.google.com/drive/folders/1P5HwnAvifEI6xiTAx6id24FUCt_i7GH8?usp=sharing), [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/ErAmlYuhS6FCqGQZNGZy0_EBYgJsK3pFTsi2q9g14MEE_A?e=VoKUAf), [BaiduNetdisk](https://pan.baidu.com/s/1AkvlsAvJPv21bz2sXlrADQ?pwd=6vuu) | [BaiduNetdisk](https://pan.baidu.com/s/1hi_XPCv1JDRBjwk8XN7e-A?pwd=3vym), [HuggingFace](https://huggingface.co/bbynku/DFormerv2/tree/main/DFormerv2/NYU) | Coming soon |
+|SUNRGBD|[GoogleDrive](https://drive.google.com/drive/folders/1b005OUO8QXzh0sJM4iykns_UdlbMNZb8?usp=sharing), [OneDrive](https://mailnankaieducn-my.sharepoint.com/:f:/g/personal/bowenyin_mail_nankai_edu_cn/EiNdyUV486BFvb7H2yJWSCMBElOj-m6EppIy4dSXNX-yNw?e=fu2Che), [BaiduNetdisk](https://pan.baidu.com/s/1D6UMiBv6fApV5lafo9J04w?pwd=7ewv) | [BaiduNetdisk](https://pan.baidu.com/s/1NUOgzYmrXmwU7XA8RTRYPg?pwd=ytr7), [HuggingFace](https://huggingface.co/bbynku/DFormerv2/tree/main/DFormerv2/SUNRGBD) | Coming soon |
 
 
  <br />
@@ -175,6 +196,9 @@ NYUDepth v2 trained DFormers T/S/B/L can be downloaded at
     |-- <DFormerv2_Large_pretrained.pth>
     |-- <DFormerv2_Base_pretrained.pth>
     |-- <DFormerv2_Small_pretrained.pth>
+    |-- <DFormerPP_Tiny.pth.tar>
+    |-- <DFormerPP_Small.pth.tar>
+    |-- <DFormerPP_Base.pth.tar>
 |-- <trained>
     |-- <NYUDepthv2>
         |-- ...
@@ -208,17 +232,25 @@ NYUDepth v2 trained DFormers T/S/B/L can be downloaded at
 
 **2. Train.**
 
-You can change the `local_config' files in the script to choose the model for training. 
-```
-bash train.sh
+You can change the `local_config` files in the script to choose the model for training.
+
+```bash
+# DFormer++ (TPAMI 2026) — recommended
+bash train.sh local_configs.NYUDepthv2.DFormerPP_B
+# bash train.sh local_configs.NYUDepthv2.DFormerPP_S
+# bash train.sh local_configs.NYUDepthv2.DFormerPP_T
+
+# DFormer / DFormerv2
+# bash train.sh local_configs.NYUDepthv2.DFormer_Base
+# bash train.sh local_configs.NYUDepthv2.DFormerv2_B
 ```
 
-After training, the checkpoints will be saved in the path `checkpoints/XXX', where the XXX is depends on the training config.
+After training, the checkpoints will be saved in the path `checkpoints/XXX`, where the XXX depends on the training config.
 
 
 **3. Eval.**
 
-You can change the `local_config' files and checkpoint path in the script to choose the model for testing. 
+You can change the `local_config` files and checkpoint path in the script to choose the model for testing.
 ```
 bash eval.sh
 ```
@@ -260,6 +292,22 @@ ps: The latency highly depends on the devices. It is recommended to compare the 
     </em>
 </p>
 
+
+
+DFormer++ upgrades the conference DFormer along four axes: a **unified depth-guided attention** block, fuller RGB-D pretraining analysis, broader benchmarks (e.g., Stanford2D3D / Cityscapes), and stronger accuracy–efficiency trade-offs.
+
+
+
+| Model | Params | MACs | NYU Depth v2 mIoU |
+|:---:|:---:|:---:|:---:|
+| DFormer++-T | 17.3 M | 29.5 G | 57.0 |
+| DFormer++-S | 37.2 M | 56.4 G | ~58.1 |
+| DFormer++-B | 66.7 M | 97.5 G | **59.0** |
+
+
+
+
+
 ## 🕙 ToDo
 - [ ] Tutorial on applying the DFormer encoder to the frameworks of other tasks
 - ~~[-] Release the code of RGB-D pre-training.~~
@@ -285,6 +333,17 @@ You may want to cite:
   booktitle={Proceedings of the Computer Vision and Pattern Recognition Conference},
   pages={19345--19355},
   year={2025}
+}
+
+@article{yin2026dformerpp,
+  title={DFormer++: Improving RGBD Representation Learning for Semantic Segmentation},
+  author={Yin, Bo-Wen and Cao, Jiao-Long and Xu, Dan and Cheng, Ming-Ming and Hou, Qibin},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume={48},
+  number={7},
+  pages={7195--7208},
+  year={2026},
+  doi={10.1109/TPAMI.2026.3658114}
 }
 
 @article{yin2025omnisegmentor,
