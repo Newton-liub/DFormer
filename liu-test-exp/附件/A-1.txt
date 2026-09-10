@@ -1,0 +1,980 @@
+﻿1.WOS-id: WOS:001772868600015
+
+2.Title: BurnDC: A Progressive Propagation Framework for Low Coverage Depth Completion
+
+3.Keywords:
+Propagation
+Modeling
+Laser radar
+Solids
+Measurement
+Distance measurement
+Robots
+Pixel
+Poles and zeros
+Image sensors
+RGB-D perception
+deep learning for visual perception
+depth completion
+solid-state LiDAR
+IMAGE
+
+4.Year: 2026
+
+5.Publication Titles: IEEE ROBOTICS AND AUTOMATION LETTERS
+
+6.abstract： The growing adoption of compact and cost-effective solid-state LiDARs has greatly advanced robotics. However, their inherently limited Field-of-View (FOV) hinders their application in tasks requiring wide-range depth perception. To overcome this limitation, we introduce the Low Coverage Depth Completion (LCDC) task, which aims to generate a full-scene depth map from a low coverage sparse depth map and a corresponding RGB image, and propose a tailored framework named BurnDC. BurnDC progressively expands the propagation frontier around reliable depth anchors via Progressive Depth Burn (PDB) and utilizes Weighted Ring Attention (WRA) to inject stable geometric context into boundary regions, achieving a controlled refinement and completion of the entire depth map. To evaluate LCDC, we construct a real-world solid-state LiDAR based benchmark, LC-TIERS, and simulate low coverage settings in NYUv2 and KITTI. Experimental results demonstrate that BurnDC significantly outperforms existing methods in low coverage scenarios, with an RMSE reduction of 10-20% over top competitors. Our work provides a promising solution for unlocking the full potential of solid-state LiDARs in various applications.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001743159000001
+
+2.Title: Depth-aware sparse queries for efficient multi-view BEV perception
+
+3.Keywords:
+3D object detection
+Bird's-eye-view
+Sparse queries
+Depth estimation
+Autonomous driving
+
+4.Year: 2026
+
+5.Publication Titles: NEUROCOMPUTING
+
+6.abstract： The Bird's-Eye-View (BEV) paradigm has become a foundational framework for multi-view 3D object detection in autonomous driving. However, current sparse query-based methods still struggle to effectively integrate 2D prior information, facing persistent challenges such as inefficient backbone networks, inaccurate depth estimation, unreliable query initialization, and error propagation from 2D detection. To address these challenges, we propose the Depth-Aware Sparse Queries (DASQ) framework. Supported by an efficient backbone network, DASQ first fuses probabilistic and regressed depth estimates to enhance depth accuracy, then converts filtered 2D detections into 3D prior queries, and finally integrates them into the global BEV representation via an attention mechanism. This approach significantly boosts both the accuracy and inference efficiency of BEV perception. In evaluations on the nuScenes benchmark, DASQ achieves a 3.2% improvement in mAP while attaining real-time inference at 10.1 FPS on an NVIDIA Jetson AGX Orin platform, demonstrating its strong potential for practical autonomous driving applications.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001707406300001
+
+2.Title: GST-SLAM: a monocular thermal infrared dense visual SLAM algorithm based on 3D Gaussian Splatting for visually degraded construction environments
+
+3.Keywords:
+3DGS
+Thermal infrared imaging
+Visual SLAM
+Dense mapping
+Construction robot
+STEREO
+
+4.Year: 2026
+
+5.Publication Titles: ADVANCED ENGINEERING INFORMATICS
+
+6.abstract： Indoor architectural environments often involve challenging visual conditions such as low illumination (e.g., dark factories), smoke (e.g., post-fire scenes), and airborne dust (e.g., active construction sites), which significantly degrade the performance of traditional visual SLAM in robotic localization and mapping. To address these issues, we propose GST-SLAM, a dense monocular thermal-infrared SLAM framework tailored for complex indoor scenarios. Leveraging 3D Gaussian Splatting (3DGS), our system enhances thermal image quality through photometric consistency and texture refinement. A dual keyframe selection strategy based on motion estimation and entropy improves localization robustness, while sparse depth interpolation guided by thermal features and geometric consistency enables accurate dense reconstruction. Experiments on both public and proprietary indoor datasets demonstrate that GST-SLAM outperforms state-of-the-art methods in PSNR, SSIM, and LPIPS metrics, with superior boundary and surface detail recovery. These results validate its potential for autonomous navigation and environmental modeling in real-world construction and inspection tasks.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001786002300042
+
+2.Title: Integrated RGBD Perception for Clamp-Type Autonomous Forklifts: Patch-Median Depth Sampling, AND-Gate Grouping, and PTZ-Based Semantic Verification
+
+3.Keywords:
+Cameras
+Clamps
+Distance measurement
+Modeling
+Stacking
+Faces
+Floors
+Licenses
+Measurement
+Signal detection
+Autonomous vehicles
+depth sensors
+fault diagnosis
+image segmentation
+logistics
+object detection
+optical character recognition
+pose estimation
+robot vision
+time-of-flight imaging
+
+4.Year: 2026
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： Clamp-type robots grasp boxes by pressing their lateral surfaces without pallets, requiring the perception system to simultaneously deliver six control-ready outputs before every pick-and-place cycle: metric dimensions (P1), 3D position and standoff distance (P2), yaw angle (P3), stacking tier count and product homogeneity (P4), group composition (P5), and placement safety (P6). No existing method jointly provides all six. This paper introduces an integrated RGB-D perception framework that resolves P1-P6 in a single pipeline. Contribution C1 proposes a mask-aware patch-median depth strategy. Because clamp operations keep the box front face nearly orthogonal to the camera, depth across the face is observed as an approximately constant plane, enabling robust depth estimation without RANSAC plane fitting. Inward retry and vertical-kernel fallback mechanisms address the boundary depth bleeding and missing-value problems inherent in time-of-flight sensors. All metric geometry (P1-P3) is derived from a shared set of front-face mask primitives, guaranteeing geometric consistency, and a four-condition AND-gate grouping algorithm infers stacking structure (P4-P5) while diagnosing failures through four explicit rejection codes. Contribution C2 combines RANSAC-based floor modeling with row-wise depth profiling for placement-safety assessment (P6), and employs a PTZ active-alignment loop to perform barcode decoding, OCR with Levenshtein correction, and handling-mark recognition at distances beyond the reach of static cameras. Experiments on three box types at operating distances of 2.0-3.0 m yield an overall mean relative dimension error (rMAE) of 0.85-1.18% and a yaw mean absolute error (MAE) of 1.21 degrees. Placement safety assessment achieves 98.46% accuracy over 65 cases; ablation studies, parameter sensitivity analysis across six thresholds, and environmental robustness evaluation under varying illumination confirm the indispensability and stable operating range of each pipeline component. Performance evaluation on the target edge computer confirms sustained operation at 7-10 FPS, satisfying the perception update rate required in the operational environment of clamp-type forklifts. The scope of this work is the feasibility validation of the integrated framework under controlled laboratory conditions; analysis under in-situ warehouse dynamics is left to follow-up work.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001826397300001
+
+2.Title: Gaussian Splatting Confidence Supervision for SPN-based depth completion
+
+3.Keywords:
+Depth completion
+Feed-forward Gaussian Splatting
+Self-supervised
+NETWORK
+
+4.Year: 2026
+
+5.Publication Titles: PATTERN RECOGNITION
+
+6.abstract： Depth completion aims to recover dense depth maps from sparse depth measurements and synchronized RGB images. Existing methods commonly employ Spatial Propagation Networks (SPNs) to refine coarse depth predictions through learned affinities and confidence weights. However, while affinity estimation has been extensively studied, the confidence used in spatial propagation is usually predicted without dense and explicit supervision, which may cause unreliable depth hypotheses to be over-confidently propagated. To address this problem, we propose Gaussian Splatting Confidence Supervision (GSCS), a training-time confidence supervision framework for SPN-based depth completion. Specifically, GSCS constructs a feed-forward monocular 3D Gaussian representation from the predicted depth and confidence, and introduces a confidence-opacity coupling mechanism that links the reliability of intermediate depth hypotheses to Gaussian rendering. The photometric residual between the rendered and input views then provides dense self-supervision for confidence estimation. During inference, the Gaussian branch is removed, and the completion network keeps the same architecture and computational cost as the baseline. Furthermore, we introduce a Photometric Residual-guided Local Relation Aggregation module to further exploit GSCS-derived reconstruction residuals, opacity, and local relation cues for propagation guidance. Extensive experiments on NYUv2, TOFDC, and VOID show that GSCS consistently improves different SPN-based baselines across diverse sparse-depth acquisition conditions, achieving SOTA performance on NYUv2 and competitive results on real sparse-depth benchmarks.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001772868600012
+
+2.Title: AISPO: Enhancing Depth Reliability for Robotic Manipulation of Non-Lambertian Objects via Affine-Invariant Shape Prior
+
+3.Keywords:
+Feeds
+Pixel
+Radio access networks
+Regional area networks
+LoRa
+Communication systems
+Telecommunications
+Fuses
+Electronic components
+Artificial intelligence
+RGB-D perception
+perception for grasping and manipulation
+computer vision for automation
+NERF
+
+4.Year: 2026
+
+5.Publication Titles: IEEE ROBOTICS AND AUTOMATION LETTERS
+
+6.abstract： Reliable depth perception is critical for robotic manipulation, especially for non-Lambertian objects such as transparent or highly specular surfaces, where raw depth measurements are often corrupted or missing. These failures frequently propagate to motion planning, resulting in invalid grasp poses and execution errors. We propose AISPO, a depth completion framework that improves depth reliability for manipulation in challenging sensing conditions. AISPO combines multi-scale RGB-D feature fusion with an affine-invariant shape prior to enforce geometric consistency and mitigate catastrophic depth failures. Unlike methods that focus primarily on average depth accuracy, our approach emphasizes physical plausibility and structural integrity of the predicted depth maps. Extensive benchmark evaluations demonstrate competitive performance and strong generalization to unseen objects and novel scenes. Real-world grasping experiments further show that enhanced depth reliability significantly improves manipulation success rates, particularly for transparent objects where many existing methods fail to produce physically usable depth estimates.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001778286700014
+
+2.Title: Bcap-net: a bidirectional cross-fusion and adaptive depth propagation network for depth completion
+
+3.Keywords:
+Cross-attention
+Depth completion
+Depth propagation
+Multimodal fusion
+
+4.Year: 2026
+
+5.Publication Titles: INTERNATIONAL JOURNAL OF MACHINE LEARNING AND CYBERNETICS
+
+6.abstract： Depth completion aims to recover a dense depth map from a sparse depth map and its corresponding image. This task is inherently challenged by two critical issues: (1) how to effectively fuse image and depth information and (2) how to enhance depth details for higher accuracy. We propose BCAP-Net, a Bidirectional Cross-fusion and Adaptive Propagation Network, to overcome these limitations. It incorporates three innovative components: First, we propose a recurrent cross fusion (RCF) encoder with a bidirectional residual cross-fusion module (BRCFM) that facilitates deep feature fusion through innovative cross-position and cross-attention mechanisms, ensuring effective interaction between depth and image modalities. Second, to better recover the depth map, we propose a hierarchical multi-scale depth-aware encoder (HMDA), which downsamples the sparse depth map to the dense depth map at different scales through weighted pooling, and completes the reconstruction by combining the depth-encoded features. Third, to enhance depth details, the depth confidence propagation refiner (DCPR) is proposed to adaptively adjust the depth update weights by leveraging the depth hidden features and depth differences, thereby refining local details and improving overall depth accuracy. Experimental results on the KITTI, NYU Depth V2, and VOID datasets demonstrate the superiority of the proposed method compared with state-of-the-art approaches.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001860042700001
+
+2.Title: A Unified Evaluation Protocol and Late-Fusion System for Monocular Per-Object Distance Estimation in Indoor Scenes
+
+3.Keywords:
+monocular depth estimation
+per-object distance estimation
+evaluation protocol
+bounding box distance aggregation
+
+4.Year: 2026
+
+5.Publication Titles: SENSORS
+
+6.abstract： Monocular per-object distance estimation aims to predict a metric distance for each detected object from a single RGB image. Although monocular dense depth estimation and monocular 3D object detection are well studied, indoor object-level distance estimation remains weakly standardized. In dense depth-based pipelines, object distance is commonly obtained by combining object detection with depth prediction and aggregating depth values within a region of interest. However, existing approaches differ in region selection, detection source, and aggregation strategy, limiting comparability across methods. This paper proposes a unified, deployment-aligned evaluation protocol for dense depth-based pipelines, where both predicted and reference distances are computed within the same predicted bounding box. This formulation standardizes region-of-interest selection, removes dependence on ground-truth boxes at inference time, and enables consistent evaluation across late-fusion methods. The framework integrates a curriculum-trained Depth Anything V2 ViT-S model for metric depth estimation with a YOLO11n detector for object localization. Under the same-box evaluation protocol on SUN RGB-D, the Depth Anything V2 ViT-S backbone achieves object-wise distance estimation accuracy of MAE = 0.1286 m, RMSE = 0.1817 m, AbsRel = 0.0662, and delta 1 = 0.9785 using mean aggregation over valid box depths. Scaling the backbone from ViT-S to ViT-L further improves performance to MAE = 0.1059 m, RMSE = 0.1484 m, AbsRel = 0.0553, and delta 1 = 0.9898, corresponding to approximately 17.7% lower MAE and 18.3% lower RMSE relative to ViT-S, and provides a standardized reference point for indoor object-level distance evaluation under the same-box protocol.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001393278000001
+
+2.Title: As-Global-As-Possible stereo matching with Sparse Depth Measurement Fusion
+
+3.Keywords:
+Stereo matching
+Sparse depth measurement fusion
+Segment-based disparity refinement
+As-Global-As-Possible
+COST AGGREGATION
+LIDAR
+
+4.Year: 2025
+
+5.Publication Titles: COMPUTER VISION AND IMAGE UNDERSTANDING
+
+6.abstract： The recently lauded methodologies of As-Global-As-Possible (AGAP) and Sparse Depth Measurement Fusion (SDMF) have emerged as celebrated solutions for tackling the issue of stereo matching. AGAP addresses the congenital shortcomings of Semi-Global-Matching (SGM) in terms of streaking effects, while SDMF leverages active depth sensors to boost disparity computation. In this paper, these two methods are intertwined for attaining superior disparity estimation. Random sparse Depth measurements are fused with Diffusion-Based Fusion to update AGAP's matching costs. Then, Neighborhood-Based Fusion refines the cost further, leveraging the previous results. Ultimately, the segment-based disparity refinement strategy is utilized for handling outliers and mismatched pixels to achieve final disparity results. Performance evaluations on various stereo datasets demonstrate that the proposed algorithm not only surpasses other challenging stereo matching algorithms but also achieves near real-time efficiency. It is worth pointing out that our proposal surprisingly outperforms most of the deep learning based stereo matching algorithms on Middlebury v.3 online evaluation system, despite not utilizing any learning-based techniques, further validating its superiority and practicality.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001452632400001
+
+2.Title: Virtual and Real Occlusion Processing Method of Monocular Visual Assembly Scene Based on ORB-SLAM3
+
+3.Keywords:
+occlusion handling
+mixed reality
+ORB-SLAM3
+assisted assembly
+AUGMENTED REALITY
+HANDLING OCCLUSIONS
+
+4.Year: 2025
+
+5.Publication Titles: MACHINES
+
+6.abstract： Addressing the challenge of acquiring depth information in aero-engine assembly scenes using monocular vision, which complicates mixed reality (MR) virtual and real occlusion processing, we propose an ORB-SLAM3-based monocular vision assembly scene virtual and real occlusion processing method. The method proposes optimizing ORB-SLAM3 for matching and depth point reconstruction using the MNSTF algorithm. MNSTF can solve the problems of feature point extraction and matching in weakly textured and texture-less scenes by expressing the structure and texture information of the local images. It is then proposed to densify the sparse depth map using the double-three interpolation method, and the complete depth map of the real scene is created by combining the 3D model depth information in the process model. Finally, by comparing the depth values of each pixel point in the real and virtual scene depth maps, the virtual occlusion relationship of the assembly scene is correctly displayed. Experimental validation was performed with an aero-engine piping connector assembly scenario and by comparing it with Holynski's and Kinect's methods. The results showed that in terms of virtual and real occlusion accuracy, the average improvement was 2.2 and 3.4 pixel points, respectively. In terms of real-time performance, the real-time frame rate of this paper's method can reach 42.4 FPS, an improvement of 77.4% and 87.6%, respectively. This shows that the method in this paper has good performance in terms of the accuracy and timeliness of virtual and real occlusion. This study further demonstrates that the proposed method can effectively address the challenges of virtual and real occlusion processing in monocular vision within the context of mixed reality-assisted assembly processes.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001371877100001
+
+2.Title: AGSPN: Efficient attention-gated spatial propagation network for depth completion
+
+3.Keywords:
+Deep learning
+Attention
+Computer vision
+Feature aggregation
+Depth completion
+Diffusion
+IMAGE
+NET
+
+4.Year: 2025
+
+5.Publication Titles: EXPERT SYSTEMS WITH APPLICATIONS
+
+6.abstract： Sparse depth maps and their corresponding RGB images can be used to restore the dense depth map, which is the main purpose of depth completion and plays an important role in the field of autonomous driving and scene awareness. The existing spatial propagation networks have been widely used in depth completion, but their fixed affinity representation is limited during the iteration process, and the large computational load is also needed to ensure acceptable accuracy. And therefore, the corresponding algorithms could not be running on such platforms as performance-constrained embedded computers. To address these problems, a lightweight attention-gated spatial propagation network is proposed to complete sparse depth maps. Firstly, RGB images are fused with sparse LiDAR images through a backbone network, and then rough initial depth, diffusion offset, affinity, and feature maps are predicted. Subsequently, multiple affinity matrices are computed at different stages, and the initial depth is dynamically iteratively propagated to enhance the affinity representation capability. Finally, the attention and gating mechanism are used to calculate the weight coefficients for different stages by multiplying the coefficients with the depth maps of different stages and summing them up to obtain the final depth map. The proposed method has achieved excellent or competitive results in extensive experiments on the KITTI depth completion benchmark and NYU-depth-V2, with the least number of floating-point operations per second. Importantly, it can be deployed on embedded platforms to infer in real-time and balance between errors and computational requirement.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001565304100002
+
+2.Title: Image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sampling
+
+3.Keywords:
+Depthwise separable convolution
+Hierarchical feature reconstruction
+Guided features
+Dynamic weight sampling
+Depth completion
+OPTICAL COHERENCE TOMOGRAPHY
+
+4.Year: 2025
+
+5.Publication Titles: OPTICS AND LASERS IN ENGINEERING
+
+6.abstract： Depth completion is a method for scene depth estimation, aiming to reconstruct a dense and complete depth map from a sparse or incomplete depth image. However, existing depth completion approaches still suffer from issues such as low utilization of sparse depth values and uneven extraction of depth features. To address these challenges, we propose an image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sampling, which achieves efficient scene depth estimation under RGB-D feature guidance. First, a hierarchical feature reconstruction module, equipped with depthwise separable convolutions and residual connections, is constructed to process the RGB image, yielding guided feature maps and depth confidence maps. Then, a sparse depth spatial propagation module based on dynamic weight sampling is established, and the aforementioned guided features are leveraged to iteratively propagate the sparse depth values multiple times. Finally, a confidence gating module is designed to fuse the propagated depth results with the ground truth depth, so that the final predicted depth map can be generated. Both qualitative and quantitative experiments demonstrate that our method achieves a Root Mean Square Error (RMSE) of 0.106m and a Mean Absolute Error (MAE) of 0.043m on the public depth estimation dataset, representing improvements of 2.75% and 6.7% compared to the current mainstream algorithms, respectively.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001423845100001
+
+2.Title: Depth completion based on multi-scale spatial propagation and tensor decomposition
+
+3.Keywords:
+Depth completion
+Multi-scale
+Tensor decomposition
+Feature fusion
+CONTEXT
+NETWORK
+
+4.Year: 2025
+
+5.Publication Titles: JOURNAL OF VISUAL COMMUNICATION AND IMAGE REPRESENTATION
+
+6.abstract： Depth completion aims to generate dense depth maps from sparse depth maps. Existing approaches typically apply a spatial propagation module to iteratively refine depth values based on a single-scale initial depth map. In contrast, to overcome the limitations imposed by the convolution kernel size on propagation range, we propose a multi-scale spatial propagation module (MSSPM) that utilizes multi-scale features from the decoder to guide spatial propagation. To further enhance the model's performance, we introduce a bottleneck feature enhancement module (BFEM) based on tensor decomposition, which can reduce feature redundancy and perform denoising through low-rank feature factorization. We also introduce a cross-layer feature fusion module (Fusion) to efficiently combine low-level encoder features and high-level decoder features. Extensive experiments on the indoor NYUv2 dataset and the outdoor KITTI dataset demonstrate the effectiveness of the proposed method.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001463963000028
+
+2.Title: Depth-Enhanced Tumor Detection Framework for Breast Histopathology Images by Integrating Adaptive Multi-Scale Fusion, Semantic Depth Calibration, and Boundary-Guided Detection
+
+3.Keywords:
+Tumors
+Feature extraction
+Breast cancer
+Semantics
+Histopathology
+Convolutional neural networks
+Attention mechanisms
+Location awareness
+Computer architecture
+Accuracy
+Tumor detection
+AMSF
+DG-TDM
+SDICM
+SPARSE AUTOENCODER
+
+4.Year: 2025
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： Multiple modalities offer the advantage of providing complementary visual information that enhances overall understanding. This capability is particularly valuable in the domain of autonomous tumor detection. However, the challenge of occlusions in autonomous tumor perception-especially in cases of tumor-to-tumor occlusion-hinders the effective utilization of occlusion-related features. As a result, these limitations lead to a decline in the accuracy of object detection. We propose a novel framework for tumor detection in histopathological images by integrating multi-scale RGB features and depth-enhanced semantic information. The method comprises three primary modules: the Adaptive Multi-Scale Fusion Module (AMSF), Semantic Depth Integration and Calibration Module (SDICM), and Depth-Guided Tumor Detection Module (DG-TDM). AMSF combines RGB histopathology image channels, binary masks, and multi-scale convolution outputs using attention mechanisms to generate a fused feature map that captures occlusion information and boundary relevance. SDICM constructs dense depth maps by fusing RGB, semantic, and sparse depth data through bidirectional feature aggregation, enhancing spatial continuity and edge clarity. DG-TDM refines tumor boundary detection by combining depth and RGB features using spatial and channel-wise attention mechanisms, which highlight boundary differences and reduce redundancy from background noise. The proposed loss function optimizes RGB-depth feature alignment, balancing contributions from each modality for robust tumor detection. This approach addresses challenges such as overlapping boundaries, occlusions, and poor contrast in histopathology images, enabling precise localization of tumor regions. Experimental results demonstrate that the proposed framework significantly improves detection accuracy by 98% and boundary delineation compared to existing methods. This robust and efficient methodology provides a promising solution for advancing tumor detection in medical imaging.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001492121500010
+
+2.Title: Octagram Propagation Matching for Multi-Scale View Stereopsis (OPM-MVS)
+
+3.Keywords:
+Accuracy
+Three-dimensional displays
+Image reconstruction
+Depth measurement
+Costs
+Cameras
+Surface texture
+Reliability
+Surface reconstruction
+Pipelines
+Checkerboard propagation
+multi-scale patchmatch
+multi-view stereo
+structured region information
+confidence-guided geometric consistency
+texture-less regions
+MULTIVIEW STEREO
+3D RECONSTRUCTION
+GRAPH-CUTS
+SILHOUETTE
+
+4.Year: 2025
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： Multiple view stereopsis (MVS) algorithms have achieved substantial advancements in 3D reconstruction accuracy and completeness. However, significant challenges persist with texture-less regions, occlusions, thin structures, repetitive structures, and non-Lambertian surfaces due to unreliable photometric consistency and insufficient geometric information. To address these challenges, we propose octagram propagation matching for multi-scale view stereopsis (OPM-MVS), a novel framework for efficient and accurate depth map estimation. The framework introduces octagram checkerboard propagation as a structural sampling method that enhances hypotheses propagation by aggregating cost information from overlapping neighbouring regions along structural lines. This approach ensures accurate and consistent hypotheses selection while improving spatial propagation efficiency. To refine depth estimation, we incorporate multi-scale depth confidence-guided geometric consistency, propagating reliable depth estimates from coarse to finer scales and minimizing propagation error. A dual bilateral weighted normalized cross-correlation is incorporated to reduce irrelevant pixel influence and improve correspondence in texture-less and repetitive regions. A multi-hypotheses joint view selection strategy is guided by neighbouring joint view probability to aggregate the subset views for cost matching and integrates effectively with the proposed propagation method. Experimental evaluations on public benchmarks includes ETH3D and Tanks and Temples to demonstrate the effectiveness of OPM-MVS in achieving superior completeness while maintaining comparable accuracy to COLMAP, ACMH, ACMM and other surveyed MVSNet methods. The framework delivers state-of-the-art performance by accurately reconstructing depth in challenging regions resulting in complete and reliable 3D models. Notably, OPM-MVS achieves an F1-score of 83.50% on the overall ETH3D test dataset under a 2 cm threshold which outperforms COLMAP (73.01%), ACMH (75.89%), ACMM (80.78%), DP-MVS (83.11%), MVP-Stereo (76.12%), TransMVSFormer (75.39%), TAPA-MVS (79.15%), and UGNet (80.83%). These results establish OPM-MVS as a promising solution for high-resolution and large-scale multi-view stereo applications.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001523480700023
+
+2.Title: CAGT: Sim-to-Real Depth Completion With Interactive Embedding Aggregation and Geometry Awareness for Transparent Objects
+
+3.Keywords:
+Feature extraction
+Transformers
+Robots
+Grasping
+Adaptation models
+Data mining
+Training
+Shape
+Contrastive learning
+Accuracy
+Sim-to-real
+depth completion
+geometry-aware
+NETWORK
+
+4.Year: 2025
+
+5.Publication Titles: IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY
+
+6.abstract： Robust depth completion of transparent objects would be beneficial for industrial automation such as vision-based robotic grasping and manipulation. However, although some methods try to learn a compact intra-layer feature representation with the boost of the attention mechanism or the vision Transformer, they ignore the neglected corner regions and sparse geometry information that are important for accurate depth completion. To tackle these issues, we propose a novel sim-to-real transferable model, named CAGT, with interactive embedding aggregation and geometry awareness to reconstruct severely sparse depth maps of transparent objects in this paper. We design a Depth-clue Interaction Aggregation Module (DIAM) to enhance the Transformer's ability to extract boundary corner features and thus supplement depth clues. Then, we propose a Geometric Information Augmentation Module (GIAM) to fuse the geometry-aware feature containing shape and surface details. Moreover, we introduce a contrastive learning mechanism to facilitate the sim-to-real generalization of the completion model. Extensive experiment results on two challenging datasets, ClearGrasp and TransCG, demonstrate that our proposed CAGT can obtain superior performance over the state-of-the-art methods. We also demonstrate that CAGT can improve the grasp accuracy of transparent objects by a robotic grasping generalization experiment. The code and supplementary video will be available at: https://github.com/xingshuojing/CAGT.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001469396200044
+
+2.Title: Three-Dimensional Topography Measurement for Confocal Microscopy With Arrayed Laser Spots
+
+3.Keywords:
+3-D topography measurement
+array spots
+confocal
+microscopy
+LIGHT SHEET MICROSCOPY
+RESOLUTION
+SHAPE
+
+4.Year: 2025
+
+5.Publication Titles: IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT
+
+6.abstract： Confocal microscopy plays a crucial role in topography measurement. However, conventional confocal microscopes usually have high-speed moving parts, which cause vibration, affect the measurement accuracy, and limit the scanning speed. Many studies have improved it, but the designed microscopes still have problems such as low photon utilization, high dependence on sample surface properties, and high complexity and manufacturing cost of the entire system. In this work, a 3-D topography measurement method for confocal microscopy with arrayed laser spots was introduced, namely, Lattice Confocal 3-D Reconstruction (LCTR), which can quickly measure the morphology widely and cheaply. First, a mask pattern with a pinhole array was designed specially, and the optical path of the whole system was built. Furthermore, a high-precision fast gradient positioning method was provided to locate the position of the arrayed spots on the imaging plane. In addition, a loop Barycentric interpolation (LBI) method was proposed to obtain the dense depth map from the sparse depth map more smoothly and stably. The experiment indicated that LCTR exhibits exceptional ability in measuring 3-D topography, with an average measurement error of 0.1 mu m and under 10 x and 20 x objectives. LCTR showed great versatility and measurement capabilities for different magnifications and sample morphology. LCTR has the advantages of low system complexity and cost, high measurement accuracy, stable and reliable repeatability, and high-quality 3-D point cloud data, which can be well applied in industrial detection and measurement.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001600793500002
+
+2.Title: Target echo interference characteristic in the deep water: Modeling and application in depth estimation
+
+3.Keywords:
+MULTIPATH TIME-DELAY
+VERTICAL LINE ARRAY
+SOUND INTENSITY
+OCEAN
+LOCALIZATION
+
+4.Year: 2025
+
+5.Publication Titles: JOURNAL OF THE ACOUSTICAL SOCIETY OF AMERICA
+
+6.abstract： For an active detection system in deep water, multipath propagation and target scattering induce complex coupling effects, challenging conventional methods reliant on multipath delay matching. To address the problem, this study has investigated the characteristics of the target echo interference observed on the two-dimensional (frequency and target range) intensity plane, focusing on depth estimation applications in the reliable acoustic path environment. We first establish a ray-based echo interference model integrated with highlight scattering, decomposing the intensity plane into propagation interference (related to target depth), scattering interference (linked to target size), and cross-term components. Second, an f-warping transformation is proposed to resample the intensity plane. By straightening the originally curved propagation interference, it ensures that the inverse Fourier transform of the warped intensity plane exhibits a constant time delay. Finally, a hybrid framework combines time-delay matching with multi-frame stability assessment, utilizing adaptive weighting to suppress scattering interference while preserving propagation-related features. Simulations and experimental data have been used to validate the depth estimation method, and the errors for multiple sets of experimental data are all under 8% of the real target depth.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001560174700005
+
+2.Title: Propagating Sparse Depth via Depth Foundation Model for Out-of-Distribution Depth Completion
+
+3.Keywords:
+Foundation models
+Depth measurement
+Training
+Three-dimensional displays
+Robustness
+Measurement
+Cameras
+Data models
+Image reconstruction
+Data mining
+Depth completion
+out-of-distribution
+zero-shot generalization
+depth estimation
+NETWORK
+
+4.Year: 2025
+
+5.Publication Titles: IEEE TRANSACTIONS ON IMAGE PROCESSING
+
+6.abstract： Depth completion is a pivotal challenge in computer vision, aiming at reconstructing the dense depth map from a sparse one, typically with a paired RGB image. Existing learning-based models rely on carefully prepared but limited data, leading to significant performance degradation in out-of-distribution (OOD) scenarios. Recent foundation models have demonstrated exceptional robustness in monocular depth estimation through large-scale training, and using such models to enhance the robustness of depth completion models is a promising solution. In this work, we propose a novel depth completion framework that leverages depth foundation models to attain remarkable robustness without large-scale training. Specifically, we leverage a depth foundation model to extract environmental cues, including structural and semantic context, from RGB images to guide the propagation of sparse depth information into missing regions. We further design a dual-space propagation approach, without any learnable parameters, to effectively propagate sparse depth in both 3D and 2D spaces to maintain geometric structure and local consistency. To refine the intricate structure, we introduce a learnable correction module to progressively adjust the depth prediction towards the real depth. We train our model on the NYUv2 and KITTI datasets as in-distribution datasets and extensively evaluate the framework on 16 other datasets. Our framework performs remarkably well in the OOD scenarios and outperforms existing state-of-the-art depth completion methods. Our models are released in https://github.com/shenglunch/PSD.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001420327300001
+
+2.Title: Guided Depth Inpainting in ToF Image Sensing Based on Near Infrared Information
+
+3.Keywords:
+Sensors
+Image edge detection
+Robot sensing systems
+Level set
+Image restoration
+Cameras
+Optimization
+Sensor systems
+Semantics
+Reflectivity
+ToF depth
+near infrared
+depth completion
+guided completion
+NETWORK
+CONTEXT
+
+4.Year: 2025
+
+5.Publication Titles: IEEE TRANSACTIONS ON COMPUTATIONAL IMAGING
+
+6.abstract： Accurate depth estimation is crucial in various computer vision applications, such as robotics, augmented reality, or autonomous driving. Despite the common use of Time-of-Flight (ToF) sensing systems, they still face challenges such as invalid pixels and missing depth values, particularly with low light reflectance, distant objects, or light-saturated conditions. Cameras using indirect ToF technology provide depth maps along with active infrared brightness images, which can offer a potential guide for depth restoration in fusion approaches. This study proposes a method for depth completion by combining depth and active infrared images in ToF systems. The approach is based on a belief propagation strategy to extend valid nearby information in missing depth regions, using the infrared gradient for depth consistency. Emphasis is placed on considering object edges, especially those coinciding with depth discontinuities, to approximate missing values. Empirical results demonstrate the efficiency and simplicity of the proposed algorithm, showcasing superior outcomes compared to other reference guided depth inpainting methods.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001297124400001
+
+2.Title: Coplane-constrained sparse depth sampling and local depth propagation for depth estimation
+
+3.Keywords:
+Adaptive sampling
+Local depth propagation
+Pixel-wise focal loss
+NETWORK
+
+4.Year: 2024
+
+5.Publication Titles: IMAGE AND VISION COMPUTING
+
+6.abstract： Depth estimation with sparse reference has emerged recently, and predicts depth map from a monocular image and a set of depth reference samples. Previous works randomly select reference samples by sensors, leading to severe depth bias as this sampling is independent to image semantic and neglects the unbalance of depth distribution in regions. This paper proposes a Coplane-Constrained sparse Depth (CCD) sampling to explore representative reference samples, and design a Local Depth Propagation (LDP) network for complete the sparse point cloud map. This can capture diverse depth information and diffuse the valid points to neighbors with geometry prior. Specifically, we first construct the surface normal map and detect coplane pixels by superpixel segmenting for sampling references, whose depth can be represented by that of superpixel centroid. Then, we introduce local depth propagation to obtain coarse-level depth map with geometric information, which dynamically diffuses the depth from the reference to neighbors based on local planar assumption. Further, we generate the fine-level depth map by devising a pixel-wise focal loss, which imposes the semantic and geometry calibration on pixels with low confidence in coarse-level prediction. Extensive experiments on public datasets demonstrate that our model outperforms SOTA depth estimation and completion methods.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001176146100001
+
+2.Title: LiDeNeRF: Neural radiance field reconstruction with depth prior provided by LiDAR point cloud
+
+3.Keywords:
+NeRF
+Neural radiance field
+Point cloud
+3D reconstruction
+Depth prior
+
+4.Year: 2024
+
+5.Publication Titles: ISPRS JOURNAL OF PHOTOGRAMMETRY AND REMOTE SENSING
+
+6.abstract： Neural Radiance Fields (NeRF) is a technique for reconstructing real -world scenes from multiple views. However, existing methods mostly focus on the visual effects of scene reconstruction while neglecting geometric accuracy, which is crucial in photogrammetry and remote sensing. In this paper, we propose a method called LiDeNeRF which uses LiDAR point cloud to provide depth priors for NeRF reconstruction. The goal of LiDeNeRF is to achieve real-time rendering of NeRF scenes and 3D reconstruction results with high geometric accuracy. In this method, first, the LiDAR point cloud is projected onto images to generate a sparse depth map. Then, by triangulating the sparse depth and using a multi -view image depth propagation method, a dense depth map with high accuracy is quickly generated as the depth prior for NeRF. Finally, a new depth correction module is designed and embedded into the NeRF rendering pipeline to improve the accuracy of scene depth estimation. The experimental results evince that our methodology has attained paramount performance in both novel view synthesis and 3D reconstruction tasks. Our source code is made available at https://github.com/WPC-WHU/LiDeNeRF.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001338727600001
+
+2.Title: Depth-informed point cloud-to-BIM registration for construction inspection using augmented reality
+
+3.Keywords:
+Depth estimation
+Building information model
+Point cloud registration
+D-PC2BIM algorithm
+Augmented reality
+Construction inspection
+FRAMEWORK
+MANAGEMENT
+SYSTEM
+INFORMATION
+
+4.Year: 2024
+
+5.Publication Titles: ADVANCED ENGINEERING INFORMATICS
+
+6.abstract： Augmented reality (AR) is increasingly being used to assist construction inspection onsite. Underpinning this ARassisted inspection is a technique called registration, which aims to align the physical world with a digital building information model (BIM) so that the as-built can be intuitively compared with the as-designed. Despite its importance, how to precisely and efficiently register BIM to the physical world still remains a challenge. This paper contributes to tackling the challenge by proposing a novel depth-informed point cloud-to-BIM registration (D-PC2BIM) algorithm. The idea is to enhance registration performance by estimating the depth of a sparse point cloud to inform interpolation of the missing points and to extract the endpoints that matter most in a registration. A novel integration algorithm is proposed to improve the success rate of final registration. Experiments demonstrate the effectiveness of the proposed algorithm, which outperformed existing approaches with higher accuracy and faster speed. The contribution of the study resides in the development of the D-PC2BIM algorithm and a demonstration of its applicability in enabling construction inspection using AR.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001307644900001
+
+2.Title: LightDepth: A resource efficient depth estimation approach for dealing with ground truth sparsity via curriculum learning
+
+3.Keywords:
+Monocular depth estimation
+Curriculum learning
+Energy efficiency
+VISION
+LIDAR
+
+4.Year: 2024
+
+5.Publication Titles: ROBOTICS AND AUTONOMOUS SYSTEMS
+
+6.abstract： Accurate depth estimation from monocular images is critical for various applications such as robotics, augmented reality, and autonomous navigation. However, achieving high accuracy while maintaining computational efficiency is a major challenge, particularly for resource-constrained devices. In this paper, we present LightDepth, , an approach that leverages curriculum learning to estimate depth efficiently while taking into account resource constraints. It modifies the ground truth sparse depth maps from the KITTI dataset by resizing them to 31 extents during training to reduce sparsity and control complexity. The resulting model achieves comparable accuracy to state-of-the-art large models while outperforming them in response time by 71%. Our approach outperforms resource-efficient models regarding depth accuracy (measured by RMSE), achieving a 56% improvement. LightDepth is designed to be fast and resource-efficient, making it suitable for deployment in resource-constrained devices. It also balances the trade-off between accuracy and resource efficiency. All codes are available online at https://github.com/fatemehkarimii/lightdepth.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001042003300001
+
+2.Title: Deep Sparse Depth Completion Using Multi-Affinity Matrix
+
+3.Keywords:
+Depth completion
+multi-affinity matrix
+spatial propagation
+dynamic guided filtering
+multi-modal
+NETWORK
+SAMPLES
+
+4.Year: 2023
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： Image-guided depth completion aims to generate dense depth maps from sparse depth maps guided by their corresponding color (RGB) images. In this paper, we propose deep sparse depth completion using multi-affinity matrix. Recently, spatial propagation networks (SPNs) are used to refine depth maps obtained by initial depth completion. However, they use the same affinity matrix even in multiple iterations that has a limit to improving performance, which is not effective in considering the relationship between adjacent pixels. Thus, we replace it with a multi-affinity matrix to represent the relationship between an output pixel and its neighboring ones. Moreover, deep neural networks can effectively fuse features from two different modalities based on confidence maps. Inspired by dynamic guided filtering, we use a convolutional spatial propagation network (CSPN) to fuse multi-modal features at multiple stages. When training the color branch of the proposed network, we adopt supervised learning that constrains the output features of all layers in the decoder. Since spatially varying features are required for multi-modal feature fusion, the proposed network produces adaptive affinity features using a single decoder. Experimental results on KITTI and NYU-v2 datasets show that the multi-affinity matrix represents the dependency between pixels and predicts accurate depth values by calculating the weights between neighboring pixels. The proposed network based on multi-affinity matrix achieves state-of-the-art performance in terms of root mean square error (RMSE) and mean absolute error (MAE).
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001026313400003
+
+2.Title: Non-local affinity adaptive acceleration propagation network for generating dense depth maps from LiDAR
+
+3.Keywords:
+COMPLETION
+MODEL
+NET
+
+4.Year: 2023
+
+5.Publication Titles: OPTICS EXPRESS
+
+6.abstract： Depth completion aims to generate dense depth maps from the sparse depth images generated by LiDAR. In this paper, we propose a non-local affinity adaptive accelerated (NL-3A) propagation network for depth completion to solve the mixing depth problem of different objects on the depth boundary. In the network, we design the NL-3A prediction layer to predict the initial dense depth maps and their reliability, non-local neighbors and affinities of each pixel, and learnable normalization factors. Compared with the traditional fixed-neighbor affinity refinement scheme, the non-local neighbors predicted by the network can overcome the propagation error problem of mixed depth objects. Subsequently, we combine the learnable normalized propagation of non-local neighbor affinity with pixel depth reliability in the NL-3A propagation layer, so that it can adaptively adjust the propagation weight of each neighbor during the propagation process, which enhances the robustness of the network. Finally, we design an accelerated propagation model. This model enables parallel propagation of all neighbor affinities and improves the efficiency of refining dense depth maps. Experiments on KITTI depth completion and NYU Depth V2 datasets show that our network is superior to most algorithms in terms of accuracy and efficiency of depth completion. In particular, we predict and reconstruct more smoothly and consistently at the pixel edges of different objects.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001021556400010
+
+2.Title: Adaptive Active Fusion of Camera and Single-Point LiDAR for Depth Estimation
+
+3.Keywords:
+Cost-effective light detection and ranging (LiDAR)
+deep learning
+depth completion
+sensor fusion
+single-point LiDAR
+
+4.Year: 2023
+
+5.Publication Titles: IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT
+
+6.abstract： Depth sensing is an important problem in many applications, such as autonomous driving, robotics, and automation. This article presents an adaptive active fusion method for scene depth estimation by using a camera and a single-point light detection and ranging (LiDAR) sensor. An active scanning mechanism is proposed to guide laser scanning based on critical visual and saliency features, and the convolutional spatial propagation network (CSPN) is designed to generate and refine full depth map from the sparse depth scans. The active scanning mechanism generates a depth mask by using log-spectrum saliency detection, Canny edge detection, and uniform sampling, which indicate critical regions that require a high resolution of laser scanning. To reconstruct a full depth map, the designed CSPN network extracts affinity matrices from the sparse depth scans, while reserving global spatial information in the images. The performance of proposed method was evaluated and compared with the state-of-the-art methods on the NYU depth dataset v2 (NYUv2) and the experiment demonstrated its outperformance in reconstruction accuracy and robustness to measurement noise. The proposed method was also evaluated in real-world scenarios.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000925069800001
+
+2.Title: Multiple View Stereo with quadtree-guided priors
+
+3.Keywords:
+Multi View Stereo (MVS)
+PatchMatch
+Depth estimation
+3D reconstruction
+Dense point cloud
+Quadtree
+Plane detection
+RANSAC
+SCALE
+RECONSTRUCTION
+
+4.Year: 2023
+
+5.Publication Titles: ISPRS JOURNAL OF PHOTOGRAMMETRY AND REMOTE SENSING
+
+6.abstract： Multi-View Stereo (MVS) algorithms rely on common photometric consistency measures and, therefore, in cases of low-textured surfaces tend to generate unreliable depth estimates or lack completeness due to matching ambiguities. Such textureless areas often imply dominant planar structures, typically occurring in man-made scenes. To support depth estimation in scenarios where challenging surfaces are present, we propose an extended PatchMatch pipeline using an adaptive accumulated matching cost calculation based on estimated prior plane hypotheses and the local textureness. Plane priors are detected in the object space and guided by quadtree structures in order to generate depth and normal hypothesis for every pixel, supporting, in this way, the propagation of more reliable depth estimates across the image. Experiments on the ETH3D high-resolution dataset and on custom real-world scenes demonstrate that our approach can favor the reconstruction of problematic regions by adding small complexity while preserving fine details in rich textured regions, achieving thus competitive results compared to state-of-the-art methods. The source code of the developed method is available at https://github.com/3DOM-FBK/openMVS.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000868001300001
+
+2.Title: An Efficient Information-Reinforced Lidar Deep Completion Network without RGB Guided
+
+3.Keywords:
+depth completion
+lidar data processing
+image processing
+deep learning
+
+4.Year: 2022
+
+5.Publication Titles: REMOTE SENSING
+
+6.abstract： Due to the sparsity of point clouds obtained by LIDAR, the depth information is usually not complete and dense. The depth completion task is to recover dense depth information from sparse depth information. However, most of the current deep completion networks use RGB images as guidance, which are more like a processing method of information fusion. They are not valid when there is only sparse depth data and no other color information. Therefore, this paper proposes an information-reinforced completion network for a single sparse depth input. We use a multi-resolution dense progressive fusion structure to maximize the multi-scale information and optimize the global situation by point folding. At the same time, we re-aggregate the confidence and impose another depth constraint on the pixel depth to make the depth estimation closer to the ground trues. Our experimental results on KITTI and NYU Depth v2 datasets show that the proposed network achieves better results than other unguided deep completion methods. And it is excellent in both accuracy and real-time performance.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000640765600012
+
+2.Title: Polarimetric Monocular Dense Mapping Using Relative Deep Depth Prior
+
+3.Keywords:
+Cameras
+Image reconstruction
+Azimuth
+Surface reconstruction
+Simultaneous localization and mapping
+Shape
+Robot vision systems
+Computational geometry
+localization and mapping
+
+4.Year: 2021
+
+5.Publication Titles: IEEE ROBOTICS AND AUTOMATION LETTERS
+
+6.abstract： This letter is concerned with polarimetric dense map reconstruction based on a polarization camera with the help of relative depth information as a prior. In general, polarization imaging is able to reveal information about surface normal such as azimuth and zenith angles, which can support the development of solutions to the problem of dense reconstruction, especially in texture-poor regions. However, polarimetric shape cues are ambiguous due to two types of polarized reflection (specular/diffuse). Although methods have been proposed to address this issue, they either are offline and therefore not practical in robotics applications, or use incomplete polarimetric cues, leading to sub-optimal performance. In this letter, we propose an online reconstruction method that uses full polarimetric cues available from the polarization camera. With our online method, we can propagate sparse depth values both along and perpendicular to iso-depth contours. Through comprehensive experiments on challenging image sequences, we demonstrate that our method is able to significantly improve the accuracy of the depthmap as well as increase its density, specially in regions of poor texture.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000706820200010
+
+2.Title: Terrain-Aided Navigation With Coarse Maps-Toward an Arctic Crossing With an AUV
+
+3.Keywords:
+Arctic
+Navigation
+Oceans
+Sensors
+Sea measurements
+Sonar navigation
+Real-time systems
+Long-range autonomous underwater vehicles (AUVs)
+polar vehicle operations
+terrain-aided navigation (TAN)
+under-ice navigation
+underwater navigation
+AUTONOMOUS UNDERWATER VEHICLES
+PARTICLE FILTERS
+SEA
+LOCALIZATION
+EXPLORATION
+
+4.Year: 2021
+
+5.Publication Titles: IEEE JOURNAL OF OCEANIC ENGINEERING
+
+6.abstract： The desire to conduct research in the Arctic on an ever-larger spatiotemporal scale has led to the development of long-range autonomous underwater vehicles (AUVs), such as the Autosub Long-Range 1500 (ALR1500). While these platforms open up a world of new applications, their actual use is limited in GPS-denied environments since self-contained navigation remains yet unavailable. In response, this study evaluates whether terrain-aided navigation (TAN) can enable multimonth deployments using basic navigation sensors and sparse bathymetric maps. To evaluate the potential, ALR1500 undertakes a hypothetical science-driven mission from Svalbard (Norway) to Point Barrow (Alaska, USA) under the sea ice (a mission over 3200 km). Therefore, a simulated environment is developed, which integrates a state-of-the-art model of water circulation, error models for heading estimation at high latitudes, and an Arctic bathymetric map. Recognizing that this map is constructed based on sparse depth measurements and interpolation techniques, a bathymetric uncertainty model is developed. The performance of the TAN algorithm is examined with respect to the type of the heading sensor utilized and a range of vertical map distortions, calculated using the developed bathymetric uncertainty model. Simulations show that unaided navigation experiences an error of hundreds of kilometers, whereas TAN provides acceptable accuracy given a moderate map distortion. By degrading the quality of the map further, it appears that the navigation filter may diverge when traversing large regions subject to interpolation. Therefore, a rapidly-exploring random tree star algorithm is used to design a new path such that the AUV traverses reliable and rich in topographic information areas.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000617758400010
+
+2.Title: Learning Steering Kernels for Guided Depth Completion
+
+3.Keywords:
+Kernel
+Task analysis
+Shape
+Interpolation
+Estimation
+Neural networks
+Standards
+Depth completion
+depth interpolation
+kernel regression
+steering kernels
+
+4.Year: 2021
+
+5.Publication Titles: IEEE TRANSACTIONS ON IMAGE PROCESSING
+
+6.abstract： This paper addresses the guided depth completion task in which the goal is to predict a dense depth map given a guidance RGB image and sparse depth measurements. Recent advances on this problem nurture hopes that one day we can acquire accurate and dense depth at a very low cost. A major challenge of guided depth completion is to effectively make use of extremely sparse measurements, e.g., measurements covering less than 1% of the image pixels. In this paper, we propose a fully differentiable model that avoids convolving on sparse tensors by jointly learning depth interpolation and refinement. More specifically, we propose a differentiable kernel regression layer that interpolates the sparse depth measurements via learned kernels. We further refine the interpolated depth map using a residual depth refinement layer which leads to improved performance compared to learning absolute depth prediction using a vanilla network. We provide experimental evidence that our differentiable kernel regression layer not only enables end-to-end training from very sparse measurements using standard convolutional network architectures, but also leads to better depth interpolation results compared to existing heuristically motivated methods. We demonstrate that our method outperforms many state-of-the-art guided depth completion techniques on both NYUv2 and KITTI. We further show the generalization ability of our method with respect to the density and spatial statistics of the sparse depth measurements.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000529139700032
+
+2.Title: PLIN: A Network for Pseudo-LiDAR Point Cloud Interpolation
+
+3.Keywords:
+3D point cloud
+pseudo-LiDAR interpolation
+convolutional neural networks
+depth completion
+video interpolation
+
+4.Year: 2020
+
+5.Publication Titles: SENSORS
+
+6.abstract： LiDAR sensors can provide dependable 3D spatial information at a low frequency (around 10 Hz) and have been widely applied in the field of autonomous driving and unmanned aerial vehicle (UAV). However, the camera with a higher frequency (around 20 Hz) has to be decreased so as to match with LiDAR in a multi-sensor system. In this paper, we propose a novel Pseudo-LiDAR interpolation network (PLIN) to increase the frequency of LiDAR sensor data. PLIN can generate temporally and spatially high-quality point cloud sequences to match the high frequency of cameras. To achieve this goal, we design a coarse interpolation stage guided by consecutive sparse depth maps and motion relationship. We also propose a refined interpolation stage guided by the realistic scene. Using this coarse-to-fine cascade structure, our method can progressively perceive multi-modal information and generate accurate intermediate point clouds. To the best of our knowledge, this is the first deep framework for Pseudo-LiDAR point cloud interpolation, which shows appealing applications in navigation systems equipped with LiDAR and cameras. Experimental results demonstrate that PLIN achieves promising performance on the KITTI dataset, significantly outperforming the traditional interpolation method and the state-of-the-art video interpolation technique.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000567471300008
+
+2.Title: Confidence Propagation through CNNs for Guided Sparse Depth Regression
+
+3.Keywords:
+Convolution
+Sensors
+Task analysis
+Computer architecture
+Cameras
+Autonomous vehicles
+Reliability
+Sparse data
+CNNs
+depth completion
+normalized convolution
+confidence propagation
+RECONSTRUCTION
+
+4.Year: 2020
+
+5.Publication Titles: IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE
+
+6.abstract： Generally, convolutional neural networks (CNNs) process data on a regular grid, e.g., data generated by ordinary cameras. Designing CNNs for sparse and irregularly spaced input data is still an open research problem with numerous applications in autonomous driving, robotics, and surveillance. In this paper, we propose an algebraically-constrained normalized convolution layer for CNNs with highly sparse input that has a smaller number of network parameters compared to related work. We propose novel strategies for determining the confidence from the convolution operation and propagating it to consecutive layers. We also propose an objective function that simultaneously minimizes the data error while maximizing the output confidence. To integrate structural information, we also investigate fusion strategies to combine depth and RGB information in our normalized convolution network framework. In addition, we introduce the use of output confidence as an auxiliary information to improve the results. The capabilities of our normalized convolution network framework are demonstrated for the problem of scene depth completion. Comprehensive experiments are performed on the KITTI-Depth and the NYU-Depth-v2 datasets. The results clearly demonstrate that the proposed approach achieves superior performance while requiring only about 1-5 percent of the number of parameters compared to the state-of-the-art methods.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000567471300004
+
+2.Title: Learning Depth with Convolutional Spatial Propagation Network
+
+3.Keywords:
+Estimation
+Task analysis
+Three-dimensional displays
+Cameras
+Laser radar
+Convolutional codes
+Benchmark testing
+Spatial propagation networks
+depth completion
+stereo matching
+spatial pyramid pooling
+STEREO
+GEOMETRY
+
+4.Year: 2020
+
+5.Publication Titles: IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE
+
+6.abstract： In this paper, we propose the convolutional spatial propagation network (CSPN) and demonstrate its effectiveness for various depth estimation tasks. CSPN is a simple and efficient linear propagation model, where the propagation is performed with a manner of recurrent convolutional operations, in which the affinity among neighboring pixels is learned through a deep convolutional neural network (CNN). Compare to the previous state-of-the-art (SOTA) linear propagation model, i.e., spatial propagation networks (SPN), CSPN is 2 to 5x faster in practice. We concatenate CSPN and its variants to SOTA depth estimation networks, which significantly improve the depth accuracy. Specifically, we apply CSPN to two depth estimation problems: depth completion and stereo matching, in which we design modules which adapts the original 2D CSPN to embed sparse depth samples during the propagation, operate with 3D convolution and be synergistic with spatial pyramid pooling. In our experiments, we show that all these modules contribute to the final performance. For the task of depth completion, our method reduce the depth error over 30 percent in the NYU v2 and KITTI datasets. For the task of stereo matching, our method currently ranks 1st on both the KITTI Stereo 2012 and 2015 benchmarks.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000469766800202
+
+2.Title: Real-Time Multi-Scale Face Detector on Embedded Devices
+
+3.Keywords:
+face detection
+ARM-based devices
+model acceleration
+computer vision
+
+4.Year: 2019
+
+5.Publication Titles: SENSORS
+
+6.abstract： Face detection is the basic step in video face analysis and has been studied for many years. However, achieving real-time performance on computation-resource-limited embedded devices still remains an open challenge. To address this problem, in this paper we propose a face detector, EagleEye, which shows a good trade-off between high accuracy and fast speed on the popular embedded device with low computation power (e.g., the Raspberry Pi 3b+). The EagleEye is designed to have low floating-point operations per second (FLOPS) as well as enough capacity, and its accuracy is further improved without adding too much FLOPS. Specifically, we design five strategies for building efficient face detectors with a good balance of accuracy and running speed. The first two strategies help to build a detector with low computation complexity and enough capacity. We use convolution factorization to change traditional convolutions into more sparse depth-wise convolutions to save computation costs and we use successive downsampling convolutions at the beginning of the face detection network. The latter three strategies significantly improve the accuracy of the light-weight detector without adding too much computation costs. We design an efficient context module to utilize context information to benefit the face detection. We also adopt information preserving activation function to increase the network capacity. Finally, we use focal loss to further improve the accuracy by handling the class imbalance problem better. Experiments show that the EagleEye outperforms the other face detectors with the same order of computation costs, on both runtime efficiency and accuracy.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000455706400006
+
+2.Title: Sparse-to-Dense Depth Estimation in Videos via High-Dimensional Tensor Voting
+
+3.Keywords:
+Depth estimation
+tensor voting
+motion estimation
+bilateral filtering
+MOTION
+IMAGE
+
+4.Year: 2019
+
+5.Publication Titles: IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY
+
+6.abstract： Due to the popularity of 3D videos, 2D-to-3D video conversion has become a hot research topic for the past few years. The most critical issue in 3D video synthesis is the estimation of depth maps for the video frames. Numerous efforts have been devoted in fully automatic and semi-automatic depth estimation approaches, although the discontinuity of depth field and the ambiguity of motion boundary are still the main challenges in depth estimation. This paper proposes a semi-automatic structure-aware sparse-to-dense depth estimation method, which leverages the tensor voting at two different levels to propagate depth across frames. In the first level, a 4D tensor voting is performed to remove outliers caused by inaccurate motion estimation. Noticing that the 4D tensors of correctly matched points should lie on the smooth layer in the manifold, we utilize the variety saliency defined by the eigen-system of the tensor for outlier removal. In the second level, a high-dimensional tensor voting algorithm, incorporating spatial location, motion, and color into the tensor representation, is devised to propagate the depth from the sparse points to the entire image domain. By projecting the input feature into the tangent space, the relation between the location, motion, color, and the depth can be established by voting process. Extensive experiments on public data set validate the effectiveness of the proposed method in comparison with state-of-the-art depth estimation approaches.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000467658900038
+
+2.Title: Self-organizing background subtraction using color and depth data
+
+3.Keywords:
+Background subtraction
+Color and depth data
+RGBD
+BENCHMARK
+TRACKING
+
+4.Year: 2019
+
+5.Publication Titles: MULTIMEDIA TOOLS AND APPLICATIONS
+
+6.abstract： Background subtraction from color and depth data is a fundamental task for video surveillance applications that use data acquired by RGBD sensors. We present a method that adopts a self-organizing neural background model previously adopted for RGB videos to model the color and depth background separately. The resulting color and depth detection masks are combined to guide the selective model update procedure and to achieve the final result. Extensive experimental results and comparisons with several state-of-the-art methods on a publicly available dataset show that the exploitation of depth information allows achieving much higher performance than just using color, accurately handling color and depth background maintenance challenges.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000480311300007
+
+2.Title: Real-Time Dense Depth Estimation Using Semantically-Guided LIDAR Data Propagation and Motion Stereo
+
+3.Keywords:
+mapping
+object detection
+segmentation and categorization
+RGB-D perception
+
+4.Year: 2019
+
+5.Publication Titles: IEEE ROBOTICS AND AUTOMATION LETTERS
+
+6.abstract： In this letter, we present a method for estimating a dense depth map from a sparse LIDAR point cloud and an image sequence. Our proposed method relies on a directionally biased propagation of known depth to missing areas based on semantic segmentation. Additionally, we classify different object boundaries as either occluded or connected to limit the extent of the data propagation. At the regions with large missing point cloud data, we depend on estimated depth using motion stereo. We embed our method on a bounded interpolation strategy which also considers pixel distance, depth difference and color gradient. We then perform an optimization step based on tensor-based TGV-L2 denoising. Our results show that directional propagation and semantic boundary classification can improve the accuracy of interpolation along the edges for different types of objects. Moreover, our motion stereo scheme increases the reliability of extrapolated depth at the regions with large missing point cloud data. Finally, we show that our implementation strategy can achieve reliable results in real time.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000455953100018
+
+2.Title: Fast Depth Densification for Occlusion-aware Augmented Reality
+
+3.Keywords:
+Augmented Reality
+3D Reconstruction
+Video Analysis
+Depth Estimation
+Simultaneous Localization and Mapping
+
+4.Year: 2018
+
+5.Publication Titles: ACM TRANSACTIONS ON GRAPHICS
+
+6.abstract： Current AR systems only track sparse geometric features but do not compute depth for all pixels. For this reason, most AR effects are pure overlays that can never be occluded by real objects. We present a novel algorithm that propagates sparse depth to every pixel in near realtime. The produced depth maps are spatio-temporally smooth but exhibit sharp discontinuities at depth edges. This enables AR effects that can fully interact with and be occluded by the real scene. Our algorithm uses a video and a sparse SLAM reconstruction as input. It starts by estimating soft depth edges from the gradient of optical flow fields. Because optical flow is unreliable near occlusions we compute forward and backward flow fields and fuse the resulting depth edges using a novel reliability measure. We then localize the depth edges by thinning and aligning them with image edges. Finally, we optimize the propagated depth smoothly but encourage discontinuities at the recovered depth edges. We present results for numerous real-world examples and demonstrate the effectiveness for several occlusion-aware AR video effects. To quantitatively evaluate our algorithm we characterize the properties that make depth maps desirable for AR applications, and present novel evaluation metrics that capture how well these are satisfied. Our results compare favorably to a set of competitive baseline algorithms in this context.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000365463500006
+
+2.Title: Arctic Ocean Bathymetry: A Necessary Geospatial Framework
+
+3.Keywords:
+bathymetry
+Arctic Ocean
+mapping
+oceanography
+tectonics
+DEEP-WATER
+SEA
+RELEASE
+SYSTEM
+GAS
+
+4.Year: 2015
+
+5.Publication Titles: ARCTIC
+
+6.abstract： Most ocean science relies on a geospatial infrastructure that is built from bathymetry data collected from ships underway, archived, and converted into maps and digital grids. Bathymetry, the depth of the seafloor, besides having vital importance to geology and navigation, is a fundamental element in studies of deep water circulation, tides, tsunami forecasting, upwelling, fishing resources, wave action, sediment transport, environmental change, and slope stability, as well as in site selection for platforms, cables, and pipelines, waste disposal, and mineral extraction. Recent developments in multibeam sonar mapping have-so dramatically increased the resolution with which the seafloor can be portrayed that previous representations must be considered obsolete. Scientific conclusions based on sparse bathymetric information should be re-examined and refined. At this time only about 11% of the Arctic Ocean has been mapped with multibeam; the rest of its seafloor area is portrayed through mathematical interpolation using a very sparse depth-sounding database. In order for all Arctic marine activities to benefit fully from the improvement that multibeam provides, the entire Arctic Ocean must be multibeam-mapped, a task that can be accomplished only through international coordination and collaboration that includes the scientific community, naval institutions, and industry.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000342435800006
+
+2.Title: A new closed loop method of super-resolution for multi-view images
+
+3.Keywords:
+Mixed-resolution multi-view images
+Super-resolution
+Depth estimation
+
+4.Year: 2014
+
+5.Publication Titles: MACHINE VISION AND APPLICATIONS
+
+6.abstract： In this paper, we propose a closed loop method to resolve the multi-view super-resolution problem. For the mixed-resolution multi-view case, where the input is one high-resolution view along with its neighboring low-resolution views, our method can give the super-resolution results and obtain a high-quality depth map simultaneously. The closed loop method consists of two parts: part I, stereo matching and depth maps fusion; and part II, super-resolution. Under the guidance of the estimated depth information, the super-resolution problem can be formulated as an optimization problem. It can be solved approximately by a three-step method, which involves disparity-based pixel mapping, nonlocal construction and final fusion. Based on the super-resolution results, we can update the disparity maps and fuse them into a more reliable depth map. We repeat the loop several times until obtaining stable super-resolution results and depth maps simultaneously. The experimental results on public dataset show that the proposed method can achieve high-quality performance at different scale factors.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000344369200029
+
+2.Title: Efficient Depth Propagation for Constructing a Layered Depth Image from a Single Image
+
+3.Keywords:
+
+4.Year: 2014
+
+5.Publication Titles: COMPUTER GRAPHICS FORUM
+
+6.abstract： In this paper, we propose an interactive technique for constructing a 3D scene via sparse user inputs. We represent a 3D scene in the form of a Layered Depth Image (LDI) which is composed of a foreground layer and a background layer, and each layer has a corresponding texture and depth map. Given user-specified sparse depth inputs, depth maps are computed based on superpixels using interpolation with geodesic-distance weighting and an optimization framework. This computation is done immediately, which allows the user to edit the LDI interactively. Additionally, our technique automatically estimates depth and texture in occluded regions using the depth discontinuity. In our interface, the user paints strokes on the 3D model directly. The drawn strokes serve as 3D handles with which the user can pull out or push the 3D surface easily and intuitively with real-time feedback. We show our technique enables efficient modeling of LDI that produce sufficient 3D effects.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000271952800012
+
+2.Title: Amundsen Sea Bathymetry: The Benefits of Using Gravity Data for Bathymetric Prediction
+
+3.Keywords:
+Altimetry
+Arctic regions
+gravity measurement
+satellites
+sea floor
+terrain mapping
+ANTARCTIC ICE-SHEET
+MARINE GRAVITY
+EXPERIMENTAL ISOSTASY
+FIELD
+
+4.Year: 2009
+
+5.Publication Titles: IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING
+
+6.abstract： Bathymetric charts are essential for modeling oceanic processes, yet, in remote areas, direct measurements of seafloor depth are often scarce. It is possible to augment sparse depth soundings with dense satellite-derived gravity data to provide additional bathymetric detail in regions devoid of sounding data. We demonstrate this method by using marine gravity derived from the European Remote Sensing (ERS-1) satellite altimeter, combined with depth soundings, to form a bathymetric prediction of the Amundsen Sea, West Antarctica. We estimate the root mean square error of depth estimates at unsurveyed locations in our solution to be similar to 120 m. We use a Monte Carlo method to assess the value of gravity as a bathymetric predictor in sparsely surveyed regions by comparing our solution to predictions formed from depth soundings alone. When less than similar to 11% of 10-km grid cells contain depth soundings, inclusion of gravity data improves the depth accuracy of the solution by up to 17%, as compared to a minimum curvature surface interpolation of the depth soundings alone. When depth data are sparse, our gravity-derived prediction reveals additional short-wavelength bathymetric features, such as troughs on the continental shelf, which are not resolved by interpolations of the depth soundings alone.
+
+---------------------------------------------------------------
+

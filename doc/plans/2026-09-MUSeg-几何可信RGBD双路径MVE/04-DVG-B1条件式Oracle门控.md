@@ -1,8 +1,8 @@
-# MUSeg `DVG-B1-oracle-gsa-v1`：Oracle GSA 深度门控基础设计
+# MUSeg `DVG-B1-oracle-gsa-v1`：Oracle GSA 深度门控条件式计划
 
-> **文档角色：** 条件式后继子计划；基础设计版本，尚未进入实现或运行授权。
-> **计划状态：** 基础设计完成；代码修改、GPU 运行、训练和 official test 均未授权。
-> **形成或核验时点：** 2026-09-09 08:48 UTC。
+> **文档角色：** 条件式后继子计划；项目内实现锚点已核验，外部参考门禁尚未冻结。
+> **计划状态：** 项目内实现锚点已补齐；暂停于外部参考冻结门禁；代码和运行仍未授权。
+> **形成或核验时点：** 2026-09-10 08:52 UTC。
 > **实时入口：** [`MUSeg-current-status.md`](../../main/MUSeg-current-status.md)。
 > **研究选择：** [`MUSeg-open-decisions.md`](../../main/MUSeg-open-decisions.md)。
 > **上级方向：** [`00-总方向规划.md`](./00-总方向规划.md)。
@@ -52,6 +52,20 @@ B 设计优先复用 v3 的已核验开发证据，避免重新制造一套无�
 - **统计单位：** location group 是相关性边界；同一组内的全部图像保留配对结构；
 - **官方测试集：** official test 继续 `sealed_unread`，protocol 必须写明 `official_test_included=false`。
 
+### 3.1 已可直接复用的 evaluator 与证据骨架
+
+项目内现有实现已经覆盖下列输入、几何和审计职责，B1 不再为这些内容另造一条链：
+
+- 原始 `Depth16` corruption mask、`clean`/`boundary-q25`/`boundary-q50`/`boundary-q75`/`nonboundary-q50` 五个 condition，以及 mask 的确定性、嵌套、数量和 SHA-256；
+- 五个尺度的原图/水平翻转，共 10 个 view；RGB、Depth 与后续 Oracle mask 必须共享同一 view 几何；
+- 仅在右侧和底部 padding 到 32 的倍数，flip view 的 logits 逆翻转，并恢复到原始 Label 网格；
+- 10 个 view 的 FP32 pre-softmax logits 算术平均；
+- checkpoint `strict=True` 加载；
+- q=0 时 corruption 后量化 Depth 数组与生产 Depth8 的数组级完全等价；
+- finite、输出 shape、原始网格恢复和原子 JSON 写入组成的 preflight 框架。
+
+上述复用只说明现有 evaluator 和输入证据链可承接 B1；未来 gate-specific 的 token reliability、pairwise gate 和 no-op 输出等价仍须按本文门禁补充。
+
 B 与 baseline 的唯一研究变量是：是否在 GSA 内根据冻结的 corruption mask 抑制 depth geometry contribution。以下内容全部保持不变：RGB、受损 Depth 输入、Label、checkpoint、GSA 的 spatial contribution、五尺度翻转、logits 融合、metric grid、后处理和统计方法。
 
 ## 4. 三组最小比较
@@ -81,31 +95,129 @@ clean 条件同时作为“不应改变原模型”的控制。完整模态性�
 
 各 condition 的 corruption mask、样本范围和哈希必须沿用冻结 v3 证据；不得根据 B 结果重新定义 mask、改阈值、删组或增加剂量。
 
-## 6. Oracle 的基础实现方向
+## 6. 已核验的实现边界与唯一 gate 位置
 
-### 6.1 只改 GSA 的 depth contribution
+### 6.1 论文公式与当前 checkpoint 代码路径并不完全相同
 
-基础方案不做 logits 后处理，不混合 RGB-only 输出，不训练门控网络，也不做深度补全。它只在 DFormerv2 GSA 内部改变 depth geometry contribution 的权重或参与程度，同时保留 spatial contribution。
+DFormerv2 论文把每个 depth patch 的平均深度记为 $z_{ij}$，并以
 
-需要由后续代码审查和参考文献共同确认的实现点包括：
+$$
+D_{ij,i'j'} = |z_{ij}-z_{i'j'}|
+$$
 
-- depth geometry contribution 在当前实现中的准确张量位置；
-- 原始图像 mask 到四级 GSA 特征网格的传播规则；
-- 采用硬屏蔽、连续衰减还是其他最小形式；
-- 是否四个 GSA stage 均使用 mask；
-- mask 在 patch pooling、下采样和翻转 view 下的对应关系。
+构造 depth relationship；论文文字说明用 average pooling 得到四级 depth patch，并把 GSA 写成
 
-这些内容现在只冻结“必须回答的问题”，不提前把可能错误的张量公式写死。正式运行前必须把其中一种实现写入新 protocol；若无法证明只改变 depth contribution，则终点为 `protocol-blocked`。
+$$
+\operatorname{GeoAttn}(Q,K,V,G)
+=
+\left(\operatorname{Softmax}(QK^T)\odot\beta^G\right)V.
+$$
 
-### 6.2 推荐的最小实现原则
+当前项目与作者原始保留副本的实际代码则在每个 `GeoPriorGen.forward` 中先执行 `F.interpolate(..., mode="bilinear", align_corners=False)`，再把空间衰减和深度衰减作为 softmax 前的可加 bias。其真实 forward 语义为
 
-在后续细化时优先遵守以下原则：
+$$
+\operatorname{Attention}
+=
+\operatorname{Softmax}\left(QK^T+w_sP_s+w_dP_d\right)V.
+$$
 
-1. 先选一种最简单、可逐项核对的 Oracle 形式，不并行搜索软门控、硬门控、stage 组合和多个阈值；
-2. 只允许一个新自由度：mask 对 depth contribution 的作用；
-3. 所有 mask resize、pooling、翻转和 stage 传播规则在看模型结果前冻结；
-4. q=0 或全可信 mask 时，输出必须与原始模型达到预先定义的数值等价；
-5. 不引入 RGB-only checkpoint、临时训练、补全算法、额外质量分数或新的后处理。
+当前 `models/encoders/DFormerv2.py` 与作者保留副本 `D:/0Project/origin/DFormer/models/encoders/DFormerv2.py` 已重新核验为完整文件一致：两个文件的 SHA-256 均为 `2b0b77ea401d56993aac915883bcb43035927ec991501dba94fb029901009332`，完整差异检查退出码为 `0`。因此，average pooling 与 bilinear interpolation 的差异属于作者论文叙述和作者发布代码之间的上游差异，不是 MUSeg/MVE 适配，也不是当前项目的意外修改。B1 的真实基线语义必须以 epoch 420 checkpoint 对应的 bilinear 代码路径为准；论文公式只用于解释机制，不得替换当前 forward。
+
+### 6.2 GSA contribution、四级结构与关键 shape 已由代码关闭
+
+`GeoPriorGen.forward` 已经把两类 contribution 暴露在加和之前：
+
+- spatial contribution 是 `self.weight[0]` 乘以位置 decay，即 `mask`、`mask_h`、`mask_w` 对应的空间项；
+- depth geometry contribution 是 `self.weight[1]` 乘以 `mask_d`、`mask_d_h`、`mask_d_w`。
+
+DFormerv2-S 的实际配置已经固定为：
+
+- `embed_dims=[64,128,256,512]`；
+- `depths=[3,4,18,4]`；
+- `num_heads=[4,4,8,16]`；
+- `heads_ranges=[4,4,6,6]`。
+
+四个 stage 的 attention 结构为：Stage 0–2 使用 H/W 分解式 GSA，Stage 3 使用 Full GSA。设 batch 为 $B$，head 数为 $N$，当前特征网格为 $H\times W$，且 $L=HW$：
+
+- 分解式 H depth contribution 为 `[B,N,W,H,H]`；对应 spatial contribution 从 `[N,H,H]` 广播到 batch 和 $W$ 轴；待冻结的 H pairwise gate 形状必须为 `[B,1,W,H,H]`，并仅在 head 轴广播；
+- 分解式 W depth contribution 为 `[B,N,H,W,W]`；对应 spatial contribution 从 `[N,W,W]` 广播到 batch 和 $H$ 轴；待冻结的 W pairwise gate 形状必须为 `[B,1,H,W,W]`，并仅在 head 轴广播；
+- Full GSA 的 spatial contribution 为 `[N,L,L]`，depth contribution 与合成 geometry mask 为 `[B,N,L,L]`；待冻结的 Full pairwise gate 形状必须为 `[B,1,L,L]`。
+
+前三个 stage 分别先做 W attention、再做 H attention；第四个 stage 把合成后的 geometry mask 加到 `[B,N,L,L]` 的 query-key logits 后再 softmax。不同测试尺度的 $H\times W$ 由该 view 的右侧/底部 padding 后尺寸按 $1/4、1/8、1/16、1/32$ 产生，不写死为单一输入分辨率。
+
+### 6.3 唯一合规的 gate 插入点
+
+唯一合规位置是 `GeoPriorGen.forward` 中 spatial contribution 与 depth geometry contribution 相加之前。目标形式只能是：
+
+$$
+M = w_sP_s + w_d\left(R\odot P_d\right),
+$$
+
+分解式 GSA 则分别为：
+
+$$
+M_h = w_sP_{s,h} + w_d\left(R_h\odot P_{d,h}\right),
+$$
+
+$$
+M_w = w_sP_{s,w} + w_d\left(R_w\odot P_{d,w}\right).
+$$
+
+这里 $R$、$R_h$ 和 $R_w$ 是尚待外部参考冻结的 pairwise gate。它们只乘 depth contribution；`self.weight[0]` 对应的 spatial contribution、Q/K/V、LEPE、FFN 和其他前向语义保持不变。
+
+以下位置明确禁止作为 gate：
+
+- 合成后的 `mask`、`mask_h` 或 `mask_w`：此时会同时修改 spatial contribution；
+- `qk_mat + mask`、`qk_mat_h + mask_h` 或 `qk_mat_w + mask_w` 之后：此时 depth 与 spatial 已不可分；
+- 整个 `geo_prior`：会同时移除 spatial decay，并错误波及与 Depth 无关的 rotary position encoding；
+- 原始 Depth 输入 `x_e`：这会改变输入本身，不再是只门控既有 depth geometry contribution；
+- `sin/cos` rotary position encoding：它只由 token 位置生成，不是 depth contribution；
+- decoder 或最终 logits：这属于输出后处理，不是 GSA depth-only gate。
+
+Attention 类不需要直接接收 Oracle mask；它继续只消费已经合成的 geometry prior。
+
+### 6.4 最小参数传递链与四级共同 mask 边界
+
+未来若获代码授权，最小接口是增加可选参数 `oracle_corruption_mask=None`，并只沿以下链路传递：
+
+`EncoderDecoder.forward/encode_decode` → `dformerv2.forward` → `BasicLayer.forward` → `RGBD_Block.forward` → `GeoPriorGen.forward`。
+
+四个 stage 以及各 stage 内的所有 block 都接收同一个 **view-specific Oracle mask**。这里的“同一个”表示它们共享该 view 上同一份原始 corruption 事实，而不是复用一张已经 resize 到某一级的 token mask：
+
+1. 原始 `Depth16` corruption mask 必须使用与 RGB/Depth 相同的 scale 形成该 view；
+2. flip view 沿宽度轴同步翻转，且只在右侧/底部 padding；padding 区不记为 corruption；
+3. Stage 0–3 分别根据自己的 $H\times W$，从这份 view-specific mask 确定性聚合 token reliability；
+4. 不允许为不同 stage 另定义不同 corruption 语义，也不允许根据模型结果选择某些 stage 才接收 mask。
+
+像素 mask 到 token reliability 的聚合规则，以及 token reliability 到 $R$、$R_h$、$R_w$ 的提升规则仍未关闭，见第 10 节 A、B。
+
+### 6.5 no-op 必须走原始 forward 旁路
+
+no-op 等价不再依赖外部浮点容差文献。`oracle_corruption_mask=None`、`clean`、q=0 和全可信 mask 必须先统一归一化到原始未修改 forward 旁路：不生成 token reliability、不构造 pairwise gate，直接执行当前 spatial/depth 合成表达式。
+
+后续获授权实现时，必须用 `torch.equal` 同时检查：
+
+1. 原始模型与 `oracle_corruption_mask=None` 的逐 stage 输出完全相等；
+2. clean、q=0、全可信 mask 与同一旁路的逐 stage 输出完全相等；
+3. 上述各组最终 FP32 pre-softmax logits 完全相等。
+
+如果只有放宽绝对或相对浮点容差才能通过，说明实现没有进入同一原始旁路，应先修正实现，不能通过扩大 tolerance 解决。
+
+### 6.6 项目内证据入口
+
+本节结论的主要项目内证据为：
+
+- `models/encoders/DFormerv2.py:173-212`：bilinear Depth resize、H/W 与 Full geometry prior 的 spatial/depth 加和位置；
+- `models/encoders/DFormerv2.py:247-264`、`314-321`：分解式和 Full GSA 把合成 mask 加到 query-key logits 后 softmax 的真实顺序；
+- `models/encoders/DFormerv2.py:414-425`、`471-484`、`620-658`：block/layer/四级调用、前三层分解/末层 Full 和 DFormerv2-S 配置；
+- `models/builder.py:226-252`：`EncoderDecoder.encode_decode/forward` 当前入口；
+- `tools/evaluate_museg_checkpoint.py:93-214`、`289-304`：五尺度翻转、padding、逆翻转、原图 logits 融合与 strict checkpoint load；
+- `tools/mve/dvc_a1_core.py:95-190`：原始 `Depth16` corruption mask、五 condition、确定性哈希和置零量化；
+- `tools/mve/run_dvc_a1.py:448-574`：q=0 输入数组等价、finite、shape 和 JSON preflight；
+- `liu-test-exp/方案1/DVG-B1-必须实现细节靶向检索步骤与WOS检索式.md`：完整实现定位、原始副本哈希核对和剩余 A/B 检索字段；
+- 本地 DFormerv2 论文第 3.1–3.3 节：论文 average pooling、GSA 公式和四级金字塔文字定义。
+
+这些入口关闭的是当前代码事实；A、B、C 的选择仍必须按第 10 节处理。
 
 ## 7. 指标与统计的基础设计
 
@@ -137,38 +249,51 @@ clean 条件同时作为“不应改变原模型”的控制。完整模态性�
 - 报告 Oracle 相对 corrupted baseline 的点估计和双侧 95% percentile interval；
 - 六个 mine 只作描述性分层，不当作六个独立样本。
 
-具体的 `oracle-supported` 效应量、clean 不劣容忍度和是否需要恢复比例指标，等后续参考文献补充、GSA 代码核对和 protocol 细化后，在正式运行前一次性冻结。没有冻结前不运行完整评价，也不根据结果回填门槛。
+具体的 `oracle-supported` 最小实际效应量、clean 不劣容忍度，以及 Boundary IoU 与 mIoU 是否足够或还需额外指标，仍属于第 10 节 C 的正式科学裁决冻结项。现有项目规则和已引参考不能直接给出这些数值或指标选择；用户需要补充直接参考文献，或明确把它们作为项目预注册选择。没有冻结前不物化 protocol、不运行完整评价，也不根据结果回填门槛。
 
-## 8. 基础门禁和合法终点
+## 8. 门禁状态、未来验证顺序与合法终点
 
-### 8.1 实现前门禁
+### 8.1 已由项目内证据关闭的门禁
 
-正式实现前至少确认：
+以下问题不再列为待确认，也不再扩大外部检索。这里“已关闭”表示当前代码事实已经核验，或未来实现的唯一接口/验收边界已经确定；它不表示 Oracle gate 代码已经实现，也不表示相关运行检查已经通过：
 
-1. `DVC-A1-valdev-boundary-zero-v3-bgcontext` 的完整结果、mask manifest 和 condition 文件身份一致；MUSeg 数据与地下 RGB-D 任务背景可参考 [RE326]，但不从论文重新推导本次样本范围；
-2. GSA 的 spatial/depth contribution 可以在代码中明确分离；DFormerv2 的几何先验机制是这一隔离的直接方法依据。[PR070]
-3. mask 能从原始 Label/Depth 网格稳定传播到各 GSA stage；输入对齐、投影与传感器误差必须先于科学比较完成审计。[RE095]
-4. clean 与 q=0 门控输出满足预先定义的等价要求；
-5. Oracle 不依赖 RGB-only checkpoint、额外训练或结果后参数选择；
-6. `official_test_included=false`，且执行清单仍只来自冻结的 218 张图/138 个组。
+1. **GSA contribution 是否可分离：已关闭。** spatial contribution 与 depth geometry contribution 可在 `GeoPriorGen.forward` 加和前独立定位；唯一 gate 点已经固定。
+2. **四级 attention 结构：代码事实已关闭。** Stage 0–2 使用 H/W 分解式 GSA，Stage 3 使用 Full GSA；“四级都接收同一 view-specific Oracle mask”是已冻结但尚未实现、尚未运行验证的设计边界。
+3. **最小参数链：接口设计已关闭。** Oracle mask 未来只需沿 `EncoderDecoder` → backbone → layer → block → `GeoPriorGen` 传递，Attention 不直接接收 mask；当前代码尚未增加该参数。
+4. **输入和 evaluator 骨架：可复用。** 原始 `Depth16` mask、五个 condition、确定性/嵌套/数量/哈希、五尺度翻转 10 view、右侧/底部 padding、logits 逆翻转、原始 Label 网格恢复、FP32 pre-softmax 平均均已有项目内实现。
+5. **工程 preflight 骨架：可复用。** strict checkpoint load、q=0 输入数组等价、finite、shape 和 JSON 落盘均已有入口；未来只增加 gate-specific 字段。
+6. **no-op 判据：验收规则已关闭。** `None`、clean、q=0、全可信 mask 必须统一进入原始 forward 旁路，逐 stage 输出和最终 pre-softmax logits 均以 `torch.equal` 为通过条件；该旁路尚未实现，也未运行等价检查。
 
-### 8.2 最小验证顺序
+### 8.2 仍为 `reference-blocked` 的冻结门禁
 
-在获得后续实现批准后，按以下顺序推进：
+以下三组内容在补充直接参考文献或取得用户明确预注册选择前保持阻塞：
 
-1. 先做代码级 GSA contribution 定位和 mask 尺度传播小例；
-2. 再做 clean/q=0 等价检查；
-3. 再做 1–2 张图的 clean、boundary-q75 和 nonboundary-q50 preflight；
-4. preflight 通过后，另行取得完整本地 GPU paired development evaluation 批准；
-5. 完整评价结束后才执行 location-group bootstrap 和预注册裁决。
+- **A：像素 corruption mask → 四级 token reliability。** 包括 view-scale resize、Stage 0–3 聚合算子、部分受损 patch 语义，以及与作者 bilinear Depth resize 的对应关系。
+- **B：单 token reliability → pairwise depth contribution gate。** 包括 Full/H/W 三种 shape 的公式、query/key 组合、对称性，以及 hard gate 或 continuous attenuation。
+- **C：正式科学裁决。** 包括 `oracle-supported` 的最小实际效应量、clean 不劣容忍度，以及 Boundary IoU 与 mIoU 之外是否确需额外指标。
 
-### 8.3 合法终点
+A、B、C 任一未冻结时，不得物化 `DVG-B1-oracle-gsa-v1` protocol，不得开始代码实现或 preflight。
 
-- `protocol-blocked`：无法隔离 depth contribution、mask 传播不闭合、clean 等价失败、condition 或哈希不一致；保留现场，修正后建立新的 protocol identity；
+### 8.3 冻结后仍需单独授权的最小验证顺序
+
+只有 A、B、C 全部关闭并由用户单独批准代码实现后，才按以下顺序推进：
+
+1. 实现可选 Oracle 参数链和 `GeoPriorGen.forward` depth-only gate，不修改其他模型语义；
+2. 先做 `None`、clean、q=0、全可信 mask 的逐 stage 与最终 logits `torch.equal` 等价检查；
+3. 再做 1–2 张图的 `clean`、`boundary-q75` 和 `nonboundary-q50` preflight，核对十个 view、四级 shape、finite、原始 Label 网格和 JSON；
+4. preflight 通过后，仍需另行取得完整本地 GPU paired development evaluation 授权；
+5. 完整评价产物身份和配对完整性通过后，才执行 location-group bootstrap 与预注册裁决。
+
+本次文档工作不执行上述任何一步。
+
+### 8.4 合法终点
+
+- `reference-blocked`：A、B 或 C 尚未冻结；准确恢复点是第 10 节对应待填字段，不进入 protocol 或代码；
+- `protocol-blocked`：未来冻结后仍无法只隔离 depth contribution、mask 传播不闭合、no-op 完全等价失败、condition 或哈希不一致；保留现场，若数值语义改变则建立新 protocol identity；
 - `stop`：实现错误、输出非有限、输入错位或证据链不完整；不看科学结果补洞；
-- `oracle-not-supported`：实现和证据链有效，但 Oracle 没有预先冻结的净收益；停止该门控方向；
-- `oracle-supported`：实现和证据链有效，Oracle 在预先冻结的条件下有稳定净收益；只允许继续设计可学习质量信号，不自动授权训练；
-- `inconclusive`：结果方向不稳定或区间不足以裁决；只按 protocol 允许的诊断解释，不追加结果导向的条件和阈值。
+- `oracle-not-supported`：实现和证据链有效，但 Oracle 没有达到预先冻结的净收益；停止该门控方向；
+- `oracle-supported`：实现和证据链有效，Oracle 在预先冻结条件下有稳定净收益；只允许继续设计质量信号，不自动授权训练；
+- `inconclusive`：结果方向不稳定或区间不足以裁决；只按 protocol 允许的诊断解释，不追加结果导向的条件、stage 组合和阈值。
 
 ## 9. 明确不做的事情
 
@@ -183,17 +308,90 @@ clean 条件同时作为“不应改变原模型”的控制。完整模态性�
 - 不引入三维绝对误差、risk–coverage、高置信阈值或真实矿下部署结论；低照矿山可靠感知文献 [RE049] 只作为任务可靠性背景，不扩大本轮指标或安全主张；
 - 不在参考文献、实现细节和数值门槛尚未补齐前运行完整 GPU 评价。
 
-## 10. 后续细化所需材料
+## 10. `reference-blocked` 项与待补参考文献
 
-后续用户提供参考文献后，优先补齐以下内容：
+本节只保留项目内证据无法唯一决定的 A、B、C。GSA contribution、四级结构、插入点、参数链、evaluator、q=0 输入、finite/shape/JSON 和 no-op 判据均已关闭，不再作为“后续所需材料”。
 
-1. DFormerv2 GSA 中 spatial 与 depth geometry contribution 的准确数学和代码对应；
-2. mask 传播到 patch-level geometry prior 的合理方式；
-3. Oracle 门控属于机制上限还是已有方法可直接对应的实验设计；
-4. Boundary IoU 与 mIoU 之外是否需要增加任务相关指标；
-5. `oracle-supported` 所需的最小效应量、clean 不劣标准和配对统计说明。
+### A. 原始像素 corruption mask 到四级 token reliability
 
-补齐这些内容后，再生成独立 protocol template 和执行清单。当前文件只完成基础设计，不构成代码修改、GPU、训练、云资源或 official test 授权。
+**所需参考文献类型：** 在层级 RGB-D、深度引导 attention、稀疏/无效深度或多尺度 confidence propagation 中，明确给出 validity/confidence/corruption mask 下采样代码或伪代码的直接来源；优先要求官方仓库、固定 commit、文件和函数。
+
+**参考文献必须回答的精确问题：**
+
+1. 原始 `Depth16` 布尔 corruption mask 怎样随五尺度 view resize；flip 和右侧/底部 padding 后如何保持对齐？
+2. Stage 0–3 分别使用 nearest、area/average、max/any-invalid，还是连续有效比例？算子参数是什么？
+3. 一个 patch 只有部分像素受损时，token reliability 是二值、有效比例、置信均值还是其他定义？
+4. corrupted Depth 在 evaluator 和 `GeoPriorGen.forward` 中都采用 bilinear resize 时，mask/reliability 怎样覆盖或解释双线性插值造成的受损影响扩散？
+5. 全可信输入如何保证每个 view、每个 stage 都保持全可信并进入 no-op 旁路？
+
+**WOS 靶向检索式：**
+
+```text
+TS=((("depth validity mask" OR "depth confidence map" OR "depth reliability map" OR "corruption mask") NEAR/5 (downsampl* OR pool* OR resiz* OR "validity propagation" OR "confidence propagation")) AND ("RGB-D" OR depth OR multimodal) AND ("hierarchical transformer" OR "feature pyramid" OR "multi-scale attention" OR "token mask" OR "partial validit*"))
+```
+
+**待填字段：**
+
+- view-scale mask/reliability 变换：`<待用户补充参考后冻结>`；
+- Stage 0–3 聚合算子及参数：`<待用户补充参考后冻结>`；
+- 部分受损 patch 的 reliability 定义：`<待用户补充参考后冻结>`；
+- 与 bilinear Depth resize 的对齐解释：`<待用户补充参考后冻结>`；
+- 论文、DOI、官方仓库、commit、文件、函数、输入输出 shape 和许可证：`<待补>`。
+
+**关闭条件：** 只保留一套从原始 mask 到每个 view、每个 stage token reliability 的确定性规则；不得在查看 B1 结果后选择插值、pooling 或阈值。
+
+### B. 单 token reliability 到 pairwise depth contribution gate
+
+**所需参考文献类型：** 明确把局部 depth validity/confidence 作用到 pairwise attention bias、geometry prior 或 query-key 关系的直接实现；必须能同时解释 Full attention 和轴分解 attention，优先要求官方代码。
+
+**参考文献必须回答的精确问题：**
+
+1. Full GSA 的单 token reliability 怎样提升为 `[B,1,L,L]` gate？
+2. 分解式 H gate 怎样形成 `[B,1,W,H,H]`，分解式 W gate 怎样形成 `[B,1,H,W,W]`？
+3. query 和 key 两端采用乘积、最小值、query-only、key-only，还是其他组合；该组合是否需要保持对称？
+4. 部分可信 token 使用 hard gate 还是 continuous attenuation；若连续衰减，数值范围和恒等点是什么？
+5. gate 全为 1 时如何保证只恢复原 depth contribution，并且 spatial contribution 完全不变？
+
+**WOS 靶向检索式：**
+
+```text
+TS=((("depth confidence" OR "depth reliability" OR "validity mask" OR "corruption mask") NEAR/5 ("attention bias" OR "geometry prior" OR "pairwise attention" OR "masked attention")) AND ("RGB-D" OR "depth-guided" OR multimodal) AND ("pairwise reliabilit*" OR "query-key mask*" OR "confidence gate*" OR "multiplicative mask*" OR "attention bias mask*"))
+```
+
+**待填字段：**
+
+- Full gate 公式 `[B,1,L,L]`：`<待用户补充参考后冻结>`；
+- H gate 公式 `[B,1,W,H,H]`：`<待用户补充参考后冻结>`；
+- W gate 公式 `[B,1,H,W,W]`：`<待用户补充参考后冻结>`；
+- query/key 组合与对称性理由：`<待用户补充参考后冻结>`；
+- hard 或 continuous 选择及参数：`<待用户补充参考后冻结>`；
+- 论文、DOI、官方仓库、commit、文件、函数、输入输出 shape 和许可证：`<待补>`。
+
+**关闭条件：** 得到一套同时映射 Full 与 H/W 分解式 GSA、只乘 depth contribution、全可信恒等且不改变 spatial contribution 的唯一规则。
+
+### C. 正式科学裁决的预注册选择
+
+**所需参考文献或用户决定：** 现有项目统计骨架可以复用 location-group paired bootstrap，但已有参考没有直接给出 B1 的实际效应量、不劣界值或额外指标要求。用户需补充与 RGB-D 分割退化鲁棒性、Oracle/可靠性门控或 clean performance retention 接近的直接参考；若没有足够直接的参考，也可以明确授权把下列项目作为项目预注册选择，但本计划不代替用户填写数值。
+
+**参考文献或用户决定必须回答的精确问题：**
+
+1. `oracle-supported` 至少需要多大的 Boundary IoU 和/或 mIoU 实际净增益；判据使用点估计、95% 区间下界，还是二者联合？
+2. clean 条件允许的最大退化是多少；不劣判据作用于 Boundary IoU、mIoU 还是二者？
+3. Boundary IoU 与 mIoU 是否已足以裁决；若增加指标，该指标回答什么独立问题，且为何不能由现有两项覆盖？
+4. 如果没有文献给出可迁移常数，是否由用户明确选择项目级门槛，并把“项目预注册选择”与“文献标准”分开表述？
+
+**待填字段：**
+
+- `oracle-supported` 最小实际效应量及区间规则：`<待用户补充参考或明确选择>`；
+- clean 不劣容忍度及适用指标：`<待用户补充参考或明确选择>`；
+- Boundary IoU/mIoU 之外的额外指标：`<待用户决定：不增加，或给出名称、职责和直接依据>`；
+- 对应论文、DOI、使用段落/表格/补充协议，或用户预注册决定记录：`<待补>`。
+
+**关闭条件：** 在任何 B1 完整结果生成前，将实际效应量、clean 不劣和指标集合一次性冻结；不得根据观察结果补门槛、换主指标或追加更有利的指标。
+
+### 10.1 准确恢复点
+
+当前准确恢复点是：用户仅补充 A、B、C 所需的直接参考文献，或对 C 明确作出项目预注册选择；随后只做文献—代码锚点核对并填写本节待填字段。A、B、C 全部关闭前，不创建 protocol，不修改代码，不运行 preflight、GPU、训练、云资源或 official test。
 
 ## 11. 本设计保留的相关论文编号
 

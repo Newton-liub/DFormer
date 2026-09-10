@@ -1,0 +1,700 @@
+﻿1.WOS-id: WOS:001772868600015
+
+2.Title: BurnDC: A Progressive Propagation Framework for Low Coverage Depth Completion
+
+3.Keywords:
+Propagation
+Modeling
+Laser radar
+Solids
+Measurement
+Distance measurement
+Robots
+Pixel
+Poles and zeros
+Image sensors
+RGB-D perception
+deep learning for visual perception
+depth completion
+solid-state LiDAR
+IMAGE
+
+4.Year: 2026
+
+5.Publication Titles: IEEE ROBOTICS AND AUTOMATION LETTERS
+
+6.abstract： The growing adoption of compact and cost-effective solid-state LiDARs has greatly advanced robotics. However, their inherently limited Field-of-View (FOV) hinders their application in tasks requiring wide-range depth perception. To overcome this limitation, we introduce the Low Coverage Depth Completion (LCDC) task, which aims to generate a full-scene depth map from a low coverage sparse depth map and a corresponding RGB image, and propose a tailored framework named BurnDC. BurnDC progressively expands the propagation frontier around reliable depth anchors via Progressive Depth Burn (PDB) and utilizes Weighted Ring Attention (WRA) to inject stable geometric context into boundary regions, achieving a controlled refinement and completion of the entire depth map. To evaluate LCDC, we construct a real-world solid-state LiDAR based benchmark, LC-TIERS, and simulate low coverage settings in NYUv2 and KITTI. Experimental results demonstrate that BurnDC significantly outperforms existing methods in low coverage scenarios, with an RMSE reduction of 10-20% over top competitors. Our work provides a promising solution for unlocking the full potential of solid-state LiDARs in various applications.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001721027600001
+
+2.Title: 3DLaneDT: 3D lane detection via reliable depth and temporal fusion for autonomous driving
+
+3.Keywords:
+Deep learning
+Depth estimation
+3D Lane detection
+Temporal fusion
+3D Anchors
+SSM
+IMAGE
+
+4.Year: 2026
+
+5.Publication Titles: EXPERT SYSTEMS WITH APPLICATIONS
+
+6.abstract： Accurate 3D lane detection remains a critical challenge for autonomous vehicles, particularly in complex scenarios involving slopes and occlusions. While multimodal and temporal fusion paradigms have succeeded in general object detection, directly applying them to 3D lane detection is limited by the sparse and slender nature of lane markings. To address these limitations, we propose 3DLaneDT, a robust framework tailored for 3D lane detection. Distinct from existing depth-aware methods with standard convolutions, we propose an Adaptive Depth Network (ADN) incorporating Adaptive Area Convolution (AAConv). This design dynamically adjusts to the sparsity of lane depth signals, integrating reliable geometric priors into the Transformer attention mechanism. Furthermore, unlike attention-based temporal fusion which suffers from quadratic complexity, we introduce a State Space Model (SSM)-based Temporal Propagation Module (TPM). This module efficiently models the continuous geometric evolution of sparse lane queries. Experimental results on OpenLane and Apollo datasets demonstrate that 3DLaneDT surpasses state-of-the-art methods in both accuracy and efficiency. Code is available at https://github.com/wzh506/code43DLaneDT.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001732647000010
+
+2.Title: UnsOcc: An Occupancy Grid-Based General Detection Network for Unstructured Scenes
+
+3.Keywords:
+Three-dimensional displays
+Semantics
+Laser radar
+Measurement uncertainty
+Cameras
+Point cloud compression
+Uncertainty
+Feature extraction
+Accuracy
+Data mining
+Instrumentation and measurement (I&M)
+multimodal perception
+semantic segmentation
+unstructured scenes
+visual-based measurement (VBM)
+
+4.Year: 2026
+
+5.Publication Titles: IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT
+
+6.abstract： A perception and understanding of dynamic situations is a critical task for autonomous driving, particularly in complex, unstructured environments such as open-pit mining sites, where targets exhibit a vast diversity of shapes and sizes. This article introduces UnsOcc, a novel occupancy grid network specifically designed to handle such challenging scenes. The method utilizes camera images and LiDAR point clouds as inputs. A dimension lifting module (DLM) first unifies these multimodal data into a consistent voxel space through depth uncertainty estimation and cross-attention mechanisms. Subsequently, a semantic assignment module (SAM) integrates contextual and semantic features from the images with the voxel queries, effectively aligning 3-D occupancy states with their semantic information. Furthermore, a local super-resolution (LSR) module is designed to enhance the resolution of highly attended voxels, while processing less critical areas more efficiently, thus striking an optimal balance between computational cost and detection accuracy. Validated on an unstructured site dataset, UnsOcc achieves a state-of-the-art performance of 61.64% mean intersection over union (mIoU), representing a significant 6.34% improvement over baseline methods, thereby providing an effective solution for detecting and categorizing diverse objects in unstructured sites. In addition, the network has been engineered for deployment, effectively enhancing the general obstacle detection capability of mining trucks. The data used in this article are available at http://www.sav-lab.com/
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001772873400016
+
+2.Title: CMNC-Net: A Cross-Modal Dual-Branch Network With Noise Awareness for Depth Completion in Transparent Scenes
+
+3.Keywords:
+Modeling
+Noise
+Measurement
+Grasping
+Training
+Architecture
+Computer architecture
+Modules (abstract algebra)
+Accuracy
+Visualization
+Cross-modality fusion
+depth completion
+lightweight network
+noise estimation
+uncertainty compensation
+vision-based measurement (VBM)
+
+4.Year: 2026
+
+5.Publication Titles: IEEE TRANSACTIONS ON INSTRUMENTATION AND MEASUREMENT
+
+6.abstract： Depth sensing in scenes containing transparent or semi-transparent objects remains a challenging problem for vision-based measurement (VBM) systems. Conventional depth sensors often produce incomplete measurements, noise contamination, and boundary distortions due to complex optical effects such as refraction and reflections, leading to increased measurement uncertainty and reduced reliability. To address these limitations, this article proposes CMNC-Net, a cross-modality and noise-aware completion network for robust depth reconstruction in transparent scenes. CMNC-Net adopts a lightweight dual-branch RGB-depth encoder-decoder architecture to jointly exploit complementary texture and geometric information across multiple scales. A cross-modality feature fusion module is designed to align RGB and depth representations at both spatial and semantic levels, enhancing structural consistency and shape fidelity. To explicitly handle measurement perturbations induced by transparency, a reliability-aware noise predictor is introduced to learn a latent reliability-aware noise prior from the input depth observations. Rather than directly regressing the ground-truth error map, this branch produces a scale-free auxiliary representation that is statistically associated with error-prone regions and is injected into the depth stream as reliability guidance. Furthermore, a residual attention refinement mechanism dynamically recalibrates feature responses to suppress specular noise and enhance valid geometric cues, enabling accurate boundary reconstruction. Extensive experiments on multiple transparent object datasets demonstrate that CMNC-Net achieves strong depth completion performance, with clear advantages on the TransCG benchmark and competitive generalization on ClearGrasp. These results indicate that the proposed approach provides a reliable and metrologically robust solution for vision-based 3-D measurement in complex transparent environments.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001641337600001
+
+2.Title: Fish mass estimation based on monocular depth estimation and instance segmentation
+
+3.Keywords:
+Fish mass measurement
+Monocular depth estimation
+Instance segmentation
+Vision transformer
+TRANSFORMER
+
+4.Year: 2026
+
+5.Publication Titles: ENGINEERING APPLICATIONS OF ARTIFICIAL INTELLIGENCE
+
+6.abstract： Accurate and non-invasive fish body mass estimation is essential for intelligent aquaculture. Existing monocular vision methods struggle to estimate the mass of freely swimming fish, while stereo vision is sensitive to environmental interference and computationally complex. To address these challenges, this study proposes a mass estimation method leveraging cross-modal cues from monocular depth estimation and instance segmentation, optimized for turbid water and occlusion in aquaculture scenarios. For depth estimation, a Dense Perception Enhanced Mixed Vision Transformer network is designed to fuse multi-scale features and enhance local details in blurry regions, while a gated Top-K unit suppresses low-confidence depth features and occlusion interference, reducing the absolute relative error by approximately 12.6%. For instance segmentation, a dual-branch network improves complementary perception of blurred features, and a spatial-enhanced dynamic head module achieves high-precision segmentation of densely packed fish, improving the mean average precision by approximately 2.76%. Experimental results demonstrate that the proposed method achieves superior performance compared to existing methods in both depth estimation and instance segmentation. In real aquaculture scenarios, it attains a mean absolute error of 0.0172, root mean square error of 0.0211, and coefficient of determination of 0.9624, validating its effectiveness as a reliable automated solution for intelligent aquaculture.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001763983200001
+
+2.Title: Dynamic Cross-Modal Modeling with an Ultra-Lightweight Architecture for Face Anti-Spoofing
+
+3.Keywords:
+face anti-spoofing
+dynamic cross-modal modeling
+multimodal fusion
+lightweight architecture
+
+4.Year: 2026
+
+5.Publication Titles: SENSORS
+
+6.abstract： The effectiveness of multimodal face anti-spoofing largely depends on the modeling of cross-modal relationships. However, most existing approaches rely on static fusion or implicitly learned feature aggregation, which assumes fixed modality importance, limiting its ability to capture reliability variations across different attack patterns. Under strict computational constraints, achieving effective dynamic cross-modal modeling remains a significant challenge. To address this issue, we propose an ultra-lightweight dynamic cross-modal framework for face anti-spoofing, with ultra-low parameters, FLOPs, latency, memory and high FPS for real-time edge inference. A compact feature extractor is constructed by enhancing ShuffleNetV2 with the Ghost-Generated Shuffle BlockA (GGS-BlockA), which significantly reduces redundant computation while maintaining high discriminative capability. On this basis, a Lightweight Cross-Modal Attention (LCMA) module performs sample-wise dynamic modality reweighting to capture reliability variations among RGB, Depth, and IR modalities. Furthermore, a Lightweight Cross-Modal Fusion (LCMF) module utilizes depth cues as stable guidance to improve cross-modal feature alignment and complementary representation. Experiments on the CASIA-SURF benchmark demonstrate that the proposed method achieves an Average Classification Error Rate (ACER) of 0.064% with only 0.14 M parameters and 0.0065 G FLOPs. At the strict threshold of TPR@FPR = 10(-4), a detection rate of 99.86% is obtained, demonstrating strong robustness and generalization capability under extremely low computational cost.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001858702300020
+
+2.Title: DGQ-YOLO: Depth-Guided Quality-Aware detection with Pseudo-Depth for aerial imagery
+
+3.Keywords:
+Aerial object detection
+UAV imagery
+Pseudo-depth-assisted detection
+Monocular depth estimation
+Reliability-sensitive fusion
+
+4.Year: 2026
+
+5.Publication Titles: JOURNAL OF KING SAUD UNIVERSITY COMPUTER AND INFORMATION SCIENCES
+
+6.abstract： Small, densely distributed, and occluded objects make UAV-view detection difficult because RGB-only detectors represent scene geometry only implicitly. Monocular pseudo-depth provides geometric cues without an additional sensor, but its derivation from RGB introduces local errors and estimator-dependent variation. We propose DGQ-YOLO, an RGB-dominant detector that introduces pseudo-depth at the backbone and neck. The Depth-Quality-Aware Adapter (DQAdapter) applies depth-conditioned spatial and channel gates through a zero-initialized residual path. The Consistency-Aware Geometric Feature Pyramid Network (CAGFPN) uses explicit RGB-depth discrepancy features to refine multi-scale representations. Across three random seeds on pseudo-depth-augmented VisDrone2019-DET, DGQ-YOLO-n improves test-set mAP50 from 25.54% to 27.89% and mAP50:95 from 14.07% to 15.64%. Controlled perturbation and gate-intervention experiments support reliability-sensitive modulation of the depth contribution. After dataset-specific retraining on UAVDT, DGQ-YOLO-n gains 2.14 mAP50:95 points over its RGB baseline. The added modules increase parameter counts by approximately 3% and GFLOPs by less than 10%. DGQ-YOLO therefore improves pseudo-depth-assisted aerial detection while retaining detector-level efficiency, although online throughput remains constrained by pseudo-depth generation.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001506726300024
+
+2.Title: KPDepth-VO: Self-Supervised Learning of Scale-Consistent Visual Odometry and Depth With Keypoint Features From Monocular Video
+
+3.Keywords:
+Uncertainty
+Training
+Depth measurement
+Pose estimation
+Matched filters
+Accuracy
+Optical filters
+Geometry
+Visual odometry
+Optical flow
+Monocular visual odometry
+depth uncertainty
+scale alignment
+keypoint filtering
+difference attention
+
+4.Year: 2025
+
+5.Publication Titles: IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY
+
+6.abstract： Monocular visual odometry (VO) is crucial for the application of various autonomous systems. However, the inherent scale ambiguity issue in monocular methods greatly limits their performance in pose estimation. In this paper, we propose a hybrid monocular VO system named KPDepth-VO, which solves camera pose from monocular video based on sparse keypoints. To estimate the scale-consistent relative pose, we present a novel photometric-sensitive depth uncertainty model that accounts for the depth uncertainty introduced by limitations in the photometric error constraint. We also introduce an uncertainty-aware scale recovery strategy that incorporates depth uncertainty for reliable scale alignment. Additionally, we propose a novel difference attention mechanism to construct a point filter that effectively filters out less distinctive points, ensuring high-quality matches for more accurate and efficient pose estimation in the proposed system. Experimental results on the KITTI dataset and Oxford Robotcar dataset demonstrate that our system can predict scale-consistent trajectories from monocular videos and achieve state-of-the-art performance among similar methods. Meanwhile, the depth network within our system achieves competitive depth estimation performance on KITTI depth benchmark.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001463859200017
+
+2.Title: AURA-Depth: Attention-Based Uncertainty Reduction and Feature Aggregation Depth Network
+
+3.Keywords:
+Depth measurement
+Uncertainty
+Cameras
+Accuracy
+Optical flow
+Reliability
+Faces
+Estimation
+Training
+Feature extraction
+Monocular depth estimation
+multimodal model
+cross attention
+structure from motion
+
+4.Year: 2025
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： Reliable depth information is crucial in autonomous driving technology. However, monocular depth estimation often faces inherent limitations such as scale ambiguity and lack of depth cues. To address these issues, we propose a novel approach that fuses two methods: triangulated depth estimation derived from the optical flow of consecutive frames, and dense depth estimation from a single image. In the initial task, we use a dense depth network to extract a depth map from the current frame and calculate a triangulated depth map through the optical flow and relative pose differences between previous frames. While triangulated depth estimation may lack detail in object-specific regions, it provides high accuracy for the overall scene depth. Conversely, dense depth estimation excels at extracting the relative depth of objects, making these methods complementary. The main task employs a multi-branch architecture to process RGB image, dense depth map, and triangulated depth map. The output of each encoder branch's residual module is fused using a Multimodal Cross Attention (MCA) module, guided by the uncertainty calculated from the absolute difference between dense depth features and triangulated depth features. This process effectively integrates the features of each branch. The final depth map is generated by a decoder that processes the fused features. Our approach significantly improves depth estimation accuracy and reliability by leveraging the complementary strengths of uncertainty-guided dense depth maps and triangulated depth maps, overcoming the limitations of traditional monocular methods. This method demonstrates substantial improvements in various computer vision tasks, providing a robust solution.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001480234600001
+
+2.Title: Enhancing Autonomous Driving Perception With Mamba-Based Dual-Branch Depth Estimation
+
+3.Keywords:
+Depth measurement
+Feature extraction
+Accuracy
+Costs
+Reliability
+Autonomous vehicles
+Robustness
+Cameras
+Neural networks
+Adaptation models
+Autonomous transportation systems
+depth estimation
+environment perception
+
+4.Year: 2025
+
+5.Publication Titles: IEEE TRANSACTIONS ON INTELLIGENT TRANSPORTATION SYSTEMS
+
+6.abstract： With the rapid advancement of generative AI and large language models (LLMs), their integration into autonomous driving has introduced new opportunities for innovation. Depth estimation is a fundamental perception task that enables vehicles to comprehend their surroundings. While multi-view depth estimation performs well under ideal camera poses, it encounters challenges in texture-less regions and dynamic environments. Conversely, single-view methods leverage semantic cues but suffer from scale ambiguity. To overcome these limitations, we propose a Mamba-based dual-branch depth estimation network that integrates the advantages of both single-view and multi-view approaches. Our framework incorporates a pyramid-based Mamba feature extraction module to enhance multi-scale representation learning, along with an attention-based fusion module that adaptively selects the most reliable depth predictions from both branches. This fusion strategy effectively mitigates the weaknesses of individual approaches, ensuring robust performance even in complex and dynamic traffic scenarios. Extensive experiments on the KITTI and DDAD benchmark datasets demonstrate that the proposed method outperforms state-of-the-art techniques in depth estimation accuracy, particularly in challenging environments with occlusions, texture-less surfaces, and moving objects. Ablation studies further validate the effectiveness of the Mamba-based feature extraction backbone and the proposed adaptive fusion mechanism. Our work contributes to advancing AI-driven perception systems by providing a more reliable and robust depth estimation solution for autonomous vehicles, paving the way for safer and more efficient autonomous driving systems.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001510573200007
+
+2.Title: DepthRL: a weakly supervised approach for monocular depth estimation using deep reinforcement learning
+
+3.Keywords:
+Deep reinforcement learning
+Feature fusion
+Monocular depth estimation
+Weakly supervised learning
+NETWORK
+
+4.Year: 2025
+
+5.Publication Titles: COMPLEX & INTELLIGENT SYSTEMS
+
+6.abstract： Monocular depth estimation (MDE) plays a fundamental role in 3D scene modeling and related downstream applications. Existing weakly supervised methods for monocular depth estimation face two major challenges: (1) sparse supervision provides insufficient constraints for accurate depth learning; (2) the harmonization and fusion of global semantics with local details in the feature fusion paradigm need improvement to enhance depth boundaries and fine-grained accuracy. These limitations stem from passive learning frameworks and suboptimal feature aggregation strategies. To overcome these challenges, we introduce DepthRL, a novel weakly supervised method for monocular depth estimation, leveraging deep reinforcement learning. Unlike conventional methods, we reframe depth estimation as an optimization problem, utilizing reinforcement learning to determine the optimal policy for accurate depth prediction without the need for dense annotations. Another core of DepthRL lies in the Bi-directional Pyramid Policy Network (BPPN), where we effectively fuse global semantic information and fine-grained local details through multiscale feature interactions to generate high-quality depth maps. In this network, we introduce the Multiscale Cross Attention Feature Enhancement Module (MCFEM), which enhances the upward transfer of low-order features, allowing high-level semantics to be complemented by low-level local details. We also propose a novel feature fusion module, Symmetric Gated Attention Fusion (SGAFM), where the gated attention mechanism is used to suppress redundant and conflicting information, addressing semantic inconsistencies between different features. Experimental evaluations on the benchmark KITTI and NYU Depth v2 datasets, covering both indoor and outdoor environments.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001173299400015
+
+2.Title: DGFNet: Depth-Guided Cross-Modality Fusion Network for RGB-D Salient Object Detection
+
+3.Keywords:
+Feature extraction
+Object detection
+Fuses
+Task analysis
+Semantics
+Data mining
+Visualization
+RGB-D salient object detection
+depth quality
+cross-modal feature fusion
+IMAGE
+
+4.Year: 2024
+
+5.Publication Titles: IEEE TRANSACTIONS ON MULTIMEDIA
+
+6.abstract： RGB-D salient object detection (SOD) focuses on utilizing the complementary cues of RGB and depth modalities to detect and segment salient regions. However, many proposed methods train their models in a simple multi-modal manner, ignoring the differences between these two modalities in the contribution of salient detection. Furthermore, the quality of depth datasets varies significantly between individuals and is another important factor affecting model performance. To address the aforementioned issues, this article proposes a novel depth-guided fusion network framework (DGFNet) for the RGB-D SOD task. To avoid the influence of low-quality depth maps on RGB-D SOD, we design a depth map enhanced algorithm which jointly models salient detection and depth estimation to improve the quality of depth. Also, we propose a depth attention mechanism to encode valuable spatial information for SOD, which is then used in depth-guided fusion (DGF) module to guide the fusion of cross-modality features at each level. Extensive experiments on seven commonly tested datasets demonstrate that our DGFNet outperforms the 23 state-of-the-art RGB-D-based SOD methods.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001278588900001
+
+2.Title: ECW-EGNet: Exploring Cross-Modal Weighting and Edge-Guided Decoder Network for RGB-D Salient Object Detection
+
+3.Keywords:
+cross-modality fusion
+depth-quality
+edge-guided
+RGB-D images
+salient object detection
+FUSION
+IMAGE
+
+4.Year: 2024
+
+5.Publication Titles: COMPUTER SCIENCE AND INFORMATION SYSTEMS
+
+6.abstract： Existing RGB-D salient object detection (SOD) techniques concentrate on combining data from multiple modalities (e.g., depth and RGB) and extracting multi-scale data for improved saliency reasoning. However, they frequently perform poorly as a factor of the drawbacks of low-quality depth maps and the lack of correlation between the extracted multi-scale data. In this paper, we propose a Exploring Cross-Modal Weighting and Edge-Guided Decoder Network (ECW-EGNet) for RGB-D SOD, which includes three prominent components. Firstly, we deploy a Cross-Modality Weighting Fusion (CMWF) module that utilizes Channel-Spatial Attention Feature Enhancement (CSAE) mechanism and Depth-Quality Assessment (DQA) mechanism to achieve the cross-modal feature interaction. The former parallels channel attention and spatial attention enhances the features of extracted RGB streams and depth streams while the latter assesses the depth-quality reduces the detrimental influence of the low-quality depth maps during the cross-modal fusion. Then, in order to effectively integrate multi-scale features for high-level and produce salient objects with precise locations, we construct a Bi-directional ScaleCorrelation Convolution (BSCC) module in a bi-directional structure. Finally, we construct an Edge-Guided (EG) decoder that uses the edge detection operator to obtain edge masks to guide the enhancement of salient map edge details. The comprehensive experiments on five benchmark RGB-D SOD datasets demonstrate that the proposed ECW-EGNet outperforms 21 state-of-the-art (SOTA) saliency detectors in four widely used evaluation metrics.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001207716400001
+
+2.Title: CFDepthNet: Monocular Depth Estimation Introducing Coordinate Attention and Texture Features
+
+3.Keywords:
+Coordinate attention
+Texture feature metric loss
+Photometric error loss
+Monocular depth estimation
+
+4.Year: 2024
+
+5.Publication Titles: NEURAL PROCESSING LETTERS
+
+6.abstract： Handling the depth estimation of low-texture regions using photometric error loss is a challenge due to the difficulty of achieving convergence due to the presence of multiple local minima for pixels in low-texture regions (or even no-texture regions). In this paper, based on the photometric loss, we also introduce texture feature metric loss as a constraint and combine the coordinate attention mechanism to improve the depth map's texture quality and edge detail. This paper uses a simple yet compact network structure, a unique loss function, and a relatively flexible embedded attention module, which is more effective and easier to arrange in robotic platforms with weak arithmetic power. The tests show that our network structure not only shows high quality and state-of-the-art results on the KITTI dataset, but the same training results also perform well on the cityscapes and Make3D datasets.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001233425700001
+
+2.Title: Synergizing triple attention with depth quality for RGB-D salient object detection
+
+3.Keywords:
+Salient object detection
+Low quality depth
+Triple attention
+Multi-modal fusion
+RGB-D data
+FUSION
+
+4.Year: 2024
+
+5.Publication Titles: NEUROCOMPUTING
+
+6.abstract： Salient object refers to the conspicuous objects or regions within an image that stand out prominently from its surroundings. Depth maps are commonly utilized as supplementary inputs for salient object detection, referred to as RGB-D SOD. Due to the diverse acquisition sensors, such as infrared detectors and stereo cameras, the quality of acquired depth maps varies considerably. The low-quality depth introduces noise that seriously reduces detection accuracy. To tackle this problem, a triple attention architecture based on a 3D convolutional neural network tailored for quality-aware salient object detection is proposed in this paper, which capitalizes on the strengths across modality, channel, and spatial dimensions. The modality attention learns the quality factors based on the overall modal features. The channel attention highlights features in the dimension of channels, and the patch-level spatial attention establishes long-range dependencies. Thus, the quality factors, channel differences, and spatial contrast are combined to achieve global and local fusion. To enable the evaluations on low-quality depth maps, an assessment criterion is further introduced to categorize the RGB-D datasets. Experimental results of state -of -the -art methods on different quality levels demonstrate the proposed method's effectiveness, especially for the low-quality depth.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001186639800001
+
+2.Title: Self-supervised learning of monocular depth and ego-motion estimation for non-rigid scenes in wireless capsule endoscopy videos
+
+3.Keywords:
+Wireless capsule endoscopy (WCE) images
+Monocular depth estimation
+Ego-motion estimation
+Non-rigid scenes
+Transformer
+CANCER
+
+4.Year: 2024
+
+5.Publication Titles: BIOMEDICAL SIGNAL PROCESSING AND CONTROL
+
+6.abstract： Background and objective: Gastrointestinal (GI) cancers represent the most widespread type of cancer worldwide. Wireless capsule endoscopy (WCE), an innovative, capsule -sized endoscope, has the potential to revolutionize both the diagnosis and treatment of GI cancers as well as other GI diseases by offering patients a less invasive and more comfortable option. Nonetheless, WCE videos frequently display non -rigid transformations and brightness fluctuations, rendering prior simultaneous localization and mapping (SLAM) approaches unfeasible. The depth can assist in recognizing and monitoring potential obstructions or anomalies when localization is required. Methods: In this paper, we present a self -supervised model, SfMLearner-WCE, specifically designed for estimating depth and ego motion in WCE videos. Our approach incorporates a pose estimation network and a Transformer network with a global self -attention mechanism. To ensure high -quality depth and pose estimation, we propose learnable binary per -pixel masks to eliminate misaligned image regions arising from non -rigid transformations or significant changes in lighting. Additionally, we introduce multi -interval frame sampling to enhance training data diversity, coupled with long-term pose consistency regularization. Results: We present a comprehensive evaluation of the performance of SfMLearner-WCE in comparison with five state-of-the-art self -supervised SLAM methods. Our proposed approach is rigorously assessed on three WCE datasets. The experimental results demonstrate our approach achieves high -quality depth estimation and high -precision ego -motion estimation for non -rigid scenes in WCE videos, outperforming other self -supervised SLAM methods. In the quantitative evaluation of depth estimation using the ColonDepth dataset, an absolute relative error of 0.232 was observed. Additionally, during the quantitative assessment of ego -motion estimation on the ColonSim dataset, a translation drift percentage of 43.176% was achieved at a frame rate of 2 frames per second. Conclusions: The experimental analysis conducted in this study offers evidence of the effectiveness and robustness of our proposed method, SfMLearner-WCE, in non -rigid scenes of WCE videos. SfMLearner-WCE assists in enhancing diagnostic efficiency, enabling physicians to navigate and analyze WCE videos more effectively, benefiting patient outcomes. Our code will be released at https://github.com/fisherliaoc/SfMLearner-WCE.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001219298900001
+
+2.Title: LFDA: A Framework for Light Field Depth Estimation With Depth Attention
+
+3.Keywords:
+Costs
+Estimation
+Convolution
+Feature extraction
+Three-dimensional displays
+Vectors
+Light field
+depth estimation
+attention
+deep learning
+
+4.Year: 2024
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： Depth estimation in light field imaging is integral for the accurate rendering of 3D scenes and a crucial task in light field applications. However, the development of a model that simultaneously achieves high accuracy and speed in light field depth estimation remains a significant challenge. Existing networks utilizing dilated convolution achieve state-of-the-art speeds, but they often encounter accuracy limitations, particularly in fine-grained details. In this paper, we introduce a fast and accurate method based on depth-wise cross attention. By integrating cross-attention with existing networks, our approach effectively emphasizes local features, thereby overcoming the accuracy limitations commonly encountered. Our method adopts depth attention to compare the center and side views along the epipolar line. As a result of depth attention, the cost volume was aggregated by similarity information that was based on the attention score. This technique not only maintains computational efficiency but also significantly enhances the performance in fine-grained regions by emphasizing the importance of local feature analysis. We validated the efficacy of depth attention in emphasizing local features. Our experiments were conducted using the 4D HCI Benchmark, employing evaluation metrics such as BadPixel and MSE. The results demonstrate remarkable performance in estimating fine depth changes, primarily due to the focus on local features, thereby offering a balanced solution in terms of both speed and accuracy. The code is available: https://github.com/syt06007/LFDA.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:001059770900002
+
+2.Title: Depth-Constrained Network for Multi-Scale Object Detection
+
+3.Keywords:
+Multi-scale
+object detection
+depth estimation
+feature enhancement
+
+4.Year: 2023
+
+5.Publication Titles: INTERNATIONAL JOURNAL OF PATTERN RECOGNITION AND ARTIFICIAL INTELLIGENCE
+
+6.abstract： Challenges such as complex backgrounds, drastic variations in target scales, and dense distributions exist in natural scenes. Some algorithms optimize multi-scale object detection performance by combining low-level and high-level information through feature fusion strategies. However, these methods overlook the inherent spatial properties of objects and the relationships between foreground and background. To fundamentally enhance the multi-scale detection capability, we propose a depth-constrained multi-scale object detection network that simultaneously learns object detection and depth estimation through a unified framework. In this network, depth features are merged into the detection branch as auxiliary information and constrained and guided to obtain better spatial representations, which enhances discrimination between multi-scale objects. We also introduce a novel cross-modal fusion (CmF) strategy that utilizes depth awareness and low-level detail clues to supplement edge information and adjust attention weight preferences. We find complementary information from RGB and high-quality depth features to achieve better multi-modal information fusion. Experimental results demonstrate that our method outperforms state-of-the-art methods on the KINS dataset, with an improvement of 3.0% in AP score over the baseline network. Furthermore, we validate the effectiveness of our proposed method on the KITTI dataset.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000988473800002
+
+2.Title: NR-MVSNet: Learning Multi-View Stereo Based on Normal Consistency and Depth Refinement
+
+3.Keywords:
+Costs
+Three-dimensional displays
+Image reconstruction
+Feature extraction
+Task analysis
+Point cloud compression
+Estimation
+Multi-view stereo
+deep learning
+3D model reconstruction
+normal consistency
+feature attention
+plane sweep algorithm
+
+4.Year: 2023
+
+5.Publication Titles: IEEE TRANSACTIONS ON IMAGE PROCESSING
+
+6.abstract： Multi-view Stereo (MVS) aims to reconstruct a 3D point cloud model from multiple views. In recent years, learning-based MVS methods have received a lot of attention and achieved excellent performance compared with traditional methods. However, these methods still have apparent shortcomings, such as the accumulative error in the coarse-to-fine strategy and the inaccurate depth hypotheses based on the uniform sampling strategy. In this paper, we propose the NR-MVSNet, a coarse-to-fine structure with the depth hypotheses based on the normal consistency (DHNC) module, and the depth refinement with reliable attention (DRRA) module. Specifically, we design the DHNC module to generate more effective depth hypotheses, which collects the depth hypotheses from neighboring pixels with the same normals. As a result, the predicted depth can be smoother and more accurate, especially in texture-less and repetitive-texture regions. On the other hand, we update the initial depth map in the coarse stage by the DRRA module, which can combine attentional reference features and cost volume features to improve the depth estimation accuracy in the coarse stage and address the accumulative error problem. Finally, we conduct a series of experiments on the DTU, BlendedMVS, Tanks & Temples, and ETH3D datasets. The experimental results demonstrate the efficiency and robustness of our NR-MVSNet compared with the state-of-the-art methods. Our implementation is available at https://github.com/wdkyh/NR-MVSNet.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000984941800001
+
+2.Title: CVit-Net: A conformer driven RGB-D salient object detector with operation-wise attention learning
+
+3.Keywords:
+Salient object detection
+Conformer
+RGB-D cross-modality fusion
+Operation-wise shuffle channel attention
+
+4.Year: 2023
+
+5.Publication Titles: EXPERT SYSTEMS WITH APPLICATIONS
+
+6.abstract： Salient object detection (SOD) on Red Green Blue Depth (RGB-D) data is often confronted with ambiguous cross-modality fusion, due to three major challenges: (i) How to select complementarity of RGB and depth modalities, (ii) How to alleviate the negative affect on model performance due to low quality depth maps and (iii) How to effectively fuse multi-level cross-modalities features. To address these issues, we propose a two-way feature interaction approach to exploit the synergies of RGB and depth modalities. Considering the discrepancy of cross-modalities, local and global contextual information is extracted via Conformer encoder. A Local Detail Enhancement Module (LDE) is proposed, which effectively captures the intra-modality features at lower layers of backbone network using a novel operation-wise shuffle channel attention module and supplements the edge guidance network. The quality of depth map is explicitly investigated through bottom-up edge guidance network and affluent saliency cues are exploited via top-down global contextual aware reverse attention mechanism in Global Detail Enhancement Module (GDE). A light-weight decoder is designed to generate final prediction based on saliency maps obtained at four stages. Extensive experiments performed on 6 RGB-D salient object detection datasets demonstrate that our proposed model outperforms 22 state-of-the-art (SOTA) RGB-D SOD models.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000994287400001
+
+2.Title: Monocular Depth Estimation Using Res-UNet with an Attention Model
+
+3.Keywords:
+monocular depth map
+depth estimation
+attention Res-UNet
+CNN
+scene reconstruction
+three-dimensional
+3D
+distance measurement
+disparity
+
+4.Year: 2023
+
+5.Publication Titles: APPLIED SCIENCES-BASEL
+
+6.abstract： Depth maps are single image metrics that carry the information of a scene in three-dimensional axes. Accurate depth maps can recreate the 3D structure of a scene, which helps in understanding the full geometry of the objects within the scene. Depth maps can be generated from a single image or multiple images. Single-image depth mapping is also known as monocular depth mapping. Depth maps are ill-posed problems that are complex and require extensive calibration. Therefore, recent methods use deep learning to develop depth maps. We propose a new method in monocular depth estimation to develop a high-quality depth map. Our approach is based on a convolutional neural network in which we used Res-UNet with a spatial attention model to develop depth maps. The addition of an attention mechanism increases the capability of feature extraction and enhances the boundaries features. It does not add any extra parameters to the network. With our proposed model, we demonstrate that a simple CNN model aided with an attention mechanism can create high-quality depth maps with a small iteration and training time. Our model performs very well compared to the existing state-of-the-art methods on the benchmark NYU-depth v2 dataset. Our model is flexible and can be applied to any depth mapping or multi-segmentation tasks.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000835828500036
+
+2.Title: Bi-Directional Progressive Guidance Network for RGB-D Salient Object Detection
+
+3.Keywords:
+Feature extraction
+Object detection
+Saliency detection
+Data mining
+Bidirectional control
+Task analysis
+Visualization
+RGB-D images
+salient object detection
+image quality
+bi-directional progressive guidance
+FUSION
+IMAGE
+
+4.Year: 2022
+
+5.Publication Titles: IEEE TRANSACTIONS ON CIRCUITS AND SYSTEMS FOR VIDEO TECHNOLOGY
+
+6.abstract： Most existing RGB-D salient detection models pay more attention to the quality of the depth images, while in some special cases, the quality of RGB images may even have greater impacts on saliency detection, which has long been ignored and underestimated. To address this problem, in this paper, we present a Bi-directional Progressive Guidance Network (BPGNet) for RGB-D salient object detection, where the qualities of both RGB and depth images are involved. Since it is usually difficult to determine which modality data have low quality in advance, a bi-directional framework based on progressive guidance (PG) strategy is employed to extract and enhance the unimodal features with the aid of another modality data via the alternative interactions between the saliency prediction results and the extracted features from the multi-modality input data. Specifically, the proposed PG strategy is achieved by using the proposed Global Context Awareness (GCA), Auxiliary Feature Extraction (AFE) and Cross-modality Feature Enhancement (CFE) modules. Benefiting from the proposed PG strategy, the disturbing information within the input RGB and depth images can be well suppressed, while the discriminative information within the input images gets enhanced. On top of that, a Fusion Prediction Module (FPM) is further designed to adaptively select those features with higher discriminability as well as enhancing the common information for the final saliency prediction. Experimental results demonstrate that our proposed model is comparable to those of state-of-the-art RGB-D SOD models.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000788221900003
+
+2.Title: AGRFNet: Two-stage cross-modal and multi-level attention gated recurrent fusion network for RGB-D saliency detection
+
+3.Keywords:
+Salient object detection
+Gated recurrent unit
+Attention mechanism
+Cross-modal
+Multi-level
+RGB-D image
+OBJECT DETECTION
+IMAGE
+MODEL
+
+4.Year: 2022
+
+5.Publication Titles: SIGNAL PROCESSING-IMAGE COMMUNICATION
+
+6.abstract： RGB-D saliency detection aims to identify the most attractive objects in a pair of color and depth images. However, most existing models adopt classic U-Net framework which progressively decodes two-stream features. In this paper, we decode the cross-modal and multi-level features in a unified unit, named Attention Gated Recurrent Unit (AGRU). It can reduce the influence of low-quality depth image, and retain more semantic features in the progressive fusion process. Specifically, the features of different modalities and different levels are organized as the sequential input, recurrently fed into AGRU which consists of reset gate, update gate and memory unit to be selectively fused and adaptively memorized based on attention mechanism. Further, two-stage AGRU serves as the decoder of RGB-D salient object detection network, named AGRFNet. Due to the recurrent nature, it achieves the best performance with the little parameters. In order to further improve the performance, three auxiliary modules are designed to better fuse semantic information, refine the features of the shallow layer and enhance the local detail. Extensive experiments on seven widely used benchmark datasets demonstrate that AGRFNet performs favorably against 18 state-of-the-art RGB-D SOD approaches.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000880661400035
+
+2.Title: Learning Selective Mutual Attention and Contrast for RGB-D Saliency Detection
+
+3.Keywords:
+Frequency modulation
+Salient object detection
+RGB-D image
+attention model
+contrast
+non-local network
+OBJECT DETECTION
+FUSION
+SEGMENTATION
+NETWORK
+
+4.Year: 2022
+
+5.Publication Titles: IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE
+
+6.abstract： How to effectively fuse cross-modal information is a key problem for RGB-D salient object detection. Early fusion and result fusion schemes fuse RGB and depth information at the input and output stages, respectively, and hence incur distribution gaps or information loss. Many models instead employ a feature fusion strategy, but they are limited by their use of low-order point-to-point fusion methods. In this paper, we propose a novel mutual attention model by fusing attention and context from different modalities. We use the non-local attention of one modality to propagate long-range contextual dependencies for the other, thus leveraging complementary attention cues to achieve high-order and trilinear cross-modal interaction. We also propose to induce contrast inference from the mutual attention and obtain a unified model. Considering that low-quality depth data may be detrimental to model performance, we further propose a selective attention to reweight the added depth cues. We embed the proposed modules in a two-stream CNN for RGB-D SOD. Experimental results demonstrate the effectiveness of our proposed model. Moreover, we also construct a new and challenging large-scale RGB-D SOD dataset of high-quality, which can promote both the training and evaluation of deep models.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000748261900001
+
+2.Title: AGNet: Attention Guided Sparse Depth Completion Using Convolutional Neural Networks
+
+3.Keywords:
+Feature extraction
+Convolutional neural networks
+Convolution
+Spatial resolution
+Image color analysis
+Color
+Task analysis
+Depth completion
+attention learning
+depth prediction
+multi-scale learning
+
+4.Year: 2022
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： Sparse depth completion generates a dense depth image from its sparse measurement with the guidance of RGB image. In this paper, we propose attention guided sparse depth completion using convolutional neural networks, called AGNet. We adopt attention learning to get geometric cues for depth regression from RGB image and capture multi-scale depth structures. First, we use RGB image and valid binary mask from the input sparse depth image as input to generate an initial coarse depth image and its confidence map. Then, we generate attention map for depth refinement using a cross spatial attention module (CSAM). CSAM separately takes the RGB image with valid mask and invalid mask as input to make full use of color information in attention map. Next, we build a multi-scale learning network to encode the sparse depth image with different scales, thus leading to accurate depth completion. AGNet takes advantage of the input sparse depth image for encoding coarse features with a moderate model size. Experimental results show that AGNet achieves comparable performance with state-of-the-art methods for depth completion in NYU v2 dataset.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000629729200004
+
+2.Title: Hierarchical Alternate Interaction Network for RGB-D Salient Object Detection
+
+3.Keywords:
+Object detection
+Feature extraction
+Color
+Visualization
+Task analysis
+Computer architecture
+Stereo image processing
+RGB-D salient object detection
+hierarchical structure
+alternate interaction
+SEGMENTATION
+ATTENTION
+FUSION
+
+4.Year: 2021
+
+5.Publication Titles: IEEE TRANSACTIONS ON IMAGE PROCESSING
+
+6.abstract： Existing RGB-D Salient Object Detection (SOD) methods take advantage of depth cues to improve the detection accuracy, while pay insufficient attention to the quality of depth information. In practice, a depth map is often with uneven quality and sometimes suffers from distractors, due to various factors in the acquisition procedure. In this article, to mitigate distractors in depth maps and highlight salient objects in RGB images, we propose a Hierarchical Alternate Interactions Network (HAINet) for RGB-D SOD. Specifically, HAINet consists of three key stages: feature encoding, cross-modal alternate interaction, and saliency reasoning. The main innovation in HAINet is the Hierarchical Alternate Interaction Module (HAIM), which plays a key role in the second stage for cross-modal feature interaction. HAIM first uses RGB features to filter distractors in depth features, and then the purified depth features are exploited to enhance RGB features in turn. The alternate RGB-depth-RGB interaction proceeds in a hierarchical manner, which progressively integrates local and global contexts within a single feature scale. In addition, we adopt a hybrid loss function to facilitate the training of HAINet. Extensive experiments on seven datasets demonstrate that our HAINet not only achieves competitive performance as compared with 19 relevant state-of-the-art methods, but also reaches a real-time processing speed of 43 fps on a single NVIDIA Titan X GPU. The code and results of our method are available at https://github.com/MathLee/HAINet.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000716696700004
+
+2.Title: Depth Privileged Scene Recognition via Dual Attention Hallucination
+
+3.Keywords:
+Modulation
+Feature extraction
+Training
+Image recognition
+Convolution
+Sun
+Computer science
+Indoor scene recognition
+privileged information
+attention transfer
+NETWORK
+
+4.Year: 2021
+
+5.Publication Titles: IEEE TRANSACTIONS ON IMAGE PROCESSING
+
+6.abstract： RGB-D scene recognition has achieved promising performance because depth could provide complementary geometric information to RGB images. However, the inaccessibility of depth sensors severely limits RGB-D applications. In this paper, we focus on depth privileged setting, in which depth information is only available during training but not available during testing. Considering that the information obtained from RGB and depth images are complementary while attention is informative and transferable, our idea is using RGB input to hallucinate depth attention. We build our model upon modulated deformable convolutional layer and hallucinate dual attention: post-hoc importance weight and trainable spatial transformation. Specifically, we use modulation (resp., offset) learned from RGB to mimic Grad-CAM (resp., offset) learned from depth, to combine the strength of dual attention. We also design a weighted loss to avoid negative transfer according to the quality of depth attention. Extensive experiments on two benchmarks, i.e., SUN RGB-D and NYUDv2, demonstrate that our method outperforms the state-of-the-art methods for depth privileged scene recognition.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000525422700080
+
+2.Title: Efficient and High-Quality Monocular Depth Estimation via Gated Multi-Scale Network
+
+3.Keywords:
+Depth estimation
+monocular vision
+gated multi-scale network
+super resolution
+
+4.Year: 2020
+
+5.Publication Titles: IEEE ACCESS
+
+6.abstract： The key issue in monocular depth estimation is how to construct the depth image better and improve the quality of the depth map. At present, most of the monocular depth estimation methods based on deep learning manipulate images at low resolution that leads to loss of detail and blurring of boundaries. Nevertheless, deep learning with a large number of parameters needs highly computational complexity, which makes it difficult to apply high-resolution (HR) images to the depth estimate. In this work, model accuracy and runtime are two important factors to be considered. To improve the depth map quality and reduce the running time of the network, we introduce super-resolution techniques as methods of up-sampling to generate high-quality depth images at a faster rate for the depth estimation network. A novel approach is proposed for collecting high-level features that are captured under different receptive fields. The gated multi-scale decoder allows us to effectively filter information by the gated module. By combining the gated module to aid the super resolution of depth images, our method reduces memory consumption while improves reconstruction quality. Experiment results on the challenging NYU Depth v2 dataset demonstrate that both contributions provide significant performance gains over the state-of-the-art in self-supervised depth estimation.
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000515569800119
+
+2.Title: Improving Plane Fitting Accuracy with Rigorous Error Models of Structured Light-Based RGB-D Sensors
+
+3.Keywords:
+plane fitting
+RGB-D
+RANSAC
+point cloud
+EXISTING BUILDINGS
+POINT
+EXTRACTION
+MAPS
+BIM
+
+4.Year: 2020
+
+5.Publication Titles: REMOTE SENSING
+
+6.abstract： Plane fitting is a fundamental operation for point cloud data processing. Most existing methods for point cloud plane fitting have been developed based on high-quality Lidar data giving equal weight to the point cloud data. In recent years, using low-quality RGB-Depth (RGB-D) sensors to generate 3D models has attracted much attention. However, with low-quality point cloud data, equal weight plane fitting methods are not optimal as the range errors of RGB-D sensors are distance-related. In this paper, we developed an accurate plane fitting method for a structured light (SL)-based RGB-D sensor. First, we derived an error model of a point cloud dataset from the SL-based RGB-D sensor through error propagation from the raw measurement to the point coordinates. A new cost function based on minimizing the radial distances with the derived rigorous error model was then proposed for the random sample consensus (RANSAC)-based plane fitting method. The experimental results demonstrated that our method is robust and practical for different operating ranges and different working conditions. In the experiments, for the operating ranges from 1.23 meters to 4.31 meters, the mean plane angle errors were about one degree, and the mean plane distance errors were less than six centimeters. When the dataset is of a large-depth-measurement scale, the proposed method can significantly improve the plane fitting accuracy, with a plane angle error of 0.5 degrees and a mean distance error of 4.7 cm, compared to 3.8 degrees and 16.8 cm, respectively, from the conventional un-weighted RANSAC method. The experimental results also demonstrate that the proposed method is applicable for different types of SL-based RGB-D sensor. The rigorous error model of the SL-based RGB-D sensor is essential for many applications such as in outlier detection and data authorization. Meanwhile, the precise plane fitting method developed in our research will benefit algorithms based on high-accuracy plane features such as depth calibration, 3D feature-based simultaneous localization and mapping (SLAM), and the generation of indoor building information models (BIMs).
+
+---------------------------------------------------------------
+
+1.WOS-id: WOS:000395795800006
+
+2.Title: Color-Guided Depth Recovery via Joint Local Structural and Nonlocal Low-Rank Regularization
+
+3.Keywords:
+Color-guided depth recovery
+dual autoregressive model
+joint local/nonlocal regularization
+low-rank method
+weighted total-variation
+IMAGE-RESTORATION
+TIME
+SUPERRESOLUTION
+RECONSTRUCTION
+COMPLETION
+RESOLUTION
+ALGORITHM
+
+4.Year: 2017
+
+5.Publication Titles: IEEE TRANSACTIONS ON MULTIMEDIA
+
+6.abstract： High-quality depth recovery from RGB-D data has received increasingly more attention in recent years due to their wide applications from depth-based image rendering to three-dimensional imaging and video. Sharp contrast between high-quality color images and low-quality depth maps presents severe challenges to the development of color-guided depth recovery techniques. Previous works have emphasized either locally varying characteristics of color-depth dependence or nonlocal similarities around the discontinuities of the scene geometry. Therefore, it is desirable to exploit both local and nonlocal structural constraints for optimizing the performance of color-guided depth recovery. In this work, we propose a unified variational approach via joint local and nonlocal regularization. The local regularization term consists of two complementary parts-one characterizing the color-depth dependence in the gradient domain and the other in the spatial domain; nonlocal regularization involves a low-rank constraint suitable for large-scale depth discontinuities. Extensive experimental results are reported to show that our approach outperforms several existing state-of-the-art depth recovery methods on both synthetic and real-world data sets.
+
+---------------------------------------------------------------
+
