@@ -1,7 +1,7 @@
 # MUSeg 阶段计划与历史执行记录
 
 > **文档角色：** 计划目录索引，不承担实时状态。
-> **核验时点：** 2026-09-08。
+> **核验时点：** 2026-09-11。
 > **实时入口：** `doc/main/MUSeg-current-status.md`；研究选择见 `doc/main/MUSeg-open-decisions.md`。
 > **后继关系：** 计划只记录设计和形成时点；当前事实与恢复步骤以实时状态为准。
 
@@ -9,9 +9,9 @@
 
 ## 当前与候选计划
 
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；v1/v2 历史终态保持不变，v3 已完成完整评价并裁决为 `not-supported`；B 的 Oracle 基础设计已完成，执行仍未授权。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；v1/v2 历史终态保持不变，v3 已裁决为 `not-supported`；DVG-B1 的 A/B 候选和分阶段计划已形成，C 仍是第一门禁，执行未授权。
 - [`2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md)：保留 v1/v2 的 `protocol-blocked` 记录；新增独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext`，记录完整评价和 `not-supported` 正式收口。
-- [`2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md)：在 `DVC-A1` 已完成但为 `not-supported` 后，按用户要求形成的 Oracle GSA 门控基础设计；仅授权文档设计，未授权代码、GPU、训练或云执行。
+- [`2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md)：A/B 项目预注册候选和 P0–P4 分阶段计划已形成；C 的科学效应量数值仍是第一门禁，当前未授权代码、模型 forward、GPU、训练或云执行。
 - [`2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md)：已完成的关键论文方法、实验片段和收缩裁决。
 - [`deferred/2026-09-MUSeg-unexecuted/README.md`](deferred/2026-09-MUSeg-unexecuted/README.md)：延期区总说明。
 - [`deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md`](deferred/2026-09-MUSeg-unexecuted/MUSeg-A2-B2深度有效性/00-总方向规划.md)：A2/B2 深度有效性候选方向；未执行、未授权。

@@ -1,6 +1,6 @@
 # MUSeg 实验口径与处置状态
 
-> **状态时间：** 2026-09-10 08:52 UTC。
+> **状态时间：** 2026-09-11 03:20 UTC。
 > **文档角色：** 研究选择与边界记录，不承担实时状态或执行授权。
 > **实时入口：** [`MUSeg-current-status.md`](MUSeg-current-status.md)。稳定基准与分支规则见 [`research-branch-governance.md`](../guides/project/research-branch-governance.md)。
 > **候选计划：** A2/B2 与方向1均已延期、未执行、未授权；索引见 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`](../plans/deferred/2026-09-MUSeg-unexecuted/README.md)。
@@ -147,22 +147,23 @@
 - 当前禁止：不得覆盖或回写 v1，不得把 31 张 q75 空图伪装成实际受干预样本，不得根据模型结果删除组、修改阈值、追加条件或改成功门槛。
 - 当前执行状态：v2 protocol 与 138 组/218 样本 evaluation allowlist 已物化，两样本本地 GPU preflight 已通过；218 张图的完整五条件本地 GPU 评价已结束，五个 condition 均写出 218 样本/138 组，但 `dose_effect` 只有 137/138 个有效配对组，状态为 `protocol-blocked`。定义层只读诊断已确认无效组 `06-01-01-0346` 包含 4 张图；四张图虽有 `cable`、`tube`、`rescue equipment` 前景，但在 29 像素 ignore 安全距离下计分安全区均为空，故 15 个类别全部双空 `None`，图像级和组级 Boundary IoU 均未定义。详细证据见 `doc/reports/2026-09-09-museg-dvc-a1-v2-group-definition-diagnosis.md`；123 组敏感性范围的两个 effect 均为 123/123。
 - **v3 定义修正与处置：** v2 的唯一无效组 `06-01-01-0346` 的根因已确认是标签域混用：训练输入需要 raw background `0 -> evaluator ignore 255`，但 Boundary IoU 几何计算需要把 raw background 保留为有效 one-vs-rest 上下文。已建立独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext`，不改变 v2 的 0.05 阈值、218 张图/138 组 allowlist、五个 condition、checkpoint、evaluator、bootstrap 和裁决门槛。v3 的 metric target 使用 raw foreground `1..15 -> 0..14`、background `0 -> 15`、true ignore `255`；15 个前景类继续报告，背景不作为报告类别。218 张图 CPU 标签域审计通过，`06-01-01-0346` 四张图的有效安全域均为 `1,008,424` 像素，定义层不再为空；两样本本地 GPU preflight 也明确覆盖该组并通过。大白话说，这次修正让真实背景参与边界几何计算，但没有把背景变成待报告类别，也没有修改原 v2 的数据范围或退化强度。
-- **v3 当前边界：** v3 protocol SHA-256 为 `f9960904f51cec11797ada6952c2102da4b2b6832d0bf7b529898bfae9c0f216`，allowlist SHA-256 为 `5589eb3378ed2e23180f6205e2d88cea39702ad4bfd5d4e1b739cf2f920a8d89`，allowlist summary SHA-256 为 `6fa94de96f1b5b4e94c1feecdc4d821e05db1828be05b011f3b48f43ce408dfd`；CPU 标签域审计 SHA-256 为 `17a4ec36ba231c3be6ea1ed1f4f6e3b9f8380d8d0a619cc3530a6bfd903ad1db`，GPU preflight SHA-256 为 `829b580b6ed4ace977cf578e8391bcc759fc6d135fad72c2bd0dba958712dedd`。完整 218 张图 × 5 condition GPU 评价、bootstrap 和科学裁决均已完成，主裁决为 `not-supported`；训练、云资源、official test 和可学习门控仍未授权。用户明确要求在 A 未支持的情况下先推进 B，因此 `DVG-B1-oracle-gsa-v1` 已补齐项目内实现锚点并暂停于 A/B/C 外部参考冻结门禁；尚未创建 protocol，也未进入代码或运行阶段。
+- **v3 当前边界：** v3 protocol SHA-256 为 `f9960904f51cec11797ada6952c2102da4b2b6832d0bf7b529898bfae9c0f216`，allowlist SHA-256 为 `5589eb3378ed2e23180f6205e2d88cea39702ad4bfd5d4e1b739cf2f920a8d89`，allowlist summary SHA-256 为 `6fa94de96f1b5b4e94c1feecdc4d821e05db1828be05b011f3b48f43ce408dfd`；CPU 标签域审计 SHA-256 为 `17a4ec36ba231c3be6ea1ed1f4f6e3b9f8380d8d0a619cc3530a6bfd903ad1db`，GPU preflight SHA-256 为 `829b580b6ed4ace977cf578e8391bcc759fc6d135fad72c2bd0dba958712dedd`。完整 218 张图 × 5 condition GPU 评价、bootstrap 和科学裁决均已完成，主裁决为 `not-supported`；训练、云资源、official test 和可学习门控仍未授权。用户明确要求在 A 未支持的情况下先推进 B；DVG-B1 的最新 A/B/C 选择与授权边界见第 12 节。
 - 证据：v1 门禁报告为 `doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`，仓库外权威运行证据位于 `cloud/DVC-A1-valdev-boundary-zero-v1/attempt-2/`，其中 mask manifest SHA-256 为 `60b988b3f9ffaabc5f6540cfccda48ddb5efd4d44ce360691bfaeea047e63f29`；v2 物化与 preflight 报告为 `doc/reports/2026-09-08-museg-dvc-a1-v2-materialization-preflight.md`，仓库外证据位于 `cloud/DVC-A1-valdev-boundary-zero-v2/`。
 
 ## 12. DVG-B1 Oracle mask 到 GSA depth contribution 的冻结门禁
 
-**大白话问题：** 门控插在哪里、怎样传参数以及哪些 evaluator 能复用都已经核清；现在真正未定的是坏像素怎样变成每级 token 可靠性、token 可靠性怎样变成成对 gate，以及用多大收益和 clean 保持标准裁决方案。
+**大白话问题：** 门控位置和证据链已经核清；用户现已在看模型结果前固定 A/B。剩余任务不是继续找“唯一论文答案”，而是先把科学收益门槛 C 定好，再按 protocol、CPU、no-op、preflight、完整评价的顺序执行。
 
-**当前状态：项目内实现锚点已关闭，计划暂停于 A/B/C 三组 `reference-blocked` 项。** `04-DVG-B1条件式Oracle门控.md` 已按当前代码和作者原始保留副本收紧；A、B 必须补直接实现参考，C 必须补裁决参考或由用户明确作出项目预注册选择。三组关闭前不创建 protocol，不修改代码，不运行 preflight 或 GPU。
+**当前状态：A/B 项目预注册候选已选，尚未实现或验证；C 仍为第一门禁。** A/B 不再保持 `reference-blocked`：它们已从“等待文献唯一规则”转为“项目预注册候选已选、待 protocol 物化/qualification”。C 已部分关闭，clean 使用严格原路径旁路和 `torch.equal` 零差异，指标固定为 Boundary IoU 主指标与 mIoU 辅助指标；`oracle-supported` 的最小实际效应量、95% 区间规则和 mIoU 裁决职责仍需用户冻结。在 C 关闭前不创建最终 protocol，不修改模型代码，不运行模型 forward。
 
-- **已闭合的代码事实：** `models/encoders/DFormerv2.py` 的 `GeoPriorGen.forward` 在 spatial/depth 两项加和前明确暴露 `mask_d_h`、`mask_d_w` 和 `mask_d`；前三个 stage 使用 H/W 分解 GSA，第四个 stage 使用 Full GSA。最小实现只允许门控 `self.weight[1] * mask_d*`，不得改 spatial contribution、`sin/cos`、Q/K/V、Depth 输入、decoder 或最终 logits。最小参数链为 `EncoderDecoder.forward/encode_decode` → `dformerv2.forward` → `BasicLayer.forward` → `RGBD_Block.forward` → `GeoPriorGen.forward`；Attention 继续只消费合成后的 geometry prior。
-- **已闭合的上游差异：** 当前和作者原始保留副本的 `DFormerv2.py` SHA-256 均为 `2b0b77ea401d56993aac915883bcb43035927ec991501dba94fb029901009332`，完整差异检查退出码为 `0`，两者都使用 `F.interpolate(..., mode="bilinear", align_corners=False)`。论文文字描述 average pooling，但这不是 MUSeg/MVE 适配或当前项目意外修改；B1 基线语义以 checkpoint 对应的 bilinear 路径为准。
-- **已闭合的复用边界：** 原始 `Depth16` corruption mask、五个 condition、mask 确定性/嵌套/数量/哈希、五尺度翻转 10 view、右侧/底部 padding、逆 flip、原始 Label 网格、FP32 pre-softmax 平均、strict checkpoint load、q=0 输入数组等价、finite/shape/JSON preflight 框架均可复用。
-- **已闭合的 no-op 验收规则：** `None`、clean、q=0 和全可信 mask 必须归一化到原始未修改 forward 旁路；逐 stage 输出和最终 pre-softmax logits 都要求 `torch.equal` 完全相等，不通过放宽浮点容差解决旁路不等价。该旁路尚未实现，也未运行等价检查。
-- **开放项 A：像素 mask → 四级 token reliability。** 必须冻结 view-scale resize、Stage 0–3 聚合算子、部分受损 patch 的 reliability 语义，以及它与 bilinear Depth resize 的对齐解释。候选 nearest、area/average、max/any-invalid 或连续有效比例均不得由项目自行猜测，也不得在结果后选择。
-- **开放项 B：token reliability → pairwise gate。** 必须冻结 Full `[B,1,L,L]`、H `[B,1,W,H,H]`、W `[B,1,H,W,W]` 的公式，以及两端乘积、最小值、query-only、key-only 或其他组合、对称性和 hard/continuous 选择。
-- **开放项 C：正式科学裁决。** 必须冻结 `oracle-supported` 的最小实际效应量、clean 不劣容忍度，以及 Boundary IoU 与 mIoU 是否足够或还需额外指标。现有项目规则和已引参考不能直接填入数值；等待用户补充直接参考，或明确记录为项目预注册选择。
-- **恢复点和证据：** A、B 的 WOS 靶向检索式与待填字段、C 的精确待决问题和全部项目内证据入口见 `doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`；实现定位详证见 `liu-test-exp/方案1/DVG-B1-必须实现细节靶向检索步骤与WOS检索式.md`。本次没有执行外部 Web 搜索。代码、preflight、GPU、训练、云资源和 official test 仍未授权。
+- **已闭合的代码事实：** `GeoPriorGen.forward` 在 spatial/depth 两项加和前暴露 H/W/Full depth contribution；前三个 stage 使用 H/W 分解 GSA，第四个 stage 使用 Full GSA。最小实现只允许门控 `self.weight[1] * mask_d*`，不得改 spatial contribution、`sin/cos`、Q/K/V、Depth 输入、decoder 或 logits。参数链为 `EncoderDecoder.forward/encode_decode` → `dformerv2.forward` → `BasicLayer.forward` → `RGBD_Block.forward` → `GeoPriorGen.forward`。
+- **A 的项目预注册选择：** 原始 mask 定义 `m=1` 为受损、`r=1-m` 为可信；按 evaluator 先用 `INTER_LINEAR` 从原图映射到五尺度 view，再 flip、右/下 padding `r=1`；四个 stage 使用 `INTER_AREA` 聚合为连续有效面积比例。partial、empty、padding、all-1 和 flip/padding 审计规则见 `04-DVG-B1条件式Oracle门控.md` 第 6.4 节。
+- **B 的项目预注册选择：** Full `[B,1,L,L]`、H `[B,1,W,H,H]`、W `[B,1,H,W,W]` 均使用 query/key 两端 reliability 的 continuous product；只在 head 轴广播并只乘 depth contribution。公式见 04 计划第 6.6 节。
+- **选择的证据边界：** 11 篇全文与常见官方代码能支撑连续 confidence、可靠性乘 affinity、query/key 单边 gate、Full affinity 等机制边界，但没有唯一给出上述 A/B 组合。A/B 是用户接受的项目设计，不是 [1]–[11] 的唯一结论，也不得根据未来结果改为 nearest、min、单边 gate、hard threshold 或 stage 子集。
+- **no-op 与 clean：** `None`、clean、q=0、全可信 mask 必须进入原始未修改 forward 旁路；逐 stage 输出和最终 FP32 pre-softmax logits 全部以 `torch.equal` 验收。任何非零差异直接 `protocol-blocked`，不使用 clean 不劣容忍区间补救。
+- **仍开放的 C：** 用户需在任何完整 B1 结果生成前填写 Boundary IoU 最小实际净增益、95% percentile interval 联合规则和 mIoU 的辅助/否决职责，并明确记为“项目预注册选择，非文献标准”。指标集合不再增加第三项。
+- **执行顺序：** P0 C 冻结与 protocol 物化 → P1 CPU 算子 qualification → P2 no-op 完全等价 → P3 1–2 样本 gate preflight → P4 另行授权的 218 张图完整本地 GPU paired development evaluation。任何阶段失败都停止，不跳级。
+- **授权边界：** 当前只授权文档计划记录。尚未创建 B1 protocol，尚未修改模型代码，也未运行模型 forward、preflight、GPU、训练、云资源或 official test。P3 通过也不自动授权 P4。
+- **证据入口：** 详细规则与分阶段交付物见 `doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`；新对话入口见同目录 `01-新对话最小上下文与当前任务.md`；全文、仓库、commit、许可证、函数和 CPU probe 边界见 `liu-test-exp/方案1/DVG-B1-必须实现细节靶向检索步骤与WOS检索式.md` 第 6.7/8 节。
 
-**大白话说明：** 以后不用再搜索“GSA 到底在哪里”或“现有 evaluator 能不能复用”；只需补 A、B、C 的直接依据并把唯一规则填回计划，之后再决定是否授权 protocol 和代码。
+**大白话说明：** A/B 已经选定，不再让下一模型重新发散搜索或自选另一套公式。新对话先只补 C；C 关闭后也必须按低成本门禁逐步推进，完整 GPU 评价最后单独申请。

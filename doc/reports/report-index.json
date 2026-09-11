@@ -1,14 +1,23 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.12",
+  "nextCanvasVersion": "0.0.14",
   "latestFormalReport": {
-    "path": "doc/reports/2026-09-09-museg-dvc-a1-v3-bgcontext-fix.md",
-    "periodStart": "2026-09-09",
-    "periodEnd": "2026-09-09",
-    "baseCommit": "90eee4a4ad5297cd513073f4791fe99d41eac90c",
-    "status": "formal-dvc-a1-v3-bgcontext-fix-complete"
+    "path": "doc/reports/2026-09-10-museg-dformerv2-to-mve-group-meeting.md",
+    "periodStart": "2026-08-17",
+    "periodEnd": "2026-09-10",
+    "baseCommit": "5d0d836391cfb8cb2a3b60bca07f6e9d1b31895f",
+    "status": "formal-dformerv2-to-mve-group-meeting"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-09-10-museg-dformerv2-to-mve-group-meeting.md",
+      "topic": "museg-dformerv2-to-mve-group-meeting",
+      "periodStart": "2026-08-17",
+      "periodEnd": "2026-09-10",
+      "baseCommit": "5d0d836391cfb8cb2a3b60bca07f6e9d1b31895f",
+      "verification": "content-cross-check-canvas-lints-source-published-sha256-and-report-index-json",
+      "status": "formal-dformerv2-to-mve-group-meeting"
+    },
     {
       "path": "doc/reports/2026-09-09-museg-dvc-a1-v3-bgcontext-fix.md",
       "topic": "museg-dvc-a1-v3-bgcontext-fix",
@@ -307,6 +316,24 @@
       "relatedReport": "doc/reports/2026-08-31-museg-dformerv2-quick-baseline-comprehensive.md",
       "createdAt": "2026-08-31",
       "status": "formal-quick-b0-comprehensive-group-report"
+    },
+    {
+      "version": "0.0.12",
+      "name": "museg-dvg-b1-literature-screening",
+      "source": "doc/canvases/0.0.12-museg-dvg-b1-literature-screening.canvas.tsx",
+      "publishedFilename": "0.0.12-museg-dvg-b1-literature-screening.canvas.tsx",
+      "relatedReport": "liu-test-exp/方案1/DVG-B1-A1-B1摘要筛选与全文优先级.md",
+      "createdAt": "2026-09-10",
+      "status": "abstract-screening-fulltext-required"
+    },
+    {
+      "version": "0.0.13",
+      "name": "museg-dformerv2-to-mve-group-meeting",
+      "source": "doc/canvases/0.0.13-museg-dformerv2-to-mve-group-meeting.canvas.tsx",
+      "publishedFilename": "0.0.13-museg-dformerv2-to-mve-group-meeting.canvas.tsx",
+      "relatedReport": "doc/reports/2026-09-10-museg-dformerv2-to-mve-group-meeting.md",
+      "createdAt": "2026-09-10",
+      "status": "formal-dformerv2-to-mve-group-meeting"
     }
   ]
 }
