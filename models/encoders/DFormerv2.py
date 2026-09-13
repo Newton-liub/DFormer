@@ -13,6 +13,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
+import cv2
+import numpy as np
 import math
 from timm.models.layers import DropPath, trunc_normal_
 from typing import List
@@ -112,6 +114,87 @@ def angle_transform(x, sin, cos):
     return (x * cos) + (torch.stack([-x2, x1], dim=-1).flatten(-2) * sin)
 
 
+def normalize_dvg_b1_corruption_mask(oracle_corruption_mask, reference: torch.Tensor):
+    """Normalize a padded view corruption mask or select the strict no-op path."""
+    if oracle_corruption_mask is None:
+        return None
+    if not torch.is_tensor(oracle_corruption_mask):
+        raise TypeError("oracle_corruption_mask must be a torch.Tensor or None")
+    mask = oracle_corruption_mask
+    if mask.ndim == 2:
+        mask = mask.unsqueeze(0).unsqueeze(0)
+    elif mask.ndim == 3:
+        mask = mask.unsqueeze(1)
+    if mask.ndim != 4 or mask.shape[1] != 1:
+        raise ValueError("oracle_corruption_mask must have shape [B,1,H,W], [B,H,W], or [H,W]")
+    if mask.shape[0] != reference.shape[0] or mask.shape[-2:] != reference.shape[-2:]:
+        raise ValueError("oracle_corruption_mask must match the padded view batch and spatial geometry")
+    padded_height, padded_width = (int(value) for value in mask.shape[-2:])
+    if padded_height % 32 or padded_width % 32:
+        raise ValueError("DVG-B1 padded view mask height and width must both be divisible by 32")
+    mask = mask.to(device=reference.device, dtype=torch.float32)
+    if not bool(torch.isfinite(mask).all()):
+        raise ValueError("oracle_corruption_mask must contain only finite values")
+    if bool((mask < 0).any()) or bool((mask > 1).any()):
+        raise ValueError("oracle_corruption_mask values must lie in [0,1]")
+    if not bool((mask != 0).any()):
+        return None
+    return mask
+
+
+def build_dvg_b1_stage_reliability(oracle_corruption_mask: torch.Tensor, HW_tuple: Tuple[int, int]):
+    """Aggregate padded-view reliability with the frozen OpenCV INTER_AREA rule."""
+    if oracle_corruption_mask.ndim != 4 or oracle_corruption_mask.shape[1] != 1:
+        raise ValueError("normalized corruption mask must have shape [B,1,H,W]")
+    padded_height, padded_width = (int(value) for value in oracle_corruption_mask.shape[-2:])
+    if padded_height % 32 or padded_width % 32:
+        raise ValueError("DVG-B1 padded view mask height and width must both be divisible by 32")
+    height, width = int(HW_tuple[0]), int(HW_tuple[1])
+    if height <= 0 or width <= 0:
+        raise ValueError("stage geometry must be positive")
+    if padded_height % height or padded_width % width:
+        raise ValueError("DVG-B1 stage geometry must exactly divide the padded view")
+    height_divisor = padded_height // height
+    width_divisor = padded_width // width
+    if height_divisor != width_divisor or height_divisor not in (4, 8, 16, 32):
+        raise ValueError("DVG-B1 stage geometry must be an exact 4x, 8x, 16x, or 32x reduction")
+    reliability = 1.0 - oracle_corruption_mask
+    reliability_cpu = reliability.detach().to(device="cpu", dtype=torch.float32).numpy()
+    resized = np.stack(
+        [
+            cv2.resize(
+                reliability_cpu[index, 0],
+                (width, height),
+                interpolation=cv2.INTER_AREA,
+            )
+            for index in range(reliability_cpu.shape[0])
+        ],
+        axis=0,
+    )[:, None]
+    stage_reliability = torch.from_numpy(np.ascontiguousarray(resized, dtype=np.float32)).to(
+        device=oracle_corruption_mask.device
+    )
+    if not bool(torch.isfinite(stage_reliability).all()):
+        raise ValueError("stage reliability contains non-finite values")
+    if bool((stage_reliability < 0).any()) or bool((stage_reliability > 1).any()):
+        raise ValueError("stage reliability values must lie in [0,1]")
+    return stage_reliability
+
+
+def build_dvg_b1_pairwise_gates(stage_reliability: torch.Tensor, split_or_not: bool):
+    """Build the preregistered query/key symmetric product gate."""
+    if stage_reliability.ndim != 4 or stage_reliability.shape[1] != 1:
+        raise ValueError("stage reliability must have shape [B,1,H,W]")
+    reliability = stage_reliability[:, 0]
+    if split_or_not:
+        h_values = reliability.transpose(1, 2)
+        gate_h = h_values[:, None, :, :, None] * h_values[:, None, :, None, :]
+        gate_w = reliability[:, None, :, :, None] * reliability[:, None, :, None, :]
+        return gate_h, gate_w
+    flattened = reliability.flatten(1)
+    return flattened[:, None, :, None] * flattened[:, None, None, :]
+
+
 class GeoPriorGen(nn.Module):
     def __init__(self, embed_dim, num_heads, initial_value, heads_range):
         super().__init__()
@@ -170,13 +253,20 @@ class GeoPriorGen(nn.Module):
         mask = mask * self.decay[:, None, None]
         return mask
 
-    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False):
+    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False, oracle_reliability=None):
         """
         depth_map: depth patches
         HW_tuple: (H, W)
         H * W == l
         """
         depth_map = F.interpolate(depth_map, size=HW_tuple, mode="bilinear", align_corners=False)
+
+        if oracle_reliability is not None:
+            if tuple(oracle_reliability.shape[-2:]) != tuple(HW_tuple):
+                raise ValueError("Oracle reliability does not match the current GSA stage")
+            pairwise_gate = build_dvg_b1_pairwise_gates(oracle_reliability, split_or_not)
+        else:
+            pairwise_gate = None
 
         if split_or_not:
             index = torch.arange(HW_tuple[0] * HW_tuple[1]).to(self.decay)
@@ -191,8 +281,17 @@ class GeoPriorGen(nn.Module):
             mask_h = self.generate_1d_decay(HW_tuple[0])
             mask_w = self.generate_1d_decay(HW_tuple[1])
 
-            mask_h = self.weight[0] * mask_h.unsqueeze(0).unsqueeze(2) + self.weight[1] * mask_d_h
-            mask_w = self.weight[0] * mask_w.unsqueeze(0).unsqueeze(2) + self.weight[1] * mask_d_w
+            if pairwise_gate is None:
+                mask_h = self.weight[0] * mask_h.unsqueeze(0).unsqueeze(2) + self.weight[1] * mask_d_h
+                mask_w = self.weight[0] * mask_w.unsqueeze(0).unsqueeze(2) + self.weight[1] * mask_d_w
+            else:
+                gate_h, gate_w = pairwise_gate
+                mask_h = self.weight[0] * mask_h.unsqueeze(0).unsqueeze(2) + self.weight[1] * (
+                    gate_h * mask_d_h
+                )
+                mask_w = self.weight[0] * mask_w.unsqueeze(0).unsqueeze(2) + self.weight[1] * (
+                    gate_w * mask_d_w
+                )
 
             geo_prior = ((sin, cos), (mask_h, mask_w))
 
@@ -205,7 +304,10 @@ class GeoPriorGen(nn.Module):
             mask = self.generate_pos_decay(HW_tuple[0], HW_tuple[1])
 
             mask_d = self.generate_depth_decay(HW_tuple[0], HW_tuple[1], depth_map)
-            mask = self.weight[0] * mask + self.weight[1] * mask_d
+            if pairwise_gate is None:
+                mask = self.weight[0] * mask + self.weight[1] * mask_d
+            else:
+                mask = self.weight[0] * mask + self.weight[1] * (pairwise_gate * mask_d)
 
             geo_prior = ((sin, cos), mask)
 
@@ -411,11 +513,16 @@ class RGBD_Block(nn.Module):
             self.gamma_1 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
             self.gamma_2 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
 
-    def forward(self, x: torch.Tensor, x_e: torch.Tensor, split_or_not=False):
+    def forward(self, x: torch.Tensor, x_e: torch.Tensor, split_or_not=False, oracle_reliability=None):
         x = x + self.cnn_pos_encode(x)
         b, h, w, d = x.size()
 
-        geo_prior = self.Geo((h, w), x_e, split_or_not=split_or_not)
+        geo_prior = self.Geo(
+            (h, w),
+            x_e,
+            split_or_not=split_or_not,
+            oracle_reliability=oracle_reliability,
+        )
         if self.layerscale:
             x = x + self.drop_path(self.gamma_1 * self.Attention(self.layer_norm1(x), geo_prior, split_or_not))
             x = x + self.drop_path(self.gamma_2 * self.ffn(self.layer_norm2(x)))
@@ -477,13 +584,27 @@ class BasicLayer(nn.Module):
         else:
             self.downsample = None
 
-    def forward(self, x, x_e):
+    def forward(self, x, x_e, oracle_corruption_mask=None):
         b, h, w, d = x.size()
+        oracle_reliability = None
+        if oracle_corruption_mask is not None:
+            oracle_reliability = build_dvg_b1_stage_reliability(oracle_corruption_mask, (h, w))
         for blk in self.blocks:
             if self.use_checkpoint:
-                x = checkpoint.checkpoint(blk, x=x, x_e=x_e, split_or_not=self.split_or_not)
+                x = checkpoint.checkpoint(
+                    blk,
+                    x=x,
+                    x_e=x_e,
+                    split_or_not=self.split_or_not,
+                    oracle_reliability=oracle_reliability,
+                )
             else:
-                x = blk(x, x_e, split_or_not=self.split_or_not)
+                x = blk(
+                    x,
+                    x_e,
+                    split_or_not=self.split_or_not,
+                    oracle_reliability=oracle_reliability,
+                )
         if self.downsample is not None:
             x_down = self.downsample(x)
             return x, x_down
@@ -617,9 +738,10 @@ class dformerv2(nn.Module):
     def no_weight_decay_keywords(self):
         return {"relative_position_bias_table"}
 
-    def forward(self, x, x_e):
+    def forward(self, x, x_e, oracle_corruption_mask=None):
         # rgb input
         x = self.patch_embed(x)
+        oracle_corruption_mask = normalize_dvg_b1_corruption_mask(oracle_corruption_mask, x_e)
         # depth input
         x_e = x_e[:, 0, :, :].unsqueeze(1)
 
@@ -627,7 +749,7 @@ class dformerv2(nn.Module):
 
         for i in range(self.num_layers):
             layer = self.layers[i]
-            x_out, x = layer(x, x_e)
+            x_out, x = layer(x, x_e, oracle_corruption_mask=oracle_corruption_mask)
             if i in self.out_indices:
                 if i != 0:
                     x_out = self.extra_norms[i - 1](x_out)

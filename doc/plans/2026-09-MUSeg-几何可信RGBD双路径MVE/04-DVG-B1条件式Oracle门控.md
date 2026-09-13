@@ -1,13 +1,13 @@
 # MUSeg `DVG-B1-oracle-gsa-v1`：Oracle GSA 深度门控条件式计划
 
 > **文档角色：** 条件式后继子计划；记录 `DVG-B1-oracle-gsa-v1` 从项目预注册规则物化到低成本预检、再到完整配对开发评价的分阶段执行设计。
-> **计划状态：** 用户已选择 A/B 的项目预注册候选：四级连续 token reliability 使用“view 级双线性对齐 + stage 级有效面积比例”，Full/H/W gate 使用 query/key 两端 reliability 的对称乘积；两项尚未实现或验证。C 的科学效应量门槛仍未冻结，是新对话第一道文档门禁。当前只完成计划记录，未授权代码、模型 forward、GPU 或完整评价。
-> **形成或核验时点：** 2026-09-11 03:20 UTC。
+> **计划状态：** A/B/C 项目预注册规则与 P0 protocol 保持冻结，P1–P4 已全部完成。P4 的 218 张图完整本地 GPU paired development evaluation 通过全部协议与完整性门禁，但主条件 Boundary IoU 和 mIoU 均下降，最终裁决为 `oracle-not-supported`；`full-evaluation.json` SHA-256 为 `f5cadf93ace37868b27ecef2f5a96c18702ba821b8eda242f3c7921982a42f12`。当前恢复点是停止本方案并回到方向级研究选择；训练、云资源和 official test 均未授权。
+> **形成或核验时点：** 2026-09-13 15:05 UTC。
 > **实时入口：** [`MUSeg-current-status.md`](../../main/MUSeg-current-status.md)。
 > **研究选择：** [`MUSeg-open-decisions.md`](../../main/MUSeg-open-decisions.md)。
 > **上级方向：** [`00-总方向规划.md`](./00-总方向规划.md)。
 > **前序关系：** `DVC-A1-valdev-boundary-zero-v3-bgcontext` 已完成正式开发评价并裁决为 `not-supported`；本设计按照用户要求保留一个独立的方案验证窗口，不把 A 的失败改写为支持，也不把 B 的结果当作 A 的问题证据。
-> **后继关系：** 新对话先冻结 C 并物化文档 protocol；只有 protocol 内容与哈希通过复核后，才能另行请求代码实现与 CPU/no-op/1–2 样本 preflight 授权。完整本地 GPU paired development evaluation 仍需再次单独授权；任何 B 结果都不能自动授权可学习质量预测、完整联合恢复、训练、云资源或 official test。
+> **后继关系：** P0 protocol SHA-256 保持为 `e7b9ed0a3c84053736f70a7807bdd4f270ee5bf84a6b85ca5cfd053f9cc47e46`；P1/P2/P3/P4 已完成。P4 合法终点为 `oracle-not-supported`，本 protocol 不再安排后继评价。任何 B 结果都不能自动授权可学习质量预测、完整联合恢复、训练、云资源或 official test。
 
 ## 1. 为什么在 A 未支持时仍设计 B
 
@@ -204,7 +204,7 @@ Attention 类不需要直接接收 Oracle mask；它继续只消费已经合成�
 - **partial token：** $r^{(s)}$ 直接解释为该 token 覆盖域内的连续有效面积比例；由于 view 级先做了双线性对齐，更严格地说它是“平滑后的有效面积比例”，不是原始布尔像素的简单计数比例。
 - **fully corrupted token：** 聚合值为 `0`，其相关 depth contribution 在 B 规则下完全关闭。
 - **all-trusted token：** 聚合值为 `1`；全可信原图在每个 view、每个 stage 必须保持全 1。
-- **padding：** 右/下 padding 固定为可信 `1`，不得把 padding 计作坏深度。单边 padding 可能导致原图与 inverse-flip 后的 reliability 在边缘 token 上不完全镜像；这属于必须显式审计的 evaluator 几何效应，不能静默忽略。
+- **padding：** 右/下 padding 固定为可信 `1`，不得把 padding 计作坏深度。scaled content 在 resize 后必须严格水平镜像；但每个 view 都独立保持右侧 padding，且 `INTER_AREA` 的 token pooling 相位可能随单边 padding 改变，因此完整 stage 网格在 inverse-flip 后的差异不保证只落在边缘 token。该完整网格差异只作描述性记录，每个 view/stage 必须分别与冻结的 `INTER_AREA` 结果核对，不能静默把两者强制视为镜像。
 - **empty support：** 正常 `INTER_AREA` 映射中每个 stage token 必须有正面积来源。若实现报告零来源面积：只有“该 token 完全落在 evaluator padding 内”时可置 `1`；其他情况一律 `protocol-blocked`，不得用 epsilon 或默认零掩盖坐标错误。
 
 #### 6.4.4 A 的资格检查
@@ -213,8 +213,8 @@ Attention 类不需要直接接收 Oracle mask；它继续只消费已经合成�
 
 - shape 与实际四级 $H_s\times W_s$ 一致，值域有限且位于 $[0,1]$；
 - 全 1 输入在所有 view/stage 严格保持全 1；
-- resize → flip → padding 的顺序与 evaluator 元数据一致；
-- 原图与 inverse-flip reliability 的差异被量化，且差异只能出现在受单边 padding 影响的边缘 token；若内部非 padding 区域出现方向漂移，则 `protocol-blocked`；
+- scaled content 必须严格满足 resize 后水平翻转；原图和 flip view 的每个 stage 都必须独立与冻结的 OpenCV `INTER_AREA` 结果一致；
+- 完整 stage 网格的 inverse-flip 差异按单边 padding 与 token pooling 相位效应作描述性量化，不再错误要求差异只能位于边缘 token；
 - 不创建临时 `test_*.py` 或一次性脚本；优先使用未来正式运行入口的 `--qualification-only`/等价模式落盘结构化结果。若需要新增或大幅扩展永久测试文件，先取得用户确认。
 
 #### 6.4.5 最小参数传递链
@@ -236,6 +236,8 @@ no-op 等价不再依赖外部浮点容差文献。`oracle_corruption_mask=None`
 3. 上述各组最终 FP32 pre-softmax logits 完全相等。
 
 如果只有放宽绝对或相对浮点容差才能通过，说明实现没有进入同一原始旁路，应先修正实现，不能通过扩大 tolerance 解决。
+
+冻结 Quick-B0 的 Ham decoder 在 eval 中仍会为 NMF2D 随机初始化 bases。P2 比较必须在每个 forward 前回放同一 CPU/CUDA RNG state，使 decoder 使用相同随机基并只隔离 `oracle_corruption_mask` 接口变量；这不是把模型改成确定性推理，也不放宽 `torch.equal`。未配对 RNG 的重复 logits 差异只证明 decoder 本身会重采样，不能用于判定 no-op 接口是否改变输出。
 
 ### 6.6 已选择的 B：query/key 两端 reliability 对称乘积 gate
 
@@ -267,6 +269,8 @@ $$
 
 三种 gate 均只广播到 head 轴，并只进入 `self.weight[1] * (R*mask_d*)`。spatial contribution、Q/K/V、rotary encoding、Depth 输入、decoder、logits 融合与指标计算保持原样。实现资格检查必须验证对称性、shape、广播轴、值域、全 1 gate 和至少一个人工 reliability 样例的行列方向；shape 正确不替代第 6.5 节的完整 forward `torch.equal` no-op。
 
+这里的“关闭”仅表示把对应 token pair 的 depth geometry decay contribution 置为 0；它不会删除 query/key、不会直接屏蔽 attention，也不会移除 spatial decay。P3 必须据此审计 depth/spatial contribution 隔离，不能把该 gate 解释成通用 attention mask。
+
 ### 6.7 项目内证据入口
 
 本节结论的主要项目内证据为：
@@ -281,7 +285,7 @@ $$
 - `liu-test-exp/方案1/DVG-B1-必须实现细节靶向检索步骤与WOS检索式.md`：完整实现定位、原始副本哈希核对和剩余 A/B 检索字段；
 - 本地 DFormerv2 论文第 3.1–3.3 节：论文 average pooling、GSA 公式和四级金字塔文字定义。
 
-这些入口关闭的是当前代码事实；A/B 已按项目预注册候选写入，C 的剩余数值门禁见第 10 节。
+这些入口关闭的是当前代码事实；A/B/C 均已写入项目预注册 protocol，当前恢复点见第 8.3 和 10.4 节。
 
 ## 7. 指标与统计的基础设计
 
@@ -313,72 +317,75 @@ $$
 - 报告 Oracle 相对 corrupted baseline 的点估计和双侧 95% percentile interval；
 - 六个 mine 只作描述性分层，不当作六个独立样本。
 
-C 只剩一个真正未冻结的项目级选择：`oracle-supported` 的最小实际效应量和 95% 区间规则。clean 不劣不再设置可放宽容忍度，因为 clean、q=0、`None` 和全可信 mask 必须走原始 forward 旁路，并以逐 stage 输出和最终 logits 的 `torch.equal` 作为严格零差异门禁；任何非零差异都先判为 `protocol-blocked`，不进入科学比较。指标集合固定为 Boundary IoU 主指标和 mIoU 辅助指标，本轮不新增第三项指标。新对话必须在生成任何完整 B1 模型结果前，把最小实际效应量与区间联合规则记录为“项目预注册选择”，不得冒充文献标准；若用户没有冻结该数值，停止在 protocol 文档阶段。
+C 已于 2026-09-12 17:03 UTC 由用户冻结为项目预注册规则：`oracle-supported` 要求 `boundary-q75` 条件下 Oracle 相对 corrupted baseline 的 Boundary IoU 点估计至少增加 `+0.10` 个百分点，且双侧 95% percentile interval 下界严格大于 `0`；mIoU 作为否决项，其点估计不得为负。三项必须同时满足。若 Boundary IoU 点估计低于 `+0.10` 或 mIoU 点估计为负，则为 `oracle-not-supported`；若 Boundary IoU 点估计达到门槛且 mIoU 不为负，但区间下界不大于 `0`，则为 `inconclusive`。clean 不劣不设置可放宽容忍度，因为 clean、q=0、`None` 和全可信 mask 必须走原始 forward 旁路，并以逐 stage 输出和最终 logits 的 `torch.equal` 作为严格零差异门禁；任何非零差异都先判为 `protocol-blocked`，不进入科学比较。指标集合固定为 Boundary IoU 主指标和 mIoU 辅助否决指标，本轮不新增第三项指标。该规则是项目预注册选择，不是文献标准，后续不得根据结果更改。
 
 ## 8. 分阶段执行计划、授权边界与合法终点
 
 ### 8.1 当前已关闭与未关闭的门禁
 
 - **项目内代码事实：已关闭。** GSA contribution、四级 H/W/Full 结构、唯一 depth-only 插入点、参数链、现有 evaluator 与 DVC-A1 证据骨架均已核验。
-- **A 规则：项目预注册候选已选。** 使用第 6.4 节的 view 级 `INTER_LINEAR` 对齐、resize 后 flip、右/下可信 padding、stage 级 `INTER_AREA` 有效面积比例；尚未实现或通过 qualification。
-- **B 规则：项目预注册候选已选。** 使用第 6.6 节的 query/key 两端 continuous product gate；尚未实现或通过 qualification。
-- **C 规则：部分关闭。** clean 采用严格原路径旁路和 `torch.equal` 零差异；指标固定为 Boundary IoU + mIoU，不增加第三项。`oracle-supported` 最小实际效应量及 95% 区间联合规则仍待用户冻结。
+- **A 规则与实现：已关闭。** 使用第 6.4 节的 view 级 `INTER_LINEAR` 对齐、resize 后 flip、右/下可信 padding、stage 级 OpenCV `INTER_AREA` 有效面积比例；model-side 已增加 padded view 双轴整除 32、stage 精确 4/8/16/32 倍缩小的 fail-closed 守卫。
+- **B 规则与实现：已关闭。** Full/H/W 使用 query/key 两端 continuous product gate，仅门控 depth geometry contribution；CPU qualification 的 shape、方向、对称性、全 1、零端点和范围检查已通过。
+- **C 规则：已关闭。** `oracle-supported` 要求 Boundary IoU 点估计至少 `+0.10` 个百分点且 95% interval 下界严格大于 `0`，同时 mIoU 点估计不得为负；clean 继续采用严格原路径旁路和 `torch.equal` 零差异。该规则是项目预注册选择，不是文献标准。
+- **P0 protocol：已完成。** 模板位于 `protocols/dvg-b1-oracle-gsa-v1.template.json`，物化器位于 `tools/mve/dvg_b1_protocol.py`，仓库外协议位于 `cloud/DVG-B1-oracle-gsa-v1/protocol.json`，最终 SHA-256 为 `e7b9ed0a3c84053736f70a7807bdd4f270ee5bf84a6b85ca5cfd053f9cc47e46`；allowlist 摘要位于同目录 `allowlist-summary.json`。
+- **P1/P2/P3/P4：已完成。** CPU qualification SHA-256 为 `e101c972a25ada6749e7d8408172938d104ecfb4eee9266f1fbab7fc632b3dc3`；GPU no-op SHA-256 为 `a9cdbe8ca3b0ef210184499a06702103e71855e8b3529472403aae00fe31df24`；真实受损 gate preflight SHA-256 为 `bd2ec0f677b89a5a3129c1823c876b5b510262f28d8d96499d023af826c1360c`；P4 full evaluation SHA-256 为 `f5cadf93ace37868b27ecef2f5a96c18702ba821b8eda242f3c7921982a42f12`。
 
-C 未冻结时，合法终点只能是 `reference-blocked`，不得创建最终 protocol、修改模型代码或运行模型 forward。
+当前准确恢复点是 P4 的 `oracle-not-supported` 合法终点：停止本 Oracle GSA 门控方案，回到方向级计划选择新的独立候选。
 
-### 8.2 阶段 P0：C 冻结与文档 protocol 物化
+### 8.2 阶段 P0：C 冻结与文档 protocol 物化（已完成）
+
+- **完成事实：** 用户于 2026-09-12 17:03 UTC 在未查看 DVG-B1 模型结果前冻结 C；protocol 已确定性物化并达到 `protocol-ready`。大白话说，成功标准和输入身份已经先写死，下一阶段只能照此实现，不能看结果后换门槛。
 
 - **前置输入：** 本计划第 6–10 节、v3 冻结的 218 张图/138 组身份、checkpoint/split/evaluator 哈希、`MUSeg-open-decisions.md` 第 12 节。
 - **只允许改变：** 填写 `oracle-supported` 的最小 Boundary IoU 实际效应量、95% 区间规则，以及 mIoU 在裁决中的辅助/否决职责。
 - **固定不变：** A/B、clean `torch.equal`、指标集合、主 condition `boundary-q75`、bootstrap seed `20260908`、10,000 次 location-group 重采样、数据范围和 official-test 拒绝状态。
 - **交付物：** 在本文第 10.3 节、`MUSeg-open-decisions.md` 和 protocol 模板中出现完全一致的 C 规则；明确标记“项目预注册选择，非文献标准”。
-- **计划文件：** `tools/mve/protocols/DVG-B1-oracle-gsa-v1.template.json`；计划物化器为 `tools/mve/dvg_b1_protocol.py`，其 CLI 应镜像现有 DVC-A1 的 `--template/--output/--dataset-root/--checkpoint/--evidence-root/--split/--source-mask-manifest/--allowlist` 身份绑定方式。
-- **证据位置：** 仓库外或被 Git 忽略的 `cloud/DVG-B1-oracle-gsa-v1/`，至少包含 `protocol.json`、`allowlist-summary.json`、source/hash identity 和 `official_test_included=false`。
+- **计划文件：** `protocols/dvg-b1-oracle-gsa-v1.template.json`；物化器为 `tools/mve/dvg_b1_protocol.py`，其 CLI 复用现有 DVC-A1 的身份绑定方式，并显式绑定 v3 `protocol.json`、`mask-manifest.json`、allowlist 和 source allowlist summary。
+- **证据位置：** 仓库外/被 Git 忽略的 `cloud/DVG-B1-oracle-gsa-v1/`，当前包含 `protocol.json` 与 `allowlist-summary.json`；protocol 绑定 checkpoint、split、v3 source protocol、v3 mask manifest、allowlist、source allowlist summary、P0 代码身份和 `official_test_included=false`。
 - **通过条件：** C 已由用户明确冻结，protocol 可确定性物化，输入路径、allowlist、v3 mask manifest、代码身份和 SHA-256 完整。
 - **失败终点：** C 未冻结或任何身份无法核验时为 `reference-blocked`/`protocol-blocked`；停止，不进入代码。
 
-计划中的 CLI 和文件名是下一阶段需要实现的固定接口目标；在这些文件实际存在前不得把示例命令写成已运行证据。
+P0 CLI 和文件已实际存在并完成一次成功物化；该成功只验收 protocol 身份与文件完整性，不代表 A/B 算子、模型 no-op 或科学结果已经验证。
 
-### 8.3 阶段 P1：最小代码实现与 CPU 算子 qualification
+### 8.3 阶段 P1：最小代码实现与 CPU 算子 qualification（已完成）
 
-- **授权要求：** P0 `protocol-ready` 后，用户单独批准代码实现；当前对话没有该授权。
-- **最小修改范围：** `models/builder.py`、`models/encoders/DFormerv2.py`、`tools/mve/dvg_b1_protocol.py`、`tools/mve/dvg_b1_core.py`、`tools/mve/run_dvg_b1.py` 和 protocol 模板。只有确有必要时才定点改 evaluator 以传递 view mask 元数据，不复制另一套五尺度实现。
-- **实现边界：** 可选 `oracle_corruption_mask=None` 只沿第 6.4.5 节传递；只门控 `self.weight[1] * mask_d*`；A/B 规则逐字实现，不加入可学习参数、阈值、stage 选择或结果后开关。
-- **最小检查：** 先运行 `--mode qualification --device cpu`（计划接口），只做 A/B 算子、shape、方向、全 1、全 0、partial、empty/padding 和 flip/padding 审计，不加载 checkpoint、不执行模型 forward。
-- **结构化产物：** `qualification.json` 与 execution record，记录每个尺度/view/stage 的 shape、min/max、全 1 恒等、product 对称性、padding 边缘差异和异常。
-- **通过条件：** 第 6.4.4 与 6.6 的全部资格检查通过，且没有临时 `test_*.py` 或未批准的大型测试扩展。
-- **失败终点：** 算子语义与预注册规则不一致、内部非 padding 区域出现 flip 漂移、shape/广播不闭合时为 `protocol-blocked`。只允许修正实现错误；若必须改变 A/B 数值语义，则新建 protocol identity 并重新从 P0 开始。
+- **授权与实现：** 用户已明确批准 P1。`oracle_corruption_mask` 已沿 `EncoderDecoder` 到 `GeoPriorGen` 传递；`None`/全零 mask 进入原始分支，非零 mask 只门控 `self.weight[1] * mask_d*`。
+- **几何守卫：** padded view mask 的高宽必须都整除 32；每个 stage 必须是同一 padded view 的精确 4/8/16/32 倍整数缩小，否则 fail-closed。
+- **首次合法失败：** `executions/20260913T031240259385+0000-qualification.json` 以 `protocol-blocked`、退出码 2 保留。它暴露 PyTorch area 与冻结 OpenCV `INTER_AREA` 不完全一致、W gate expected shape 缺少 channel 维，以及原先对 inverse-flip 差异“只在边缘 token”的错误假设。
+- **修正：** stage 聚合改为真实 OpenCV `INTER_AREA`，W expected shape 修正；flip 审计改为 scaled content 严格镜像、每个 view/stage 独立对冻结 `INTER_AREA` 核对、完整网格 inverse-flip 差异仅作描述性记录。
+- **最终证据：** `cloud/DVG-B1-oracle-gsa-v1/qualification.json`，SHA-256 `e101c972a25ada6749e7d8408172938d104ecfb4eee9266f1fbab7fc632b3dc3`；execution 为 `cloud/DVG-B1-oracle-gsa-v1/executions/20260913T035625995821+0000-qualification.json`。状态 `passed`，160 个 view-stage 的 OpenCV `INTER_AREA` 均与独立精确整数块均值参考一致，几何守卫和 Full/H/W gate 检查全部通过；`checkpoint_loaded=false`、`model_forward_executed=false`、`gpu_used=false`、`official_test_included=false`。
+- **边界：** OpenCV 聚合在未来 CUDA forward 中会产生 CPU round-trip，首轮 MVE 接受其冻结数值语义，性能开销留给 P3 记录；`use_checkpoint=True` 的新增 kwargs 路径尚未执行验证。
 
-### 8.4 阶段 P2：模型 no-op 完全等价
+### 8.4 阶段 P2：模型 no-op 完全等价（已完成）
 
-- **前置条件：** P1 通过，checkpoint strict load 和代码 identity 已记录。
-- **执行范围：** 只使用 `None`、clean、q=0、全可信 mask；可以使用 CPU 或能承载最小样本的本地设备，优先选择成本最低且能覆盖真实 forward 的方式。
-- **验收：** 原模型与新接口的逐 stage 输出、最终 FP32 pre-softmax logits 全部使用 `torch.equal`；四类输入必须归一化到同一原始 forward 旁路。
-- **产物：** `noop-equivalence.json`，记录输入身份、stage、shape、dtype、device、布尔结果和首个差异位置（若失败），不只写“接近”。
-- **通过条件：** 所有比较严格为真。
-- **失败终点：** 任一不等为 `protocol-blocked`；不得改用 `allclose`、放宽容差或继续查看受损条件结果。
+- **授权与范围：** 用户已单独批准本地 GPU P2；仅加载 epoch 420 checkpoint，并对 omitted argument、显式 `None`、clean、q=0 和全可信 mask 执行真实 forward，没有运行任何受损 gate condition。
+- **输入与设备：** 使用 v3 allowlist 样本 `03-01-01-0066-240526121121-08-99` 的 0.5 scale 非 flip view，padded geometry 为 `480×544`；设备为本地 NVIDIA GeForce RTX 5060 Laptop GPU，checkpoint `strict=True` 加载。
+- **审计修正：** 首个结构化 P2 尝试发现四级 backbone 输出已经全部 `torch.equal`，但 Ham decoder 的 NMF2D 在 eval 中仍以 `torch.rand` 初始化 bases，未配对 RNG 时最终 logits 自然不同。该失败产物已归档到 `cloud/DVG-B1-oracle-gsa-v1/attempts/noop-equivalence-e916e463d64456f2e971b638ff1dc4385dbd13e4b19232b8bb1939558cd18ec0.json`；随后在每个比较 forward 前回放相同 CPU/CUDA RNG state，以隔离 no-op 接口变量，没有修改模型或放宽 `torch.equal`。
+- **最终证据：** `cloud/DVG-B1-oracle-gsa-v1/noop-equivalence.json`，SHA-256 `a9cdbe8ca3b0ef210184499a06702103e71855e8b3529472403aae00fe31df24`；execution 为 `cloud/DVG-B1-oracle-gsa-v1/executions/20260913T035646371110+0000-noop-equivalence.json`。四类比较的四级 stage 输出和最终 FP32 pre-softmax logits 全部严格相等，`failures=[]`；`checkpoint_loaded=true`、`model_forward_executed=true`、`gpu_used=true`、`official_test_included=false`。
+- **大白话说明：** 门控接口在不提供坏区时没有改变模型输出；配对 RNG 只消除了原模型 decoder 每次随机初始化带来的无关差异。
 
-### 8.5 阶段 P3：1–2 样本 gate preflight
+### 8.5 阶段 P3：1 样本 gate preflight（已完成）
 
-- **授权要求：** P2 通过后再请求本地模型 preflight 授权；它不等于完整评价授权。
-- **样本：** 固定 1–2 张 v3 allowlist 样本，必须覆盖至少一个非空 `boundary-q75`，若使用 2 张则第二张优先覆盖 `nonboundary-q50` 或既有阻塞组的几何边界案例；样本 ID 在运行前写入 protocol/产物。
-- **条件和 view：** 至少检查 clean、`boundary-q75`、`nonboundary-q50` 的 10 个 view；clean 只验证旁路，不重复生成 gate。
-- **审计字段：** 原始/scale/flip/padding mask 身份，四级 reliability 与 Full/H/W gate shape/statistics，depth/spatial contribution 隔离，finite、strict load、原始 Label 网格恢复、输入/输出哈希和 execution record。
-- **通过条件：** 所有 view/stage 对齐，spatial contribution 未改变，受损条件确实产生非全 1 gate，最终 logits 有限且回到原图网格；不计算或展示完整科学裁决。
-- **失败终点：** 输入错位、mask/hash 漂移、gate 未生效、spatial 被修改、非有限值或网格错误均为 `protocol-blocked`/`stop`；保留失败记录，不扩大样本“试到通过”。
+- **授权与样本：** 用户已单独批准本地 GPU P3。按冻结 v3 mask manifest 中“最大化 `boundary-q75` 与 `nonboundary-q50` 两者较小 mask 数量，再按 q75 数量和 sample ID 决定”的确定性规则，选中 allowlist 样本 `02-01-01-0283-240524103235-08-99`；没有根据模型输出换样本。
+- **条件和 view：** clean、`boundary-q75`、`nonboundary-q50` 各运行五尺度 × flip 共 10 view，总计 30 个 paired corrupted-baseline/Oracle-gated view。两类受损 mask 分别含 `22,368` 与 `14,912` 个像素，重建 SHA-256 与冻结 v3 source manifest 完全一致；q=0 量化 Depth8 与生产 Depth8 数组精确相等。clean 的 mask support 和 Depth delta 均为 0；两个受损条件的 20 个 view 均有非空 Depth delta，且变化像素全部位于对应缩放、翻转、padding 后的 mask support 内。
+- **四级审计：** 两个受损条件共形成 80 个 baseline 加 80 个 gated 四级首块 GSA 审计。两条生产路径均完整捕获 stage index、前三层 H/W 与第四层 Full topology、同一 corrupted Depth 输入、有限 `sin/cos` 和有限 spatial/raw/gated depth contribution；baseline 抽样 geometry prior 精确等于 spatial contribution 加 raw depth contribution，gated 抽样 geometry prior 精确等于 spatial contribution 加 gated depth contribution。gated reliability 与预计算精确相等且非全 1，Full/H/W pairwise gate 非全 1；全部 280 个拓扑抽样重建最大误差为 `0`，gated 每个 stage 均有非零 depth gate effect。
+- **配对与输出：** 每对 baseline/gated forward 前回放同一 CPU/CUDA RNG state，artifact 显式记录 Ham decoder `rand_init=true`；clean 的 10/10 view 及融合后 logits 均 `torch.equal`。两个受损条件的 20 个 view 和融合 logits 均有限且与 baseline 发生差异，所有输出恢复到原始 `932×1082` Label 网格。峰值 CUDA memory 为 `5,704,256,512` bytes。受损条件四级 GPU→CPU→OpenCV→GPU 聚合计时合计 `0.191766` 秒/20 view，约 `0.009588` 秒/view；该数字只用于 P4 预算，不外推为科学结果。
+- **最终证据：** 强化后的 canonical 为 `cloud/DVG-B1-oracle-gsa-v1/gate-preflight.json`，SHA-256 `bd2ec0f677b89a5a3129c1823c876b5b510262f28d8d96499d023af826c1360c`；execution 为 `cloud/DVG-B1-oracle-gsa-v1/executions/20260913T085636085128+0000-gate-preflight.json`。状态 `passed`，`failures=[]`，`checkpoint_strict_load=true`、`gpu_used=true`、`official_test_included=false`；此前 P3 产物均归档在 `cloud/DVG-B1-oracle-gsa-v1/attempts/`，不再是 canonical。
+- **大白话说明：** 强化后的 P3 同时证明了坏区确实改变对应 Depth、变化区域不越出 mask，而且 baseline 与 gated 的生产 geometry prior 只按冻结规则在 depth contribution 上不同；这只关闭实现预检，不代表 Oracle 在 218 张图上有效。
 
-### 8.6 阶段 P4：完整 paired development evaluation
+### 8.6 阶段 P4：完整 paired development evaluation（已完成）
 
-- **授权要求：** P3 通过后，必须再次向用户说明预计设备、时长和运行范围，并取得完整本地 GPU 评价的明确授权。未授权不得运行。
-- **运行入口：** 计划命令形态为 `python tools/mve/run_dvg_b1.py --protocol <protocol.json> --mode full --device cuda`；实际命令只有在 P1 实现和 `--help` 核验后才能写入执行记录。
-- **固定范围：** 218 张图、138 个 location group、五个 condition、每个样本 10 view；每个受损 condition 同时形成 corrupted baseline 与 Oracle-gated，同源 RGB/Depth/checkpoint/evaluator 保持配对。
-- **产物：** condition 级 JSON、per-image/per-group 指标、gate 审计摘要、mask manifest、summary、execution/failure record 和全部 SHA-256；大型 logits/prediction 不进 Git。
-- **统计：** 完整性门禁通过后，才对 location group 做冻结的 10,000 次 bootstrap，并按 P0 的 C 规则裁决 `oracle-supported`、`oracle-not-supported` 或 `inconclusive`。
-- **禁止：** 不看中途结果改 A/B/C，不删组、不加 condition/stage/阈值/seed，不读取 official test，不因结果接近门槛补跑另一规则。
+- **授权与运行：** 用户明确授权后，以 `python tools/mve/run_dvg_b1.py --protocol D:\0Project\DFormer\cloud\DVG-B1-oracle-gsa-v1\protocol.json --mode full --device cuda` 在本地 NVIDIA GeForce RTX 5060 Laptop GPU 上执行；未训练、未使用云资源、未读取 official test。
+- **固定范围：** 218 张图、138 个 location group、五个 condition、每图 10 view，共 `10,900` 个 corrupted-baseline/Oracle-gated 配对 forward pair。五个 condition JSON 均为 `completed`，每个均记录 218 样本、138 组、10 view 和 2,180 个配对。
+- **完整性门禁：** P0–P3 canonical SHA 前置门禁通过；mask manifest 的 218 样本、138 组、source mask hash 和 q=0 Depth8 等价通过。clean 的 `2,180/2,180` 个 view 与 `218/218` 个融合输出严格相等；四个受损 condition 的 Depth delta 均未越出 mask support。全部输出有限并恢复原始 Label 网格，paired CPU/CUDA RNG 在每对 forward 前回放，Boundary IoU 与 mIoU 的各 condition effect 均为 `138/138` 配对组。
+- **主结果：** `boundary-q75` 的 Oracle-minus-baseline Boundary IoU 点估计为 `-0.1508352015` 个百分点，95% percentile interval 为 `[-0.2676580460,-0.0462325573]`；mIoU 点估计为 `-0.2316731726` 个百分点，95% interval 为 `[-0.3914881430,-0.0919002976]`。
+- **辅助结果：** boundary-q50 minus nonboundary-q50 的位置特异性 Boundary IoU 为 `-0.0926464932` 个百分点，95% interval `[-0.1885406998,-0.0032951366]`；mIoU 为 `-0.1344022510` 个百分点，95% interval `[-0.2137575906,-0.0631577481]`。这些值等于两个 q50 gain 的直接差，没有重复乘 100。
+- **裁决：** Boundary IoU 点估计未达到 `+0.10`，区间下界不大于 `0`，且 mIoU 点估计为负，故按冻结 C 裁决为 `oracle-not-supported`；不得改规则补跑。
+- **资源与证据：** artifact 计时 `15,827.803` 秒，execution 墙钟约 `15,860.917` 秒，峰值 CUDA memory `5,703,501,824` bytes。canonical `cloud/DVG-B1-oracle-gsa-v1/full-evaluation.json` SHA-256 为 `f5cadf93ace37868b27ecef2f5a96c18702ba821b8eda242f3c7921982a42f12`；mask manifest SHA-256 为 `23675b08f8d17fd5d528d7afe181330f39578dd08958a1447cc2761af5c68656`；execution 为 `cloud/DVG-B1-oracle-gsa-v1/executions/20260913T150505939412+0000-full.json`，`official_test_included=false`。
 
 ### 8.7 合法终点
 
-- `reference-blocked`：只用于 P0 的 C 尚未冻结；准确恢复点是第 10.3 节。
+- `reference-blocked`：P0 历史合法终点，仅适用于 C 尚未冻结；C 已关闭后不再是当前状态。
 - `protocol-ready`：A/B/C、身份、模板和物化 protocol 全部冻结；只表示可以请求代码授权。
 - `protocol-blocked`：规则、身份、shape、对齐、no-op 或配对完整性失败；不看科学结果补洞。
 - `stop`：实现错误、输出非有限、输入错位或证据链不完整；保留现场。
@@ -397,13 +404,13 @@ C 未冻结时，合法终点只能是 `reference-blocked`，不得创建最终 
 - 不训练质量预测器、恢复网络或新的 RGB-only/RGB-D 模型；
 - 不使用 logits 后处理冒充 GSA 深度门控；
 - 不引入三维绝对误差、risk–coverage、高置信阈值或真实矿下部署结论；低照矿山可靠感知文献 [RE049] 只作为任务可靠性背景，不扩大本轮指标或安全主张；
-- 不在 C 数值门槛冻结、protocol 物化和 P1–P3 门禁通过前运行完整 GPU 评价。
+- 不在 P3 门禁通过且 P4 另行授权前运行完整 GPU 评价。
 
 ## 10. 项目预注册选择、证据边界与准确恢复点
 
 本节区分三类事实：文献/官方代码能够直接支持的机制边界、用户已经选择的项目预注册候选，以及仍需用户冻结的科学数值。不得把后三者混写。
 
-### 10.1 A：四级连续 token reliability 已选，待物化/验证
+### 10.1 A：四级连续 token reliability 已实现并通过 P1
 
 - **唯一候选：** 原始 mask 使用 `m=1` 表示受损、`r=1-m` 表示可信；原图到五尺度 view 使用 `INTER_LINEAR`，随后按 evaluator 顺序 flip、右/下 padding `r=1`；各 stage 用 `INTER_AREA` 聚合为连续有效面积比例。
 - **语义：** partial 为平滑后的有效面积比例，fully corrupted 为 0，all-trusted 为 1；正常 stage 映射不允许空 support，完全 padding token 才可定义为 1。
@@ -412,7 +419,7 @@ C 未冻结时，合法终点只能是 `reference-blocked`，不得创建最终 
 - **文献不能证明：** 这套五尺度 `INTER_LINEAR` + 四级 `INTER_AREA` 是 DFormerv2 的唯一正确规则；它明确是项目预注册设计。
 - **禁止：** 不再继续一般性窄搜，不根据模型结果改为 nearest、max/min pooling、阈值二值化或只选择部分 stage。
 
-### 10.2 B：Full/H/W 对称乘积 gate 已选，待物化/验证
+### 10.2 B：Full/H/W 对称乘积 gate 已实现并通过 P1
 
 - **唯一候选：** Full、H、W 分别使用第 6.6 节公式构造 query/key 两端 reliability 的 continuous product。
 - **选择理由：** depth relationship 是 token pair 属性；乘积要求两端都可信才完整保留，保持对称、连续、全 1 恒等，并在任一端为 0 时关闭该 pair。
@@ -420,33 +427,30 @@ C 未冻结时，合法终点只能是 `reference-blocked`，不得创建最终 
 - **文献不能证明：** product 优于 min 或单边 gate，也没有论文同时给出 DFormerv2 Full/H/W 三种映射；product 是项目预注册选择。
 - **禁止：** 不根据模型结果改为 `min`、query-only、key-only、hard threshold、非对称广播或 stage 子集。
 
-### 10.3 C：新对话第一道门禁
+### 10.3 C：已冻结并写入 P0 protocol
 
-以下两项已经冻结：
+以下规则已由用户于 2026-09-12 17:03 UTC 在未查看 DVG-B1 模型结果前一次性冻结：
 
 - clean/q=0/`None`/全可信 mask 必须走原始 forward 旁路；clean 容忍度为严格 0，以逐 stage 输出和最终 logits 的 `torch.equal` 验收；
-- 指标集合只使用 Boundary IoU 主指标和 mIoU 辅助指标，不增加第三项指标。
+- 指标集合只使用 Boundary IoU 主指标和 mIoU 辅助指标，不增加第三项指标；
+- `oracle-supported` 的 Boundary IoU 最小实际净增益为 `+0.10` 个百分点；
+- Boundary IoU 联合规则为：点估计必须达到 `+0.10` 个百分点，且双侧 95% percentile interval 下界严格大于 `0`；
+- mIoU 作为否决项：其点估计不得为负；
+- 三项同时满足才裁决为 `oracle-supported`。Boundary IoU 点估计低于门槛或 mIoU 点估计为负时裁决为 `oracle-not-supported`；Boundary IoU 点估计达到门槛且 mIoU 不为负、但区间下界不大于 `0` 时裁决为 `inconclusive`。
 
-仍需用户在任何完整模型结果生成前一次性填写：
-
-- `oracle-supported` 的 Boundary IoU 最小实际净增益：`<待用户冻结，单位为百分点>`；
-- 95% percentile interval 规则：`<待用户冻结：例如下界必须大于 0，或与最小效应量联合>`；
-- mIoU 职责：`<待用户冻结：仅报告、不得为负，或作为联合门槛；不得结果后更改>`；
-- 用户决定记录：`<日期、原话或确认位置；明确写“项目预注册选择，非文献标准”>`。
-
-如果用户未给出数值，新对话不得代填一个看似合理的阈值，更不得先跑 1–2 样本或完整评价再回填。
+**用户决定记录：** 本对话中用户选择 `+0.10` 个百分点、Boundary IoU 点估计达到门槛且区间下界 `> 0`、mIoU 点估计非负否决规则。上述内容明确属于“项目预注册选择，非文献标准”，不得在查看后续结果后更改。
 
 ### 10.4 准确恢复点
 
 新对话按以下顺序恢复，不再重复全文或常见官方仓库检索：
 
-1. 读取 `MUSeg-current-status.md`、本目录 `01`、`00`、本文和检索证据文档第 6.7/8 节；
-2. 只完成第 10.3 节 C 的用户冻结和三份文档同步；C 未关闭则停在 `reference-blocked`；
-3. C 关闭后按第 8.2 节物化 `DVG-B1-oracle-gsa-v1` protocol，并核对 identity/hash；
-4. 取得代码授权后依次执行 P1 CPU qualification、P2 no-op、P3 1–2 样本 preflight；任何阶段失败都停止，不跳级；
-5. P3 通过后另行申请完整本地 GPU paired development evaluation；没有该次明确授权不得进入 P4。
+1. 读取 `MUSeg-current-status.md`、本目录 `01`、`00`、本文；只在复核 A/B 证据边界时读取检索证据文档第 6.7/8 节；
+2. 核对 P0–P4 canonical SHA-256：P0 `e7b9ed0a3c84053736f70a7807bdd4f270ee5bf84a6b85ca5cfd053f9cc47e46`、P1 `e101c972a25ada6749e7d8408172938d104ecfb4eee9266f1fbab7fc632b3dc3`、P2 `a9cdbe8ca3b0ef210184499a06702103e71855e8b3529472403aae00fe31df24`、P3 `bd2ec0f677b89a5a3129c1823c876b5b510262f28d8d96499d023af826c1360c`、P4 `f5cadf93ace37868b27ecef2f5a96c18702ba821b8eda242f3c7921982a42f12`；
+3. 保留 P4 `oracle-not-supported` 终点，不在 v1 下修改 A/B/C、追加样本、阈值、condition、stage 或 seed；
+4. 若继续研究，从方向级计划选择新的独立问题或方案，并重新冻结 protocol identity 与授权边界；
+5. 训练、云资源和 official test 均需新的单独授权，P4 完成不构成后继授权。
 
-当前没有创建 B1 protocol，没有修改模型代码，没有运行模型 forward、preflight、GPU、训练、云资源或 official test。
+当前已完成 P0–P4，DVG-B1 v1 已收口。主条件 Boundary IoU 与 mIoU 均为负；训练、云资源和 official test 未运行。
 
 ## 11. 本设计保留的相关论文编号
 

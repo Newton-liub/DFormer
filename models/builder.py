@@ -223,12 +223,12 @@ class EncoderDecoder(nn.Module):
                 nonlinearity="relu",
             )
 
-    def encode_decode(self, rgb, modal_x):
+    def encode_decode(self, rgb, modal_x, oracle_corruption_mask=None):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
         orisize = rgb.shape
         # print('builder',rgb.shape,modal_x.shape)
-        x = self.backbone(rgb, modal_x)
+        x = self.backbone(rgb, modal_x, oracle_corruption_mask=oracle_corruption_mask)
         if len(x) == 2:  # if output is (rgb,depth) only use rgb
             x = x[0]
         out = self.decode_head.forward(x)
@@ -239,12 +239,20 @@ class EncoderDecoder(nn.Module):
             return out, aux_fm
         return out
 
-    def forward(self, rgb, modal_x=None, label=None):
+    def forward(self, rgb, modal_x=None, label=None, oracle_corruption_mask=None):
         # print('builder',rgb.shape,modal_x.shape)
         if self.aux_head:
-            out, aux_fm = self.encode_decode(rgb, modal_x)
+            out, aux_fm = self.encode_decode(
+                rgb,
+                modal_x,
+                oracle_corruption_mask=oracle_corruption_mask,
+            )
         else:
-            out = self.encode_decode(rgb, modal_x)
+            out = self.encode_decode(
+                rgb,
+                modal_x,
+                oracle_corruption_mask=oracle_corruption_mask,
+            )
         if label is not None:
             target = label.long()
             valid_mask = target != self.cfg.background
