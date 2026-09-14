@@ -58,6 +58,24 @@ def build_segmentor(cfg, train_cfg=None, test_cfg=None):
 logger = get_logger()
 
 
+def _mmfr_reliability_config(cfg):
+    """Return the frozen MMFR-A2 reliability block, or ``None`` when it is disabled.
+
+    The block lives in ``cfg.mmfr_a2["reliability_head"]``. Until a config enables it,
+    the model builds exactly the same modules as before A2 and keeps the scalar
+    segmentation loss path unchanged.
+    """
+    block = cfg.get("mmfr_a2") if hasattr(cfg, "get") else getattr(cfg, "mmfr_a2", None)
+    if not block:
+        return None
+    head = block.get("reliability_head") if hasattr(block, "get") else None
+    if not head:
+        return None
+    if not bool(head.get("enabled", True)):
+        return None
+    return head
+
+
 class EncoderDecoder(nn.Module):
     def __init__(
         self,
@@ -198,6 +216,25 @@ class EncoderDecoder(nn.Module):
         if self.criterion:
             self.init_weights(cfg, pretrained=cfg.pretrained_model)
 
+        # MMFR-A2 auxiliary reliability head. It is created only when the config asks
+        # for it, keeps its module default initialization (``init_weights`` only touches
+        # the segmentation heads) and never feeds the backbone, geometry prior or
+        # decoder: A2 uses it for auxiliary supervision only.
+        self.reliability_estimator = None
+        self.reliability_weight = 0.0
+        reliability_cfg = _mmfr_reliability_config(cfg)
+        if reliability_cfg is not None:
+            from .modal_reliability import ModalReliabilityEstimator
+
+            hidden_channels = int(reliability_cfg.get("hidden_channels", 16))
+            self.reliability_weight = float(reliability_cfg.get("weight", 0.1))
+            self.reliability_estimator = ModalReliabilityEstimator(hidden_channels=hidden_channels)
+            logger.info(
+                "MMFR-A2 reliability auxiliary head enabled: hidden_channels=%d weight=%s",
+                hidden_channels,
+                self.reliability_weight,
+            )
+
     def init_weights(self, cfg, pretrained=None):
         if pretrained:
             logger.info("Loading pretrained model: {}".format(pretrained))
@@ -239,8 +276,41 @@ class EncoderDecoder(nn.Module):
             return out, aux_fm
         return out
 
-    def forward(self, rgb, modal_x=None, label=None, oracle_corruption_mask=None):
-        # print('builder',rgb.shape,modal_x.shape)
+    def forward(
+        self,
+        rgb,
+        modal_x=None,
+        label=None,
+        oracle_corruption_mask=None,
+        raw_rgb=None,
+        raw_depth=None,
+        reliability_target=None,
+        reliability_valid_mask=None,
+        depth_valid=None,
+    ):
+        # Fail closed on partial or mismatched A2 supervision. Inference keeps the
+        # historical path because reliability supervision is a training-only input.
+        reliability_inputs = {
+            "raw_rgb": raw_rgb,
+            "raw_depth": raw_depth,
+            "reliability_target": reliability_target,
+            "reliability_valid_mask": reliability_valid_mask,
+            "depth_valid": depth_valid,
+        }
+        provided_reliability = [name for name, value in reliability_inputs.items() if value is not None]
+        if self.reliability_estimator is None and provided_reliability:
+            raise ValueError(
+                "reliability supervision was provided while the MMFR-A2 reliability head is disabled: "
+                + ", ".join(provided_reliability)
+            )
+        if self.reliability_estimator is not None and label is not None:
+            missing_reliability = [name for name, value in reliability_inputs.items() if value is None]
+            if missing_reliability:
+                raise ValueError(
+                    "MMFR-A2 training requires the complete reliability supervision batch; missing: "
+                    + ", ".join(missing_reliability)
+                )
+
         if self.aux_head:
             out, aux_fm = self.encode_decode(
                 rgb,
@@ -259,5 +329,56 @@ class EncoderDecoder(nn.Module):
             loss = safe_masked_mean(self.criterion(out, target), valid_mask)
             if self.aux_head:
                 loss += self.aux_rate * safe_masked_mean(self.criterion(aux_fm, target), valid_mask)
+            if self.reliability_estimator is not None:
+                loss = loss + self.reliability_weight * self.reliability_auxiliary_loss(
+                    raw_rgb,
+                    raw_depth,
+                    reliability_target,
+                    reliability_valid_mask,
+                    depth_valid,
+                )
             return loss
         return out
+
+    def reliability_auxiliary_loss(
+        self,
+        raw_rgb,
+        raw_depth,
+        reliability_target,
+        reliability_valid_mask=None,
+        depth_valid=None,
+    ):
+        """Continuous BCE between the auxiliary reliability estimate and the A1 target.
+
+        The A2 total loss is ``seg_loss + 0.1 * reliability_loss``; ``valid_mask`` only
+        excludes crop/pad pixels. The predicted reliability is returned nowhere else, and
+        no clean/corrupt consistency term is added (``lambda_cons = 0``).
+        """
+        from .modal_reliability import continuous_bce_loss
+
+        if self.reliability_estimator is None:
+            raise RuntimeError("reliability auxiliary loss requested without a reliability head")
+        if raw_rgb is None or raw_depth is None:
+            raise ValueError("reliability supervision requires raw_rgb and raw_depth")
+        if reliability_target is None:
+            raise ValueError("reliability supervision requires reliability_target")
+        # ``SignalFeatureExtractor`` consumes a floating point validity map. A2 uses
+        # only the auxiliary logits, so it deliberately skips the estimator's four-level
+        # pyramid; that pyramid remains reserved for the later learned adapter stage.
+        # The fixed signal operators include products of squared gradients. Under the
+        # outer CUDA FP16 autocast those products can underflow to zero before the
+        # cosine denominator is formed, producing NaNs on real images. Keep the small
+        # auxiliary reliability branch in FP32 while the segmentation path remains AMP.
+        feature_validity = None if depth_valid is None else depth_valid.to(torch.float32)
+        with torch.autocast(device_type=raw_rgb.device.type, enabled=False):
+            features = self.reliability_estimator.features(
+                raw_rgb.to(torch.float32),
+                raw_depth.to(torch.float32),
+                feature_validity,
+            )
+            logits = self.reliability_estimator.head(features)
+            return continuous_bce_loss(
+                logits,
+                reliability_target.to(torch.float32),
+                reliability_valid_mask,
+            )

@@ -1,6 +1,6 @@
 # MUSeg 实验口径与处置状态
 
-> **状态时间：** 2026-09-13 15:05 UTC。
+> **状态时间：** 2026-09-14 02:02 UTC。
 > **文档角色：** 研究选择与边界记录，不承担实时状态或执行授权。
 > **实时入口：** [`MUSeg-current-status.md`](MUSeg-current-status.md)。稳定基准与分支规则见 [`research-branch-governance.md`](../guides/project/research-branch-governance.md)。
 > **候选计划：** A2/B2 与方向1均已延期、未执行、未授权；索引见 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`](../plans/deferred/2026-09-MUSeg-unexecuted/README.md)。
@@ -173,3 +173,25 @@
 - **证据入口：** 详细规则与分阶段证据见 `doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`；实时恢复入口见同目录 `01-新对话最小上下文与当前任务.md`。
 
 **大白话说明：** 分阶段实现、严格等价和完整配对评价都已完成。即使直接提供真实 corruption mask，冻结的最小 GSA 深度门控仍使主条件 Boundary IoU 和 mIoU 下降，因此该方案按预注册规则停止；训练和 official test 仍不在当前授权内。
+
+## 13. MMFR 多形式模态失效与可学习可靠性
+
+**大白话问题：** DVG-B1 只研究“已知 Depth 坏区后关闭一个固定贡献”，既没有让模型见过多种故障，也没有让模型学习坏区对应的融合动作。新方向需要先回答 MUSeg 能支持什么结论、失效应怎样分型、可靠性由哪些信号估计，以及哪些权重应该学习。
+
+**当前状态：方向级选择、A1 standalone 脚手架、A2 训练接入设计、CPU qualification 与本地 GPU 单步 preflight 均已处置。正式训练职责已固定为云端单卡，本机只做推理和小规模 preflight；RTX 4090 是默认省钱卡，RTX 5090 只在 4090 缺货、24 GiB 不足或配对 probe 证明单位样本成本更低时使用。当前真正开放的是是否授权两个公平对照的云端训练。**
+
+- **数据适用性已处置：** MUSeg 的 3,171 对精确对齐 RGB/Depth、六矿区、15 类语义标注适合矿井域受控合成失效训练与开发比较；它没有自然失效标签、故障发生率、重复采集或标定漂移真值，因此不能单独支持真实矿井传感器可靠性结论。当前 `train-dev=1277`、`val-dev=318` 职责不变，official test 保持 `sealed_unread`。
+- **失效定义已处置：** A1 通用基函数保持 whole-modality missing、spatial dropout、Gaussian noise、Gaussian blur、Depth quantization、Depth translation misalignment 及 curriculum 混合；A2 当前训练身份只采样 Depth，RGB complete-missing 不进入该 config。
+- **A2 数据流已处置：** corruption 固定在 DataLoader 完成 mirror/scale/crop/pad 后、GPU 前由主训练进程逐样本执行。target 直接位于最终 crop 几何；worker 内旧几何增强保持原语义，A2 不宣称任意中途 resume 后几何增强逐像素相同。
+- **A2 RNG 已处置：** 基础 seed 为 `2026091402`；每样本 seed words 固定为 epoch、iteration、global rank、sample slot 和 sample-id SHA-256 前四个 uint32，使用独立 NumPy `PCG64(SeedSequence)`，不读写全局 RNG。
+- **raw/normalized 与 pad 已处置：** backbone 继续消费 normalized tensor，reliability head 消费严格恢复的 raw `[0,1]`；clean sample 直接复用原 normalized tensor。RGB/Depth 同时逐通道 exact-zero 定义 crop pad；pad 在 corruption 前置为 uint8 0，corruption 后 normalized/raw 仍为 0，target 为中性 1 且由 valid mask 排除。
+- **loss 已处置：** `p_clean=0.25`、Depth-only `max_specs=2`，每样本单次 segmentation forward；总损失固定为 input segmentation loss 加 `0.1` 倍连续 reliability BCE，`lambda_cons=0`。A2 reliability 预测不进入 backbone、decoder 或 geometry prior，四级 adapter 留给后续 B1。
+- **公平对照已处置：** `MMFR-A2-clean-control-v1` 与 `MMFR-A2-depth-corruption-train-v1` 都从同一官方 pretrained、seed `772961337`、AdamW、500 epoch、尺度增强和 clean selector 独立训练，不从 Quick-B0 最终 checkpoint 续训。失效条件不参与 checkpoint 选择。
+- **评价与成功门槛已处置：** 冻结 checkpoint 后使用 `msflip-whole-original-grid-v1`；六个 Depth 单失效、三个固定混合条件、318 张 `val-dev` 和 196 个 location-group paired bootstrap 已预注册。主成功要求单失效宏平均 mIoU 至少 `+1.00` 个百分点且 95% interval 下界严格大于 0，clean mIoU 下降不超过 `0.50`，至少五个单条件非负且任一不得低于 `-1.00`。达到也只能写 single-seed development-supported。
+- **A1/A2 实现事实：** A1 新增 `utils/dataloader/multimodal_failure.py` 与 `models/modal_reliability.py`；A2 新增 `utils/dataloader/mmfr_training.py`、三个独立 config 和 `protocols/mmfr-a2-train-integration-v1.template.json`，并在 `models/builder.py`、`utils/train.py` 增加配置关闭时保持旧路径的可选接口。主代理已直接复核并修正 Depth 通道一致性、Depth-only 抽样顺序、pad 伪 Depth `122` 经 misalignment 移入有效区和 supervision 静默缺失风险。
+- **训练硬件职责已处置：** 正式训练只在云端单 GPU 执行，本机只做推理、想法验证和小规模 preflight。按用户提供的价格快照，RTX 4090 为 `1.88 元/小时`，RTX 5090 为 `2.78 元/小时`，5090 价格是 4090 的 `1.4787` 倍；因此只有 5090 实测吞吐超过 4090 的 `1.4787` 倍时，单位样本计算费才更低。当前已有 RTX 4090、batch size 10 的成功历史，故默认选 RTX 4090；RTX 5090 仅在 4090 缺货、24 GiB 显存不足，或同口径短 probe 证明单位样本成本更低时备用。5090 的营销 AI TOPS 不直接作为 FP16 训练速度证据。无论使用哪张卡，batch size 10、学习率 `6e-5`、500 epoch、seed 和 selector 均保持不变，不因显存更大而改科学超参数。
+- **qualification 边界：** CPU 阶段的静态编译、exhaustive uint8 round-trip、确定性、clean exact no-op、pad/target 中性、Depth curriculum、finite loss/backward、静态诊断和 `git diff --check` 已通过。本地 GPU preflight 又使用真实 `train-dev`、官方 pretrained、Ham decoder、SyncBN 与 AMP 完成 1 次 AdamW update；首次运行发现并修复 reliability 特征 FP16 下溢，第二次发现并修复 probe 错误 finalize checkpoint selector。最终 canonical 运行尝试 6 个 batch、因 GradScaler 跳过前 5 次 update 后完成 1 次，全部 loss 有限，峰值 allocated/reserved CUDA memory 为 `2069.91/2260` MiB，`official_test_included=false`。这仍不覆盖冻结 batch size 10 的容量、DDP、完整 epoch、checkpoint save/load、evaluator、完整测试、云资源或 official test。
+- **仍开放：** 是否授权云端 batch size 10 的容量/吞吐 probe，以及是否随后启动 `MMFR-A2-clean-control-v1` 与 `MMFR-A2-depth-corruption-train-v1` 两个公平对照训练。正式训练环境、主备 GPU 和科学超参数已处置，不再把本地长训练作为候选。`MMFR-B1-learned-geometry-adapter-v1` 尚未细化，不因 A2 GPU preflight 通过自动解锁。
+- **证据入口：** `doc/plans/2026-09-MUSeg-多形式模态失效可靠性学习/00-总方向规划.md`、`01-新对话最小上下文与当前任务.md`、`02-MMFR-A1失效基函数与可靠性脚手架.md`、`03-MMFR-A2训练接入与公平对照协议.md` 与 `protocols/mmfr-a2-train-integration-v1.template.json`。
+
+**大白话说明：** A2 的训练接线已经在本地 GPU 上完成一次有效更新，正式长训练改为云端单卡且默认选 4090；现在还没有租用云实例或开始 500 epoch 训练。下一项决策是是否允许先做 batch size 10 的云端容量/吞吐短 probe，再启动两个公平对照训练。

@@ -18,6 +18,13 @@ from val_mm import evaluate, evaluate_msf
 from models.builder import EncoderDecoder as segmodel
 from tools.museg_protocol import write_json
 from utils.dataloader.dataloader import get_train_loader, get_val_loader
+from utils.dataloader.mmfr_training import (
+    CLEAN_PROBABILITY as MMFR_CLEAN_PROBABILITY,
+    CORRUPTION_SEED as MMFR_CORRUPTION_SEED,
+    CURRICULUM_KINDS as MMFR_CURRICULUM_KINDS,
+    MAX_SPECS as MMFR_MAX_SPECS,
+    build_mmfr_training_batch,
+)
 from utils.dataloader.RGBXDataset import RGBXDataset
 from utils.engine.engine import Engine
 from utils.engine.logger import get_logger
@@ -357,6 +364,45 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     if (not args.pad_SUNRGBD) and config.backbone.startswith("DFormerv2") and config.dataset_name == "SUNRGBD":
         raise ValueError("DFormerv2 is not recommended without pad_SUNRGBD")
     config.pad = args.pad_SUNRGBD
+    # MMFR-A2 train integration. When the config leaves ``mmfr_a2.corruption`` empty the
+    # whole block below is inert and the pre-A2 training path is byte-for-byte the same.
+    mmfr_a2_config = dict(getattr(config, "mmfr_a2", None) or {})
+    mmfr_a2_corruption = dict(mmfr_a2_config.get("corruption") or {})
+    mmfr_a2_reliability_head = dict(mmfr_a2_config.get("reliability_head") or {})
+    if bool(mmfr_a2_corruption) != bool(mmfr_a2_reliability_head):
+        parser.error("mmfr_a2 corruption and reliability_head must be enabled together")
+    if mmfr_a2_corruption:
+        if tuple(mmfr_a2_corruption.get("kinds", MMFR_CURRICULUM_KINDS)) != tuple(MMFR_CURRICULUM_KINDS):
+            parser.error("mmfr_a2 corruption kinds must equal the frozen six-kind A1 tuple")
+        if tuple(mmfr_a2_corruption.get("modalities", ("depth",))) != ("depth",):
+            parser.error("mmfr_a2 corruption is Depth-only")
+        if int(mmfr_a2_corruption.get("max_specs", MMFR_MAX_SPECS)) != MMFR_MAX_SPECS:
+            parser.error(f"mmfr_a2 max_specs must be the frozen {MMFR_MAX_SPECS}")
+        if int(mmfr_a2_corruption.get("seed", MMFR_CORRUPTION_SEED)) != MMFR_CORRUPTION_SEED:
+            parser.error(f"mmfr_a2 corruption seed must be the frozen {MMFR_CORRUPTION_SEED}")
+        mmfr_a2_p_clean = float(mmfr_a2_corruption.get("p_clean", MMFR_CLEAN_PROBABILITY))
+        if not 0.0 <= mmfr_a2_p_clean <= 1.0:
+            parser.error("mmfr_a2 p_clean must lie in [0, 1]")
+        mmfr_a2_weight = float(mmfr_a2_reliability_head.get("weight", 0.1))
+        if not 0.0 <= mmfr_a2_weight <= 1.0:
+            parser.error("mmfr_a2 reliability weight must lie in [0, 1]")
+        if float(mmfr_a2_config.get("lambda_consistency", 0.0)) != 0.0:
+            parser.error("mmfr_a2 lambda_consistency must be 0.0")
+        mmfr_a2_global_rank = int(torch.distributed.get_rank()) if torch.distributed.is_initialized() else 0
+        logger.info(
+            "MMFR-A2 Depth corruption enabled: protocol=%s mode=%s seed=%d p_clean=%.2f max_specs=%d "
+            "reliability_weight=%.3f lambda_consistency=%.1f global_rank=%d",
+            mmfr_a2_config.get("protocol", "MMFR-A2-train-integration-v1"),
+            mmfr_a2_config.get("mode", "depth-corruption"),
+            int(mmfr_a2_corruption.get("seed", MMFR_CORRUPTION_SEED)),
+            mmfr_a2_p_clean,
+            int(mmfr_a2_corruption.get("max_specs", MMFR_MAX_SPECS)),
+            mmfr_a2_weight,
+            float(mmfr_a2_config.get("lambda_consistency", 0.0)),
+            mmfr_a2_global_rank,
+        )
+    else:
+        logger.info("MMFR-A2 corruption disabled; the pre-A2 training path is unchanged")
     if not args.use_seed and config.experiment_phase in {"development", "official"}:
         parser.error("development and official phases require deterministic --seed semantics")
     if args.use_seed:
@@ -462,6 +508,15 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         val_batch_size=val_batch_size,
     )
     tracker_config["protocol"]["manifest_sha256"] = args.protocol_manifest_sha256
+    dirty_check = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+    )
+    if dirty_check.returncode != 0:
+        raise RuntimeError(f"failed to inspect Git worktree state: {dirty_check.stderr.strip()}")
+    tracker_config["identity"]["dirty"] = bool(dirty_check.stdout.strip())
     if is_primary:
         write_json(os.path.join(config.log_dir, "run_config.json"), tracker_config)
     tracker.start(
@@ -486,6 +541,11 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         norm_layer=BatchNorm2d,
         syncbn=args.syncbn,
     )
+    if bool(mmfr_a2_corruption) != (getattr(model, "reliability_estimator", None) is not None):
+        raise ValueError(
+            "MMFR-A2 configuration mismatch: cfg.mmfr_a2['reliability_head'] and cfg.mmfr_a2['corruption'] "
+            "must enable the reliability head together"
+        )
     # weight=torch.load('checkpoints/NYUv2_DFormer_Large.pth')['model']
     # w_list=list(weight.keys())
     # # for k in w_list:
@@ -605,7 +665,9 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     best_miou_epoch = engine.state.best_val_epoch
     checkpoint_selector = None
     checkpoint_policy = dict(getattr(config, "checkpoint_retention_policy", {}))
-    if checkpoint_policy and is_primary:
+    # Probe runs stop inside the epoch before checkpoint saving. They still emit
+    # telemetry/training_result, but must not finalize a selector that requires latest.pth.
+    if checkpoint_policy and is_primary and args.run_kind != "probe":
         checkpoint_selector = TopKCheckpointSelector(
             config.checkpoint_dir,
             top_k=int(checkpoint_policy["top_k"]),
@@ -649,6 +711,9 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         dataloader = iter(train_loader)
         sum_loss = 0
         i = 0
+        mmfr_clean_samples = 0
+        mmfr_corrupt_samples = 0
+        mmfr_reliability_sum = 0.0
         train_timer.start()
         for idx in range(config.niters_per_epoch):
             engine.update_iteration(epoch, idx)
@@ -671,14 +736,53 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             imgs = minibatch["data"]
             gts = minibatch["label"]
             modal_xs = minibatch["modal_x"]
+            mmfr_auxiliary_kwargs = {}
+            if mmfr_a2_corruption:
+                # Corruption happens here: the DataLoader geometry is already final and the
+                # batch is still on the CPU, so the reliability target shares the batch
+                # geometry and stays independent of worker count and worker scheduling.
+                mmfr_batch = build_mmfr_training_batch(
+                    imgs,
+                    modal_xs,
+                    minibatch.get("fn"),
+                    epoch=epoch,
+                    iteration=idx,
+                    niters_per_epoch=config.niters_per_epoch,
+                    nepochs=config.nepochs,
+                    rgb_mean=config.norm_mean,
+                    rgb_std=config.norm_std,
+                    corruption_seed=int(mmfr_a2_corruption.get("seed", MMFR_CORRUPTION_SEED)),
+                    global_rank=mmfr_a2_global_rank,
+                    p_clean=mmfr_a2_p_clean,
+                    max_specs=int(mmfr_a2_corruption.get("max_specs", MMFR_MAX_SPECS)),
+                    sample_id_root=getattr(config, "dataset_path", None),
+                )
+                imgs = mmfr_batch["rgb"]
+                modal_xs = mmfr_batch["depth"]
+                for record in mmfr_batch["metadata"]:
+                    if record["clean"]:
+                        mmfr_clean_samples += 1
+                    else:
+                        mmfr_corrupt_samples += 1
+                    mmfr_reliability_sum += record["depth_reliability_mean"]
             imgs = imgs.cuda(non_blocking=True)
             gts = gts.cuda(non_blocking=True)
             modal_xs = modal_xs.cuda(non_blocking=True)
+            if mmfr_a2_corruption:
+                # Only tensors cross to the GPU; the audit metadata stays on the CPU and
+                # never reaches the model.
+                mmfr_auxiliary_kwargs = {
+                    "raw_rgb": mmfr_batch["raw_rgb"].cuda(non_blocking=True),
+                    "raw_depth": mmfr_batch["raw_depth"].cuda(non_blocking=True),
+                    "reliability_target": mmfr_batch["reliability_target"].cuda(non_blocking=True),
+                    "reliability_valid_mask": mmfr_batch["valid_mask"].cuda(non_blocking=True),
+                    "depth_valid": mmfr_batch["depth_valid"].cuda(non_blocking=True),
+                }
             if args.amp:
                 with torch.autocast(device_type="cuda", dtype=torch.float16):
-                    loss = model(imgs, modal_xs, gts)
+                    loss = model(imgs, modal_xs, gts, **mmfr_auxiliary_kwargs)
             else:
-                loss = model(imgs, modal_xs, gts)
+                loss = model(imgs, modal_xs, gts, **mmfr_auxiliary_kwargs)
             if measure_step and not bool(torch.isfinite(loss.detach()).all().item()):
                 raise FloatingPointError(f"non-finite loss at epoch {epoch}, iteration {idx + 1}")
             # reduce the whole loss over multi-gpu
@@ -830,6 +934,13 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             f"completed_optimizer_steps={train_steps_completed}, "
             f"skipped_optimizer_steps={skipped_optimizer_steps}"
         )
+        if mmfr_a2_corruption:
+            mmfr_samples_seen = mmfr_clean_samples + mmfr_corrupt_samples
+            logger.info(
+                f"Epoch {epoch} MMFR-A2 corruption telemetry: clean_samples={mmfr_clean_samples}, "
+                f"corrupt_samples={mmfr_corrupt_samples}, "
+                f"mean_depth_reliability={mmfr_reliability_sum / max(1, mmfr_samples_seen):.4f}"
+            )
         train_epoch_seconds = train_timer.stop()
         epoch_loss = sum_loss / (idx + 1)
         if is_primary:

@@ -1,13 +1,17 @@
 # MUSeg 阶段计划与历史执行记录
 
 > **文档角色：** 计划目录索引，不承担实时状态。
-> **核验时点：** 2026-09-13。
+> **核验时点：** 2026-09-14。
 > **实时入口：** `doc/main/MUSeg-current-status.md`；研究选择见 `doc/main/MUSeg-open-decisions.md`。
 > **后继关系：** 计划只记录设计和形成时点；当前事实与恢复步骤以实时状态为准。
 
 本目录保存 MUSeg 阶段设计、执行计划和历史记录。计划不单独构成代码、GPU、训练、云资源或 official test 授权。
 
 ## 当前与候选计划
+
+- [`2026-09-MUSeg-多形式模态失效可靠性学习/00-总方向规划.md`](2026-09-MUSeg-多形式模态失效可靠性学习/00-总方向规划.md)：当前 MMFR（多模态失效鲁棒性）方向；A1 standalone 脚手架与 A2 post-crop/pre-GPU Depth corruption、确定性 RNG、辅助 reliability loss 和公平 clean/corruption config 均已完成 CPU qualification。GPU preflight、训练、完整评价、云执行和 official test 均未授权。
+- [`2026-09-MUSeg-多形式模态失效可靠性学习/01-新对话最小上下文与当前任务.md`](2026-09-MUSeg-多形式模态失效可靠性学习/01-新对话最小上下文与当前任务.md)：新对话恢复入口；当前没有已授权执行任务，下一拟议步骤是单独批准本地 GPU 单步 preflight。
+- [`2026-09-MUSeg-多形式模态失效可靠性学习/03-MMFR-A2训练接入与公平对照协议.md`](2026-09-MUSeg-多形式模态失效可靠性学习/03-MMFR-A2训练接入与公平对照协议.md)：冻结 A2 数据流、RNG、raw/normalized 职责、Depth-only curriculum、$\lambda_{rel}=0.1$、clean control、评价条件和成功门槛，并记录限定代码接入与 CPU qualification。
 
 - [`2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/00-总方向规划.md)：几何可信 RGB-D 问题/方案双路径 MVE 总规划；v1/v2 历史终态保持不变，v3 为 `not-supported`，DVG-B1 的 P0–P4 已完成并裁决为 `oracle-not-supported`，当前回到方向级候选选择。
 - [`2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md`](2026-09-MUSeg-几何可信RGBD双路径MVE/03-共享协议与DVC-A1问题验证.md)：保留 v1/v2 的 `protocol-blocked` 记录；新增独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext`，记录完整评价和 `not-supported` 正式收口。
