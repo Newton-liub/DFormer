@@ -335,13 +335,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=-1,
         help="override dataloader workers for the CPU-only mode (-1 keeps the config value)",
     )
+    parser.add_argument(
+        "--cv2-threads",
+        type=int,
+        default=-1,
+        help="set cv2.setNumThreads(n) before building anything (-1 leaves the default)",
+    )
+    parser.add_argument(
+        "--corruption-workers",
+        type=int,
+        default=1,
+        help="batch-internal corruption workers (1 keeps the serial Opt-A path)",
+    )
     args = parser.parse_args(argv)
-    if args.measured_steps < 60:
-        parser.error("measured steps below 60 are not acceptable for this profile")
+    # Full pipeline profiles keep the original >=60 measured-step floor; the CPU-only
+    # screening mode is explicitly allowed a shorter 5 warmup + 30 measured window by the
+    # 2026-09-15 Opt-B instruction, so it only requires 30.
+    if not args.cpu_only and args.measured_steps < 60:
+        parser.error("measured steps below 60 are not acceptable for the full pipeline profile")
+    if args.cpu_only and args.measured_steps < 30:
+        parser.error("the cpu-only screening mode requires at least 30 measured batches")
 
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
+    if args.cv2_threads >= 0:
+        import cv2
+
+        cv2.setNumThreads(int(args.cv2_threads))
 
     if args.cpu_only:
         return _run_cpu_only(args)
@@ -698,6 +719,28 @@ def main(argv: Sequence[str] | None = None) -> int:
     return 0
 
 
+def _rss_kib() -> int | None:
+    try:
+        with open("/proc/self/status", "r", encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1])
+    except OSError:
+        return None
+    return None
+
+
+def _thread_environment() -> Dict[str, Any]:
+    import cv2
+
+    return {
+        "torch_num_threads": int(torch.get_num_threads()),
+        "torch_num_interop_threads": int(torch.get_num_interop_threads()),
+        "cv2_num_threads": int(cv2.getNumThreads()),
+        "logical_cpus": int(os.cpu_count() or 0),
+    }
+
+
 def build_loader_only(config_module: str, workers: int = -1):
     """CPU-only loader construction that never touches CUDA."""
     config = getattr(importlib.import_module(config_module), "C")
@@ -737,6 +780,7 @@ def _run_cpu_only(args: argparse.Namespace) -> int:
     iterator = iter(loader)
     sampler = UtilizationSampler(interval_seconds=args.sample_interval_ms / 1000.0)
     sampler.start()
+    rss_start = _rss_kib()
     wall_started = time.perf_counter()
     for step in range(total_steps):
         is_warmup = step < args.warmup_steps
@@ -766,6 +810,7 @@ def _run_cpu_only(args: argparse.Namespace) -> int:
             p_clean=p_clean,
             max_specs=max_specs,
             sample_id_root=getattr(config, "dataset_path", None),
+            corruption_workers=int(args.corruption_workers),
         )
         helper_seconds = time.perf_counter() - started
         counters = count_kinds(outputs["metadata"], kind_counters)
@@ -782,6 +827,7 @@ def _run_cpu_only(args: argparse.Namespace) -> int:
             )
     wall_seconds = time.perf_counter() - wall_started
     utilization = sampler.stop()
+    rss_end = _rss_kib()
 
     def column(name: str) -> Dict[str, float]:
         values = [row[name] for row in rows]
@@ -796,6 +842,7 @@ def _run_cpu_only(args: argparse.Namespace) -> int:
 
     summary = timers.summary()
     helper_summary = column("corruption_seconds")
+    wait_summary = column("dataloader_wait_seconds")
     validation_seconds = summary.get("a2_v3._validate_batch_outputs_v3", {})
     helper_calls = int(summary.get("a2_v3.build_mmfr_training_batch_v3", {}).get("calls", len(rows)))
     validation_calls = int(validation_seconds.get("calls", helper_calls)) or helper_calls
@@ -827,6 +874,11 @@ def _run_cpu_only(args: argparse.Namespace) -> int:
             "wall_seconds_total": round(wall_seconds, 3),
             "curriculum_sampling": "epoch spread uniformly over [1, nepochs] across measured steps",
         },
+        "thread_environment": _thread_environment(),
+        "corruption_workers": int(args.corruption_workers),
+        "rss_kib_start": rss_start,
+        "rss_kib_end": rss_end,
+        "dataloader_wait_seconds": wait_summary,
         "corruption_helper_seconds": helper_summary,
         "corruption_helper_images_per_second": round(
             float(config.batch_size) / helper_summary["mean"], 6
@@ -863,16 +915,21 @@ def _run_cpu_only(args: argparse.Namespace) -> int:
         json.dumps(
             {
                 "profile": str(profile_path),
-                "summary": str(summary_path),
-                "scope": report["scope"],
-                "corruption_seconds_mean": helper_summary["mean"],
-                "corruption_seconds_median": helper_summary["median"],
-                "corruption_images_per_second": report["corruption_helper_images_per_second"],
-                "validation_seconds_per_call": report["validation_seconds_per_call"],
-                "sample_loop_seconds_per_call_excluding_validation": report[
-                    "sample_loop_seconds_per_call_excluding_validation"
-                ],
+                "dl_workers": int(config.num_workers),
+                "cv2_threads": report["thread_environment"]["cv2_num_threads"],
+                "torch_threads": report["thread_environment"]["torch_num_threads"],
+                "corruption_workers": report["corruption_workers"],
+                "helper_mean_s": helper_summary["mean"],
+                "helper_p50_s": helper_summary["p50"],
+                "helper_p90_s": helper_summary["p90"],
+                "helper_p95_s": helper_summary["p95"],
+                "helper_max_s": helper_summary["max"],
+                "helper_img_s": report["corruption_helper_images_per_second"],
+                "dl_wait_mean_s": wait_summary["mean"],
+                "validation_s_per_call": report["validation_seconds_per_call"],
+                "sample_loop_s_per_call": report["sample_loop_seconds_per_call_excluding_validation"],
                 "cpu_busy_percent": utilization.get("cpu_busy_percent"),
+                "rss_mib_end": None if rss_end is None else round(rss_end / 1024.0, 1),
             },
             indent=2,
             ensure_ascii=False,
