@@ -642,8 +642,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         },
         "throughput": {
             "images_per_second": round(images_per_second, 6),
+            "throughput_scope": "includes the probe-style telemetry hash phase",
+            "images_per_second_excluding_telemetry_hash": round(
+                float(config.batch_size)
+                / max(step_wall["mean"] - per_step_summary["telemetry_hash_seconds"]["mean"], 1e-9),
+                6,
+            ),
+            "production_like_throughput_scope": "excludes the probe-style telemetry hash phase",
             "step_wall_seconds": step_wall,
             "seconds_per_step": step_wall["mean"],
+            "seconds_per_step_excluding_telemetry_hash": round(
+                step_wall["mean"] - per_step_summary["telemetry_hash_seconds"]["mean"], 6
+            ),
         },
         "per_step_stage_seconds": per_step_summary,
         "stage_share_of_step": {

@@ -360,12 +360,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit(f"golden file not found: {output_path}; run --mode build first")
     golden = json.loads(output_path.read_text(encoding="utf-8"))
     mismatches = compare(golden, payload)
+    fresh_digest = hashlib.sha256(
+        json.dumps(payload["cases"], sort_keys=True).encode("utf-8")
+    ).hexdigest()
     report = {
         "schema_version": "mmfr-a2-v3-corruption-golden-verify-v1",
         "golden": str(output_path),
         "golden_sha256": hashlib.sha256(output_path.read_bytes()).hexdigest(),
         "cases": payload["case_count"],
         "tensors_compared": payload["tensor_count"],
+        "fresh_case_digest": fresh_digest,
         "mismatch_count": len(mismatches),
         "mismatches": mismatches[:40],
         "pass": not mismatches,
