@@ -76,6 +76,33 @@ def _mmfr_reliability_config(cfg):
     return head
 
 
+def _mmfr_supervised_channels(reliability_cfg):
+    """Channels the A2 reliability auxiliary loss is allowed to score.
+
+    ``MMFR-A2-train-integration-v1`` scores both channels (its default). The v2 protocol
+    fixes ``["depth"]`` because the RGB channel is an all-ones scaffold there: scoring it
+    would turn a constant into a "trained RGB reliability estimator". An empty or unknown
+    list fails closed instead of silently scoring nothing.
+    """
+    from .modal_reliability import MODALITY_ORDER
+
+    raw = reliability_cfg.get("supervised_channels", list(MODALITY_ORDER))
+    if isinstance(raw, str):
+        raw = [raw]
+    channels = tuple(str(name) for name in raw)
+    if not channels:
+        raise ValueError("mmfr_a2 reliability_head.supervised_channels must not be empty")
+    for name in channels:
+        if name not in MODALITY_ORDER:
+            raise ValueError(
+                f"unsupported supervised reliability channel {name!r}; expected names from {MODALITY_ORDER}"
+            )
+    if len(set(channels)) != len(channels):
+        raise ValueError(f"supervised_channels must be distinct, got {channels}")
+    return channels
+
+
+
 class EncoderDecoder(nn.Module):
     def __init__(
         self,
@@ -222,17 +249,20 @@ class EncoderDecoder(nn.Module):
         # decoder: A2 uses it for auxiliary supervision only.
         self.reliability_estimator = None
         self.reliability_weight = 0.0
+        self.reliability_supervised_channels = ()
         reliability_cfg = _mmfr_reliability_config(cfg)
         if reliability_cfg is not None:
             from .modal_reliability import ModalReliabilityEstimator
 
             hidden_channels = int(reliability_cfg.get("hidden_channels", 16))
             self.reliability_weight = float(reliability_cfg.get("weight", 0.1))
+            self.reliability_supervised_channels = _mmfr_supervised_channels(reliability_cfg)
             self.reliability_estimator = ModalReliabilityEstimator(hidden_channels=hidden_channels)
             logger.info(
-                "MMFR-A2 reliability auxiliary head enabled: hidden_channels=%d weight=%s",
+                "MMFR-A2 reliability auxiliary head enabled: hidden_channels=%d weight=%s supervised_channels=%s",
                 hidden_channels,
                 self.reliability_weight,
+                ",".join(self.reliability_supervised_channels),
             )
 
     def init_weights(self, cfg, pretrained=None):
@@ -351,10 +381,13 @@ class EncoderDecoder(nn.Module):
         """Continuous BCE between the auxiliary reliability estimate and the A1 target.
 
         The A2 total loss is ``seg_loss + 0.1 * reliability_loss``; ``valid_mask`` only
-        excludes crop/pad pixels. The predicted reliability is returned nowhere else, and
-        no clean/corrupt consistency term is added (``lambda_cons = 0``).
+        excludes crop/pad pixels. Only ``reliability_supervised_channels`` contribute:
+        the v1 protocol scores both channels, while the v2 protocol scores Depth only and
+        keeps the RGB channel as an unscored scaffold. The predicted reliability is
+        returned nowhere else, and no clean/corrupt consistency term is added
+        (``lambda_cons = 0``).
         """
-        from .modal_reliability import continuous_bce_loss
+        from .modal_reliability import MODALITY_ORDER, RELIABILITY_CHANNELS, continuous_bce_loss
 
         if self.reliability_estimator is None:
             raise RuntimeError("reliability auxiliary loss requested without a reliability head")
@@ -362,13 +395,29 @@ class EncoderDecoder(nn.Module):
             raise ValueError("reliability supervision requires raw_rgb and raw_depth")
         if reliability_target is None:
             raise ValueError("reliability supervision requires reliability_target")
-        # ``SignalFeatureExtractor`` consumes a floating point validity map. A2 uses
-        # only the auxiliary logits, so it deliberately skips the estimator's four-level
-        # pyramid; that pyramid remains reserved for the later learned adapter stage.
-        # The fixed signal operators include products of squared gradients. Under the
-        # outer CUDA FP16 autocast those products can underflow to zero before the
-        # cosine denominator is formed, producing NaNs on real images. Keep the small
-        # auxiliary reliability branch in FP32 while the segmentation path remains AMP.
+        # ``SignalFeatureExtractor`` consumes a floating point validity map. A2 v2 passes
+        # the post-corruption Depth validity, i.e. the validity of the input the model
+        # actually sees; the pre-corruption validity shapes the target instead. The A2
+        # auxiliary loss deliberately skips the estimator's four-level pyramid; that
+        # pyramid remains reserved for the later learned adapter stage. The fixed signal
+        # operators include products of squared gradients, which under the outer CUDA FP16
+        # autocast can underflow to zero before the cosine denominator is formed and
+        # produce NaNs on real images, so the small auxiliary branch stays in FP32 while
+        # the segmentation path remains AMP.
+        channel_weight = torch.zeros(
+            RELIABILITY_CHANNELS, 1, 1, dtype=torch.float32, device=raw_rgb.device
+        )
+        for name in self.reliability_supervised_channels:
+            channel_weight[MODALITY_ORDER.index(name)] = 1.0
+        if reliability_valid_mask is None:
+            supervision_mask = channel_weight
+        else:
+            supervision_mask = reliability_valid_mask.to(torch.float32) * channel_weight
+        if float(supervision_mask.sum().item()) <= 0.0:
+            raise RuntimeError(
+                "no supervised reliability pixel remains after applying supervised_channels="
+                f"{self.reliability_supervised_channels}; refusing to continue with a silent zero loss"
+            )
         feature_validity = None if depth_valid is None else depth_valid.to(torch.float32)
         with torch.autocast(device_type=raw_rgb.device.type, enabled=False):
             features = self.reliability_estimator.features(
@@ -380,5 +429,5 @@ class EncoderDecoder(nn.Module):
             return continuous_bce_loss(
                 logits,
                 reliability_target.to(torch.float32),
-                reliability_valid_mask,
+                supervision_mask,
             )

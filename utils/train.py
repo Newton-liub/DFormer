@@ -25,6 +25,12 @@ from utils.dataloader.mmfr_training import (
     MAX_SPECS as MMFR_MAX_SPECS,
     build_mmfr_training_batch,
 )
+from utils.dataloader.mmfr_training_v2 import (
+    PROTOCOL_ID as MMFR_A2_V2_PROTOCOL,
+    SUPERVISED_CHANNELS as MMFR_A2_V2_SUPERVISED_CHANNELS,
+    TARGET_COMPOSITION as MMFR_A2_V2_TARGET_COMPOSITION,
+    build_mmfr_training_batch_v2,
+)
 from utils.dataloader.RGBXDataset import RGBXDataset
 from utils.engine.engine import Engine
 from utils.engine.logger import get_logger
@@ -366,9 +372,19 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     config.pad = args.pad_SUNRGBD
     # MMFR-A2 train integration. When the config leaves ``mmfr_a2.corruption`` empty the
     # whole block below is inert and the pre-A2 training path is byte-for-byte the same.
+    # The v1 and v2 protocols are separate freeze identities, so the guard below validates
+    # the protocol-specific frozen fields instead of accepting either shape implicitly:
+    # feeding a v2 config through the v1 helper (or the reverse) is a hard error.
+    MMFR_A2_V1_PROTOCOL = "MMFR-A2-train-integration-v1"
+    MMFR_A2_V2_BASIS = "MMFR-A1-corruption-basis-v2"
     mmfr_a2_config = dict(getattr(config, "mmfr_a2", None) or {})
     mmfr_a2_corruption = dict(mmfr_a2_config.get("corruption") or {})
     mmfr_a2_reliability_head = dict(mmfr_a2_config.get("reliability_head") or {})
+    mmfr_a2_protocol = str(mmfr_a2_config.get("protocol") or MMFR_A2_V1_PROTOCOL)
+    if mmfr_a2_protocol not in (MMFR_A2_V1_PROTOCOL, MMFR_A2_V2_PROTOCOL):
+        parser.error(f"unknown mmfr_a2 protocol identity {mmfr_a2_protocol!r}")
+    mmfr_a2_is_v2 = mmfr_a2_protocol == MMFR_A2_V2_PROTOCOL
+    mmfr_a2_batch_builder = build_mmfr_training_batch_v2 if mmfr_a2_is_v2 else build_mmfr_training_batch
     if bool(mmfr_a2_corruption) != bool(mmfr_a2_reliability_head):
         parser.error("mmfr_a2 corruption and reliability_head must be enabled together")
     if mmfr_a2_corruption:
@@ -388,11 +404,32 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             parser.error("mmfr_a2 reliability weight must lie in [0, 1]")
         if float(mmfr_a2_config.get("lambda_consistency", 0.0)) != 0.0:
             parser.error("mmfr_a2 lambda_consistency must be 0.0")
+        if bool(mmfr_a2_reliability_head.get("feeds_backbone", False)) or bool(
+            mmfr_a2_reliability_head.get("feeds_geometry_prior", False)
+        ):
+            parser.error("mmfr_a2 reliability must not feed the backbone or the geometry prior")
+        if bool(mmfr_a2_reliability_head.get("geometry_adapter_enabled", False)):
+            parser.error("mmfr_a2 must not enable the geometry adapter")
+        if mmfr_a2_is_v2:
+            if str(mmfr_a2_corruption.get("basis") or "") != MMFR_A2_V2_BASIS:
+                parser.error(f"mmfr_a2 v2 corruption basis must be {MMFR_A2_V2_BASIS}")
+            if str(mmfr_a2_corruption.get("severity_encoding") or "") != "single":
+                parser.error("mmfr_a2 v2 requires single severity encoding")
+            if str(mmfr_a2_corruption.get("target_composition") or "") != MMFR_A2_V2_TARGET_COMPOSITION:
+                parser.error("mmfr_a2 v2 supervised Depth target must be depth_valid_pre * R_depth_synthetic")
+            if tuple(mmfr_a2_reliability_head.get("supervised_channels") or ()) != tuple(
+                MMFR_A2_V2_SUPERVISED_CHANNELS
+            ):
+                parser.error(
+                    f"mmfr_a2 v2 reliability supervision must be Depth-only: {list(MMFR_A2_V2_SUPERVISED_CHANNELS)}"
+                )
+            if bool(mmfr_a2_corruption.get("relative_scale_spatial_corruptions", False)) is not True:
+                parser.error("mmfr_a2 v2 requires relative-scale blur and misalignment severity")
         mmfr_a2_global_rank = int(torch.distributed.get_rank()) if torch.distributed.is_initialized() else 0
         logger.info(
             "MMFR-A2 Depth corruption enabled: protocol=%s mode=%s seed=%d p_clean=%.2f max_specs=%d "
-            "reliability_weight=%.3f lambda_consistency=%.1f global_rank=%d",
-            mmfr_a2_config.get("protocol", "MMFR-A2-train-integration-v1"),
+            "reliability_weight=%.3f lambda_consistency=%.1f global_rank=%d supervised_channels=%s",
+            mmfr_a2_protocol,
             mmfr_a2_config.get("mode", "depth-corruption"),
             int(mmfr_a2_corruption.get("seed", MMFR_CORRUPTION_SEED)),
             mmfr_a2_p_clean,
@@ -400,6 +437,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             mmfr_a2_weight,
             float(mmfr_a2_config.get("lambda_consistency", 0.0)),
             mmfr_a2_global_rank,
+            ",".join(mmfr_a2_reliability_head.get("supervised_channels") or ["rgb", "depth"]),
         )
     else:
         logger.info("MMFR-A2 corruption disabled; the pre-A2 training path is unchanged")
@@ -714,6 +752,14 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         mmfr_clean_samples = 0
         mmfr_corrupt_samples = 0
         mmfr_reliability_sum = 0.0
+        mmfr_invalidity_totals = {
+            "valid_pixels": 0,
+            "natural_invalid_pixels": 0,
+            "synthetic_missing_pixels": 0,
+            "post_corruption_invalid_pixels": 0,
+            "newly_valid_pixels": 0,
+            "implicit_quality_pixels": 0,
+        }
         train_timer.start()
         for idx in range(config.niters_per_epoch):
             engine.update_iteration(epoch, idx)
@@ -741,7 +787,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 # Corruption happens here: the DataLoader geometry is already final and the
                 # batch is still on the CPU, so the reliability target shares the batch
                 # geometry and stays independent of worker count and worker scheduling.
-                mmfr_batch = build_mmfr_training_batch(
+                mmfr_batch = mmfr_a2_batch_builder(
                     imgs,
                     modal_xs,
                     minibatch.get("fn"),
@@ -764,19 +810,29 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                         mmfr_clean_samples += 1
                     else:
                         mmfr_corrupt_samples += 1
-                    mmfr_reliability_sum += record["depth_reliability_mean"]
+                    if mmfr_a2_is_v2:
+                        mmfr_reliability_sum += record["depth_target_mean"]
+                        for key in mmfr_invalidity_totals:
+                            mmfr_invalidity_totals[key] += int(record[key])
+                    else:
+                        mmfr_reliability_sum += record["depth_reliability_mean"]
             imgs = imgs.cuda(non_blocking=True)
             gts = gts.cuda(non_blocking=True)
             modal_xs = modal_xs.cuda(non_blocking=True)
             if mmfr_a2_corruption:
                 # Only tensors cross to the GPU; the audit metadata stays on the CPU and
-                # never reaches the model.
+                # never reaches the model. v2 hands the head the *post*-corruption Depth
+                # validity (the validity of the input the model actually sees); the
+                # pre-corruption validity is already folded into the supervised target.
+                mmfr_depth_validity = (
+                    mmfr_batch["depth_valid_post"] if mmfr_a2_is_v2 else mmfr_batch["depth_valid"]
+                )
                 mmfr_auxiliary_kwargs = {
                     "raw_rgb": mmfr_batch["raw_rgb"].cuda(non_blocking=True),
                     "raw_depth": mmfr_batch["raw_depth"].cuda(non_blocking=True),
                     "reliability_target": mmfr_batch["reliability_target"].cuda(non_blocking=True),
                     "reliability_valid_mask": mmfr_batch["valid_mask"].cuda(non_blocking=True),
-                    "depth_valid": mmfr_batch["depth_valid"].cuda(non_blocking=True),
+                    "depth_valid": mmfr_depth_validity.cuda(non_blocking=True),
                 }
             if args.amp:
                 with torch.autocast(device_type="cuda", dtype=torch.float16):
@@ -937,10 +993,27 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         if mmfr_a2_corruption:
             mmfr_samples_seen = mmfr_clean_samples + mmfr_corrupt_samples
             logger.info(
-                f"Epoch {epoch} MMFR-A2 corruption telemetry: clean_samples={mmfr_clean_samples}, "
+                f"Epoch {epoch} MMFR-A2 corruption telemetry: protocol={mmfr_a2_protocol}, "
+                f"clean_samples={mmfr_clean_samples}, "
                 f"corrupt_samples={mmfr_corrupt_samples}, "
-                f"mean_depth_reliability={mmfr_reliability_sum / max(1, mmfr_samples_seen):.4f}"
+                f"mean_supervised_depth_target={mmfr_reliability_sum / max(1, mmfr_samples_seen):.4f}"
             )
+            if mmfr_a2_is_v2:
+                mmfr_valid_pixels = max(1, mmfr_invalidity_totals["valid_pixels"])
+                logger.info(
+                    f"Epoch {epoch} MMFR-A2 v2 invalidity telemetry: "
+                    f"valid_pixels={mmfr_invalidity_totals['valid_pixels']}, "
+                    f"natural_invalid_pixels={mmfr_invalidity_totals['natural_invalid_pixels']} "
+                    f"({mmfr_invalidity_totals['natural_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                    f"synthetic_missing_pixels={mmfr_invalidity_totals['synthetic_missing_pixels']} "
+                    f"({mmfr_invalidity_totals['synthetic_missing_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                    f"post_corruption_invalid_pixels={mmfr_invalidity_totals['post_corruption_invalid_pixels']} "
+                    f"({mmfr_invalidity_totals['post_corruption_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                    f"newly_valid_pixels={mmfr_invalidity_totals['newly_valid_pixels']} "
+                    f"({mmfr_invalidity_totals['newly_valid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                    f"implicit_quality_pixels={mmfr_invalidity_totals['implicit_quality_pixels']} "
+                    f"({mmfr_invalidity_totals['implicit_quality_pixels'] / mmfr_valid_pixels:.6f} of valid)"
+                )
         train_epoch_seconds = train_timer.stop()
         epoch_loss = sum_loss / (idx + 1)
         if is_primary:

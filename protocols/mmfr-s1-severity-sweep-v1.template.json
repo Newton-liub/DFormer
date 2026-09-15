@@ -1,0 +1,168 @@
+{
+  "schema_version": "mmfr-s1-severity-sweep-v1",
+  "protocol_id": "MMFR-S1-severity-sweep-v1",
+  "protocol_kind": "severity-response-supplemental-evaluator",
+  "status": "frozen-preregistered-not-authorized-not-executable-before-a2-results",
+  "frozen_before_results": true,
+  "freeze_rationale": "the swept severities, the curve definition, the macro robustness AUC definition and the degradation check are fixed before any A2 or B1 result exists, so no severity point or aggregation can be chosen after seeing performance",
+  "official_test_included": false,
+  "gate_role": {
+    "usable_for_checkpoint_selection": false,
+    "may_redefine_success_after_primary_gate_failure": false,
+    "changes_current_primary_score": false,
+    "may_replace_primary_metric": false,
+    "statement": "the severity curves and the macro robustness AUC are descriptive supplemental evidence; the A2 primary score, its single/mixed condition set, its thresholds and its claim limit stay exactly as frozen, and this evaluator can never be used to rank checkpoints or to relabel a failed primary gate as a success"
+  },
+  "severity_grid": {
+    "swept_kinds": [
+      "spatial_dropout",
+      "gaussian_noise",
+      "blur",
+      "quantization",
+      "misalignment"
+    ],
+    "swept_kind_count": 5,
+    "levels": [0.25, 0.5, 0.75],
+    "level_count": 3,
+    "curve_x_axis_per_kind": [0.0, 0.25, 0.5, 0.75],
+    "curve_point_count_per_kind": 4,
+    "additional_conditions": [
+      {"kind": "entire_missing", "severity": 1.0},
+      {"kind": "clean", "severity": 0.0}
+    ],
+    "additional_condition_count": 2,
+    "severity_encoding": "single: severity only selects the corruption parameter, the continuous burden is the realized normalized damage and severity is never applied twice",
+    "severity_units": "dimensionless fraction in [0, 1] of the frozen A1 basis parameter",
+    "modality": "depth",
+    "severity_parameter_mapping": "inherited_at_lock",
+    "corruption_basis_identity": "inherited_at_lock",
+    "no_severity_added_or_removed_after_results": true
+  },
+  "reporting": {
+    "per_kind_curve": {
+      "name": "mIoU-vs-severity curve",
+      "reported_kinds": [
+        "spatial_dropout",
+        "gaussian_noise",
+        "blur",
+        "quantization",
+        "misalignment"
+      ],
+      "coordinate_points_per_kind": [0.0, 0.25, 0.5, 0.75],
+      "metric": "mIoU in percentage points",
+      "intervals": "paired location-group bootstrap 95% percentile interval at every reported point",
+      "extra_reported_points": [
+        "entire_missing@1.0",
+        "clean"
+      ]
+    },
+    "macro_robustness_auc": {
+      "name": "macro-average robustness AUC over the five non-total-missing corruptions",
+      "kinds": [
+        "spatial_dropout",
+        "gaussian_noise",
+        "blur",
+        "quantization",
+        "misalignment"
+      ],
+      "per_kind_definition": "trapezoidal integration of the kind mIoU curve over severity from 0.0 to 0.75 using the four frozen points [0.0, 0.25, 0.5, 0.75], divided by the severity span 0.75",
+      "severity_span_divisor": 0.75,
+      "per_kind_point_count": 4,
+      "aggregation": "unweighted arithmetic mean over the five kinds",
+      "unit": "mIoU percentage points",
+      "direction": "higher-is-better",
+      "interval": "paired location-group bootstrap over the 196 groups with 10000 resamples and 95% percentile interval"
+    },
+    "degradation_check": {
+      "per_kind_consecutive_rule": "for each consecutive severity pair (0.00->0.25, 0.25->0.50, 0.50->0.75) the mIoU difference must be <= the per-kind tolerance",
+      "per_kind_tolerance_percentage_points": 0.25,
+      "per_kind_allowed_violations": 0,
+      "tolerance_status": "provisional-default-not-frozen-requires-user-confirmation",
+      "tolerance_confirmed_by_user": false,
+      "tolerance_note": "the revision instruction fixed that a degradation check must exist, not its tolerance or its allowed violation count; both were invented during drafting",
+      "macro_endpoint_rule": "the unweighted mean over the five kinds of mIoU at severity 0.75 must be <= the clean mIoU",
+      "reported_as": "a descriptive pass or violation list with the exact kind, severity pair and delta",
+      "is_a_success_gate": false
+    }
+  },
+  "evaluation": {
+    "evaluator": "msflip-whole-original-grid-v1",
+    "val_role": "val-dev",
+    "val_samples": 318,
+    "val_location_groups": 196,
+    "views_per_sample": 10,
+    "logit_aggregation": "FP32 mean of pre-softmax logits over the 10 views",
+    "grid": "original image grid",
+    "evaluation_seed": 2026091401,
+    "paired_bootstrap": {
+      "unit": "location-group",
+      "paired": true,
+      "groups": 196,
+      "resamples": 10000,
+      "interval": "95%-percentile",
+      "seed": 2026091401
+    },
+    "metric_space": {
+      "unit": "mIoU in percentage points",
+      "foreground_class_set": "inherited_at_lock"
+    },
+    "evaluated_identities": "inherited_at_lock"
+  },
+  "failure_handling": {
+    "abort_report_on": [
+      "missing or duplicate location group",
+      "val sample count not equal to 318",
+      "sha256 mismatch against the locked A2 data identity",
+      "non-finite metric",
+      "a declared severity point missing from the curve"
+    ],
+    "on_partial_failure": "mark the affected curve point as incomplete-not-reported and keep every other frozen point; never silently interpolate over a missing severity level",
+    "no_post_hoc_severity_change": true,
+    "no_post_hoc_aggregation_change": true
+  },
+  "inherited_at_lock": [
+    {
+      "field": "severity_grid.severity_parameter_mapping",
+      "value": "inherited_at_lock",
+      "source": "the A2 corruption basis frozen at lock time",
+      "reason": "the concrete corruption parameter produced by severity 0.25, 0.50 and 0.75 belongs to the A1 corruption basis actually used by the executed A2 revision, so the constants can only be quoted once that revision is locked"
+    },
+    {
+      "field": "severity_grid.corruption_basis_identity",
+      "value": "inherited_at_lock",
+      "source": "the A2 corruption protocol frozen at lock time",
+      "reason": "the basis identity name must match the basis that produced the evaluated training run, otherwise the curves describe a different corruption than the model saw"
+    },
+    {
+      "field": "evaluation.evaluated_identities",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2 or B1 protocol at lock time",
+      "reason": "checkpoint identities do not exist yet and must be bound to the exact checkpoints this evaluator reads"
+    },
+    {
+      "field": "evaluation.metric_space.foreground_class_set",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2 report definition at lock time",
+      "reason": "the class set must be identical to the primary protocol or the sweep would not be comparable to it"
+    }
+  ],
+  "provisional_defaults_requiring_user_confirmation": {
+    "must_be_confirmed_before_execution": true,
+    "confirmed_by_user": false,
+    "reason": "the revision instruction fixed the swept kinds, the severity levels, the curve and the macro robustness AUC, but not every number in this file; the items below were invented during drafting and must not be presented as frozen scientific values",
+    "items": [
+      {"field": "reporting.degradation_check.per_kind_tolerance_percentage_points", "value": 0.25},
+      {"field": "reporting.degradation_check.per_kind_allowed_violations", "value": 0},
+      {"field": "evaluation.paired_bootstrap.resamples", "value": 10000}
+    ],
+    "note": "the frozen elements are the five swept kinds, the levels 0.25/0.50/0.75 plus entire_missing@1.0 and clean, the mIoU-vs-severity curves, the macro robustness AUC definition and the ban on using this evaluator for checkpoint selection or for relabelling a failed primary gate"
+  },
+  "authorization": {
+    "code_integration": false,
+    "gpu": false,
+    "training": false,
+    "full_evaluation": false,
+    "cloud": false,
+    "official_test": false
+  }
+}

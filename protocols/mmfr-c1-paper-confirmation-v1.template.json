@@ -1,0 +1,153 @@
+{
+  "schema_version": "mmfr-c1-paper-confirmation-v1",
+  "protocol_id": "MMFR-C1-paper-confirmation-v1",
+  "protocol_kind": "paper-and-sota-confirmation",
+  "status": "reserved-preregistered-not-executable-until-a2-b1-locked",
+  "frozen_before_results": true,
+  "freeze_rationale": "the confirmation stage boundary, the official sample counts, the epoch budget, the paired seed count and the single sealed official-test read are fixed before any result exists, so the confirmation phase cannot be reshaped after seeing development numbers",
+  "official_test_included": false,
+  "official_test_policy": {
+    "sealed": true,
+    "read_count": 1,
+    "executed_only_after": "the A2/B1 architecture and every protocol are completely locked",
+    "single_pass": true,
+    "contents_of_the_single_pass": "clean plus every pre-registered robustness condition",
+    "test_time_epoch_selection_forbidden": true,
+    "test_time_condition_selection_forbidden": true,
+    "test_time_method_selection_forbidden": true,
+    "rerun_allowed": false,
+    "statement": "the official test set is never read before the lock and is executed exactly once afterwards; its outcome can never be used to pick an epoch, a condition, a seed or a method"
+  },
+  "dev_vs_confirmation_boundary": {
+    "development": {
+      "train_role": "train-dev",
+      "train_samples": 1277,
+      "val_role": "val-dev",
+      "val_samples": 318,
+      "seed_count": 1,
+      "purpose": "architecture screening only",
+      "max_claim": "single-seed-development-supported"
+    },
+    "confirmation": {
+      "train_role": "official-train",
+      "train_samples": 1595,
+      "test_role": "official-test",
+      "test_samples": 1576,
+      "seed_count": 3,
+      "purpose": "paper and SOTA level confirmation"
+    },
+    "current_max_claim_before_c1": "single-seed-development-supported",
+    "claim_rule": "no development-stage number may be presented as a paper or SOTA comparison, and no 318-sample val-dev number may be presented as an official-test result"
+  },
+  "official_split": {
+    "official_train_samples": 1595,
+    "official_test_samples": 1576,
+    "source": "MUSeg official split as used by the published MUSeg model comparison",
+    "sample_counts_are_hard": true,
+    "split_paths_and_hashes": "inherited_at_lock"
+  },
+  "training": {
+    "epochs": 500,
+    "epoch_count_is_hard": true,
+    "checkpoint_rule": "fixed pre-registered checkpoint rule or a fixed epoch decided at lock time",
+    "checkpoint_rule_detail": "inherited_at_lock",
+    "test_time_epoch_selection_forbidden": true,
+    "hyperparameters": "identical to the A2/B1 protocol locked at lock time",
+    "hyperparameters_identity": "inherited_at_lock",
+    "optimizer_schedule_batch_size": "inherited_at_lock"
+  },
+  "seeds": {
+    "paired_seed_count": 3,
+    "paired_seed_count_is_hard": true,
+    "paired": true,
+    "applies_to": [
+      "clean control",
+      "final method",
+      "key baselines"
+    ],
+    "seed_values": "inherited_at_lock",
+    "aggregation": "report every individual seed and the 3-seed mean; no seed may be dropped after seeing its result"
+  },
+  "methods": {
+    "required_members": [
+      "clean control",
+      "final method",
+      "key baselines"
+    ],
+    "baseline_list": "inherited_at_lock",
+    "pairing_rule": "identical split, identical seed set, identical epoch count, identical evaluator and identical condition set for every compared member"
+  },
+  "conditions": {
+    "condition_set": "inherited_at_lock",
+    "must_cover": "clean plus every robustness condition pre-registered in the frozen A2/B1 protocol",
+    "no_condition_added_or_removed_after_results": true,
+    "no_post_hoc_subset_reporting": true
+  },
+  "statistics": {
+    "unit": "paired seed and paired location-group",
+    "location_group_bootstrap_resamples": 10000,
+    "interval": "95%-percentile",
+    "reporting_rule": "report the 3-seed mean with its across-seed spread and the paired location-group bootstrap interval for every compared condition"
+  },
+  "inherited_at_lock": [
+    {
+      "field": "official_split.split_paths_and_hashes",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2/B1 data identity at lock time",
+      "reason": "the literal paths and file hashes of the 1595/1576 official split must be quoted from the locked data identity rather than guessed in advance"
+    },
+    {
+      "field": "training.checkpoint_rule_detail",
+      "value": "inherited_at_lock",
+      "source": "the A2/B1 training protocol frozen at lock time",
+      "reason": "whether the confirmation run uses a fixed epoch or a fixed pre-registered selection rule can only be stated once the A2/B1 training protocol is final, and it must not be chosen after seeing test behaviour"
+    },
+    {
+      "field": "training.hyperparameters_identity",
+      "value": "inherited_at_lock",
+      "source": "the A2/B1 training protocol frozen at lock time",
+      "reason": "the confirmation stage must reuse the exact locked hyperparameters, whose literal values are not yet frozen in this file"
+    },
+    {
+      "field": "training.optimizer_schedule_batch_size",
+      "value": "inherited_at_lock",
+      "source": "the A2/B1 training protocol frozen at lock time",
+      "reason": "the optimizer, learning-rate schedule, batch size and execution profile belong to the locked training protocol and must stay identical rather than being re-chosen at the confirmation stage"
+    },
+    {
+      "field": "seeds.seed_values",
+      "value": "inherited_at_lock",
+      "source": "the A2/B1 protocol frozen at lock time",
+      "reason": "only the count of 3 paired seeds is hard here; the concrete seed values must be the ones frozen at lock time and must be identical across clean control, final method and baselines"
+    },
+    {
+      "field": "methods.baseline_list",
+      "value": "inherited_at_lock",
+      "source": "the A2/B1 protocol frozen at lock time",
+      "reason": "the key baseline list depends on which comparisons the locked A2/B1 protocol defines, so it cannot be enumerated before that lock"
+    },
+    {
+      "field": "conditions.condition_set",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2/B1 robustness protocol at lock time",
+      "reason": "the exact robustness condition set and their severities must be inherited verbatim from the locked A2/B1 protocol instead of being duplicated here where it could drift"
+    }
+  ],
+  "provisional_defaults_requiring_user_confirmation": {
+    "must_be_confirmed_before_execution": true,
+    "confirmed_by_user": false,
+    "reason": "the revision instruction fixed the official split sizes, the 500-epoch budget, the 3 paired seeds and the single sealed official-test pass, but not every number in this file; the item below was invented during drafting",
+    "items": [
+      {"field": "statistics.location_group_bootstrap_resamples", "value": 10000}
+    ],
+    "note": "the confirmation-stage boundary, the 1595/1576 official sample counts, the 500-epoch budget, the 3 paired seeds and the sealed single-pass official-test policy are frozen by the revision instruction"
+  },
+  "authorization": {
+    "code_integration": false,
+    "gpu": false,
+    "training": false,
+    "full_evaluation": false,
+    "cloud": false,
+    "official_test": false
+  }
+}

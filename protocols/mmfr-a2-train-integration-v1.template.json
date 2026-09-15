@@ -1,7 +1,14 @@
 {
   "schema_version": "mmfr-a2-train-integration-v1",
   "schedule_version": "mmfr-a2-adamw-6e-5-warmup10-poly0.9-500e-v1",
-  "status": "gpu-single-step-qualified-training-unauthorized",
+  "status": "superseded-before-formal-training",
+  "status_history": [
+    "gpu-single-step-qualified-training-unauthorized (set after the 2026-09-14 local GPU single-step preflight)"
+  ],
+  "superseded_by": "MMFR-A2-train-integration-v2",
+  "superseded_at": "2026-09-14",
+  "supersede_reason": "protocol revision performed before any formal 500-epoch run, i.e. before any MMFR result existed; the four audited defects and the replacement identity are recorded in protocols/mmfr-a2-train-integration-v2.template.json",
+  "supersede_note": "this file is frozen historical evidence: its science semantics, qualification record, preflight facts and recorded hashes are not rewritten by the revision; only this status block was added",
   "qualification": {
     "date_utc": "2026-09-14",
     "python_compile": "passed",

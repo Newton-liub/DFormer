@@ -1,0 +1,281 @@
+{
+  "schema_version": "mmfr-r1-reliability-supplemental-v1",
+  "protocol_id": "MMFR-R1-reliability-supplemental-v1",
+  "protocol_kind": "reliability-supplemental-evaluation",
+  "status": "frozen-preregistered-not-authorized-not-executable-before-a2-results",
+  "frozen_before_results": true,
+  "freeze_rationale": "the reliability metrics, the two reporting groups and the aggregation rules are fixed before any A2 or B1 result exists, so no reliability metric can be chosen or dropped after seeing performance",
+  "official_test_included": false,
+  "gate_role": {
+    "is_a2_primary_success_gate": false,
+    "may_replace_primary_metric": false,
+    "may_rescue_failed_primary_gate": false,
+    "may_be_reported_as_primary_robustness_score": false,
+    "statement": "this protocol reports reliability evidence only; the A2 primary robustness score, its single/mixed condition set, its thresholds and its claim limit stay exactly as frozen, and a good reliability supplement can never replace them or rescue a failed primary gate"
+  },
+  "data": {
+    "val_role": "val-dev",
+    "val_samples": 318,
+    "val_location_groups": 196,
+    "views_per_sample": 10,
+    "evaluation_grid": "original image grid",
+    "sample_count_is_hard": true,
+    "split_manifest_path": "inherited_at_lock",
+    "split_manifest_sha256": "inherited_at_lock",
+    "val_sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "identities": {
+    "evaluator": "msflip-whole-original-grid-v1",
+    "logit_aggregation": "FP32 mean of pre-softmax logits over the 10 views",
+    "evaluation_seed": 2026091401,
+    "evaluated_checkpoint_identity": "inherited_at_lock",
+    "clean_control_identity": "inherited_at_lock",
+    "final_method_identity": "inherited_at_lock",
+    "reliability_head_identity": "inherited_at_lock"
+  },
+  "reliability_target": {
+    "supervised_channel": "depth",
+    "target_expression": "R_depth_sup(p) = depth_valid_pre(p) * R_depth_synthetic(p)",
+    "depth_valid_pre_definition": "raw_depth_pre(p) > 0 AND valid_mask(p)",
+    "depth_valid_post_definition": "raw_depth_post(p) > 0 AND valid_mask(p)",
+    "rgb_channel_policy": "the RGB channel of the two-channel head output is an unscored all-ones scaffold channel; it is not scored here and must not be reported as a trained RGB reliability estimator",
+    "target_is_synthetic": true,
+    "forbidden_interpretation": "the target must never be described as a natural sensor reliability, a calibrated sensor confidence, a physical fault probability or a measured failure rate; it is a corruption-derived synthetic surrogate",
+    "valid_pixel_domain": "valid_mask(p) is the only padding exclusion; crop and padding pixels keep the neutral target value 1 and are always excluded from every reported statistic",
+    "invalidation_populations_kept_separate": [
+      "natural_invalid_pixels",
+      "synthetic_missing_pixels",
+      "post_corruption_invalid_pixels",
+      "implicit_quality_pixels"
+    ]
+  },
+  "reporting_layers": [
+    {
+      "layer": 1,
+      "name": "depth_surrogate_target_fidelity",
+      "question": "how closely does the predicted Depth reliability reproduce the supervised synthetic surrogate",
+      "target_object": "R_depth_sup(p) = depth_valid_pre(p) * R_depth_synthetic(p)",
+      "channel_scope": "depth-only",
+      "metrics": [
+        {
+          "name": "mae",
+          "definition": "mean over the scored pixel domain of |predicted_depth_reliability(p) - R_depth_sup(p)|",
+          "unit": "reliability units in [0, 1]",
+          "direction": "lower-is-better"
+        },
+        {
+          "name": "brier_score",
+          "definition": "mean over the scored pixel domain of (predicted_depth_reliability(p) - R_depth_sup(p))^2",
+          "unit": "squared reliability units in [0, 1]",
+          "direction": "lower-is-better"
+        }
+      ],
+      "may_not_substitute_primary_robustness_score": true
+    },
+    {
+      "layer": 2,
+      "name": "reliability_vs_segmentation_risk",
+      "question": "does the predicted Depth reliability actually order pixels by real segmentation risk",
+      "metrics": [
+        {
+          "name": "reliability_error_monotonicity",
+          "definition": "Spearman rank correlation between predicted Depth reliability and per-pixel segmentation error, computed separately per reporting group and per condition on the scored pixel domain",
+          "unit": "dimensionless rank correlation",
+          "direction": "negative-is-correct"
+        },
+        {
+          "name": "risk_coverage_curve",
+          "definition": "risk(c) = mean per-pixel segmentation error over the top-c fraction of scored pixels when pixels are ordered by predicted Depth reliability descending, evaluated at the 20 fixed coverage points c = 0.05, 0.10, ..., 1.00",
+          "unit": "pixel error rate in [0, 1]",
+          "direction": "lower-is-better"
+        },
+        {
+          "name": "aurc",
+          "definition": "area under the risk-coverage curve, trapezoidal integration over c in [0, 1] using the origin c = 0 plus the 20 fixed coverage points",
+          "unit": "mean pixel error rate in [0, 1]",
+          "direction": "lower-is-better"
+        }
+      ],
+      "may_not_substitute_primary_robustness_score": true
+    },
+    {
+      "layer": 3,
+      "name": "downstream_gain",
+      "question": "does reliability-conditioned use of Depth actually improve segmentation",
+      "answerable_before_b1": false,
+      "allowed_only_after": "the B1 learned reliability-conditioned geometry adapter has been implemented, trained and evaluated under its own frozen protocol",
+      "metrics": [
+        "mIoU in percentage points under the frozen A2 robustness conditions",
+        "paired location-group bootstrap 95% percentile interval of every reported segmentation delta"
+      ],
+      "condition_set": "inherited_at_lock",
+      "may_not_substitute_primary_robustness_score": true,
+      "statement": "layers 1 and 2 can never answer the downstream question and can never be reported as a substitute for the primary robustness score"
+    }
+  ],
+  "reporting_groups": {
+    "mandatory_separate_reporting": true,
+    "explicit_invalid": {
+      "label": "explicit-invalid",
+      "conditions": [
+        "entire_missing",
+        "spatial_dropout",
+        "misalignment_out_of_bounds_region"
+      ],
+      "scored_pixel_domain": "valid_mask(p) AND depth_valid_post(p) == 0",
+      "detectability": "trivially detectable: this population is readable from depth_valid alone without any learned estimator"
+    },
+    "implicit_quality": {
+      "label": "implicit-quality",
+      "conditions": [
+        "gaussian_noise",
+        "blur",
+        "quantization",
+        "misalignment_in_bounds_valid_region"
+      ],
+      "scored_pixel_domain": "valid_mask(p) AND depth_valid_pre(p) == 1 AND depth_valid_post(p) == 1",
+      "detectability": "not readable from depth_valid: these pixels stay nonzero, so recognising them requires learned quality evidence"
+    },
+    "separation_reason": "the explicit-invalid population is trivially identifiable through depth_valid, so a strong explicit-invalid reliability result must never be used to mask an implicit-quality recognition failure",
+    "joint_number_policy": "a single pooled number across both groups may only be reported in addition to the two separate group numbers, never instead of them"
+  },
+  "error_definition": {
+    "pixel_error": "0 when the argmax over the MUSeg foreground class set of the aggregated FP32 pre-softmax logits equals the ground-truth label, otherwise 1",
+    "class_set": "identical to the frozen A2 mIoU report",
+    "logit_policy": "FP32 mean of pre-softmax logits over the 10 views",
+    "grid": "original image grid",
+    "padding_policy": "pixels outside valid_mask are excluded from every reported statistic",
+    "scored_pixel_domain": "valid_mask(p), further restricted per reporting group exactly as declared in reporting_groups"
+  },
+  "sampling_units": {
+    "evaluation_samples": 318,
+    "location_groups": 196,
+    "views_per_sample": 10,
+    "pixel_unit": "one pixel on the original image grid",
+    "aggregation_order": "per-pixel statistic inside a view, then per image over the 10 views, then paired by location group"
+  },
+  "bootstrap": {
+    "unit": "location-group",
+    "paired": true,
+    "groups": 196,
+    "resamples": 10000,
+    "interval": "95%-percentile",
+    "seed": 2026091401,
+    "point_estimate": "the unresampled statistic"
+  },
+  "multiplicity": {
+    "primary_report": "no multiplicity correction; all group and condition numbers are reported descriptively as frozen here",
+    "secondary_corrected_family": {
+      "method": "holm-bonferroni",
+      "family": "the 6 frozen A2 single conditions crossed with the 2 risk metrics AURC and reliability_error_monotonicity",
+      "family_size": 12,
+      "alpha": 0.05,
+      "status": "provisional-default-not-frozen-requires-user-confirmation",
+      "confirmed_by_user": false,
+      "note": "the correction family, its size and alpha were invented in the drafting pass; they must be confirmed before execution and they can never change the primary gate"
+    },
+    "correction_may_not_change_primary_gate": true
+  },
+  "descriptive_reading_rules": {
+    "status": "provisional-default-not-frozen-requires-user-confirmation",
+    "confirmed_by_user": false,
+    "note": "the metric definitions here are fixed by the revision instruction, but the numeric reading criteria were not: they were invented in the drafting pass and remain provisional until the user confirms them",
+    "metric_definitions_fixed": {
+      "reliability_error_monotonicity": "Spearman rank correlation between predicted Depth reliability and per-pixel segmentation error, computed separately per reporting group and per condition on the scored pixel domain; negative-is-correct",
+      "aurc_reference_comparison": "the predicted-reliability AURC is compared against two references, (a) constant reliability equal to the group mean and (b) depth_valid_post used as a 0/1 reliability",
+      "brier_reference_comparison": "the Brier score is compared against the constant predictor equal to the masked mean of R_depth_sup"
+    },
+    "provisional_numeric_criteria": {
+      "monotonicity_directional_threshold": -0.1,
+      "aurc_relative_improvement_threshold": 0.05,
+      "brier_relative_improvement_threshold": 0.05
+    },
+    "none_of_these_rules_is_a_success_gate": true,
+    "statement": "these rules only fix how a result is read; they cannot upgrade a failed A2 primary gate and cannot lower any frozen A2 threshold"
+  },
+  "failure_handling": {
+    "abort_report_on": [
+      "missing or duplicate location group",
+      "val sample count not equal to 318",
+      "sha256 mismatch against the locked A2 data identity",
+      "non-finite metric",
+      "empty scored pixel domain for a declared reporting group"
+    ],
+    "on_partial_failure": "mark the affected metric as incomplete-not-reported and keep every other frozen metric; never silently drop, re-weight or replace a metric",
+    "no_post_hoc_metric_substitution": true,
+    "no_post_hoc_threshold_change": true
+  },
+  "inherited_at_lock": [
+    {
+      "field": "data.split_manifest_path",
+      "value": "inherited_at_lock",
+      "source": "the A2 data identity frozen at lock time",
+      "reason": "the split manifest path is materialized outside the repository, so its literal value can only be bound when the A2 run identity is locked"
+    },
+    {
+      "field": "data.split_manifest_sha256",
+      "value": "inherited_at_lock",
+      "source": "the A2 data identity frozen at lock time",
+      "reason": "the hash must bind the exact materialized manifest used by the evaluated checkpoint"
+    },
+    {
+      "field": "data.val_sha256",
+      "value": "inherited_at_lock",
+      "source": "the A2 data identity frozen at lock time",
+      "reason": "the 318 val-dev images are hard-frozen by count here, but the literal file hash must follow the locked A2 manifest rather than being copied from an earlier revision"
+    },
+    {
+      "field": "identities.evaluated_checkpoint_identity",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2 or B1 training protocol at lock time",
+      "reason": "no checkpoint exists yet; the reliability report must name the exact evaluated checkpoint and cannot be pinned in advance"
+    },
+    {
+      "field": "identities.clean_control_identity",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2 clean control protocol at lock time",
+      "reason": "the clean control identity is bound by the A2 revision actually executed"
+    },
+    {
+      "field": "identities.final_method_identity",
+      "value": "inherited_at_lock",
+      "source": "the frozen B1 protocol at lock time",
+      "reason": "the final reliability-consuming method does not exist before B1 is locked"
+    },
+    {
+      "field": "identities.reliability_head_identity",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2 protocol at lock time",
+      "reason": "the estimator architecture and its supervised channel mask must be quoted from the executed A2 revision"
+    },
+    {
+      "field": "reporting_layers.layer_3.condition_set",
+      "value": "inherited_at_lock",
+      "source": "the frozen A2 or B1 robustness condition set at lock time",
+      "reason": "the downstream segmentation conditions belong to the primary protocol; copying them here before that protocol is locked would create a second, drifting definition"
+    }
+  ],
+  "provisional_defaults_requiring_user_confirmation": {
+    "must_be_confirmed_before_execution": true,
+    "confirmed_by_user": false,
+    "reason": "the revision instruction fixed the metric names, the three reporting layers and the two reporting groups, but it did not fix any acceptance or reading number; every numeric value listed here was invented during drafting and must not be presented as a frozen scientific threshold",
+    "items": [
+      {"field": "descriptive_reading_rules.provisional_numeric_criteria.monotonicity_directional_threshold", "value": -0.1},
+      {"field": "descriptive_reading_rules.provisional_numeric_criteria.aurc_relative_improvement_threshold", "value": 0.05},
+      {"field": "descriptive_reading_rules.provisional_numeric_criteria.brier_relative_improvement_threshold", "value": 0.05},
+      {"field": "multiplicity.secondary_corrected_family.family_size", "value": 12},
+      {"field": "multiplicity.secondary_corrected_family.alpha", "value": 0.05},
+      {"field": "bootstrap.resamples", "value": 10000},
+      {"field": "reporting_layers.layer_2.metrics.risk_coverage_curve fixed coverage point count", "value": 20}
+    ],
+    "note": "the metric definitions themselves (MAE, Brier score, reliability-error monotonicity, risk-coverage curve, AURC, the three layers and the explicit-invalid / implicit-quality split) are fixed by the revision instruction and are not part of this provisional list"
+  },
+  "authorization": {
+    "code_integration": false,
+    "gpu": false,
+    "training": false,
+    "full_evaluation": false,
+    "cloud": false,
+    "official_test": false
+  }
+}
