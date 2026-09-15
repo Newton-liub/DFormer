@@ -317,6 +317,7 @@ class EncoderDecoder(nn.Module):
         reliability_target=None,
         reliability_valid_mask=None,
         depth_valid=None,
+        reliability_telemetry_masks=None,
     ):
         # Fail closed on partial or mismatched A2 supervision. Inference keeps the
         # historical path because reliability supervision is a training-only input.
@@ -326,6 +327,7 @@ class EncoderDecoder(nn.Module):
             "reliability_target": reliability_target,
             "reliability_valid_mask": reliability_valid_mask,
             "depth_valid": depth_valid,
+            "reliability_telemetry_masks": reliability_telemetry_masks,
         }
         provided_reliability = [name for name, value in reliability_inputs.items() if value is not None]
         if self.reliability_estimator is None and provided_reliability:
@@ -366,6 +368,7 @@ class EncoderDecoder(nn.Module):
                     reliability_target,
                     reliability_valid_mask,
                     depth_valid,
+                    reliability_telemetry_masks,
                 )
             return loss
         return out
@@ -377,6 +380,7 @@ class EncoderDecoder(nn.Module):
         reliability_target,
         reliability_valid_mask=None,
         depth_valid=None,
+        reliability_telemetry_masks=None,
     ):
         """Continuous BCE between the auxiliary reliability estimate and the A1 target.
 
@@ -426,8 +430,45 @@ class EncoderDecoder(nn.Module):
                 feature_validity,
             )
             logits = self.reliability_estimator.head(features)
-            return continuous_bce_loss(
+            aggregate_loss = continuous_bce_loss(
                 logits,
                 reliability_target.to(torch.float32),
                 supervision_mask,
             )
+            if reliability_telemetry_masks is not None:
+                masks = reliability_telemetry_masks.to(torch.float32)
+                expected_shape = (logits.shape[0], 4, logits.shape[2], logits.shape[3])
+                if tuple(masks.shape) != expected_shape:
+                    raise ValueError(
+                        f"reliability_telemetry_masks must have shape {expected_shape}, got {tuple(masks.shape)}"
+                    )
+                depth_index = MODALITY_ORDER.index("depth")
+                depth_logits = logits[:, depth_index : depth_index + 1]
+                depth_target = reliability_target[:, depth_index : depth_index + 1].to(torch.float32)
+                category_losses = []
+                for index in range(masks.shape[1]):
+                    category_mask = masks[:, index : index + 1]
+                    count = category_mask.sum()
+                    if float(count.item()) == 0.0:
+                        category_losses.append(torch.full((), float("nan"), device=logits.device))
+                    else:
+                        category_losses.append(
+                            continuous_bce_loss(
+                                depth_logits,
+                                depth_target,
+                                category_mask,
+                            ).detach()
+                        )
+                self.last_reliability_telemetry = {
+                    "category_order": (
+                        "natural-invalid",
+                        "synthetic-invalid",
+                        "implicit-quality",
+                        "valid-clean",
+                    ),
+                    "losses": torch.stack(category_losses),
+                    "pixel_counts": masks.sum(dim=(0, 2, 3)).detach(),
+                }
+            else:
+                self.last_reliability_telemetry = None
+            return aggregate_loss

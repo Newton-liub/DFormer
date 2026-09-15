@@ -1,0 +1,350 @@
+{
+  "schema_version": "mmfr-a2-train-integration-v3",
+  "protocol_id": "MMFR-A2-train-integration-v3",
+  "supersedes": "MMFR-A2-train-integration-v2",
+  "supersede_scope": "new identity created before any v3 formal training, checkpoint, evaluation, cloud operation or official-test read",
+  "superseded_v2_status": "superseded-before-formal-training-after-validity-semantic-review",
+  "status": "eligible-for-cloud-capacity-probe-authorization",
+  "status_note": "All five required local v3 qualification gates passed. This status only permits requesting user authorization for a cloud single-GPU batch-size-10 capacity/throughput probe; it does not authorize the probe, cloud resource creation, formal training, evaluation or official-test access.",
+  "official_test_included": false,
+  "narrative": {
+    "path": "liu-test-exp/方案1/改动说明.md",
+    "senior_review_decision": "A + MID-A",
+    "state": "v3-audited-A-plus-MID-A",
+    "template_state": "v3-local-qualifications-complete"
+  },
+  "identities": {
+    "a1_corruption_basis": "MMFR-A1-corruption-basis-v3",
+    "a2_train_integration": "MMFR-A2-train-integration-v3",
+    "clean_control": "MMFR-A2-clean-control-v3",
+    "depth_corruption_train": "MMFR-A2-depth-corruption-train-v3",
+    "run_id_clean_control": "museg-dformerv2-s-mmfr-a2-clean-control-v3",
+    "run_id_depth_corruption": "museg-dformerv2-s-mmfr-a2-depth-corruption-train-v3",
+    "pretrained": "DFormerv2_Small_pretrained.pth",
+    "pretrained_sha256": "19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6",
+    "model_seed": 772961337,
+    "corruption_seed": 2026091402,
+    "forbid_quick_b0_resume": true,
+    "local_freeze_tag": "MMFR-A2-v3-pretrain-freeze",
+    "remote_push_authorized": false
+  },
+  "hash_convention": {
+    "raw_sha256": "SHA-256 over the exact bytes in the Windows working tree at the v3 pretraining freeze",
+    "lf_normalized_sha256": "SHA-256 after replacing every CRLF byte pair with LF; included to make text identity portable across Git line-ending conversion",
+    "identity_rule": "For text artifacts both values identify the same logical source under their stated byte convention; no unstated normalization is permitted."
+  },
+  "code_identity": {
+    "utils/dataloader/multimodal_failure_v3.py": {
+      "raw_sha256": "0a729bcb1b60a71120445894d71459895d2fd61a6bc30dfbccb3ac94108b110f",
+      "lf_normalized_sha256": "5ee373776a1542eaf8f8cc8fe65b64dfc2a2b962572400d27da6ba24db4f2c13"
+    },
+    "utils/dataloader/mmfr_training_v3.py": {
+      "raw_sha256": "449aa42585bf2b170cfc8924c8fefc1f114ddc426be601fd1a78d2d997402ee7",
+      "lf_normalized_sha256": "6817c469d2825e8d27edefd04a0001a1f1bd797b4fb4eb178321bfaa12894198"
+    },
+    "local_configs/MUSeg/DFormerv2_S_MMFR_A2_Common_v3.py": {
+      "raw_sha256": "3f309effc1a8e005844d8885bfd31cdb05c816e686632aa0d34f0f23bcffa595",
+      "lf_normalized_sha256": "aa5eebe6f621e24909b510048b3a882dc125f8733fa9e99ba3166294be167530"
+    },
+    "local_configs/MUSeg/DFormerv2_S_MMFR_A2_Clean_v3.py": {
+      "raw_sha256": "9bdf78b464589991e358e52044f045543e707d52ea473172fb96219bc561fdf6",
+      "lf_normalized_sha256": "45caaa6dea2fbf5d56b7463b652420c6a481704c20fa3b7d98dec661b9f2327f"
+    },
+    "local_configs/MUSeg/DFormerv2_S_MMFR_A2_DepthCorrupt_v3.py": {
+      "raw_sha256": "b8ba2dd0c5ac4a3c445779bc44ce1d4e9a283fe309a8e190c8c84b5da2c02bef",
+      "lf_normalized_sha256": "52b2343e3bd4cd7ac027482b2bd9bd05f0b06a8a5156b586e9a75f50c1fac3b6"
+    },
+    "models/builder.py": {
+      "raw_sha256": "972d855b906fcea19534b163d8a0299bf2bf236d50a42e2c28fe750fda2166f1",
+      "lf_normalized_sha256": "837e2aa8035bb1c4e33b8465e064c0b4ec975c629294a24971575c63e917ffda"
+    },
+    "utils/train.py": {
+      "raw_sha256": "aba1b407d6b53af623145aebeae28cfab0803cbe8d1c2e96d5a3e1a7ea036ad7",
+      "lf_normalized_sha256": "c07dfc4d97719a7e335172219d6fabe3f2eb1b9bc457dc2e69aaa833cf5cf5a6"
+    }
+  },
+  "qualification_tool_identity": {
+    "tools/mmfr/a2_v3_severity_burden_audit.py": {
+      "raw_sha256": "a458999112bbbe0924cd903179a5304d494f18b4441347605b4575dacc5b80eb",
+      "lf_normalized_sha256": "455385a7a683560e1394665a4b00f9a5be89fb2af70d13ec823dd7608d9d9e37"
+    },
+    "tools/mmfr/a2_v3_cpu_qualification.py": {
+      "raw_sha256": "1d11e7675fab0aaf23500477f56f4737d4c69bcfb80153bd07047968e8341805",
+      "lf_normalized_sha256": "502470472deef230ba1d234200bdef3e286fa69c757aa95fdc9f482893bb03ff"
+    },
+    "tools/mmfr/a2_v3_validity_transport_audit.py": {
+      "raw_sha256": "0599fcdf04a63e236ff337d648bdc3a2d0e6cfffe5106b6edadf1df51b19c9c3",
+      "lf_normalized_sha256": "5e244718c23cf576f6685fd542d5b86a97614f328667f260c0b2e51c00eb6228"
+    },
+    "tools/mmfr/a2_v3_initial_state_equivalence.py": {
+      "raw_sha256": "495f21919e5a6f22f69e7b578a82dcd7f65c593f9a65b112bc2597bcdf3ced90",
+      "lf_normalized_sha256": "58dce3004f39289a1caac45e4a58d8a1653986fca1fef26cc16322791bcbe03a"
+    },
+    "tools/mmfr/a2_v3_amp_update_path_isolation.py": {
+      "raw_sha256": "658fb9c901ee46bf5b6e682522172885cc5692e9e58f301f2777067fad054681",
+      "lf_normalized_sha256": "d6b148b49cf3e09b8d2c54a1c4eb8a02e77144a4065b62f9ee1af074adcec275"
+    }
+  },
+  "data": {
+    "train_role": "train-dev",
+    "train_samples": 1277,
+    "val_role": "val-dev",
+    "val_samples": 318,
+    "official_test_role": "sealed_unread",
+    "official_test_samples": 1576
+  },
+  "training": {
+    "epochs": 500,
+    "optimizer": "AdamW",
+    "learning_rate": 0.00006,
+    "weight_decay": 0.01,
+    "poly_power": 0.9,
+    "warmup_epochs": 10,
+    "batch_size": 10,
+    "num_workers": 8,
+    "train_scale_array": [0.5, 0.75, 1.0, 1.25, 1.5, 1.75],
+    "single_forward_per_sample": true,
+    "lambda_reliability": 0.1,
+    "lambda_consistency": 0.0,
+    "reliability_hidden_channels": 16,
+    "reliability_supervision": "continuous BCE on Depth channel only",
+    "geometry_adapter_enabled": false,
+    "reliability_feeds_backbone": false,
+    "reliability_feeds_geometry_prior": false,
+    "clean_teacher": false,
+    "clean_corrupt_consistency": false,
+    "distillation": false,
+    "optimizer_semantics": "inherited-upstream-optimizer-semantics"
+  },
+  "a1_corruption_basis": {
+    "identity": "MMFR-A1-corruption-basis-v3",
+    "supersedes": "MMFR-A1-corruption-basis-v2",
+    "severity_encoding": "single",
+    "damage_reference": 0.25,
+    "missing_burden": 10000.0,
+    "noise_sigma_uint8_at_severity_1": 48.0,
+    "blur_sigma_fraction_of_min_side_at_severity_1": 0.0125,
+    "misalign_max_shift_fraction_of_axis_at_severity_1": 0.03333333333333333,
+    "relative_scale_rule": "blur sigma and misalignment displacement are fractions of the actual grid converted to pixels per resolution",
+    "burden_rule": "v2-compatible realized normalized damage for graded intensity corruption and displacement burden for misalignment",
+    "curriculum": {
+      "light": {"severity_cap": 0.3, "spec_count": 1, "entire_missing_allowed": false},
+      "moderate": {"severity_cap": 0.6, "spec_count": "1-2", "entire_missing_allowed": false},
+      "heavy": {"severity_cap": 1.0, "spec_count": "up to max_specs", "entire_missing_allowed": true},
+      "severity_floor": 0.05,
+      "entire_missing_severity": 1.0,
+      "max_specs": 2
+    }
+  },
+  "corruption_application": {
+    "application_point": "post-mirror-scale-crop-pad-pre-gpu-main-process",
+    "modalities": ["depth"],
+    "kinds": ["entire_missing", "spatial_dropout", "gaussian_noise", "blur", "quantization", "misalignment"],
+    "clean_probability": 0.25,
+    "max_specs": 2,
+    "rng_engine": "numpy.PCG64-SeedSequence",
+    "seed_words": [
+      "train_seed",
+      "epoch_1_based",
+      "iteration_0_based",
+      "global_rank",
+      "sample_slot_0_based",
+      "sample_id_sha256_u32_be_0",
+      "sample_id_sha256_u32_be_1",
+      "sample_id_sha256_u32_be_2",
+      "sample_id_sha256_u32_be_3"
+    ],
+    "progress": "((epoch - 1) * N_iter + iteration) / (N_epoch * N_iter - 1) clipped to [0, 1]"
+  },
+  "depth_validity_and_supervision": {
+    "initial_state": "V_state_0 = depth_valid_pre = (raw_depth_pre_uint8 > 0) & valid_mask",
+    "intensity_state_rule": "gaussian_noise, blur and quantization leave V_state unchanged and operate only where V_state=1",
+    "blur_rule": "mask-normalized G*(D*V)/(G*V+epsilon), emitted only where V_state=1, with V_state=0 held at zero",
+    "dropout_rule": "V_state <- V_state & keep_mask",
+    "entire_missing_rule": "V_state <- 0",
+    "misalignment_rule": "MID-A: apply the same integer dy/dx translation to Depth values and V_state, then apply valid_mask",
+    "final_state": "V_state_final",
+    "depth_valid_post_definition": "depth_valid_post = V_state_final = (raw_depth_post_uint8 > 0) & valid_mask",
+    "target_composition": "R_depth_sup_v3(p) = V_state_final(p) * R_depth_synthetic(p)",
+    "valid_depth_uint8_contract": "V_state_final=1 implies uint8 in [1,255]; V_state_final=0 implies uint8=0",
+    "native_invalid_policy": "retain native-invalid supervision; no reweighting, masking or sample deletion",
+    "natural_complete_missing_crop_policy": "retain all 8 known train-geometry crops with no valid Depth inside valid_mask",
+    "padding": "normalized input and raw signal are exact zero, target is one, and valid_mask excludes padding",
+    "rgb_scaffold": "RGB input is unchanged and the RGB reliability target channel is all ones and unscored",
+    "no_new_failure_kind": true
+  },
+  "telemetry": {
+    "category_order": ["natural-invalid", "synthetic-invalid", "implicit-quality", "valid-clean"],
+    "mask_contract": "four masks are mutually exclusive and exactly partition the geometry-valid region",
+    "per_category_loss": "Depth-channel continuous BCE; empty categories emit a detached NaN placeholder with pixel_count=0 and are excluded from accumulation",
+    "epoch_aggregation": "loss * pixel_count is accumulated and divided by accumulated category pixels",
+    "logging": "logger records category loss means, pixel counts and fractions of geometry-valid pixels; tracker records defined category loss means",
+    "additional_audit_fields": ["newly_valid_pixels", "post_corruption_invalid_pixels", "valid_pixels"],
+    "affects_aggregate_reliability_loss": false,
+    "affects_loss_weighting": false,
+    "distributed_scope": "formal A2 protocol is single GPU; category epoch aggregates are not cross-process all-reduced"
+  },
+  "protocol_compatibility": {
+    "v1_behavior_preserved": true,
+    "v2_behavior_preserved": true,
+    "v2_files_modified": false,
+    "v1_files_modified": false,
+    "optimizer_missing_parameter_count": 43,
+    "optimizer_missing_parameter_semantics": "inherited-upstream-optimizer-semantics; intentionally preserved and not repaired in v3",
+    "official_test_read": false
+  },
+  "selector": {
+    "input": "clean-val-dev",
+    "metric": "mIoU",
+    "geometry": "original-full",
+    "scale": 1.0,
+    "flip": false,
+    "tie_break": "earlier_epoch",
+    "failure_conditions_participate": false
+  },
+  "evaluation": {
+    "evaluator": "msflip-whole-original-grid-v1",
+    "seed": 2026091401,
+    "sample_count": 318,
+    "paired_bootstrap_unit": "location-group",
+    "single_conditions": [
+      ["spatial_dropout", 0.75],
+      ["gaussian_noise", 0.75],
+      ["blur", 0.75],
+      ["quantization", 0.75],
+      ["misalignment", 0.75],
+      ["entire_missing", 1.0]
+    ],
+    "mixed_conditions": [
+      [["spatial_dropout", 0.5], ["gaussian_noise", 0.5]],
+      [["blur", 0.5], ["misalignment", 0.5]],
+      [["quantization", 0.5], ["misalignment", 0.5]]
+    ],
+    "primary_score": "unweighted-macro-mean-single-condition-mIoU"
+  },
+  "qualification_evidence": {
+    "severity_burden": {
+      "status": "PASS",
+      "exit_code": 0,
+      "report": "outputs/mmfr-a1-v3-severity-audit/severity-burden-audit.json",
+      "report_raw_sha256": "34d9d70d1e1b9c7420fc7b293f2c2b3eb880caeb7fb8d4f8f6935078bdc8bbe0",
+      "report_lf_normalized_sha256": "75ac1f73b42f7430c9d671de7b44894f2c7f5141080ccfaff008bb8f3a27d2da",
+      "tool_hash_embedded_in_report": "a458999112bbbe0924cd903179a5304d494f18b4441347605b4575dacc5b80eb",
+      "module_hash_embedded_in_report": "0a729bcb1b60a71120445894d71459895d2fd61a6bc30dfbccb3ac94108b110f",
+      "fixtures": ["480x640", "932x1082"],
+      "failure_kinds": 6,
+      "severity_levels": 9,
+      "records": 108,
+      "checks": "single encoding, monotone burden/target, relative scale, invalid-state consistency and empty-spec strict no-op",
+      "official_test_included": false
+    },
+    "cpu_qualification": {
+      "status": "PASS",
+      "report": "outputs/mmfr-a2-v3-cpu-qualification/a2-v3-cpu-qualification.json",
+      "report_raw_sha256": "b8740689adccb84249b35c7a98fe936dd229694efa6af071bf31582f085f934a",
+      "report_lf_normalized_sha256": "dd24acfdda7e193194bf03f319d195cfa388ad87bc81a05cf22d4073a206f4a7",
+      "assertions": 121,
+      "failed": 0,
+      "checkpoint_read": false,
+      "gpu_used": false,
+      "official_test_included": false
+    },
+    "validity_transport": {
+      "status": "PASS",
+      "report": "outputs/mmfr-a2-v3-validity-transport/validity-transport-audit.json",
+      "report_raw_sha256": "9f3066d47e82a2ad84e2dad457a6b68c0d5dac4d28882249fdaca7495eb4cd90",
+      "report_lf_normalized_sha256": "495e27fa0d2059207e0ae06c60fd3cab048498f9926eff311aa96eb420de0510",
+      "assertions": 48,
+      "failed": 0,
+      "intensity_newly_valid_pixels": {
+        "gaussian_noise": 0,
+        "blur": 0,
+        "quantization": 0
+      },
+      "misalignment_check": "MID-A transported validity agrees with the actual transported Depth input",
+      "gpu_used": false,
+      "official_test_included": false
+    },
+    "initial_state_equivalence": {
+      "status": "PASS",
+      "exit_code": 0,
+      "report": "outputs/mmfr-a2-v3-initial-state-equivalence/a2-v3-initial-state-equivalence.json",
+      "report_raw_sha256": "4035612e5e314a9044626503c80c2af869a6be1a5cf4d89aab8383b7cb0515cc",
+      "report_lf_normalized_sha256": "362b1951d82ff2fb131bf808858926e2ea0e0c00c90a43332ab0acd4d6f4532b",
+      "tool_hash_embedded_in_report": "58dce3004f39289a1caac45e4a58d8a1653986fca1fef26cc16322791bcbe03a",
+      "independent_builds": 6,
+      "rebuilds_per_identity": 3,
+      "common_parameters_bitwise_identical": "714/714",
+      "common_buffers_bitwise_identical": "88/88",
+      "max_abs_difference": 0.0,
+      "extra_norms_reproducible": true,
+      "assertions": 38,
+      "failed": 0,
+      "gpu_used": false,
+      "official_test_included": false
+    },
+    "amp_update_path_isolation": {
+      "status": "PASS",
+      "exit_code": 0,
+      "report": "outputs/mmfr-a2-v3-amp-update-path-isolation/a2-v3-amp-update-path-isolation.json",
+      "report_raw_sha256": "770daaeab50da4e593b0a722ef0b7482b4c67d8616a37d95348b6a4432036872",
+      "report_lf_normalized_sha256": "ed579c1af7daddfffdb59881d5e7a50977f0b0178c6366ed139fbdc72c1c95c3",
+      "tool_hash_embedded_in_report": "658fb9c901ee46bf5b6e682522172885cc5692e9e58f301f2777067fad054681",
+      "device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "batch_size": 10,
+      "attempted_steps": 17,
+      "successful_updates": 10,
+      "corrupt_steps": 17,
+      "batch_identity_sequence_identical": true,
+      "step_skip_sequence_identical": true,
+      "grad_scaler_scale_trajectory_identical": true,
+      "shared_parameters_bitwise_identical_after_each_successful_update": true,
+      "shared_optimizer_state_bitwise_identical_after_each_successful_update": true,
+      "shared_parameter_mismatch_count": 0,
+      "shared_optimizer_state_mismatch_count": 0,
+      "max_abs_difference": 0.0,
+      "only_lambda_rel_0.1_side_learns": true,
+      "peak_cuda_memory_allocated_bytes": 3132888576,
+      "elapsed_seconds": 2112.328,
+      "formal_training_run": false,
+      "official_test_included": false
+    }
+  },
+  "verification": {
+    "all_required_local_qualifications_passed": true,
+    "required_gate_count": 5,
+    "static_closeout_checks_required": [
+      "python -m json.tool protocols/mmfr-a2-train-integration-v3.template.json",
+      "python -m py_compile on seven v3 production/config files, models/builder.py, utils/train.py and five v3 qualification tools",
+      "git diff --check"
+    ],
+    "not_repeated_in_closeout": [
+      "severity/burden execution",
+      "CPU qualification execution",
+      "validity-transport execution",
+      "initial-state equivalence execution",
+      "AMP update-path isolation execution"
+    ],
+    "not_run": [
+      "full test suite",
+      "DDP qualification",
+      "formal 500-epoch training",
+      "checkpoint save/load qualification",
+      "cloud capacity/throughput probe",
+      "cloud resource creation",
+      "full evaluator",
+      "official test"
+    ]
+  },
+  "authorization": {
+    "code_integration": true,
+    "local_cpu_qualifications_completed": true,
+    "local_gpu_amp_update_path_qualification_completed": true,
+    "eligible_to_request_cloud_capacity_probe_authorization": true,
+    "cloud_capacity_probe_authorized": false,
+    "formal_training_authorized": false,
+    "full_evaluation_authorized": false,
+    "cloud_resource_creation_authorized": false,
+    "official_test_authorized": false
+  }
+}
