@@ -163,35 +163,26 @@
     "seed": 2026091401,
     "point_estimate": "the unresampled statistic"
   },
-  "multiplicity": {
-    "primary_report": "no multiplicity correction; all group and condition numbers are reported descriptively as frozen here",
-    "secondary_corrected_family": {
-      "method": "holm-bonferroni",
-      "family": "the 6 frozen A2 single conditions crossed with the 2 risk metrics AURC and reliability_error_monotonicity",
-      "family_size": 12,
-      "alpha": 0.05,
-      "status": "provisional-default-not-frozen-requires-user-confirmation",
-      "confirmed_by_user": false,
-      "note": "the correction family, its size and alpha were invented in the drafting pass; they must be confirmed before execution and they can never change the primary gate"
+  "reporting_rules": {
+    "status": "descriptive-only-no-new-gate",
+    "preregistered": [
+      "the three reporting layers and their metric definitions",
+      "the explicit-invalid / implicit-quality group split and each group's scored pixel domain",
+      "the estimators and their bootstrap 95% percentile intervals",
+      "the sampling units (318 val-dev images, 196 location groups, 10 views)"
+    ],
+    "no_success_gate": true,
+    "no_failure_gate": true,
+    "statement": "this supplemental protocol preregisters metrics, groups, estimators and confidence intervals only. It defines no new success or failure threshold, no directional cut-off and no corrected significance family, and it can never replace or rescue the frozen A2 primary robustness gate.",
+    "readings_that_must_be_reported_descriptively": {
+      "reliability_error_monotonicity": "Spearman rank correlation between predicted Depth reliability and per-pixel segmentation error, per reporting group and per condition, reported with its bootstrap 95% percentile interval",
+      "risk_coverage_curve": "risk(c) at the fixed coverage points, reported per group and per condition",
+      "aurc": "area under the risk-coverage curve, reported with its bootstrap 95% percentile interval and alongside the two reference predictors (a) constant reliability equal to the group mean and (b) depth_valid_post as a 0/1 reliability; the references are reported for context only and no relative-improvement threshold is applied",
+      "brier_score": "Brier score against the constant predictor equal to the masked mean of R_depth_sup, reported for context only and without a relative-improvement threshold",
+      "mae": "mean absolute error against R_depth_sup with its bootstrap 95% percentile interval"
     },
-    "correction_may_not_change_primary_gate": true
-  },
-  "descriptive_reading_rules": {
-    "status": "provisional-default-not-frozen-requires-user-confirmation",
-    "confirmed_by_user": false,
-    "note": "the metric definitions here are fixed by the revision instruction, but the numeric reading criteria were not: they were invented in the drafting pass and remain provisional until the user confirms them",
-    "metric_definitions_fixed": {
-      "reliability_error_monotonicity": "Spearman rank correlation between predicted Depth reliability and per-pixel segmentation error, computed separately per reporting group and per condition on the scored pixel domain; negative-is-correct",
-      "aurc_reference_comparison": "the predicted-reliability AURC is compared against two references, (a) constant reliability equal to the group mean and (b) depth_valid_post used as a 0/1 reliability",
-      "brier_reference_comparison": "the Brier score is compared against the constant predictor equal to the masked mean of R_depth_sup"
-    },
-    "provisional_numeric_criteria": {
-      "monotonicity_directional_threshold": -0.1,
-      "aurc_relative_improvement_threshold": 0.05,
-      "brier_relative_improvement_threshold": 0.05
-    },
-    "none_of_these_rules_is_a_success_gate": true,
-    "statement": "these rules only fix how a result is read; they cannot upgrade a failed A2 primary gate and cannot lower any frozen A2 threshold"
+    "multiplicity_policy": "no multiplicity correction and no corrected significance family are preregistered; this protocol is descriptive and reports intervals as they are",
+    "no_numeric_reading_threshold_exists": true
   },
   "failure_handling": {
     "abort_report_on": [
@@ -255,20 +246,20 @@
       "reason": "the downstream segmentation conditions belong to the primary protocol; copying them here before that protocol is locked would create a second, drifting definition"
     }
   ],
-  "provisional_defaults_requiring_user_confirmation": {
-    "must_be_confirmed_before_execution": true,
-    "confirmed_by_user": false,
-    "reason": "the revision instruction fixed the metric names, the three reporting layers and the two reporting groups, but it did not fix any acceptance or reading number; every numeric value listed here was invented during drafting and must not be presented as a frozen scientific threshold",
-    "items": [
-      {"field": "descriptive_reading_rules.provisional_numeric_criteria.monotonicity_directional_threshold", "value": -0.1},
-      {"field": "descriptive_reading_rules.provisional_numeric_criteria.aurc_relative_improvement_threshold", "value": 0.05},
-      {"field": "descriptive_reading_rules.provisional_numeric_criteria.brier_relative_improvement_threshold", "value": 0.05},
-      {"field": "multiplicity.secondary_corrected_family.family_size", "value": 12},
-      {"field": "multiplicity.secondary_corrected_family.alpha", "value": 0.05},
-      {"field": "bootstrap.resamples", "value": 10000},
-      {"field": "reporting_layers.layer_2.metrics.risk_coverage_curve fixed coverage point count", "value": 20}
+  "no_new_gates_statement": {
+    "removed_in_round_2": [
+      "the Spearman directional cut-off (-0.10)",
+      "the AURC relative-improvement criterion (0.05)",
+      "the Brier relative-improvement criterion (0.05)",
+      "the Holm-Bonferroni corrected family of size 12 with alpha 0.05"
     ],
-    "note": "the metric definitions themselves (MAE, Brier score, reliability-error monotonicity, risk-coverage curve, AURC, the three layers and the explicit-invalid / implicit-quality split) are fixed by the revision instruction and are not part of this provisional list"
+    "reason": "those numbers were invented during drafting and had neither literature nor a preregistered hypothesis behind them; a supplemental analysis must not force the user to freeze an arbitrary threshold. The revision instruction fixed only the metric names, the three layers and the two reporting groups.",
+    "retained_as_computational_settings": {
+      "bootstrap_resamples": 10000,
+      "bootstrap_interval": "95%-percentile",
+      "interpretation": "the bootstrap resample count is a precision setting, not a scientific threshold; alpha 0.05 exists only as the 95% interval level"
+    },
+    "what_would_be_needed_to_reintroduce_a_gate": "an explicitly enumerated list of confirmatory hypotheses with a stated correction family and alpha, registered before results exist"
   },
   "authorization": {
     "code_integration": false,

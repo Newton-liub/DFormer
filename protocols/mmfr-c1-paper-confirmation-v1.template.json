@@ -133,14 +133,13 @@
       "reason": "the exact robustness condition set and their severities must be inherited verbatim from the locked A2/B1 protocol instead of being duplicated here where it could drift"
     }
   ],
-  "provisional_defaults_requiring_user_confirmation": {
-    "must_be_confirmed_before_execution": true,
-    "confirmed_by_user": false,
-    "reason": "the revision instruction fixed the official split sizes, the 500-epoch budget, the 3 paired seeds and the single sealed official-test pass, but not every number in this file; the item below was invented during drafting",
-    "items": [
-      {"field": "statistics.location_group_bootstrap_resamples", "value": 10000}
-    ],
-    "note": "the confirmation-stage boundary, the 1595/1576 official sample counts, the 500-epoch budget, the 3 paired seeds and the sealed single-pass official-test policy are frozen by the revision instruction"
+  "bootstrap_computational_setting": {
+    "location_group_bootstrap_resamples": 10000,
+    "interval": "95%-percentile",
+    "interpretation": "the resample count is a computational precision setting, not a scientific threshold; the 95% interval is the only statistical level used here and it is not a success criterion",
+    "removed_in_round_2": "the previous draft listed this value as a provisional scientific default requiring user confirmation, which was a category error",
+    "no_success_gate": true,
+    "no_failure_gate": true
   },
   "authorization": {
     "code_integration": false,

@@ -1,6 +1,6 @@
 # MMFR-多形式模态失效可靠性学习：独立审计总规划
 
-> **文档状态：** 2026-09-14（v2 修订版）独立审计快照，2026-09-15 01:32 补入门禁核验；A1 v1 已完成 CPU qualification，A2 v1 已完成 code qualification 与本地 GPU 单步 qualification，但随后在正式 500 epoch 尚未执行的时点进行了协议修订，v1 已冻结归档为 `superseded-before-formal-training`；v2 已完成代码修订、A1 v2 severity/burden 定点审计、A2 v2 CPU 定点检查，并已于 2026-09-15 01:32 实际执行并通过 **gradient-path isolation qualification**（`gradient-path-isolation: PASS`，退出码 `0`），该门禁不再阻塞正式训练。正式训练、云端 probe、MMFR checkpoint 评价和 official test 均未授权、未完成。
+> **文档状态：** 2026-09-14（v2 修订版）独立审计快照，2026-09-15 补入门禁核验与第二轮本地资格证据；A1 v1 已完成 CPU qualification，A2 v1 已完成 code qualification 与本地 GPU 单步 qualification，但随后在正式 500 epoch 尚未执行的时点进行了协议修订，v1 已冻结归档为 `superseded-before-formal-training`；v2 已完成代码修订、A1 v2 severity/burden 定点审计、可复跑的 A2 v2 CPU qualification（`74` 项断言）、`initial-state-equivalence`、`gradient-path isolation` 与 `amp-update-path isolation` 三项门禁，以及 `train-dev` Depth 有效性分布与 validity transport 两项事实审计。**当前状态标识为 `local-qualifications-passed-awaiting-senior-review-of-dataset-validity-audit`：本地资格已补齐，但尚未由高级模型确认“数据集有效性审计不需要改变监督语义”，也尚未完成 source identity 冻结，因此还不能升级为 `eligible-for-cloud-capacity-probe-authorization`。** 正式训练、云端 probe、MMFR checkpoint 评价和 official test 均未授权、未完成。
 > **事实入口：** `doc/main/MUSeg-current-status.md`；本文只在该入口基础上重组审计叙事，不替代实时状态。
 > **本次修订性质：** 只改协议与代码语义，不产生任何模型效果结论。v1 的历史 CPU/GPU 证据、DVC/DVG 负结果和已记录哈希均未被改写。
 
@@ -134,7 +134,7 @@
 
 - MUSeg 图像中可能出现弱光、粉尘、反光、噪声或深度无效等现象，但当前数据和被核对的材料没有为这些现象提供正式的自然故障类型标签、像素位置标签、严重度标签、故障率、重复采集、跨时刻配对或标定漂移真值。
 - 因此本文不声称“数据中只有 Depth=0”，也不把未审计的视觉现象写成已确认的自然故障类别。
-- **单样本核对事实（不得外推为全数据集统计）：** 在 `train-dev` 的样本 `06-01-01-0035-230920140169-12-99` 上，Depth8 与 Depth16 的原始网格均为 `932×1082`，其中 `993,379 / 1,008,424` 个像素为 `0`，约占 `98.5%`。这意味着该样本的 Depth 观测本身极度稀疏，A1 v2 的“原生无效 Depth”定义会把大部分像素的监督目标设为 0。这是 MUSeg 作者保留“Depth 信息缺失但 RGB 清晰”样本的直接后果，也是 v2 必须区分原生无效与合成缺失的原因；但它只是一个样本的核对结果，不能当作数据集整体统计。
+- **单样本核对事实（不得外推为全数据集统计）：** 在 `train-dev` 的样本 `06-01-01-0035-230920140169-12-99` 上，Depth8 与 Depth16 的原始网格均为 `932×1082`，其中 `993,379 / 1,008,424` 个像素为 `0`，约占 `98.5%`。这意味着该样本的 Depth 观测本身极度稀疏，A1 v2 的“原生无效 Depth”定义会把大部分像素的监督目标设为 0。这是 MUSeg 作者保留“Depth 信息缺失但 RGB 清晰”样本的直接后果，也是 v2 必须区分原生无效与合成缺失的原因；但它只是一个样本的核对结果，不能当作数据集整体统计。**2026-09-15 全量审计更新：** 该推断已被全量扫描取代——全部 `1277` 条 `train-dev` 的原始网格有效率 mean `0.6833`、median `0.7413`、min `0.0125`、max `0.9999`，`<50%` 有 `309` 条、`<5%` 有 `13` 条，**没有任何样本 Depth 全为 0**；训练几何（crop/pad）下 mean `0.6978`、median `0.8177`，另有 `8` 条样本在 `valid_mask` 内完全没有有效 Depth。监督像素中 target 恰为 `0` 的占比为 `28.33%`/`28.41%`/`43.84%`（early/mid/late）。详情与哈希见 §13.6。
 - A1/A2 的 `entire_missing`、局部 dropout、noise、blur、quantization 和 misalignment 都是受控合成条件。它们可以支持“在 MUSeg 语义域和冻结合成协议下的开发研究”，不能单独支持真实矿井传感器故障率、自然故障分布、现实部署可靠性或跨设备校准稳定性。
 - 未来如果要提出自然故障结论，必须另行获得自然故障标签、采集和标定证据，或明确把结论限制为“合成失效外推假设”，并报告 synthetic-to-real gap（合成到真实的差距）作为未解决风险。
 
@@ -441,7 +441,18 @@ $$
 - 该门禁只在实测通过前阻塞正式训练；现在它已通过，**正式训练本身仍然未授权**。
 - **复跑确认：** 主代理随后以 `--output outputs/mmfr-a2-gradient-path-isolation/repro-check.json` 复跑一次，判定与数值完全相同（同一 corruption 抽样 kind、同一 segmentation loss `2.545051336288452`、同一 head 梯度范数 `0.0`/`0.05855773380379924`、两次 sweep 的 logits SHA-256 均为 `82ec467dd97a8e44d7c3e11842ff15d9410d0f7033762d6670c3a43f5ed95288`），复跑报告 SHA-256 为 `54a6c183877c32f720854461c0d62ffe0b3be512c729fff2c6a1b95367cbc6a5`；该判定是确定性的，不是单次抽样的偶然结果。
 
-### 13.6 尚不存在的资格证据
+### 13.6 第二轮本地门禁与事实审计（2026-09-15，全部已执行）
+
+第二轮审计判定为 `需修订后进入`，并要求先补齐本地资格。以下三项门禁与两项事实审计均已实际执行；它们只覆盖本地单卡条件，不构成模型效果结论。
+
+- **`MMFR-A2-v2-initial-state-equivalence`（通过）**：工具 `tools/mmfr/a2_v2_initial_state_equivalence.py`（SHA-256 `7637b67d211e43a872bfa7e9141e9fc6ff04c3647e51b35409401797ca7c1088`），六个独立子进程构建（每个身份 3 次），退出码 `0`、墙钟 `42.7` 秒、`40` 项断言 `failed=0`。两个身份的 `714` 个共有参数与 `88` 个共有 buffer **逐位相同**，`max_abs_difference=0.0`；参数集合差异只有 corruption 侧 `reliability_estimator.head.net.{0,2,4}.{weight,bias}` 共 `4,386` 个元素。`extra_norms.{0,1,2}.{weight,bias}` 六张量在六次构建中哈希唯一（weight 恒 `1.0`、bias 恒 `0.0`，官方 pretrained 提供 `0/6`），因此**该确定性从“待核验”转为“已核验”**。证据 SHA-256 `17dcb4e42f914b095a8d4187adad4c404e89e9eaeb857bd218e3ae47923c61fa`。
+- **同一核验的附带事实（重要，未处置）**：`utils/init_func.py:group_weight` 只把 `720` 个参数张量中的 `677` 个放进 AdamW 的 param group，**`43` 个张量不在任何 group 中、从不更新、也从不进入 GradScaler 的 inf 检查**：`29` 个 `backbone.*.Geo.weight`、`8` 个 `backbone.patch_embed.proj.{1,4,7,10}.{weight,bias}`、`6` 个 `backbone.layers.{0,1,2}.downsample.norm.{weight,bias}`。两个身份同样受影响，不破坏公平性，但意味着这些层在任何以此代码库运行的训练中停留在初始化值。是否处置登记为开放项。
+- **`MMFR-A2-v2-amp-update-path-isolation`（通过，正式训练前硬门禁）**：工具 `tools/mmfr/a2_v2_amp_update_path_isolation.py`，在本地 GPU 上以**冻结 batch size `10`**、真实 `train-dev` 批次、真实 v2 Depth-corruption 模型与正式 AMP + GradScaler 运行，退出码 `0`、墙钟 `88` 秒。`16` 次尝试获得 `10` 次真实成功更新（`13` 个 corrupt step）；两条轨迹（`lambda_rel=0` 与 `0.1`）的 **step/skip 序列完全相同、scale 轨迹完全相同**（`65536→…→1024`，共 6 次 skip）；每次成功更新后共享参数与共享 optimizer state **逐位相同**（各 `0` 处不一致，`max_abs_difference=0.0`），最终共享参数仍逐位相同；reliability head 自身哈希变化，两次 loss 不同，证明辅助项确实激活而未带动共享轨迹。峰值显存约 `2.50 GB`。证据 SHA-256 `7020c354a948cb876a369dd196d03e21fd17fb1b3e051734b1563931ae358cdb`。**边界：** 单卡单进程、`16` 步、一次配对运行，不覆盖 DDP、完整 epoch、checkpoint save/load、evaluator 或 official test。
+- **可复跑 `MMFR-A2-v2-cpu-qualification`（通过）**：`tools/mmfr/a2_v2_cpu_qualification.py`（SHA-256 `b3737f1b7ea6947be9cd9db6ef6b910a4f661e9ddb29da72cc3ddf97475cc999`）把原先“运行后删除的一次性 47 项检查”固化为仓库脚本并扩展到 `74` 项断言；主代理复跑得到 `assertions=74 failed=0 status=PASS exit_code=0`（`2.8` 秒）。证据 SHA-256 `75436cf432a4877d3af63d6b16d8f6413f7007d08c8072cada08a1b2dccd7b57`。
+- **`train-dev` Depth 有效性分布审计（事实）**：`tools/mmfr/train_dev_depth_validity_audit.py`（SHA-256 `62a52cf3f4c74352359506d753c69e502cbf3d35314220e1df361ba5b50e4d30`），扫描全部 `1277` 条样本，耗时 `215` 秒。原始网格有效率 mean `0.6833`、median `0.7413`、min `0.0125`、max `0.9999`；`<1%`/`<5%`/`<10%`/`<25%`/`<50%` 分别为 `0`/`13`/`26`/`91`/`309` 条，**没有全 0 样本**；训练几何下 mean `0.6978`、median `0.8177`，另有 `8` 条样本在 `valid_mask` 内无有效 Depth。location group 按既有冻结规则共 `762` 组。监督像素构成（early/mid/late）中 target 恰为 `0` 的占比为 `28.33%`/`28.41%`/`43.84%`，其中约 `25.82` 个百分点始终来自原生无效 Depth。**结论：此前“约 98.5% 像素为 0”的单样本观测不能外推**；BCE 未被恒定 0 完全支配，但有约四分之一到五分之二的监督像素提供恒定 0 信号。证据 SHA-256 `63ea91947b699a99d57358239ccdbb93f1edf1d1aa6a81a67c559f0ad0f5af78`。
+- **validity transport 审计（事实，含开放决策）**：`tools/mmfr/validity_transport_audit.py`（SHA-256 `f574d461eb7da9a895251ca1cbc127ae72e7f5c611c401b193cda7e40407f7c4`）。`gaussian_noise`、`blur`、`misalignment` 会在原生无效 Depth 像素上制造非零值；`quantization`、`spatial_dropout`、`entire_missing` 从不。最稀疏真实样本上 `gaussian_noise@0.25` 单个 crop 制造 `129,563` 个此类像素（`1.0` 时 `132,929`），约占该样本有效区内原生无效像素的 `48%`；`R_D^sup = V_D^pre · R_D^syn` 逐位成立、记账恒等式在 `84` 条记录上闭合，**说明记账闭合不等于 target 语义正确**。misalignment 的“源无效→目标非零”结构性恒为 `0`，平移前后有效判定一致率 `77.57%–99.39%`。工具输出 `decision_required`（选项 A 吸收哨兵 / 选项 B 显式命名 spurious-measurement corruption，另有 MID-A/MID-B 子问题），**未做选择**。证据 SHA-256 `4cc92b5f6885e9e8163062062e3d53a843752699e4e8bebd77e5d9dad81639fa`。
+
+### 13.7 尚不存在的资格证据
 
 - 没有 v2 的 GPU preflight；v2 的真实模型 forward/backward、AMP 数值稳定性与显存占用均未测量。
 - 没有 v2 的 checkpoint save/load 验收、没有 DDP/`torch.compile` 覆盖、没有完整 epoch、没有 evaluator、没有云资源、没有 official test。
@@ -523,7 +534,9 @@ $$
 
 ### 17.2 实现和统计风险
 
-- **gradient-path isolation 的结论边界：** 该门禁已实测通过（`714` 个共享参数梯度逐位相同），所以“reliability 头不影响分割梯度路径”现在是实测事实而不是静态判断。边界是：它只在 batch size `1`、FP32、单进程、单样本、一次 corrupted 抽样下成立，不能扩展成“冻结 batch size 10、AMP、DDP 也已覆盖”。若有人把单点结论越界成这些条件已通过，属于停止条件。
+- **gradient-path isolation 的结论边界：** 该门禁已实测通过（`714` 个共享参数梯度逐位相同），所以“reliability 头不影响分割梯度路径”现在是实测事实而不是静态判断。边界是：它只在 batch size `1`、FP32、单进程、单样本、一次 corrupted 抽样下成立，不能扩展成“冻结 batch size 10、AMP、DDP 也已覆盖”。**第二批边界：** 第二轮新增的 `amp-update-path-isolation` 已在 batch size `10`、真实 AMP + GradScaler 下通过（`16` 次尝试、`10` 次成功更新、step/skip 与 scale 轨迹完全相同、共享参数与共享 optimizer state 逐位相同），因此“实际 AMP 更新轨迹也隔离”在单卡单进程、`16` 步范围内已是实测事实；但它仍不覆盖 DDP、完整 epoch、checkpoint save/load、evaluator、云资源或 official test。若有人把这两项定点结论越界成完整训练已验收，属于停止条件。
+- **43 个参数不在 optimizer 中（新发现）：** `29` 个 `Geo.weight`、`8` 个 `patch_embed.proj.*`、`6` 个 `downsample.norm.*` 从不被更新、也不进入 GradScaler 的 inf 检查。两个身份同样受影响，不破坏公平对照，但任何“这些层已被训练”的表述都是错误的；是否修复属于新 protocol 决策。
+- **`newly_valid_pixels` 语义未定（新发现）：** 噪声、模糊与错位会在原生无效 Depth 像素上制造非零输入（最稀疏样本上 `gaussian_noise@0.25` 即制造 `129,563` 个），而监督目标在那里恒为 `0`。记账闭合不等于语义正确；A/B 与 MID-A/MID-B 必须由用户或高级模型决定，低级模型不得自行“修复”，也不得在未决定前把该行为写成已定口径。
 - **target/geometry 错位：** corruption 必须在最终 mirror/scale/crop/pad 后执行；任何中途 corruption 或独立 target 几何会使监督错位，立即停止。
 - **pad 伪值泄漏：** inverse-normalized pad 的均值字节必须在 corruption 前置零，corruption 后 pad 必须回到 normalized exact zero 与 raw zero；发现 pad 被当作观测，立即停止。
 - **原生无效像素被 corruption 改造：** `gaussian_noise` 与 `misalignment` 会把原生无效像素变成非零（记为 `newly_valid_pixels`）。当前实现只记录不改语义；如果未来决定在原生无效区重新置零，必须作为新的口径决定并写进 protocol，不能静默修改。
@@ -567,7 +580,8 @@ $$
 
 - [ ] 事实一致性：Quick-B0 checkpoint、pretrained、split、指标、DVC/DVG 历史终态、v1 与 v2 的身份与哈希是否与本文一致。
 - [ ] 当前状态：是否明确没有正式 MMFR checkpoint、没有正式 MMFR 指标、没有云实例、没有云 probe、没有 v2 GPU preflight、没有 official test。
-- [ ] 门禁完整性：是否明确 `gradient-path isolation` 已执行并通过（`gradient-path-isolation: PASS`、退出码 `0`、`714` 个共享参数梯度逐位相同、reliability head 只在 `lambda_rel=0.1` 有非零梯度），其证据路径与哈希是否可复核，以及是否**没有**把该单点结论越界解释成覆盖冻结 batch size 10、AMP、DDP 或 official test。
+- [ ] 门禁完整性：是否明确 `gradient-path isolation`（batch size 1 / FP32）与 `amp-update-path-isolation`（batch size `10` / AMP + GradScaler）都已执行并通过、`initial-state-equivalence` 已通过、CPU qualification 已可复跑且 `74` 项断言通过，其证据路径与哈希是否可复核；是否**没有**把任何单点结论越界解释成覆盖冻结 batch size 10、DDP、完整 epoch、evaluator 或 official test；是否明确状态仍停在 `local-qualifications-passed-awaiting-senior-review-of-dataset-validity-audit`，因为“高级模型确认监督语义无需改变”这一前置条件尚未满足。
+- [ ] 新发现的事实是否被正确记录：`43` 个参数不在任何 optimizer param group（从不更新）；`train-dev` 全部 `1277` 条样本的 Depth 有效性分布（原始网格 mean `0.6833`、无全 0 样本）以及单样本 `98.5%` 观测不可外推；validity transport 的 A/B 与 MID-A/MID-B 仍是开放选择。
 - [ ] 修订合法性：v2 是否确实发生在正式 500 epoch 之前；v1 的历史证据、哈希与负结果是否未被改写。
 - [ ] 公平性：两个 v2 训练身份是否都从相同 official pretrained 独立开始，是否共享 seed/split/optimizer/schedule/selector。
 - [ ] 结果后选择空间：condition、severity、样本、group、checkpoint 候选、阈值、主/辅助指标、R1/S1 补充协议与 supervised channel 是否都在结果前冻结。
@@ -617,10 +631,14 @@ $$
 - A1 v2 severity/burden 审计：退出码 `0`、`violations=0`、六项结论为真，报告哈希可复现。
 - A2 v2 CPU 定点检查：clean no-op、target 语义、pad 中性、Depth-only、记账闭合、确定性、p_clean 双分支可达。
 - gradient-path isolation 门禁：`gradient-path-isolation: PASS`、退出码 `0`，`714` 个共享参数梯度在 `lambda_rel=0` 与 `lambda_rel=0.1` 下逐位相同，reliability head 只在 `lambda_rel=0.1` 有非零梯度，两次 segmentation loss 与两种情况下的 logits 逐位相同；证据哈希可复核。它的证据边界是 batch size `1`、FP32、单进程、单样本、一次 corrupted 抽样。
-- 这些证据只说明当前代码链在 CPU、合成 fixture 与单样本 GPU 定点条件下符合协议，不能说明 MMFR 提升 mIoU、校准可靠性、改善自然故障或带来部署收益。
+- 第二轮新增：`MMFR-A2-v2-initial-state-equivalence` PASS（`714` 个共有参数与 `88` 个共有 buffer 逐位相同、`extra_norms` 六张量可复现）；`MMFR-A2-v2-amp-update-path-isolation` PASS（batch size `10`、`10` 次真实成功更新、step/skip 与 scale 轨迹完全相同、共享参数与共享 optimizer state 逐位相同）；可复跑 CPU qualification `74` 项断言 PASS；`train-dev` Depth 有效性分布已实测（原始网格 mean `0.6833`，无全 0 样本）；validity transport 已实测（噪声/模糊/错位会在原生无效像素上制造非零值）。
+- 这些证据只说明当前代码链在 CPU、合成 fixture 或真实样本的定点条件下符合协议，不能说明 MMFR 提升 mIoU、校准可靠性、改善自然故障或带来部署收益。
 
 ### 19.3 未执行
 
+- **高级模型对“`train-dev` Depth 有效性审计与 validity transport 审计不需要改变监督语义”的确认**（第二轮指令第 9 条要求此前置条件）。在这一确认与 source identity 冻结同时成立之前，状态不得升级为 `eligible-for-cloud-capacity-probe-authorization`。
+- validity transport 的 A/B 选择与 misalignment 的 MID-A/MID-B 子问题（由用户或高级模型决定，低级模型不得自行选择）。
+- 43 个不在任何 optimizer param group 中的参数是否处置（修复会改变训练语义，必须新开 protocol）。
 - v2 的真实 AMP 路径与冻结 batch size 10 的 GPU 行为（无 v2 的 GPU 单步 preflight，AMP 数值稳定性与显存占用未测量）。
 - 云端 batch size 10 容量/吞吐 probe；云实例创建、连接、执行和停止。
 - `MMFR-A2-clean-control-v2` 与 `MMFR-A2-depth-corruption-train-v2` 的 500 epoch 正式训练。
@@ -697,15 +715,9 @@ $$
 
 ### 22.1 准确恢复点
 
-当前准确恢复点是：`MMFR-A2-train-integration-v2` 已完成代码修订、A1 v2 severity/burden 审计（已通过、可复现）与 A2 v2 CPU 定点检查（47 项通过，修复 invalidity 记账缺陷）；`MMFR-A2-train-integration-v1` 已归档为 `superseded-before-formal-training`，其历史证据未改动。R1/S1/C1 三个补充协议模板已建立冻结，其中起草期自拟数值待用户确认。
+当前准确恢复点是：`MMFR-A2-train-integration-v2` 已完成代码修订与全部本地资格，状态标识为 `local-qualifications-passed-awaiting-senior-review-of-dataset-validity-audit`。已通过本地门禁：可复跑 CPU qualification（`74` 项断言）、`MMFR-A2-v2-initial-state-equivalence`、`MMFR-A2-v2-gradient-path-isolation`、`MMFR-A2-v2-amp-update-path-isolation`（batch size `10`）。已完成事实审计：`train-dev` Depth 有效性分布、validity transport（含 A/B 开放决策）。`MMFR-A2-train-integration-v1` 已归档为 `superseded-before-formal-training`。source identity 以本地 commit + annotated tag `MMFR-A2-v2-pretrain-freeze` 冻结（未推送远端）。
 
-当前没有任何正式训练、checkpoint、MMFR 指标、完整评价、云实例或 official test 结果。下一步只有在单独授权后才是：
-
-1. `MMFR-A2-v2-gradient-path-isolation` 已于 2026-09-15 01:32 执行并通过（`gradient-path-isolation: PASS`，退出码 `0`，证据 SHA-256 `dd0e351b418f0228650830c70cf0750c21a446502d3a9c11ebc047581aedb763`），不再阻塞正式训练；若用户希望先降低风险，可先授权一次 v2 的本地 GPU 单步 preflight 以覆盖真实模型 AMP 路径；
-2. 在 v2 通过上述门禁后，再单独授权云端冻结 batch size 10 的容量/吞吐短 probe；
-3. 按 4090 优先、5090 仅在冻结规则触发时备用的资源选择，在相同官方 pretrained、seed、split、optimizer、schedule、selector 和 protocol 下独立启动 `MMFR-A2-clean-control-v2` 与 `MMFR-A2-depth-corruption-train-v2`；
-4. 在保存/恢复和证据 hash 门禁通过后，再按冻结的 318 样本、10-view、六单失效、三混合条件和 196 location-group paired bootstrap 评价；
-5. 若采纳 R1/S1 或进入 B1/B2/C1，必须先确认待确认数值并建立独立 identity，不得借用 A2 v2 的授权。
+下一步只有在以下条件同时满足后才成立：高级模型审阅两项审计并确认监督语义无需改变 → 用户单独授权云端 batch size `10` 容量/吞吐短 probe → 用户单独授权 `MMFR-A2-clean-control-v2` 与 `MMFR-A2-depth-corruption-train-v2` 两个公平对照训练。当前没有任何正式训练、checkpoint、MMFR 指标、完整评价、云实例或 official test 结果。
 
 ### 22.2 不得执行
 
@@ -735,4 +747,18 @@ $$
 12. **B2 与 B1 严格分离：** 已完成。B2a/B2b/B2c 三个预研选项及默认顺序写入 v2 模板与方向规划，并写明 CMNeXt 不能作为 RGB-complete-missing 的直接模板。
 13. **补上开发验证与论文/SOTA 确认两个阶段：** 已完成。`MMFR-C1-paper-confirmation-v1` 模板以 `reserved-preregistered-not-executable-until-a2-b1-locked` 状态冻结官方 `1595/1576` 划分、500 epoch、3 个 paired seeds 与 sealed official test 单次读取策略；development 阶段最高声明仍限制为 `single-seed development-supported`。
 
-**执行边界声明：** 本次修订本身没有启动云实例、没有运行 500 epoch 训练、没有运行完整 evaluator、没有读取 official test；其中的 gradient-path isolation qualification 已在用户于 2026-09-15 单独授权后实际执行并通过（batch size `1`、FP32、单进程、单样本、一次 corrupted 抽样），其结论按上述边界解读。v1 的历史哈希、DVC/DVG 负结果与既有 preflight 事实均未被改写；v1 模板与 v1 manifest 的历史哈希不可复现问题已如实标为待核验。
+**第一轮执行边界声明：** 第一轮修订本身没有启动云实例、没有运行 500 epoch 训练、没有运行完整 evaluator、没有读取 official test；其中的 gradient-path isolation qualification 已在用户单独授权后实际执行并通过（batch size `1`、FP32、单进程、单样本、一次 corrupted 抽样）。v1 的历史哈希、DVC/DVG 负结果与既有 preflight 事实均未被改写；v1 模板与 v1 manifest 的历史哈希不可复现问题已如实标为待核验。
+
+## 23.2 第二轮 9 条指令的处置（2026-09-15）
+
+1. **状态降级与措辞收窄：** 已完成。状态改为 `needs-local-qualification-before-cloud-probe` 语义（现为 `local-qualifications-passed-awaiting-senior-review-of-dataset-validity-audit`）；gradient isolation 的 PASS 未被撤销，但结论已收窄为“FP32 数学梯度层面证明 auxiliary reliability loss 不改变共享参数梯度；实际 AMP/GradScaler optimizer-update trajectory 在本轮之前未证明”——该缺口已由第 2 条补齐。
+2. **新增阻塞门禁 `MMFR-A2-v2-amp-update-path-isolation`：** 已实现为可复跑工具并执行通过（batch size `10`、`16` 次尝试、`10` 次成功更新、step/skip 与 scale 轨迹完全相同、共享参数与共享 optimizer state 逐位相同、head 自身允许不同），证据见 §13.6。
+3. **新增 `MMFR-A2-v2-initial-state-equivalence`：** 已实现为可复跑工具并执行通过（两身份共有 `714` 参数与 `88` buffer 逐位相同、`extra_norms` 六张量三次重建可复现），并顺带证实参数集合差异仅为 reliability head 的 `4,386` 个元素。
+4. **CPU 47 项检查固化为可复跑脚本：** 已完成（`tools/mmfr/a2_v2_cpu_qualification.py`，扩展到 `74` 项断言，主代理复跑 PASS；原 47/0 作为历史保留）。
+5. **`train-dev` 全量 Depth 有效性分布审计：** 已完成（`1277` 条，原始网格 mean `0.6833`、median `0.7413`，无全 0 样本；训练几何 mean `0.6978`，`8` 条样本在 `valid_mask` 内无有效 Depth；监督像素构成 early/mid/late 的恒定 0 占比 `28.33%`/`28.41%`/`43.84%`）。**该结果同时更正了上一轮基于单样本的“约 98.5% 像素为 0”印象。** 本项只收集事实，未改动 loss 或监督语义。
+6. **validity transport 审计与 A/B 选择：** 已完成审计（按 kind 拆分 `V_pre`/`V_post`/值变化/`R_syn`/`R_sup`，含 misalignment 四类运输关系与 MID-A/MID-B 子问题），**未做任何选择**，`decision_required` 区块留给用户或高级模型。没有“修复” `newly_valid_pixels`。
+7. **删除 R1/S1 自拟阈值：** 已完成。删除了 Spearman `-0.10`、AURC/Brier `5%`、Holm-Bonferroni 家族 `12` 与 α `0.05`、S1 `0.25` 个百分点容忍度与允许违反 `0`；三个模板只预注册指标、分组、估计量与置信区间，并声明不设置新的成功/失败 gate；`bootstrap=10000` 与 95% 区间保留为计算精度设置。
+8. **source identity 冻结：** 已完成。以本地 commit + annotated tag `MMFR-A2-v2-pretrain-freeze` 固定本轮科学代码、config、protocol 模板、工具与证据指针；未推送远端。此后任何科学代码变化都必须新 identity。
+9. **恢复点更新：** 已按本条第 9 项执行：本地资格全部通过，但因缺少“高级模型确认监督语义无需改变”这一前置条件，状态**未**升级为 `eligible-for-cloud-capacity-probe-authorization`，并已写明 v2 的 AMP/update-path qualification 是硬门禁而非可选项（它已执行并通过）。
+
+**执行边界声明（第二轮）：** 本轮新增的门禁与审计只在本地单卡、单进程、限步范围内执行；没有云实例、没有 500 epoch 训练、没有 evaluator、没有读取 official test。所有失效仍是合成条件；`train-dev` 分布与 validity transport 的结论只描述合成协议与观测事实，不构成模型效果或真实部署结论。

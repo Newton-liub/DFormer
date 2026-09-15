@@ -2,7 +2,7 @@
   "schema_version": "mmfr-a2-train-integration-v2",
   "protocol_id": "MMFR-A2-train-integration-v2",
   "schedule_version": "mmfr-a2-v2-adamw-6e-5-warmup10-poly0.9-500e-v1",
-  "status": "code-revised-cpu-checked-gradient-path-isolated-training-unauthorized",
+  "status": "code-revised-local-gates-passed-awaiting-senior-review-training-unauthorized",
   "supersedes": "MMFR-A2-train-integration-v1",
   "supersede_scope": "protocol revision performed before any formal 500-epoch run, i.e. before any MMFR result exists",
   "supersede_reason": "four audited protocol defects: (1) severity was encoded twice for gaussian_noise/blur/quantization, (2) blur and misalignment severity were absolute pixel quantities and therefore not equivalent across the 480x640 training crop and the original 932x1082 aligned grid, (3) the Depth reliability target ignored native MUSeg Depth invalidity, and (4) the RGB reliability channel was scored although it is a constant all-ones scaffold",
@@ -435,17 +435,154 @@
     "clean_path_exact_noop": true
   },
   "open_items": [
-    "formal A2 v2 training is still unauthorized even though the gradient-path isolation gate passed",
-    "no v2 GPU preflight: the v2 segmentation forward/backward path and the Depth-only supervision mask are statically reviewed only, and the isolation check ran at batch size 1 in FP32 without AMP",
-    "whether corruption may fabricate nonzero Depth on natively invalid pixels (recorded as newly_valid_pixels) instead of being re-zeroed there is an open decision, not silently changed",
-    "the R1 and S1 templates contain provisional numeric reading criteria that were not fixed by the revision instruction and must be confirmed by the user before execution",
-    "the v1 template and v1 protocol.json hash pointers are not reproducible from the current working-tree bytes and are marked unverified",
-    "the official pretrained checkpoint does not provide the six extra_norms.{0,1,2}.{weight,bias} tensors, which the repository's own initialization therefore supplies; whether that initialization is fully deterministic under the frozen seed is not yet verified"
+    "senior-model confirmation that the train-dev validity audit and the validity transport audit do not require a supervision-semantics change (required before the status may become eligible-for-cloud-capacity-probe-authorization)",
+    "validity transport decision A/B and the misalignment MID-A/MID-B sub-question are still open and must be decided by the user or the senior reviewer, not by the executing model",
+    "43 of 720 parameter tensors are in no optimizer param group and are therefore never updated (29 Geo.weight, 8 patch_embed.proj.*, 6 downsample.norm.*); both identities are affected identically, and fixing it would change training semantics and require a new protocol",
+    "8 train-dev samples have no valid Depth inside valid_mask and 27 have a valid fraction below 1%; whether the training semantics should treat them specially is undecided",
+    "formal A2 v2 training is still unauthorized even though every local gate has passed",
+    "no DDP, full-epoch, checkpoint save/load, evaluator, cloud or official-test coverage exists for v2",
+    "the v1 template and v1 protocol.json hash pointers are not reproducible from the current working-tree bytes and are marked unverified"
   ],
+  "round_2_local_gates": {
+    "status": "all-executed-and-passed-awaiting-senior-review",
+    "initial_state_equivalence": {
+      "identity": "MMFR-A2-v2-initial-state-equivalence",
+      "tool": "tools/mmfr/a2_v2_initial_state_equivalence.py",
+      "tool_sha256": "7637b67d211e43a872bfa7e9141e9fc6ff04c3647e51b35409401797ca7c1088",
+      "status": "PASS",
+      "exit_code": 0,
+      "wall_clock_seconds": 42.7,
+      "assertions": 40,
+      "assertions_failed": 0,
+      "common_parameter_keys": 714,
+      "common_buffer_keys": 88,
+      "parameters_exact_equal_count": 714,
+      "buffers_exact_equal_count": 88,
+      "max_abs_difference": 0.0,
+      "parameter_set_difference": "only the corruption-side reliability head: reliability_estimator.head.net.{0,2,4}.{weight,bias} = 4386 elements, plus 4 reliability-only buffers",
+      "extra_norms_reproducible": true,
+      "extra_norms_sha256_native_bytes": {
+        "extra_norms.0.weight": "02722f124d0f1736a9dd7c4ddcd05630dcf16ee1ce3454e9a876005ce005d4ac",
+        "extra_norms.0.bias": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560",
+        "extra_norms.1.weight": "893a106828fbdb9521e1d868c985aab7ad2ae2f606edc55329265a5e7676006c",
+        "extra_norms.1.bias": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "extra_norms.2.weight": "fef951e6c76ad6a01b208af650ca6d95769bec840e009981c5ae1316a42c90b1",
+        "extra_norms.2.bias": "e5a00aa9991ac8a5ee3109844d84a55583bd20572ad3ffcd42792f3c36b183ad"
+      },
+      "pretrained_provides_extra_norms_keys": "0 of 6",
+      "evidence": "outputs/mmfr-a2-v2-initial-state-equivalence/a2-v2-initial-state-equivalence.json",
+      "evidence_sha256": "17dcb4e42f914b095a8d4187adad4c404e89e9eaeb857bd218e3ae47923c61fa",
+      "evidence_boundary": "CPU only, no forward/backward and no data read; covers the constructed initial state before model.to(device) only"
+    },
+    "amp_update_path_isolation": {
+      "identity": "MMFR-A2-v2-amp-update-path-isolation",
+      "tool": "tools/mmfr/a2_v2_amp_update_path_isolation.py",
+      "tool_sha256": "0decd30e0360d3b179ee5849c250d1864c4bc4e7b67ab94a63ee17eab92f19bf",
+      "status": "PASS",
+      "exit_code": 0,
+      "wall_clock_seconds": 88.0,
+      "batch_size": 10,
+      "attempted_steps": 16,
+      "successful_updates": 10,
+      "corrupt_steps": 13,
+      "step_skip_sequence_identical": true,
+      "scale_trajectory_identical": true,
+      "scale_trajectory": "65536 -> 32768 -> 16384 -> 8192 (applied) -> 4096 -> 2048 (applied) -> 1024 (applied) -> 1024 ...",
+      "skipped_step_count": 6,
+      "shared_parameter_mismatch_count": 0,
+      "shared_optimizer_state_mismatch_count": 0,
+      "shared_parameter_max_abs_difference": 0.0,
+      "final_shared_parameter_bitwise_identical": true,
+      "reliability_head_hash_changed": true,
+      "loss_differs_between_trajectories": true,
+      "peak_gpu_memory_bytes": 2497731584,
+      "evidence": "outputs/mmfr-a2-v2-amp-update-path-isolation/a2-v2-amp-update-path-isolation.json",
+      "evidence_sha256": "7020c354a948cb876a369dd196d03e21fd17fb1b3e051734b1563931ae358cdb",
+      "evidence_boundary": "single GPU, single process, 16 attempted steps at batch size 10; does not cover DDP, a full epoch, checkpoint save/load, the evaluator, cloud resources or official test",
+      "note": "this is a hard gate for formal A2 v2 training, not an optional check"
+    },
+    "cpu_qualification_rerunnable": {
+      "identity": "MMFR-A2-v2-cpu-qualification",
+      "tool": "tools/mmfr/a2_v2_cpu_qualification.py",
+      "tool_sha256": "b3737f1b7ea6947be9cd9db6ef6b910a4f661e9ddb29da72cc3ddf97475cc999",
+      "status": "PASS",
+      "exit_code": 0,
+      "assertions": 74,
+      "assertions_failed": 0,
+      "runtime_seconds": 2.8,
+      "historical_result_kept": "the earlier one-off 47/0 check is kept as history and is not overwritten",
+      "evidence": "outputs/mmfr-a2-v2-cpu-qualification/a2-v2-cpu-qualification.json",
+      "evidence_sha256": "75436cf432a4877d3af63d6b16d8f6413f7007d08c8072cada08a1b2dccd7b57"
+    },
+    "train_dev_depth_validity_audit": {
+      "tool": "tools/mmfr/train_dev_depth_validity_audit.py",
+      "tool_sha256": "62a52cf3f4c74352359506d753c69e502cbf3d35314220e1df361ba5b50e4d30",
+      "status": "executed-facts-only-no-semantics-changed",
+      "samples": 1277,
+      "raw_grid_valid_fraction": {"mean": 0.683255, "median": 0.74125, "std": 0.248219, "min": 0.012503, "max": 0.999872},
+      "raw_grid_threshold_counts": {"lt_1pct": 0, "lt_5pct": 13, "lt_10pct": 26, "lt_25pct": 91, "lt_50pct": 309},
+      "all_zero_samples": 0,
+      "training_geometry_valid_fraction": {"mean": 0.697789, "median": 0.817679, "std": 0.302184, "min": 0.0, "max": 1.0},
+      "training_geometry_samples_without_valid_depth": 8,
+      "location_groups": 762,
+      "supervision_target_zero_fraction_by_progress": {"early": 0.283261, "mid": 0.284110, "late": 0.438428},
+      "native_invalid_share_of_target_zero": 0.258209,
+      "supersedes_single_sample_claim": "the earlier single-sample observation of ~98.5% zero Depth must not be extrapolated; the full audit shows mean 68.3% valid raw Depth and no all-zero sample",
+      "evidence": "outputs/mmfr-a2-v2-depth-validity-audit/train-dev-depth-validity-audit.json",
+      "evidence_sha256": "63ea91947b699a99d57358239ccdbb93f1edf1d1aa6a81a67c559f0ad0f5af78"
+    },
+    "validity_transport_audit": {
+      "tool": "tools/mmfr/validity_transport_audit.py",
+      "tool_sha256": "f574d461eb7da9a895251ca1cbc127ae72e7f5c611c401b193cda7e40407f7c4",
+      "status": "executed-facts-only-decision-open",
+      "manufactures_nonzero_on_natively_invalid_pixels": ["gaussian_noise", "blur", "misalignment"],
+      "never_manufactures": ["quantization", "spatial_dropout", "entire_missing"],
+      "max_newly_valid_pixels_on_sparsest_real_sample": {"gaussian_noise_severity_0.25": 129563, "gaussian_noise_severity_1.0": 132929},
+      "rsup_identity_verified_bitwise": true,
+      "misalignment_transport": "source-invalid -> target-nonzero is structurally 0; validity agreement across the shift 77.57%-99.39%",
+      "decision_required": {
+        "status": "open",
+        "selection": null,
+        "options": [
+          "A: natively invalid Depth is an absorbing sentinel; gaussian_noise/blur/quantization may only act on already-valid pixels",
+          "B: spurious depth is allowed but must be explicitly named spurious-measurement corruption rather than hidden inside ordinary gaussian_noise/blur"
+        ],
+        "misalignment_sub_question": [
+          "MID-A: validity is transported together with Depth content",
+          "MID-B: validity stays attached to the original coordinate (current implementation)"
+        ],
+        "decided_by_this_protocol": false
+      },
+      "evidence": "outputs/mmfr-a2-v2-validity-transport/validity-transport-audit.json",
+      "evidence_sha256": "4cc92b5f6885e9e8163062062e3d53a843752699e4e8bebd77e5d9dad81639fa"
+    },
+    "parameter_ownership_finding": {
+      "managed_parameter_tensors": 677,
+      "total_parameter_tensors": 720,
+      "unmanaged_parameter_tensors": 43,
+      "unmanaged_groups": {
+        "backbone.*.Geo.weight": 29,
+        "backbone.patch_embed.proj.{1,4,7,10}.{weight,bias}": 8,
+        "backbone.layers.{0,1,2}.downsample.norm.{weight,bias}": 6
+      },
+      "consequence": "these tensors are never updated by AdamW and never enter the GradScaler unscale/inf check; both v2 identities are affected identically so fairness is preserved, but they stay at their initialization in every run on this codebase",
+      "disposition": "open item; fixing it would change training semantics and requires a new protocol"
+    },
+    "recovery_point": {
+      "status_label": "local-qualifications-passed-awaiting-senior-review-of-dataset-validity-audit",
+      "not_yet_eligible_for_cloud_capacity_probe_authorization": true,
+      "missing_preconditions": [
+        "senior-model confirmation that the dataset validity audit does not require a supervision-semantics change",
+        "source identity freeze (local commit plus annotated tag MMFR-A2-v2-pretrain-freeze; not pushed)"
+      ]
+    }
+  },
   "authorization": {
     "code_integration": true,
     "cpu_qualification": true,
     "local_gpu_gradient_path_isolation": true,
+    "local_gpu_amp_update_path_isolation": true,
+    "local_gpu_initial_state_equivalence": true,
     "gpu_preflight": false,
     "training": false,
     "full_evaluation": false,

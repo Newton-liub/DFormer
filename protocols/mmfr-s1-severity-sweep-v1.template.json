@@ -74,15 +74,15 @@
       "interval": "paired location-group bootstrap over the 196 groups with 10000 resamples and 95% percentile interval"
     },
     "degradation_check": {
-      "per_kind_consecutive_rule": "for each consecutive severity pair (0.00->0.25, 0.25->0.50, 0.50->0.75) the mIoU difference must be <= the per-kind tolerance",
-      "per_kind_tolerance_percentage_points": 0.25,
-      "per_kind_allowed_violations": 0,
-      "tolerance_status": "provisional-default-not-frozen-requires-user-confirmation",
-      "tolerance_confirmed_by_user": false,
-      "tolerance_note": "the revision instruction fixed that a degradation check must exist, not its tolerance or its allowed violation count; both were invented during drafting",
-      "macro_endpoint_rule": "the unweighted mean over the five kinds of mIoU at severity 0.75 must be <= the clean mIoU",
-      "reported_as": "a descriptive pass or violation list with the exact kind, severity pair and delta",
-      "is_a_success_gate": false
+      "per_kind_consecutive_rule": "for each consecutive severity pair (0.00->0.25, 0.25->0.50, 0.50->0.75) report the mIoU delta; the number of positive (degrading) consecutive deltas is reported per kind as a descriptive count",
+      "per_kind_tolerance_percentage_points": null,
+      "per_kind_allowed_violations": null,
+      "tolerance_status": "removed-in-round-2-no-tolerance-is-preregistered",
+      "tolerance_note": "the revision instruction fixed that a degradation reading must exist, not any tolerance or allowed-violation count; no threshold is applied, and the monotonic-violation counts are descriptive statistics",
+      "macro_endpoint_rule": "report the unweighted mean over the five kinds of mIoU at severity 0.75 next to the clean mIoU as a descriptive comparison",
+      "reported_as": "a descriptive violation count list with the exact kind, severity pair and delta",
+      "is_a_success_gate": false,
+      "is_a_failure_gate": false
     }
   },
   "evaluation": {
@@ -146,16 +146,20 @@
       "reason": "the class set must be identical to the primary protocol or the sweep would not be comparable to it"
     }
   ],
-  "provisional_defaults_requiring_user_confirmation": {
-    "must_be_confirmed_before_execution": true,
-    "confirmed_by_user": false,
-    "reason": "the revision instruction fixed the swept kinds, the severity levels, the curve and the macro robustness AUC, but not every number in this file; the items below were invented during drafting and must not be presented as frozen scientific values",
-    "items": [
-      {"field": "reporting.degradation_check.per_kind_tolerance_percentage_points", "value": 0.25},
-      {"field": "reporting.degradation_check.per_kind_allowed_violations", "value": 0},
-      {"field": "evaluation.paired_bootstrap.resamples", "value": 10000}
+  "no_new_gates_statement": {
+    "removed_in_round_2": [
+      "the per-kind consecutive-delta tolerance of 0.25 percentage points",
+      "the allowed-violation count of 0"
     ],
-    "note": "the frozen elements are the five swept kinds, the levels 0.25/0.50/0.75 plus entire_missing@1.0 and clean, the mIoU-vs-severity curves, the macro robustness AUC definition and the ban on using this evaluator for checkpoint selection or for relabelling a failed primary gate"
+    "reason": "the revision instruction fixed the swept kinds, the severity levels, the curves and the macro robustness AUC, but not any tolerance; a supplemental evaluator must not require the user to freeze an arbitrary degradation threshold. Monotone-violation counts are reported as descriptive statistics.",
+    "retained_as_computational_settings": {
+      "bootstrap_resamples": 10000,
+      "bootstrap_interval": "95%-percentile",
+      "interpretation": "the bootstrap resample count is a precision setting, not a scientific threshold"
+    },
+    "frozen_elements": "the five swept kinds, the levels 0.25/0.50/0.75 plus entire_missing@1.0 and clean, the mIoU-vs-severity curves, the macro robustness AUC definition, and the ban on using this evaluator for checkpoint selection or for relabelling a failed primary gate",
+    "no_success_gate": true,
+    "no_failure_gate": true
   },
   "authorization": {
     "code_integration": false,
