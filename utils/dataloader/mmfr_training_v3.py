@@ -10,10 +10,7 @@ updated by the six v3 corruption operations.  The supervised target is
 
 from __future__ import annotations
 
-import atexit
 import math
-import threading
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Mapping, Sequence, Tuple
 
 import numpy as np
@@ -204,197 +201,6 @@ def _pixel_statistics(
     }
 
 
-_CORRUPTION_POOLS: Dict[int, "ThreadPoolExecutor"] = {}
-_POOL_LOCK = threading.Lock()
-
-
-def _corruption_pool(workers: int) -> "ThreadPoolExecutor":
-    with _POOL_LOCK:
-        pool = _CORRUPTION_POOLS.get(workers)
-        if pool is None:
-            pool = ThreadPoolExecutor(
-                max_workers=workers, thread_name_prefix="mmfr-v3-corruption"
-            )
-            _CORRUPTION_POOLS[workers] = pool
-        return pool
-
-
-def _shutdown_corruption_pools() -> None:
-    for pool in list(_CORRUPTION_POOLS.values()):
-        pool.shutdown(wait=False)
-
-
-atexit.register(_shutdown_corruption_pools)
-
-
-def _process_slot_v3(
-    slot: int,
-    *,
-    rgb_np: np.ndarray,
-    depth_np: np.ndarray,
-    depth_channels: int,
-    normalized_ids: Tuple[str, ...],
-    train_seed: int,
-    epoch: int,
-    iteration: int,
-    rank: int,
-    progress: float,
-    p_clean: float,
-    max_specs: int,
-    rgb_mean64: np.ndarray,
-    rgb_std64: np.ndarray,
-    depth_mean64: np.ndarray,
-    depth_std64: np.ndarray,
-) -> Mapping[str, Any]:
-    # Corrupt exactly one sample slot and return its own independent buffers.  Every
-    # buffer written here belongs to this call, the shared inputs are read-only, and the
-    # per-sample PCG64 is built here from the frozen seed words so that thread scheduling
-    # cannot change the RNG stream.
-    rgb_sample = np.ascontiguousarray(rgb_np[slot], dtype=np.float32)
-    depth_sample_channels = np.ascontiguousarray(depth_np[slot], dtype=np.float32)
-    depth_sample = np.ascontiguousarray(depth_sample_channels[:1], dtype=np.float32)
-    height, width = rgb_sample.shape[-2:]
-    rgb_pad = np.all(rgb_sample == np.float32(NORMALIZED_PAD_VALUE), axis=0)
-    depth_pad = np.all(depth_sample == np.float32(NORMALIZED_PAD_VALUE), axis=0)
-    valid = ~(rgb_pad & depth_pad)
-    if not valid.any():
-        raise RuntimeError("sample has no geometrically valid pixel after crop/pad")
-    invalid = ~valid
-
-    rgb_uint8 = normalized_to_uint8(rgb_sample, rgb_mean64, rgb_std64)
-    depth_uint8 = normalized_to_uint8(depth_sample, depth_mean64, depth_std64)[0]
-    rgb_uint8[:, invalid] = np.uint8(0)
-    depth_uint8[invalid] = np.uint8(0)
-    depth_valid_pre = (depth_uint8 > 0) & valid
-
-    sample_words = sample_id_words(normalized_ids[slot])
-    words = build_seed_words(train_seed, epoch, iteration, rank, slot, sample_words)
-    rng = make_sample_generator(words)
-    is_clean = bool(float(rng.random()) < float(p_clean))
-
-    specs: Tuple[FailureSpec, ...] = ()
-    spec_draws = 0
-    spec_records: Tuple[Mapping[str, Any], ...] = ()
-    corrupted_depth_uint8 = depth_uint8
-    synthetic_target = np.ones((height, width), dtype=np.float32)
-    depth_valid_state = depth_valid_pre.copy()
-    if is_clean:
-        rgb_normalized = rgb_sample
-        depth_normalized = depth_sample_channels
-    else:
-        specs, spec_draws = sample_depth_failure_specs_v3(progress, rng, max_specs=max_specs)
-        result = apply_failures(
-            np.ascontiguousarray(rgb_uint8.transpose(1, 2, 0)),
-            depth_uint8,
-            specs,
-            rng,
-            depth_validity=depth_valid_pre,
-            validity_mask=valid,
-        )
-        spec_records = tuple(result.metadata.get("specs", ()))
-        corrupted_depth_uint8 = np.ascontiguousarray(result.depth)
-        depth_valid_state = np.ascontiguousarray(result.validity_state, dtype=bool)
-        synthetic_target = np.ascontiguousarray(
-            result.reliability[DEPTH_RELIABILITY_INDEX], dtype=np.float32
-        )
-        depth_plane = corrupted_depth_uint8 if corrupted_depth_uint8.ndim == 2 else corrupted_depth_uint8[:, :, 0]
-        if not np.array_equal(depth_plane != 0, depth_valid_state):
-            raise RuntimeError("v3 corrupted Depth does not match its explicit validity state")
-        corrupted_normalized = uint8_to_normalized(
-            corrupted_depth_uint8[:, :, None], depth_mean64, depth_std64
-        )[:, :, 0]
-        corrupted_plane = (
-            corrupted_normalized[None]
-            if depth_channels == 1
-            else np.repeat(corrupted_normalized[None], depth_channels, axis=0)
-        )
-        depth_normalized = np.where(valid[None], corrupted_plane, depth_sample_channels)
-        rgb_normalized = rgb_sample
-
-    supervised_depth = (depth_valid_state.astype(np.float32) * synthetic_target).astype(np.float32)
-    target = np.ones((RELIABILITY_CHANNELS, height, width), dtype=np.float32)
-    target[DEPTH_RELIABILITY_INDEX] = supervised_depth
-    target[:, ~valid] = np.float32(1.0)
-    if float(target[RGB_RELIABILITY_INDEX].min()) != 1.0 or float(target[RGB_RELIABILITY_INDEX].max()) != 1.0:
-        raise RuntimeError("the RGB reliability scaffold channel must stay exactly 1 in A2 v3")
-
-    raw_rgb = (rgb_uint8.astype(np.float64) / 255.0).astype(np.float32)
-    raw_depth = (corrupted_depth_uint8.astype(np.float64) / 255.0).astype(np.float32)
-    raw_rgb = np.where(valid[None], raw_rgb, np.float32(0.0))
-    raw_depth = np.where(valid[None], raw_depth[None], np.float32(0.0))
-    depth_valid_post = (corrupted_depth_uint8 > 0) & valid
-    if not np.array_equal(depth_valid_post, depth_valid_state):
-        raise RuntimeError("depth_valid_post must equal the final explicit v3 validity state")
-    if not np.array_equal(depth_valid_post, (raw_depth[0] > 0.0) & valid):
-        raise RuntimeError("depth_valid_post must equal (raw_depth_uint8 > 0) & valid_mask")
-
-    depth_changed = depth_uint8 != corrupted_depth_uint8
-    statistics = _pixel_statistics(
-        valid, depth_uint8, corrupted_depth_uint8, depth_valid_post, depth_changed
-    )
-    telemetry_masks = np.stack(
-        (
-            valid & ~depth_valid_pre,
-            valid & depth_valid_pre & ~depth_valid_post,
-            valid & depth_valid_pre & depth_valid_post & depth_changed,
-            valid & depth_valid_pre & depth_valid_post & ~depth_changed,
-        ),
-        axis=0,
-    ).astype(bool)
-    if np.any(telemetry_masks.sum(axis=0) > 1):
-        raise RuntimeError("v3 telemetry masks must be mutually exclusive")
-    if not np.array_equal(telemetry_masks.any(axis=0), valid):
-        raise RuntimeError("v3 telemetry masks must partition the geometry-valid region")
-    depth_record = {
-        "sample_slot": slot,
-        "sample_id": normalized_ids[slot],
-        "seed_words": words,
-        "curriculum_progress": progress,
-        "clean": is_clean,
-        "spec_draws": spec_draws,
-        "num_specs": len(specs),
-        "specs": spec_records,
-        "target_composition": TARGET_COMPOSITION,
-        "supervised_channels": list(SUPERVISED_CHANNELS),
-        "validity_state_semantics": "explicit sequential state with MID-A integer transport",
-        "depth_target_min": float(target[DEPTH_RELIABILITY_INDEX][valid].min()),
-        "depth_target_mean": float(target[DEPTH_RELIABILITY_INDEX][valid].mean()),
-        "depth_synthetic_reliability_mean": float(synthetic_target[valid].mean()),
-        "valid_fraction": float(valid.mean()),
-        "depth_valid_pre_fraction": float(depth_valid_pre.mean()),
-        "depth_valid_post_fraction": float(depth_valid_post.mean()),
-        "validity_state_final_pixels": int(np.count_nonzero(depth_valid_state)),
-    }
-    return {
-        "slot": slot,
-        "rgb": rgb_normalized.astype(np.float32),
-        "depth": depth_normalized.astype(np.float32),
-        "raw_rgb": raw_rgb,
-        "raw_depth": raw_depth,
-        "target": target,
-        "valid": valid[None],
-        "depth_valid_pre": depth_valid_pre[None],
-        "depth_valid_post": depth_valid_post[None],
-        "telemetry_masks": telemetry_masks,
-        "metadata": depth_record,
-    }
-
-
-def _run_slots_v3(
-    batch: int, corruption_workers: int, slot_kwargs: Mapping[str, Any]
-) -> List[Mapping[str, Any]]:
-    # Run the per-slot corruption serially or through the persistent thread pool, then
-    # restore the frozen batch order explicitly by sample_slot.
-    if corruption_workers <= 1:
-        results = [_process_slot_v3(slot, **slot_kwargs) for slot in range(batch)]
-    else:
-        pool = _corruption_pool(int(corruption_workers))
-        futures = [pool.submit(_process_slot_v3, slot, **slot_kwargs) for slot in range(batch)]
-        # fail closed: any worker exception is re-raised here
-        results = [future.result() for future in futures]
-    return sorted(results, key=lambda item: int(item["slot"]))
-
-
 def build_mmfr_training_batch_v3(
     rgb: torch.Tensor,
     depth: torch.Tensor,
@@ -411,7 +217,6 @@ def build_mmfr_training_batch_v3(
     p_clean: float = CLEAN_PROBABILITY,
     max_specs: int = MAX_SPECS,
     sample_id_root: str | None = None,
-    corruption_workers: int = 1,
 ) -> Dict[str, Any]:
     """Apply v3 Depth corruption to one final CPU training batch."""
     rgb_tensor = _require_normalized_image(rgb, "rgb", (3,))
@@ -422,8 +227,6 @@ def build_mmfr_training_batch_v3(
         raise ValueError("rgb and depth must share the spatial shape")
     if not isinstance(max_specs, int) or max_specs < 1:
         raise ValueError(f"max_specs must be a positive int, got {max_specs!r}")
-    if not isinstance(corruption_workers, int) or corruption_workers < 1:
-        raise ValueError(f"corruption_workers must be a positive int, got {corruption_workers!r}")
     if not 0.0 <= float(p_clean) <= 1.0:
         raise ValueError(f"p_clean must lie in [0, 1], got {p_clean!r}")
     if tuple(CURRICULUM_KINDS) != tuple(FAILURE_KINDS):
@@ -458,37 +261,144 @@ def build_mmfr_training_batch_v3(
     ):
         raise ValueError("depth must be single-channel or three identical channels")
 
-    slot_results = _run_slots_v3(
-        batch,
-        int(corruption_workers),
-        {
-            "rgb_np": rgb_np,
-            "depth_np": depth_np,
-            "depth_channels": depth_channels,
-            "normalized_ids": normalized_ids,
-            "train_seed": train_seed,
-            "epoch": epoch,
-            "iteration": iteration,
-            "rank": rank,
-            "progress": progress,
-            "p_clean": p_clean,
-            "max_specs": max_specs,
-            "rgb_mean64": rgb_mean64,
-            "rgb_std64": rgb_std64,
-            "depth_mean64": depth_mean64,
-            "depth_std64": depth_std64,
-        },
-    )
-    rgb_outputs = [item["rgb"] for item in slot_results]
-    depth_outputs = [item["depth"] for item in slot_results]
-    raw_rgb_outputs = [item["raw_rgb"] for item in slot_results]
-    raw_depth_outputs = [item["raw_depth"] for item in slot_results]
-    target_outputs = [item["target"] for item in slot_results]
-    valid_outputs = [item["valid"] for item in slot_results]
-    depth_valid_pre_outputs = [item["depth_valid_pre"] for item in slot_results]
-    depth_valid_post_outputs = [item["depth_valid_post"] for item in slot_results]
-    telemetry_mask_outputs = [item["telemetry_masks"] for item in slot_results]
-    metadata = [item["metadata"] for item in slot_results]
+    rgb_outputs: List[np.ndarray] = []
+    depth_outputs: List[np.ndarray] = []
+    raw_rgb_outputs: List[np.ndarray] = []
+    raw_depth_outputs: List[np.ndarray] = []
+    target_outputs: List[np.ndarray] = []
+    valid_outputs: List[np.ndarray] = []
+    depth_valid_pre_outputs: List[np.ndarray] = []
+    depth_valid_post_outputs: List[np.ndarray] = []
+    telemetry_mask_outputs: List[np.ndarray] = []
+    metadata: List[Mapping[str, Any]] = []
+
+    for slot in range(batch):
+        rgb_sample = np.ascontiguousarray(rgb_np[slot], dtype=np.float32)
+        depth_sample_channels = np.ascontiguousarray(depth_np[slot], dtype=np.float32)
+        depth_sample = np.ascontiguousarray(depth_sample_channels[:1], dtype=np.float32)
+        height, width = rgb_sample.shape[-2:]
+        rgb_pad = np.all(rgb_sample == np.float32(NORMALIZED_PAD_VALUE), axis=0)
+        depth_pad = np.all(depth_sample == np.float32(NORMALIZED_PAD_VALUE), axis=0)
+        valid = ~(rgb_pad & depth_pad)
+        if not valid.any():
+            raise RuntimeError("sample has no geometrically valid pixel after crop/pad")
+        invalid = ~valid
+
+        rgb_uint8 = normalized_to_uint8(rgb_sample, rgb_mean64, rgb_std64)
+        depth_uint8 = normalized_to_uint8(depth_sample, depth_mean64, depth_std64)[0]
+        rgb_uint8[:, invalid] = np.uint8(0)
+        depth_uint8[invalid] = np.uint8(0)
+        depth_valid_pre = (depth_uint8 > 0) & valid
+
+        sample_words = sample_id_words(normalized_ids[slot])
+        words = build_seed_words(train_seed, epoch, iteration, rank, slot, sample_words)
+        rng = make_sample_generator(words)
+        is_clean = bool(float(rng.random()) < float(p_clean))
+
+        specs: Tuple[FailureSpec, ...] = ()
+        spec_draws = 0
+        spec_records: Tuple[Mapping[str, Any], ...] = ()
+        corrupted_depth_uint8 = depth_uint8
+        synthetic_target = np.ones((height, width), dtype=np.float32)
+        depth_valid_state = depth_valid_pre.copy()
+        if is_clean:
+            rgb_normalized = rgb_sample
+            depth_normalized = depth_sample_channels
+        else:
+            specs, spec_draws = sample_depth_failure_specs_v3(progress, rng, max_specs=max_specs)
+            result = apply_failures(
+                np.ascontiguousarray(rgb_uint8.transpose(1, 2, 0)),
+                depth_uint8,
+                specs,
+                rng,
+                depth_validity=depth_valid_pre,
+                validity_mask=valid,
+            )
+            spec_records = tuple(result.metadata.get("specs", ()))
+            corrupted_depth_uint8 = np.ascontiguousarray(result.depth)
+            depth_valid_state = np.ascontiguousarray(result.validity_state, dtype=bool)
+            synthetic_target = np.ascontiguousarray(
+                result.reliability[DEPTH_RELIABILITY_INDEX], dtype=np.float32
+            )
+            depth_plane = corrupted_depth_uint8 if corrupted_depth_uint8.ndim == 2 else corrupted_depth_uint8[:, :, 0]
+            if not np.array_equal(depth_plane != 0, depth_valid_state):
+                raise RuntimeError("v3 corrupted Depth does not match its explicit validity state")
+            corrupted_normalized = uint8_to_normalized(
+                corrupted_depth_uint8[:, :, None], depth_mean64, depth_std64
+            )[:, :, 0]
+            corrupted_plane = (
+                corrupted_normalized[None]
+                if depth_channels == 1
+                else np.repeat(corrupted_normalized[None], depth_channels, axis=0)
+            )
+            depth_normalized = np.where(valid[None], corrupted_plane, depth_sample_channels)
+            rgb_normalized = rgb_sample
+
+        supervised_depth = (depth_valid_state.astype(np.float32) * synthetic_target).astype(np.float32)
+        target = np.ones((RELIABILITY_CHANNELS, height, width), dtype=np.float32)
+        target[DEPTH_RELIABILITY_INDEX] = supervised_depth
+        target[:, ~valid] = np.float32(1.0)
+        if float(target[RGB_RELIABILITY_INDEX].min()) != 1.0 or float(target[RGB_RELIABILITY_INDEX].max()) != 1.0:
+            raise RuntimeError("the RGB reliability scaffold channel must stay exactly 1 in A2 v3")
+
+        raw_rgb = (rgb_uint8.astype(np.float64) / 255.0).astype(np.float32)
+        raw_depth = (corrupted_depth_uint8.astype(np.float64) / 255.0).astype(np.float32)
+        raw_rgb = np.where(valid[None], raw_rgb, np.float32(0.0))
+        raw_depth = np.where(valid[None], raw_depth[None], np.float32(0.0))
+        depth_valid_post = (corrupted_depth_uint8 > 0) & valid
+        if not np.array_equal(depth_valid_post, depth_valid_state):
+            raise RuntimeError("depth_valid_post must equal the final explicit v3 validity state")
+        if not np.array_equal(depth_valid_post, (raw_depth[0] > 0.0) & valid):
+            raise RuntimeError("depth_valid_post must equal (raw_depth_uint8 > 0) & valid_mask")
+
+        depth_changed = depth_uint8 != corrupted_depth_uint8
+        statistics = _pixel_statistics(
+            valid, depth_uint8, corrupted_depth_uint8, depth_valid_post, depth_changed
+        )
+        telemetry_masks = np.stack(
+            (
+                valid & ~depth_valid_pre,
+                valid & depth_valid_pre & ~depth_valid_post,
+                valid & depth_valid_pre & depth_valid_post & depth_changed,
+                valid & depth_valid_pre & depth_valid_post & ~depth_changed,
+            ),
+            axis=0,
+        ).astype(bool)
+        if np.any(telemetry_masks.sum(axis=0) > 1):
+            raise RuntimeError("v3 telemetry masks must be mutually exclusive")
+        if not np.array_equal(telemetry_masks.any(axis=0), valid):
+            raise RuntimeError("v3 telemetry masks must partition the geometry-valid region")
+        rgb_outputs.append(rgb_normalized.astype(np.float32))
+        depth_outputs.append(depth_normalized.astype(np.float32))
+        raw_rgb_outputs.append(raw_rgb)
+        raw_depth_outputs.append(raw_depth)
+        target_outputs.append(target)
+        valid_outputs.append(valid[None])
+        depth_valid_pre_outputs.append(depth_valid_pre[None])
+        depth_valid_post_outputs.append(depth_valid_post[None])
+        telemetry_mask_outputs.append(telemetry_masks)
+        depth_record = {
+            "sample_slot": slot,
+            "sample_id": normalized_ids[slot],
+            "seed_words": words,
+            "curriculum_progress": progress,
+            "clean": is_clean,
+            "spec_draws": spec_draws,
+            "num_specs": len(specs),
+            "specs": spec_records,
+            "target_composition": TARGET_COMPOSITION,
+            "supervised_channels": list(SUPERVISED_CHANNELS),
+            "validity_state_semantics": "explicit sequential state with MID-A integer transport",
+            "depth_target_min": float(target[DEPTH_RELIABILITY_INDEX][valid].min()),
+            "depth_target_mean": float(target[DEPTH_RELIABILITY_INDEX][valid].mean()),
+            "depth_synthetic_reliability_mean": float(synthetic_target[valid].mean()),
+            "valid_fraction": float(valid.mean()),
+            "depth_valid_pre_fraction": float(depth_valid_pre.mean()),
+            "depth_valid_post_fraction": float(depth_valid_post.mean()),
+            "validity_state_final_pixels": int(np.count_nonzero(depth_valid_state)),
+        }
+        depth_record.update(statistics)
+        metadata.append(depth_record)
 
     def _stack(arrays: Sequence[np.ndarray]) -> torch.Tensor:
         return torch.from_numpy(np.ascontiguousarray(np.stack(arrays, axis=0)))
