@@ -4,8 +4,8 @@
   "supersedes": "MMFR-A2-train-integration-v2",
   "supersede_scope": "new identity created before any v3 formal training, checkpoint, evaluation, cloud operation or official-test read",
   "superseded_v2_status": "superseded-before-formal-training-after-validity-semantic-review",
-  "status": "eligible-for-cloud-capacity-probe-authorization",
-  "status_note": "All five required local v3 qualification gates passed. This status only permits requesting user authorization for a cloud single-GPU batch-size-10 capacity/throughput probe; it does not authorize the probe, cloud resource creation, formal training, evaluation or official-test access.",
+  "status": "cloud-probe-and-checkpoint-gate-passed-awaiting-one-arm-screening-authorization",
+  "status_note": "All five required local v3 qualification gates passed; the cloud batch-size-10 capacity/throughput probe completed for both identities (clean-control-v3 and depth-corruption-v3, 60 measured optimizer steps each, official_test_included=false); the checkpoint save and strict-reload engineering gate passed (resumed child == uninterrupted reference on model, optimizer, amp_scaler and rng_state component hashes). The user then revised only the execution order into a two-stage cost-saving strategy and added MMFR-A2-v3-exploratory-one-arm-screening. This status permits requesting user authorization for ONE 500-epoch one-arm screening run (MMFR-A2-depth-corruption-train-v3) only; it does not authorize any training, full evaluation, further cloud resource operations or official-test access. Per-item cloud evidence, numbers and hashes: liu-test-exp/方案1/改动细节3-云服务器.md",
   "official_test_included": false,
   "narrative": {
     "path": "liu-test-exp/方案1/改动说明.md",
@@ -329,8 +329,9 @@
       "full test suite",
       "DDP qualification",
       "formal 500-epoch training",
-      "checkpoint save/load qualification",
-      "cloud capacity/throughput probe",
+      "one-arm MMFR-A2-depth-corruption-train-v3 500-epoch screening training",
+      "control-plane stop-flow verification",
+      "SwanLab online monitoring credential verification",
       "cloud resource creation",
       "full evaluator",
       "official test"
@@ -340,11 +341,48 @@
     "code_integration": true,
     "local_cpu_qualifications_completed": true,
     "local_gpu_amp_update_path_qualification_completed": true,
+    "cloud_capacity_probe_completed": true,
+    "checkpoint_save_reload_continue_step_gate_completed": true,
     "eligible_to_request_cloud_capacity_probe_authorization": true,
     "cloud_capacity_probe_authorized": false,
     "formal_training_authorized": false,
     "full_evaluation_authorized": false,
     "cloud_resource_creation_authorized": false,
     "official_test_authorized": false
+  },
+  "execution_plan_revision": {
+    "revision_id": "MMFR-A2-v3-execution-plan-two-stage-cost-screening-v1",
+    "revision_scope": "execution order, authorization matrix, status machine and report template only",
+    "scientific_protocol_unchanged": true,
+    "new_protocol_version_created": false,
+    "reason": "user decision on 2026-09-15: spend one 500-epoch run first and only pay for the second run if the first shows research promise",
+    "new_stage": "MMFR-A2-v3-exploratory-one-arm-screening",
+    "stage_position": "after the cloud capacity probe and before any formal paired training",
+    "stage_question": "does MMFR-A2-depth-corruption-train-v3 show enough research promise to justify a second 500-epoch clean control?",
+    "stage_is_cost_screening_not_causal_experiment": true,
+    "main_success_gate_unchanged": true,
+    "first_stage_training": "MMFR-A2-depth-corruption-train-v3 (one 500-epoch run, from the frozen official pretrained, never resumed from Quick-B0/v1/v2)",
+    "first_stage_allowed_conclusions": ["screening-promising", "screening-unpromising", "screening-inconclusive"],
+    "first_stage_forbidden_conclusions": ["A2 supported", "MMFR improves robustness", "causal gain", "正式成功"],
+    "quick_b0_role": "historical RGB development reference only; must never be labelled clean control and its difference to corruption-v3 must never be reported as MMFR robustness gain",
+    "stopping_rule": "after the first-stage training and evaluation, freeze the checkpoint, write one-arm-screening-report, set status to awaiting-senior-review-of-one-arm-screening and stop; never auto-start the second run",
+    "second_stage_requires_separate_authorization": "MMFR-A2-clean-control-v3 500-epoch paired training from the same official pretrained, seed, split, optimizer, LR, batch size and selector",
+    "formal_conclusion_after_stage_two": "Depth-corruption-v3 minus Clean-control-v3, using the unchanged main success gate",
+    "cloud_facts_from_the_probe": {
+      "clean_control_v3_stable_images_per_second": 16.43,
+      "depth_corruption_v3_stable_images_per_second": 4.94,
+      "clean_control_v3_min_free_mib": 3068.6,
+      "depth_corruption_v3_min_free_mib": 2330.6,
+      "min_free_mib_after_one_validation_phase": 1730.0,
+      "estimated_corruption_v3_500e_hours": 36.0,
+      "estimated_clean_control_v3_500e_hours": 10.8,
+      "price_cny_per_hour_rtx4090": 1.88,
+      "note": "measured on cpod-1vbh7faqcauq, RTX 4090, batch size 10, 60 measured optimizer steps per identity, official_test_included=false; see liu-test-exp/方案1/改动细节3-云服务器.md"
+    },
+    "open_user_decisions": [
+      "batch-size-10 VRAM margin on the 4090 after a validation phase",
+      "authorization for the one-arm 500-epoch screening run",
+      "control-plane stop-flow verification and SwanLab online credentials"
+    ]
   }
 }

@@ -1,9 +1,9 @@
 # MMFR-多形式模态失效可靠性学习：独立审计总规划
 
-> **文档状态：** 2026-09-15 v3 当前审计版。高级审计已正式选择 **A + MID-A**；当前身份为 `MMFR-A2-train-integration-v3`，分析身份为 `MMFR-A2-clean-control-v3` 与 `MMFR-A2-depth-corruption-train-v3`。v3 要求的 severity/burden、CPU qualification、validity transport、initial-state equivalence、AMP update-path isolation 五项本地资格均已形成独立结构化 `PASS` 证据，状态已升级为 `eligible-for-cloud-capacity-probe-authorization`。
-> **授权边界：** 上述状态只表示现在可以向用户申请云端单 GPU、batch size `10` 的容量/吞吐短 probe；它不表示 probe 已获授权。云实例创建、正式 500 epoch 训练、checkpoint save/load 验收、完整 evaluator、MMFR 效果评价和 official test 均未运行、未授权。
+> **文档状态：** 2026-09-15 云端 probe 后审计版。高级审计已正式选择 **A + MID-A**；当前身份为 `MMFR-A2-train-integration-v3`，分析身份为 `MMFR-A2-clean-control-v3` 与 `MMFR-A2-depth-corruption-train-v3`。五项 v3 本地资格、云端 batch size `10` 容量/吞吐 probe（两个身份各一次，各 60 个有效更新步）以及 checkpoint save → 进程销毁 → strict reload → 继续 step 工程门禁均已完成并通过；用户另把执行流程修订为"两阶段省钱策略"，新增阶段 `MMFR-A2-v3-exploratory-one-arm-screening`。当前状态为 `awaiting-user-authorization-for-one-arm-corruption-v3-500e-screening`。
+> **授权边界：** probe 与工程门禁的通过**不构成训练授权**。两个 500 epoch 正式训练（第一段 `MMFR-A2-depth-corruption-train-v3` 与条件性的第二段 `MMFR-A2-clean-control-v3`）、完整 evaluator、checkpoint 效果评价、R1/S1/C1 与 official test 均未授权；控制面停机流程验证与 SwanLab `online` 监控尚未完成；batch size 10 在 4090 上的显存余量处置待用户决定。云端逐项事实、数值、哈希与失败归档见 `liu-test-exp/方案1/改动细节3-云服务器.md`。
 > **身份冻结：** v2 以 commit `3c8ebddeb76e63a5be37e261381117abfba117ca` 和 annotated tag `MMFR-A2-v2-pretrain-freeze` 保留为历史；v3 以 commit `4ce7b67c5707991750461ef2f806e12b37e203f9` 和 annotated tag `MMFR-A2-v3-pretrain-freeze` 冻结。两个标签均仅在本地，未推送远端。
-> **大白话说明：** v2 审计发现的“普通噪声或模糊会把原生空洞变成假深度”和“错位后有效性坐标不明确”已经在独立 v3 中修正，并通过五道本地门禁。下一步只能先询问是否允许租用云端单卡做短容量/速度测试，不能直接开始正式训练。
+> **大白话说明：** v2 审计发现的“普通噪声或模糊会把原生空洞变成假深度”和“错位后有效性坐标不明确”已经在独立 v3 中修正，并通过五道本地门禁；随后云端短测试也跑完了：两张卡容量测试确认 batch size 10 能跑，存档-杀进程-重载-继续训练这条链被证明与不中断完全一致。但实测同时暴露两条新事实——"深度损坏"那一路每秒只处理约 5 张、比干净那一路慢 3.4 倍，所以省钱策略先跑的那一段反而更贵（约 36 小时、约 67 元）；而且每次 validation 之后只剩约 1.73 GB 显存余量。现在只能等你决定显存余量怎么处置，并单独批准"只跑一个 500 epoch"的省钱筛选，不能直接开两段训练。
 > **事实入口：** `doc/main/MUSeg-current-status.md` 是唯一实时状态入口；本文负责重组自包含审计叙事，不替代实时状态。
 
 ## 0. 文档用途、形成时点与阅读规则
@@ -15,7 +15,8 @@
   2. `doc/main/MUSeg-current-status.md` 的实时事实与授权边界；
   3. `doc/main/MUSeg-open-decisions.md` 第 13 节的研究裁决；
   4. `liu-test-exp/方案1/改动说明.md` 的高级审计原文与 v3 执行回填；
-  5. 本文及其他计划文档对未来实验的说明。
+  5. `liu-test-exp/方案1/改动细节2.md`（v2→v3 代码改动）与 `liu-test-exp/方案1/改动细节3-云服务器.md`（云端 probe、工程门禁、实测事实与失败归档）；
+  6. 本文及其他计划文档对未来实验的说明。
 - **状态词规则：** “已实现”不等于“已训练”；“资格通过”不等于“模型效果通过”；“可申请授权”不等于“已授权”；“冻结”表示结果产生前不得静默改变；“历史”表示只用于追溯，不再是当前执行身份。
 - **硬边界：** 本文没有任何 v3 checkpoint、mIoU、可靠性校准、真实故障收益或部署收益结论。所有资格报告均记录 `official_test_included=false`。
 - **版本关系：** v1、v2、v3 是互不覆盖的协议身份。v1/v2 文件和历史证据保留；v3 通过新文件、新配置、新协议和新标签承载语义变化。
@@ -31,7 +32,11 @@
 - v2 解决了 severity 二次编码、空间失效绝对像素尺度、原生无效 Depth 未进入 target、RGB 恒 1 通道被计分等第一轮问题；随后全量有效性与 transport 审计发现，v2 的 `gaussian_noise`、`blur`、`misalignment` 可能在原生无效位置产生非零 Depth，且 misalignment 的有效性坐标语义未冻结。
 - 高级审计依据全量 `train-dev` 分布裁决：natural-invalid 监督保留，`lambda_rel=0.1` 不变，不做重加权或 masking，不删除 8 个训练几何下全无有效 Depth 的 crop；43 个不在 optimizer param group 的参数保持上游语义，本轮不修。
 - 高级审计对 validity semantics 选择 **A + MID-A**：原生无效与后续结构性无效是吸收状态；intensity corruption 不能复活 invalid Depth；blur 使用 mask-normalized blur；misalignment 用同一整数平移搬运 Depth 和 validity；最终 target 使用最终状态。
-- v3 五项本地资格均已通过，当前可以申请云端容量/吞吐短 probe 授权；probe、云资源和训练本身仍未授权。
+- v3 五项本地资格均已通过；云端 batch size `10` 容量/吞吐 probe 已在单张 RTX 4090 上对**两个身份**各完成一次（各 `60` 个有效更新步、`68` 次尝试、`8` 次 GradScaler 跳过、loss 全有限、`official_test_included=false`）；checkpoint save → 进程销毁 → strict reload → 继续 step 工程门禁也已通过。
+- **云端实测吞吐：** `clean-control-v3` 稳定中位数 `16.43` 张/秒（约 `0.609` 秒/步），峰值 allocated `18,951.5 MiB`、reserved `20,556 MiB`，最小剩余 `3,068.6 MiB`（`12.73%`）；`depth-corruption-v3` 稳定中位数 `4.94` 张/秒（约 `2.02` 秒/步），峰值 allocated `19,046.4 MiB`、reserved `21,286 MiB`，最小剩余 `2,330.6 MiB`（`9.67%`）。按 `128` 步/epoch 与 `1.88 元/小时` 保守外推：corruption 500 epoch 约 `36.0` 小时、约 `67` 元；clean 约 `10.8` 小时、约 `20 元`；即"省钱策略"的第一段反而是贵的一段。
+- **云端实测显存事实：** 经过一次 validation 之后，batch size `10` 的第 2 个 epoch 首个训练步只剩 `1.73 GiB` 自由显存（低于历史 `2 GiB` 余量，**不是 OOM**），且在"续跑"与"不中断"两条独立轨迹上同样复现。
+- **checkpoint 门禁判定：** 从 parent 的 epoch-1 存档 strict reload 的续跑轨迹，与不中断跑完 2 个 epoch 的参照轨迹，在只忽略协议 `run_id` 的条件下 `mismatches=[]`，model / optimizer / amp_scaler / rng_state 四个 component SHA-256 逐位相同。
+- **执行计划修订：** 用户要求改为"两阶段省钱策略"，新增 `MMFR-A2-v3-exploratory-one-arm-screening`（probe 之后、正式 paired 训练之前，只做成本筛选，不改变主 success gate，不新建 v4）。下一步只申请一个 500 epoch（corruption-v3）；probe 与门禁通过不构成训练授权。
 
 ### 1.2 大白话版方案
 
@@ -43,7 +48,8 @@ v3 新增的关键保护是：一个位置如果当前没有有效 Depth，普�
 
 - **带来：** 新的 A1/A2 v3 身份；显式 sequential validity state；A + MID-A；mask-normalized blur；最终 target `V_state_final * R_syn`；四类互斥 telemetry；v3 协议模板；五个可复跑资格工具和五份 `PASS` 报告；新的本地冻结 commit/tag。
 - **保持：** 六类 failure、severity、curriculum、`p_clean=0.25`、`max_specs=2`、`lambda_rel=0.1`、Depth-only 监督、500 epoch、optimizer、学习率、batch size、selector、主 evaluator、成功门槛、8 个全无有效 Depth crop、43 个 optimizer-missing 参数。
-- **没有带来：** 没有云实例、没有容量/吞吐 probe、没有正式训练、没有 checkpoint、没有 MMFR mIoU、没有 R1/S1/C1 结果、没有 official test。
+- **没有带来：** 没有正式训练、没有正式 checkpoint、没有 MMFR mIoU、没有 R1/S1/C1 结果、没有 official test；probe 与工程门禁只回答容量、吞吐、AMP 有限性和存档恢复能力，不是效果证据。
+- **本轮云端带来（`改动细节3-云服务器.md`）：** 一个可复跑的云端执行链路（数据集落地并逐位核验、官方 pretrained 逐位核验、环境补齐、三份 qualification 清单与 GPU preflight）；两个身份的 batch size 10 容量/吞吐实测；checkpoint 存档/重载等价的工程判定；以及两条新的实测事实（corruption 慢 3.4 倍导致成本不对称、validation 后只剩 1.73 GiB 余量）。
 
 ## 2. 项目背景与数据职责
 
@@ -147,6 +153,24 @@ A2 v3：Depth corruption robustness training + parallel reliability estimation
     ├─ target = V_state_final × R_syn
     ├─ predicted reliability 不进入 backbone/decoder/geometry prior
     └─ 五项本地资格全部 PASS
+             │
+             ▼
+云端 probe + checkpoint 工程门禁（已完成，见 `改动细节3-云服务器.md`）
+    ├─ batch size 10 容量/吞吐：clean 16.43 张/秒、corruption 4.94 张/秒
+    ├─ 存档 → 进程销毁 → strict reload → 继续 step：与不中断轨迹逐位一致
+    └─ 实测：validation 后余量 1.73 GiB；corruption 单步成本约为 clean 的 3.3 倍
+             │
+             ▼
+MMFR-A2-v3-exploratory-one-arm-screening（待用户单独授权，成本筛选）
+    ├─ 只跑一个 500 epoch：MMFR-A2-depth-corruption-train-v3
+    ├─ 冻结 checkpoint 后用现有主 evaluator、evaluation seed 与 failure conditions 评价
+    ├─ Quick-B0 仅作 historical RGB development reference，不是 clean control
+    └─ 结论只有 screening-promising / screening-unpromising / screening-inconclusive，然后停下等高级审查
+             │
+             ▼
+正式 paired 评价（条件性，需再次单独授权）
+    ├─ 只有存在研究苗头才授权 MMFR-A2-clean-control-v3 的 500 epoch
+    └─ 正式结论只比较 Depth-corruption-v3 − Clean-control-v3
              │
              ▼
 B1：首次让 reliability 影响模型动作（待独立设计、协议和授权）
@@ -324,13 +348,23 @@ $$
 
 ### 12.2 当前授权边界
 
-- **可以做：** 向用户申请云端单 GPU、batch size 10 容量/吞吐短 probe 的授权。
-- **尚未授权：** 创建云实例、运行 probe、正式训练、checkpoint save/load 验收、完整 evaluator、R1/S1/C1、official test。
+- **已完成（用户单独授权）：** 创建云实例 `cpod-1vbh7faqcauq`；云端 batch size `10` 容量/吞吐 probe（两个身份各一次）；checkpoint save → 进程销毁 → strict reload → 继续 step 工程门禁。运行提交为 `9c4059d0…`（probe）与 `cdd9ba09…`（门禁），两次均 `dirty=false`。
+- **可以做：** 向用户申请 `MMFR-A2-v3-exploratory-one-arm-screening` 阶段的**一个** 500 epoch 训练（`MMFR-A2-depth-corruption-train-v3`）授权。
+- **尚未授权：** 任何 500 epoch 正式训练（含条件性的 `MMFR-A2-clean-control-v3`）、完整 evaluator、checkpoint 效果评价、R1/S1/C1、official test，以及本次已授权操作之外的云资源操作。
+- **尚未完成：** 控制面停机流程验证（本实例无 `compshare` CLI 与凭据，需用户侧执行）、SwanLab `online` 监控凭据（`/root/.config/dformer/swanlab.env` 缺失）、batch size `10` 显存余量处置决定。
 - **本机角色：** 推理、想法初步验证和小规模 preflight，不承担正式长训练。
 
 ### 12.3 生命周期要求
 
 未来任何付费运行必须在启动前确认实例、最长时长和预计费用，设置并复核控制面最晚停止 schedule；成功、失败或中止后都先取回必要证据并核验哈希，再调用控制面 stop，最后确认平台状态为 `Stopped`。验收 pass/fail 不决定是否停止计费。
+
+### 12.4 云端实测结果与预算（2026-09-15）
+
+- 两个身份的 batch size `10` 容量/吞吐实测、显存极值、运行时长、两次安全闸中止与放宽、以及 500 epoch 时间/费用外推，完整数值见 `改动细节3-云服务器.md` 第 5、7、8 节。
+- 摘要：`clean-control-v3` 稳定 `16.43` 张/秒、最小剩余 `3,068.6 MiB`（`12.73%`）；`depth-corruption-v3` 稳定 `4.94` 张/秒、最小剩余 `2,330.6 MiB`（`9.67%`）。按 `128` 步/epoch 与 `1.88 元/小时`：corruption 500 epoch 约 `36.0` 小时 / 约 `67` 元，clean 约 `10.8` 小时 / 约 `20` 元。
+- 显存安全闸差异：corruption 侧曾按历史 `0.10` 余量在 `attempt 8` 中止（`free ratio 0.097`，**非 OOM**），最终以显式放宽为 `0.05` 完成完整 60 步；clean 侧使用 `0.10`。该差异记录在 `probe-result.json` 的阈值字段中，两次运行与中止归档均保留。
+- validation 之后 batch size `10` 只剩 `1.73 GiB` 自由显存（在续跑与不中断两条轨迹上同样复现），属于"能跑但余量偏紧"；这是启动 500 epoch 前必须由用户处置的开放项。
+- 因此 one-arm screening 应预算约 `36–40` 小时、`68–75` 元；若高级审查后追加 clean control，再加约 `11–14` 小时、`21–27` 元。以上均不含云盘与镜像费用。
 
 ## 13. 资格证据及边界
 
@@ -379,10 +413,18 @@ $$
 
 ### 13.3 资格证据不能证明什么
 
-- 不覆盖云端 RTX 4090/5090 的容量与吞吐。
-- 不覆盖完整 epoch、500 epoch、checkpoint save/load、完整 evaluator、DDP 或 `torch.compile`。
-- 不提供 mIoU、校准、真实故障、跨设备或部署收益。
+- 五项本地资格本身不覆盖云端 RTX 4090/5090 的容量与吞吐；该缺口已由本轮云端 probe 单独补齐（见 13.4），但 probe 只覆盖两个身份各 `60` 个测量步。
+- 不覆盖 500 epoch 完整训练、训练期周期性 validation 的长期稳定性、完整 evaluator、DDP 或 `torch.compile`。
+- 不提供 mIoU、可靠性校准、真实故障、跨设备或部署收益。
 - 不授权任何云资源或训练。
+
+### 13.4 云端 probe 与 checkpoint 工程门禁证据（2026-09-15）
+
+- 证据根目录（仓库外）：`/root/rivermind-data/cloud/mmfr-a2-v3-probe/`；逐项数值、命令与哈希见 `liu-test-exp/方案1/改动细节3-云服务器.md`。
+- 两份 probe 清单与一份门禁清单均通过完整 GPU preflight（`pass=true`、`errors=[]`）；probe preflight 报告 SHA-256 为 `4997904524d988eecc5c47f029e090eda0480599bd9c6005035c6ace8ab6e934`（clean）与 `8e15c63c9ac04594fafb864210d492a4efa25327306c71b4dbf0390a9392d920`（corruption），门禁清单 SHA-256 为 `d4d741ace5f1549586bc0bfebb1e194284eafe92f036c9c1c60a69b65e418db9`。
+- probe 结果：`clean-control-v3` `probe-result.json` SHA-256 `8d8ac335acc0f4a803f0c1e7ca9935adefb781482843ba3354aec1cc6a3d0626`、`depth-corruption-v3` `a8f3a614606572ccdb0f801f2ad9f196e81c55a748b231de3114841bbe3e24f0`；两者均 `eligible=true`、`exact_target_met=true`、`all_steps_passed=true`、`anomaly=null`。
+- 门禁结果：`compare-child-vs-reference.json` SHA-256 `e0189aa5178692b9c6627676e6892fc919db8612ec271b87c61ab828adf0ce4c`，`pass=true`、`mismatches=[]`；model / optimizer / amp_scaler / rng_state 四个 component 哈希在续跑与不中断两侧逐位相同。
+- **证据边界：** probe 的 `step_seconds` 含 probe 专有 telemetry 哈希开销（约 `35 ms/步`）且不含每 `10` epoch 的 validation；门禁为了隔离存档/重载变量而关闭了显存安全闸；corruption 侧 probe 使用放宽到 `0.05` 的余量门槛。所有失败与降级归档都在 `attempts/` 下，不得作为验收证据。
 
 ## 14. 正式开发评价设计（未来训练和评价分别获批后）
 
@@ -409,6 +451,16 @@ $$
 
 mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替代主门槛。达到门槛时最高声明仍是 `single-seed development-supported`。
 
+### 14.4 `MMFR-A2-v3-exploratory-one-arm-screening`（用户第 2 轮要求的执行计划修订）
+
+- **位置与性质：** 位于云端容量 probe **之后**、正式 paired 训练 **之前**；它是**成本筛选**，不是正式因果实验，**不改变主 success gate**，也**不新建科学协议 v4**（只改执行顺序、授权状态与结果解释，v3 科学身份继续使用）。
+- **它只回答一个问题：** "`MMFR-A2-depth-corruption-train-v3` 是否表现出值得继续投入第二个 500 epoch clean control 的明显研究苗头？"
+- **执行顺序：** probe（已完成）→ 只申请并执行**一个** 500 epoch（corruption-v3，从冻结官方 pretrained 独立开始，不从 Quick-B0/v1/v2 续训）→ 冻结 checkpoint 后用现有主 evaluator、evaluation seed 与 failure conditions 评价 → 生成 `one-arm-screening-report` → 状态置为 `awaiting-senior-review-of-one-arm-screening` 并**停下** → 高级审查 → 视情况单独申请 `MMFR-A2-clean-control-v3` 的 500 epoch → 通过后 Quick-B0 降级为普通历史参考 → 正式结论只比较 `Depth-corruption-v3 − Clean-control-v3`。
+- **允许的第一阶段结论只有：** `screening-promising`、`screening-unpromising`、`screening-inconclusive`。**禁止：** `A2 supported`、`MMFR improves robustness`、`causal gain`、`正式成功`。
+- **Quick-B0 的角色：** 只能作为 `historical RGB development reference`（single-seed RGB 开发基线，clean mIoU `58.79`），**不得写成 `clean control`**；禁止把 `Depth-corruption-v3 − Quick-B0` 写成 MMFR robustness gain。必须保留的一句话：**第一阶段 Quick-B0 只能帮我们决定"还值不值得继续花钱"，不能帮我们证明"MMFR 有效"；正式证明依旧需要第二阶段的 clean-v3 配对实验。**
+- **报告最小字段：** corruption-v3 选中的 epoch；clean mIoU；六个单 failure mIoU；六单 macro-average；三个 mixed failure；相对 Quick-B0 的逐条件差值；四类 telemetry 统计；checkpoint 哈希；source commit/tag；evaluator identity；GPU、耗时、费用；以及"Quick-B0 不是配对 clean control"的显式声明。
+- **不得自动升级：** 第一阶段结束后不得自动启动第二个 500 epoch；也不得根据第一阶段结果修改主 success gate、condition、severity、selector、样本/group 或 bootstrap。
+
 ## 15. 补充协议
 
 - `MMFR-R1-reliability-supplemental-v1`：target fidelity、reliability-risk relation、B1 downstream gain 三层分开；`explicit-invalid` 与 `implicit-quality` 分开报告。
@@ -424,6 +476,8 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - corruption 条件可能改善，也可能恶化；必须由冻结评价决定。
 - A2 分割变化的直接变量是 corruption exposure；reliability head 只承担 estimator qualification，禁止把潜在分割收益归因于 head。
 - 禁止声称“可靠性已经校准”“真实矿井故障已解决”“RGB complete-missing 已解决”“模型可部署”或“达到 SOTA”。
+- 不得把云端 probe 的 `eligible=true`、吞吐数字或 checkpoint 门禁 `PASS` 写成 MMFR 效果、鲁棒性收益或训练成功。
+- 不得把 one-arm screening 的 `screening-promising` 写成 `A2 supported`、`MMFR improves robustness`、`causal gain` 或“正式成功”；也不得把 Quick-B0 当作配对 clean control。
 
 ## 17. 风险与停止条件
 
@@ -446,10 +500,10 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 
 ### 17.3 资源风险
 
-- 本地 batch size 10 的限步资格不等于云端吞吐结论。
-- 4090 容量失败时不得静默改 batch size、学习率或 epoch。
-- checkpoint save/load 和完整 epoch 尚未验收。
-- 未设置云端最晚停止 schedule 或无法确认 `Stopped` 时不得启动付费长训练。
+- 云端吞吐已实测，但 probe 只覆盖两个身份各 `60` 个测量步；500 epoch 的长期稳定性与周期性 validation 行为仍未验证。
+- corruption 的实测单步成本约为 clean 的 `3.3` 倍（`4.94` vs `16.43` 张/秒），因此 one-arm screening 约 `36–40` 小时 / `68–75` 元；不能沿用"第一段更便宜"的直觉预算。
+- validation 之后 batch size `10` 只剩 `1.73 GiB` 自由显存（**非 OOM**）；在该余量处置被用户明确之前，不得静默改 batch size、学习率或 epoch，也不得静默改变显存安全阈值。
+- checkpoint save/reload 工程门禁已通过，但控制面停机流程与 SwanLab `online` 监控尚未验证；未设置最晚停止 schedule 或无法确认 `Stopped` 时不得启动付费长训练。
 - official test 任何意外读取都是硬阻塞。
 
 ## 18. 外部审计清单
@@ -466,6 +520,9 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - [ ] natural-invalid、8 个 crop、43 个参数是否按高级裁决保持不变。
 - [ ] 两个 v3 身份是否从同一 pretrained、seed、split、optimizer 和 schedule 独立开始。
 - [ ] 当前是否只具备“申请 probe 授权”的资格，而没有 probe 或训练授权。
+- [ ] 云端 probe 是否只被写成容量/吞吐/AMP 有限性与存档恢复证据，而没有写成效果结论。
+- [ ] Quick-B0 是否只被写成 `historical RGB development reference`，而不是 v3 的 clean control。
+- [ ] 显存安全闸的两次中止数值、放宽后的门槛与全部失败归档是否完整保留、未被隐藏。
 
 ### 18.2 中风险
 
@@ -481,6 +538,7 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - [ ] raw/LF 哈希约定是否明确。
 - [ ] 所有报告是否记录 `official_test_included=false`。
 - [ ] Markdown 公式是否只使用 `$...$` 或独立 `$$...$$`。
+- [ ] 云端实测吞吐、显存、时长与预算数值是否与 `改动细节3-云服务器.md` 一致（`16.43` / `4.94` 张/秒；`3,068.6` / `2,330.6` MiB；validation 后 `1.73 GiB`；约 `36.0` / `10.8` 小时）。
 
 ## 19. 状态矩阵
 
@@ -490,6 +548,9 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - A1/A2 v3 代码、三个 v3 config、训练入口守卫与四类 telemetry。
 - v3 协议模板及完整 raw/LF 身份索引。
 - 五项 v3 本地资格，全部 `PASS`。
+- 云端 batch size `10` 容量/吞吐 probe（两个身份各一次，`eligible=true`、`exact_target_met=true`）。
+- checkpoint save → 进程销毁 → strict reload → 继续 step 工程门禁（`pass=true`、`mismatches=[]`）。
+- 云端执行链路的环境补齐，以及数据集与官方 pretrained 的逐位核验。
 - v3 本地 commit/tag 冻结；v2 tag 保留、未覆盖。
 
 ### 19.2 已完成但不构成效果
@@ -497,15 +558,16 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - severity/burden、CPU、validity transport、initial-state、AMP update-path 的结构化本地资格。
 - 本地 batch size 10 限步运行及约 3.13GB peak allocated 事实。
 - `train-dev` 全量 Depth 有效性分布审计。
+- 云端吞吐与显存实测（`16.43` vs `4.94` 张/秒；最小剩余 `3,068.6` / `2,330.6 MiB`；validation 之后 `1.73 GiB`）以及 500 epoch 时间/费用外推。
+- checkpoint 存档等价性判定。
 
 ### 19.3 未执行、未授权
 
-- 云端 batch size 10 容量/吞吐 probe。
-- 云实例创建、连接、执行与停止。
-- 两个 v3 身份的 500 epoch 正式训练。
-- checkpoint save/load、完整 epoch、完整 evaluator。
+- 两个 v3 身份的 500 epoch 正式训练（含 one-arm screening 的第一段）。
+- 完整 evaluator 与 checkpoint 效果评价。
 - R1、S1、C1。
 - official test。
+- 控制面停机流程验证与 SwanLab `online` 监控。
 
 ### 19.4 待未来独立设计
 
@@ -523,6 +585,12 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - 把资格、probe、target fidelity 或 telemetry 写成模型效果。
 - 未授权创建云资源、开始训练或读取 official test。
 
+### 19.6 待用户决定（2026-09-15）
+
+- batch size `10` 在 4090 上的显存余量处置：保持 4090 并接受该余量 / 先补一次余量验证 / 改用 5090。换卡不得改变任何科学超参数。
+- 是否授权 `MMFR-A2-v3-exploratory-one-arm-screening` 的一个 500 epoch（`MMFR-A2-depth-corruption-train-v3`），预算约 `36–40` 小时 / `68–75` 元。
+- 控制面停机流程验证的执行方式与 SwanLab `online` 凭据提供方式。
+
 ## 20. 文件地图与证据指针
 
 - `doc/main/MUSeg-current-status.md`：唯一实时状态入口。
@@ -530,6 +598,8 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - `liu-test-exp/方案1/改动说明.md`：高级审计原文与 v3 执行结果回填。
 - `liu-test-exp/方案1/改动细节.md`：v1→v2 与第二轮 v2 本地资格的历史改动快照。
 - `liu-test-exp/方案1/改动细节2.md`：v2→v3 的逐文件改动、五项证据、哈希、授权边界与恢复点。
+- `liu-test-exp/方案1/改动细节3-云服务器.md`：本轮云端 probe、显存安全闸中止与放宽、checkpoint 工程门禁、实测速度与显存事实、成本外推、one-arm screening 执行计划、失败归档与准确恢复点。
+- `/root/rivermind-data/cloud/mmfr-a2-v3-probe/`（仓库外，不进入 Git）：本轮云端证据根目录，含 `manifests/`、两个 probe 运行目录、`depth-corruption-v3-checkpoint-gate/`、以及全部失败与降级归档 `attempts/`。
 - `protocols/mmfr-a2-train-integration-v3.template.json`：v3 协议和源码、工具、报告 raw/LF 双哈希的权威索引。
 - `utils/dataloader/multimodal_failure_v3.py`：A1 v3 corruption 与 sequential validity state。
 - `utils/dataloader/mmfr_training_v3.py`：A2 v3 batch helper、target、telemetry masks、确定性 RNG 与 fail-closed 守卫。
@@ -541,9 +611,13 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 
 ## 21. 审计结论模板
 
-### `当前结论：可申请云端容量/吞吐 probe 授权`
+### `当前结论：probe 与工程门禁通过；等待 one-arm screening 训练授权`
 
-适用事实：A + MID-A 已实现；五项 v3 本地资格全部 `PASS`；v3 source identity 已由本地 commit/tag 冻结；没有新的 validity contradiction。该结论只允许下一步向用户询问是否授权短 probe，不授权云资源创建、probe 执行或正式训练。
+适用事实：五项 v3 本地资格 `PASS`；云端 batch size `10` 容量/吞吐 probe 对两个身份各完成一次（`eligible=true`、`exact_target_met=true`）；checkpoint save → strict reload → 继续 step 工程门禁 `pass=true`、`mismatches=[]`；执行计划已修订为"两阶段省钱策略"，新增 `MMFR-A2-v3-exploratory-one-arm-screening`。该结论只允许下一步：先处置显存余量、控制面停机流程与 SwanLab 凭据，然后**只申请一个** 500 epoch（corruption-v3）的 one-arm screening 授权。**不授权**任何 500 epoch 训练、完整 evaluator、checkpoint 效果评价或 official test。
+
+### `历史结论：可申请云端容量/吞吐 probe 授权（已被上一条取代）`
+
+适用事实：A + MID-A 已实现；五项 v3 本地资格全部 `PASS`；v3 source identity 已由本地 commit/tag 冻结。该结论只允许向用户询问是否授权短 probe。probe 已于 2026-09-15 完成，故本结论降级为历史。
 
 ### `需修订后重新资格`
 
@@ -557,9 +631,13 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 
 ### 22.1 准确恢复点
 
-当前身份 `MMFR-A2-train-integration-v3` 已达到 `eligible-for-cloud-capacity-probe-authorization`。v3 冻结提交为 `4ce7b67c5707991750461ef2f806e12b37e203f9`，本地 annotated tag 为 `MMFR-A2-v3-pretrain-freeze`；v2 commit/tag 保持历史，未覆盖、未推送。
+当前身份 `MMFR-A2-train-integration-v3`。v3 冻结提交为 `4ce7b67c5707991750461ef2f806e12b37e203f9`，本地 annotated tag 为 `MMFR-A2-v3-pretrain-freeze`；本轮 probe 运行在 `9c4059d0fd8ffbdfcebdb3dffbe9b9e7d1f8c1d8`、checkpoint 门禁运行在 `cdd9ba092d296458593009361dcb12011e4e18ce`（两者均为干净工作区）；v2 commit/tag 保持历史，未覆盖、未推送。
 
-下一步是：**先取得用户对云端单 GPU、batch size 10 容量/吞吐短 probe 的单独授权。** 若 probe 获批并通过，仍需用户另行授权 `MMFR-A2-clean-control-v3` 与 `MMFR-A2-depth-corruption-train-v3` 两个公平对照的 500 epoch 正式训练。probe 授权不自动等于训练授权。
+当前准确恢复点：
+
+`v3 scientific protocol frozen; local qualifications PASS; cloud batch-10 capacity/throughput probe COMPLETED for both identities; checkpoint save / strict-reload / continue-step engineering gate PASS (resumed child == uninterrupted reference on model, optimizer, amp_scaler and rng_state component hashes); next sequence = control-plane stop-flow verification + SwanLab online credentials + user decision on the batch-10 VRAM margin -> user authorization for one-arm MMFR-A2-depth-corruption-train-v3 500e screening -> senior screening review -> conditional clean-control-v3 500e authorization -> formal paired evaluation`
+
+下一步是：先处置 batch size `10` 的显存余量、控制面停机流程验证与 SwanLab `online` 凭据，然后**只取得一个 500 epoch（`MMFR-A2-depth-corruption-train-v3`）的 one-arm screening 授权**。若高级审查认定存在值得继续的苗头，才另行授权 `MMFR-A2-clean-control-v3` 的 500 epoch 配对训练。probe 与工程门禁的通过不自动等于训练授权。
 
 ### 22.2 不得执行
 
@@ -569,6 +647,10 @@ mAcc、mF1、Boundary IoU、混合条件和 R1/S1 均为辅助结果，不得替
 - 不得修改 A + MID-A、natural-invalid 权重、8 个 crop、43 个 optimizer-missing 参数或主成功门槛。
 - 不得覆盖 v1/v2 历史文件、报告、commit 或 tag。
 - 不得把本地资格写成 MMFR 性能已通过。
+- 不得把 probe 或 checkpoint 门禁写成 MMFR 效果。
+- 不得自动启动第二个 500 epoch，也不得把 one-arm screening 结果写成正式配对结论。
+- 不得把 Quick-B0 写成 clean control，或把 `Depth-corruption-v3 − Quick-B0` 写成 MMFR robustness gain。
+- 不得静默修改显存安全阈值、batch size、学习率或 epoch，也不得把"门槛放宽"写成默认口径。
 
 ## 23. v1→v2 历史修订摘要
 
@@ -589,6 +671,24 @@ v2 的关键终点不是“训练失败”，而是 validity semantics 在正式
 9. **43 个 optimizer-missing 参数保持不修：** 已完成并写入 protocol compatibility。
 10. **重跑五项本地资格：** 已完成，五项均 `PASS`。
 11. **重新冻结 source identity：** 已完成，commit `4ce7b67c...` 与 tag `MMFR-A2-v3-pretrain-freeze`；未推送远端。
-12. **全部 PASS 后升级状态：** 已完成，当前为 `eligible-for-cloud-capacity-probe-authorization`。
+12. **全部 PASS 后升级状态：** 已完成，当时状态为 `eligible-for-cloud-capacity-probe-authorization`（该状态已被 2026-09-15 云端 probe 与工程门禁的完成取代，见 24.2 与第 22.1 节）。
 
-**执行边界声明：** v3 收口只完成本地 CPU/GPU 资格和 source freeze；没有云端操作、正式训练、checkpoint、完整评价或 official-test 读取。本文本轮更新本身只做文档重组，不重复运行任何资格、GPU、训练或云任务。
+**执行边界声明：** v3 本地收口那一轮只完成本地 CPU/GPU 资格和 source freeze；那一次没有云端操作、正式训练、checkpoint、完整评价或 official-test 读取。本文档更新本身不重复运行任何资格、GPU、训练或云任务。**后续云端轮次的边界见 24.2 末尾。**
+
+### 24.2 用户第 2 轮执行计划指令的逐条处置（2026-09-15）
+
+1. **改成"两阶段省钱策略"但不改 v3 科学变量：** 已落实为执行顺序、授权矩阵和结果解释的修订；六类 failure、severity、curriculum、`p_clean=0.25`、`lambda_rel=0.1`、500 epoch、batch size `10`、optimizer、selector、evaluator、主 success gate 与 43 个 optimizer-missing 参数全部未改（第 14.4 节）。
+2. **新增 `MMFR-A2-v3-exploratory-one-arm-screening` 阶段：** 已写入本文第 7、14.4 节与 `doc/main/MUSeg-current-status.md`；`protocols/mmfr-a2-train-integration-v3.template.json` 与 `doc/main/MUSeg-open-decisions.md` 的同步状态以实时状态文件为准。
+3. **云端 probe 仍须先执行且需单独授权：** 已执行完成（第 12.4、13.4 节）；probe 授权没有升级为训练授权。
+4. **probe 通过后只申请一个 500 epoch（corruption-v3）：** 当前恢复点已按该逻辑书写；训练本身尚未授权。
+5. **冻结 checkpoint 后再评价，并输出 clean / 六单 / 三混合 / mIoU / mAcc / mF1 / Boundary IoU / 六单宏平均：** 已写入第 14.4 节的报告最小字段；尚未执行。
+6. **Quick-B0 只作 `historical RGB development reference`：** 已写入第 14.4 节，并在 16、22.2 节明确禁止写成 `clean control`。
+7. **禁止把 `Depth-corruption-v3 − Quick-B0` 写成 MMFR robustness gain：** 已写入第 14.4、16、22.2 节；第一阶段允许结论只有 `screening-promising` / `screening-unpromising` / `screening-inconclusive`。
+8. **不得由下级模型发明新的 screening 数值门槛：** 已写入第 14.4 节；主 success gate 未新增任何 screening 门槛，报告字段不构成成功条件。
+9. **高级审查后两条路径：** 已写入第 7 节阶段图与 14.4 节（无苗头则暂停 A2 并保留探索性负结果；有苗头才单独申请 clean-control-v3 的 500 epoch）。
+10. **第二阶段必须从同一 pretrained、seed、`train-dev`、optimizer、LR、500 epoch、batch size、selector 独立训练，不得从 corruption checkpoint 反向构造 clean control：** 与第 11.1 节共同冻结项一致，未改。
+11. **第二阶段完成后 Quick-B0 降级为普通历史参考，正式结论只比较 `Depth-corruption-v3 − Clean-control-v3`：** 已写入第 14.4 节。
+12. **不新建科学 protocol v4：** 本轮只新增执行计划记录与仓库外清单；v3 科学身份、生产代码、corruption、loss、target、selector、evaluator 全部未改。本轮仓库内唯一提交为只包含状态文档的 `cdd9ba092d296458593009361dcb12011e4e18ce`。
+13. **更新准确恢复点：** 已完成，见第 22.1 节。
+
+**本轮云端边界更新声明：** 与 24.1 末尾"没有云端操作"的旧声明不同，本轮**确实在云端执行了 batch size 10 容量/吞吐 probe 与 checkpoint 工程门禁**（用户单独授权，见 `liu-test-exp/方案1/改动细节3-云服务器.md` 第 2 节），但仍未执行任何 500 epoch 训练、完整 evaluator、checkpoint 效果评价或 official test。
