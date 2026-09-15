@@ -10,6 +10,7 @@ updated by the six v3 corruption operations.  The supervised target is
 
 from __future__ import annotations
 
+import math
 from typing import Any, Dict, List, Mapping, Sequence, Tuple
 
 import numpy as np
@@ -166,6 +167,7 @@ def _pixel_statistics(
     depth_pre_uint8: np.ndarray,
     depth_post_uint8: np.ndarray,
     depth_valid_post: np.ndarray,
+    depth_changed: np.ndarray,
 ) -> Dict[str, int]:
     """Return the four telemetry populations and closed validity census."""
     pre_valid = depth_pre_uint8 > 0
@@ -180,10 +182,13 @@ def _pixel_statistics(
     if post_corruption_invalid + newly_valid != natural_invalid + synthetic_invalid:
         raise RuntimeError(
             "v3 validity census is inconsistent: post_corruption_invalid_pixels + newly_valid_pixels "
-            "must equal natural_invalid_pixels + synthetic_invalid_pixels"
+            "must equal natural_invalid_pixels + synthetic_missing_pixels"
         )
-    changed_valid = valid & pre_valid & state & (depth_pre_uint8 != depth_post_uint8)
-    valid_clean = valid & pre_valid & state & (depth_pre_uint8 == depth_post_uint8)
+    # Opt-A: the caller already computed (depth_pre != depth_post); reuse it instead of
+    # rebuilding the same comparison twice, and derive valid-clean from the same partition.
+    both_valid = valid & pre_valid & state
+    both_valid_pixels = int(np.count_nonzero(both_valid))
+    changed_valid = int(np.count_nonzero(both_valid & depth_changed))
     return {
         "valid_pixels": int(np.count_nonzero(valid)),
         "natural_invalid_pixels": natural_invalid,
@@ -191,8 +196,8 @@ def _pixel_statistics(
         "synthetic_missing_pixels": synthetic_invalid,
         "post_corruption_invalid_pixels": post_corruption_invalid,
         "newly_valid_pixels": newly_valid,
-        "implicit_quality_pixels": int(np.count_nonzero(changed_valid)),
-        "valid_clean_pixels": int(np.count_nonzero(valid_clean)),
+        "implicit_quality_pixels": changed_valid,
+        "valid_clean_pixels": both_valid_pixels - changed_valid,
     }
 
 
@@ -277,11 +282,12 @@ def build_mmfr_training_batch_v3(
         valid = ~(rgb_pad & depth_pad)
         if not valid.any():
             raise RuntimeError("sample has no geometrically valid pixel after crop/pad")
+        invalid = ~valid
 
         rgb_uint8 = normalized_to_uint8(rgb_sample, rgb_mean64, rgb_std64)
         depth_uint8 = normalized_to_uint8(depth_sample, depth_mean64, depth_std64)[0]
-        rgb_uint8[:, ~valid] = np.uint8(0)
-        depth_uint8[~valid] = np.uint8(0)
+        rgb_uint8[:, invalid] = np.uint8(0)
+        depth_uint8[invalid] = np.uint8(0)
         depth_valid_pre = (depth_uint8 > 0) & valid
 
         sample_words = sample_id_words(normalized_ids[slot])
@@ -315,16 +321,17 @@ def build_mmfr_training_batch_v3(
                 result.reliability[DEPTH_RELIABILITY_INDEX], dtype=np.float32
             )
             depth_plane = corrupted_depth_uint8 if corrupted_depth_uint8.ndim == 2 else corrupted_depth_uint8[:, :, 0]
-            if np.any(depth_plane[depth_valid_state] == 0) or np.any(depth_plane[~depth_valid_state] != 0):
+            if not np.array_equal(depth_plane != 0, depth_valid_state):
                 raise RuntimeError("v3 corrupted Depth does not match its explicit validity state")
             corrupted_normalized = uint8_to_normalized(
                 corrupted_depth_uint8[:, :, None], depth_mean64, depth_std64
             )[:, :, 0]
-            depth_normalized = np.where(
-                valid[None],
-                np.repeat(corrupted_normalized[None], depth_channels, axis=0),
-                depth_sample_channels,
-            ).astype(np.float32)
+            corrupted_plane = (
+                corrupted_normalized[None]
+                if depth_channels == 1
+                else np.repeat(corrupted_normalized[None], depth_channels, axis=0)
+            )
+            depth_normalized = np.where(valid[None], corrupted_plane, depth_sample_channels)
             rgb_normalized = rgb_sample
 
         supervised_depth = (depth_valid_state.astype(np.float32) * synthetic_target).astype(np.float32)
@@ -336,21 +343,24 @@ def build_mmfr_training_batch_v3(
 
         raw_rgb = (rgb_uint8.astype(np.float64) / 255.0).astype(np.float32)
         raw_depth = (corrupted_depth_uint8.astype(np.float64) / 255.0).astype(np.float32)
-        raw_rgb = np.where(valid[None], raw_rgb, np.float32(0.0)).astype(np.float32)
-        raw_depth = np.where(valid[None], raw_depth[None], np.float32(0.0)).astype(np.float32)
+        raw_rgb = np.where(valid[None], raw_rgb, np.float32(0.0))
+        raw_depth = np.where(valid[None], raw_depth[None], np.float32(0.0))
         depth_valid_post = (corrupted_depth_uint8 > 0) & valid
         if not np.array_equal(depth_valid_post, depth_valid_state):
             raise RuntimeError("depth_valid_post must equal the final explicit v3 validity state")
         if not np.array_equal(depth_valid_post, (raw_depth[0] > 0.0) & valid):
             raise RuntimeError("depth_valid_post must equal (raw_depth_uint8 > 0) & valid_mask")
 
-        statistics = _pixel_statistics(valid, depth_uint8, corrupted_depth_uint8, depth_valid_post)
+        depth_changed = depth_uint8 != corrupted_depth_uint8
+        statistics = _pixel_statistics(
+            valid, depth_uint8, corrupted_depth_uint8, depth_valid_post, depth_changed
+        )
         telemetry_masks = np.stack(
             (
                 valid & ~depth_valid_pre,
                 valid & depth_valid_pre & ~depth_valid_post,
-                valid & depth_valid_pre & depth_valid_post & (depth_uint8 != corrupted_depth_uint8),
-                valid & depth_valid_pre & depth_valid_post & (depth_uint8 == corrupted_depth_uint8),
+                valid & depth_valid_pre & depth_valid_post & depth_changed,
+                valid & depth_valid_pre & depth_valid_post & ~depth_changed,
             ),
             axis=0,
         ).astype(bool)
@@ -464,29 +474,71 @@ def _validate_batch_outputs_v3(outputs: Mapping[str, Any]) -> None:
         "valid-clean",
     ):
         raise RuntimeError("unexpected v3 telemetry category order")
-    if torch.any(telemetry_masks.sum(dim=1) > 1):
+    # Opt-A: reuse one union of the four masks for both the exclusivity census and the
+    # partition check instead of an int64 channel sum plus a second full traversal.
+    telemetry_union = (
+        telemetry_masks[:, 0]
+        | telemetry_masks[:, 1]
+        | telemetry_masks[:, 2]
+        | telemetry_masks[:, 3]
+    )
+    overlap_total = (
+        int(torch.count_nonzero(telemetry_masks[:, 0]))
+        + int(torch.count_nonzero(telemetry_masks[:, 1]))
+        + int(torch.count_nonzero(telemetry_masks[:, 2]))
+        + int(torch.count_nonzero(telemetry_masks[:, 3]))
+        - int(torch.count_nonzero(telemetry_union))
+    )
+    if overlap_total != 0:
         raise RuntimeError("v3 telemetry masks must be mutually exclusive")
-    if not torch.equal(telemetry_masks.any(dim=1, keepdim=True), valid_mask):
+    if not torch.equal(telemetry_union.unsqueeze(1), valid_mask):
         raise RuntimeError("v3 telemetry masks must partition the geometry-valid region")
-    for name, tensor in (("rgb", rgb), ("depth", depth), ("raw_rgb", raw_rgb), ("raw_depth", raw_depth), ("target", target)):
-        if not torch.isfinite(tensor).all():
+    # Opt-A: one fused extreme reduction per tensor replaces torch.isfinite(t).all()
+    # (which allocated a full-size boolean tensor) plus separate min/max reductions.
+    # For a tensor, "all values finite" is exactly "min and max are finite", because
+    # torch min/max propagate NaN and +/-inf.
+    extremes = {
+        name: torch.aminmax(tensor)
+        for name, tensor in (
+            ("rgb", rgb),
+            ("depth", depth),
+            ("raw_rgb", raw_rgb),
+            ("raw_depth", raw_depth),
+            ("target", target),
+        )
+    }
+    for name, (minimum, maximum) in extremes.items():
+        if not math.isfinite(float(minimum)) or not math.isfinite(float(maximum)):
             raise RuntimeError(f"{name} contains non-finite values")
-    if target.min() < 0.0 or target.max() > 1.0:
+    if float(extremes["target"][0]) < 0.0 or float(extremes["target"][1]) > 1.0:
         raise RuntimeError("reliability_target left [0, 1]")
-    if raw_rgb.min() < 0.0 or raw_rgb.max() > 1.0 or raw_depth.min() < 0.0 or raw_depth.max() > 1.0:
+    if (
+        float(extremes["raw_rgb"][0]) < 0.0
+        or float(extremes["raw_rgb"][1]) > 1.0
+        or float(extremes["raw_depth"][0]) < 0.0
+        or float(extremes["raw_depth"][1]) > 1.0
+    ):
         raise RuntimeError("raw signals left [0, 1]")
     if torch.any(depth_valid_pre & ~valid_mask) or torch.any(depth_valid_post & ~valid_mask):
         raise RuntimeError("Depth validity masks must be subsets of the geometry valid mask")
-    if float(target[:, RGB_RELIABILITY_INDEX].min().item()) != 1.0 or float(target[:, RGB_RELIABILITY_INDEX].max().item()) != 1.0:
+    scaffold = target[:, RGB_RELIABILITY_INDEX]
+    scaffold_min, scaffold_max = torch.aminmax(scaffold)
+    if float(scaffold_min) != 1.0 or float(scaffold_max) != 1.0:
         raise RuntimeError("the RGB reliability scaffold channel must be exactly 1 in A2 v3")
     expected_post = (raw_depth > 0.0) & valid_mask
     if not torch.equal(depth_valid_post, expected_post):
         raise RuntimeError("depth_valid_post must equal (raw_depth_uint8 > 0) & valid_mask")
-    target_pad = ~valid_mask.expand_as(target)
-    if torch.masked_select(target, target_pad).numel() and not torch.all(torch.masked_select(target, target_pad) == 1.0):
-        raise RuntimeError("reliability_target must be neutral (1) on padding")
-    pad = ~valid_mask.expand(batch, channels, height, width)
-    for name, tensor in (("rgb", rgb), ("depth", depth)):
-        _assert_tensor_is_zero_at_pad(tensor, pad, name)
-    for name, tensor in (("raw_rgb", raw_rgb), ("raw_depth", raw_depth)):
-        _assert_tensor_is_zero_at_pad(tensor, pad[:, :1].expand_as(tensor), name)
+    # Opt-A: scan the padding region once and reuse the same index set for every
+    # pad-value assertion instead of running one masked_select per tensor.
+    pad_index = (~valid_mask)[:, 0].nonzero(as_tuple=False)
+    if pad_index.numel():
+        row_index = pad_index[:, 0]
+        height_index = pad_index[:, 1]
+        width_index = pad_index[:, 2]
+        padded_target = target[row_index, :, height_index, width_index]
+        if padded_target.numel() and float((padded_target - 1.0).abs().max()) != 0.0:
+            raise RuntimeError("reliability_target must be neutral (1) on padding")
+        for name, tensor in (("rgb", rgb), ("depth", depth), ("raw_rgb", raw_rgb), ("raw_depth", raw_depth)):
+            padded_values = tensor[row_index, :, height_index, width_index]
+            if padded_values.numel() and float(padded_values.abs().max()) != 0.0:
+                raise RuntimeError(f"{name} is not exactly zero on the padding region")
