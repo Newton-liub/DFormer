@@ -1,0 +1,6471 @@
+{
+  "schema_version": "museg-checkpoint-fast-evidence-v1",
+  "generated_at_utc": "2026-09-16T18:20:07.969834+00:00",
+  "status": "completed",
+  "official_test_included": false,
+  "command_line": "python -m tools.evaluate_museg_checkpoint_fast --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --output 'experiments\\MMFR_A2_v3\\benchmarks\\optimized-benchmark-first8.json' --config local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3 --device cuda --max-samples 8 --view-batching 2 --mode optimized --sample-selection first --num-workers 0 --pin-memory --warmup-samples 0 --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+  "mode": "optimized",
+  "requested_view_batching": 2,
+  "sample_selection": "first",
+  "max_samples": 8,
+  "forward_precision": "fp32",
+  "logits_fusion_precision": "fp32",
+  "tf32_enabled": false,
+  "frozen_evaluator_module": "tools.evaluate_museg_checkpoint as EV",
+  "reused_frozen_functions": [
+    "EV.configure_fp32_forward",
+    "EV.load_model",
+    "EV.MUSegPostEvalDataset",
+    "EV.MSFLIP_GEOMETRY",
+    "EV.build_msflip_views",
+    "EV.msflip_whole_logits",
+    "EV.restore_logits_to_metric_grid",
+    "EV.update_confusion",
+    "EV.metrics_from_confusion",
+    "EV.apply_channel_order"
+  ],
+  "optimized_postprocess_contract": [
+    "F.interpolate to padded_size_hw",
+    "crop to scaled_size_hw",
+    "torch.flip(dims=(-1,)) when flipped",
+    "F.interpolate to original label grid",
+    "FP32 sum then arithmetic mean over ten views"
+  ],
+  "dataset_root": "D:\\0Project\\dataset\\MUSeg_DFormer",
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+    "sample_count": 318
+  },
+  "selected_entries": [
+    "RGB/03-01-01-0066-240526121121-08-99.jpg",
+    "RGB/03-01-01-0066-240526121123-12-99.jpg",
+    "RGB/01-01-01-0163-240523093820-02-99.jpg",
+    "RGB/06-01-01-0167-230920140388-12-99.jpg",
+    "RGB/06-01-01-0148-230920140360-12-99.jpg",
+    "RGB/06-01-01-0148-230920140375-12-99.jpg",
+    "RGB/01-01-01-0215-240523094342-02-99.jpg",
+    "RGB/02-01-01-0061-240524104347-12-99.jpg"
+  ],
+  "checkpoint": {
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "config_module": "local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3",
+  "model": "DFormerv2_S",
+  "input_contract": {
+    "channel_order": "RGB",
+    "normalization": {
+      "identity": "rgb-imagenet-rgb-order-v1",
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    }
+  },
+  "environment": {
+    "python": "3.13.9",
+    "torch": "2.7.0+cu128",
+    "cuda": "12.8",
+    "cudnn": 90701,
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "tf32_enabled": false,
+    "os": "Windows-11-10.0.26200-SP0",
+    "pid": 32968
+  },
+  "model_load_seconds": 2.667671,
+  "data_loader_requested": {
+    "num_workers": 0,
+    "pin_memory": true,
+    "persistent_workers": false,
+    "prefetch_factor": 2
+  },
+  "microbatch_probe": {
+    "status": "completed",
+    "sample_id": "06-01-01-0352-230920140646-10-99",
+    "sample_entry": "RGB/06-01-01-0352-230920140646-10-99.jpg",
+    "repeats_requested": 3,
+    "order": "batch1 scales small-to-large, then batch2 scales small-to-large",
+    "oom_policy": "one OOM is recorded; later batch2 scales are skipped after the first OOM",
+    "measurements": {
+      "1": {
+        "0.5": {
+          "status": "completed",
+          "scale": 0.5,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.488945,
+              "forward_seconds": 0.472887,
+              "postprocess_seconds": 0.016058,
+              "peak_memory": {
+                "allocated_bytes": 402999808,
+                "reserved_bytes": 557842432,
+                "allocated_mib": 384.331,
+                "reserved_mib": 532.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7766.231,
+                "peak_reserved_margin_mib": 7618.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.167028,
+              "forward_seconds": 0.162609,
+              "postprocess_seconds": 0.004419,
+              "peak_memory": {
+                "allocated_bytes": 401881600,
+                "reserved_bytes": 578813952,
+                "allocated_mib": 383.264,
+                "reserved_mib": 552.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7767.298,
+                "peak_reserved_margin_mib": 7598.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.171043,
+              "forward_seconds": 0.166637,
+              "postprocess_seconds": 0.004406,
+              "peak_memory": {
+                "allocated_bytes": 401881600,
+                "reserved_bytes": 578813952,
+                "allocated_mib": 383.264,
+                "reserved_mib": 552.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7767.298,
+                "peak_reserved_margin_mib": 7598.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.275672,
+          "mean_peak_allocated_mib": 383.62,
+          "mean_peak_reserved_mib": 545.333
+        },
+        "0.75": {
+          "status": "completed",
+          "scale": 0.75,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.29821,
+              "forward_seconds": 0.296932,
+              "postprocess_seconds": 0.001277,
+              "peak_memory": {
+                "allocated_bytes": 850274304,
+                "reserved_bytes": 1126170624,
+                "allocated_mib": 810.885,
+                "reserved_mib": 1074.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7339.677,
+                "peak_reserved_margin_mib": 7076.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.289892,
+              "forward_seconds": 0.288491,
+              "postprocess_seconds": 0.001401,
+              "peak_memory": {
+                "allocated_bytes": 850274304,
+                "reserved_bytes": 1126170624,
+                "allocated_mib": 810.885,
+                "reserved_mib": 1074.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7339.677,
+                "peak_reserved_margin_mib": 7076.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.295086,
+              "forward_seconds": 0.294119,
+              "postprocess_seconds": 0.000967,
+              "peak_memory": {
+                "allocated_bytes": 850274304,
+                "reserved_bytes": 1126170624,
+                "allocated_mib": 810.885,
+                "reserved_mib": 1074.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7339.677,
+                "peak_reserved_margin_mib": 7076.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.294396,
+          "mean_peak_allocated_mib": 810.885,
+          "mean_peak_reserved_mib": 1074.0
+        },
+        "1.0": {
+          "status": "completed",
+          "scale": 1.0,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.624958,
+              "forward_seconds": 0.623572,
+              "postprocess_seconds": 0.001387,
+              "peak_memory": {
+                "allocated_bytes": 1708861440,
+                "reserved_bytes": 2113929216,
+                "allocated_mib": 1629.697,
+                "reserved_mib": 2016.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6520.865,
+                "peak_reserved_margin_mib": 6134.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.647605,
+              "forward_seconds": 0.646351,
+              "postprocess_seconds": 0.001254,
+              "peak_memory": {
+                "allocated_bytes": 1708861440,
+                "reserved_bytes": 2113929216,
+                "allocated_mib": 1629.697,
+                "reserved_mib": 2016.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6520.865,
+                "peak_reserved_margin_mib": 6134.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.650181,
+              "forward_seconds": 0.648256,
+              "postprocess_seconds": 0.001925,
+              "peak_memory": {
+                "allocated_bytes": 1708861440,
+                "reserved_bytes": 2113929216,
+                "allocated_mib": 1629.697,
+                "reserved_mib": 2016.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6520.865,
+                "peak_reserved_margin_mib": 6134.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.640915,
+          "mean_peak_allocated_mib": 1629.697,
+          "mean_peak_reserved_mib": 2016.0
+        },
+        "1.25": {
+          "status": "completed",
+          "scale": 1.25,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 1.271315,
+              "forward_seconds": 1.269241,
+              "postprocess_seconds": 0.002074,
+              "peak_memory": {
+                "allocated_bytes": 3066062848,
+                "reserved_bytes": 3944742912,
+                "allocated_mib": 2924.025,
+                "reserved_mib": 3762.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5226.537,
+                "peak_reserved_margin_mib": 4388.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 1.235546,
+              "forward_seconds": 1.233544,
+              "postprocess_seconds": 0.002002,
+              "peak_memory": {
+                "allocated_bytes": 3066062848,
+                "reserved_bytes": 3944742912,
+                "allocated_mib": 2924.025,
+                "reserved_mib": 3762.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5226.537,
+                "peak_reserved_margin_mib": 4388.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 1.226209,
+              "forward_seconds": 1.224462,
+              "postprocess_seconds": 0.001747,
+              "peak_memory": {
+                "allocated_bytes": 3066062848,
+                "reserved_bytes": 3944742912,
+                "allocated_mib": 2924.025,
+                "reserved_mib": 3762.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5226.537,
+                "peak_reserved_margin_mib": 4388.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 1.244357,
+          "mean_peak_allocated_mib": 2924.025,
+          "mean_peak_reserved_mib": 3762.0
+        },
+        "1.5": {
+          "status": "completed",
+          "scale": 1.5,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 2.047805,
+              "forward_seconds": 2.045223,
+              "postprocess_seconds": 0.002582,
+              "peak_memory": {
+                "allocated_bytes": 4929497088,
+                "reserved_bytes": 6473908224,
+                "allocated_mib": 4701.135,
+                "reserved_mib": 6174.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 3449.427,
+                "peak_reserved_margin_mib": 1976.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 2.075811,
+              "forward_seconds": 2.072933,
+              "postprocess_seconds": 0.002878,
+              "peak_memory": {
+                "allocated_bytes": 4929497088,
+                "reserved_bytes": 6473908224,
+                "allocated_mib": 4701.135,
+                "reserved_mib": 6174.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 3449.427,
+                "peak_reserved_margin_mib": 1976.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 2.111937,
+              "forward_seconds": 2.109066,
+              "postprocess_seconds": 0.002871,
+              "peak_memory": {
+                "allocated_bytes": 4929497088,
+                "reserved_bytes": 6473908224,
+                "allocated_mib": 4701.135,
+                "reserved_mib": 6174.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 3449.427,
+                "peak_reserved_margin_mib": 1976.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 2.078518,
+          "mean_peak_allocated_mib": 4701.135,
+          "mean_peak_reserved_mib": 6174.0
+        }
+      },
+      "2": {
+        "0.5": {
+          "status": "completed",
+          "scale": 0.5,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.140019,
+              "forward_seconds": 0.138674,
+              "postprocess_seconds": 0.001345,
+              "peak_memory": {
+                "allocated_bytes": 553667072,
+                "reserved_bytes": 662700032,
+                "allocated_mib": 528.018,
+                "reserved_mib": 632.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7622.544,
+                "peak_reserved_margin_mib": 7518.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.119833,
+              "forward_seconds": 0.118308,
+              "postprocess_seconds": 0.001525,
+              "peak_memory": {
+                "allocated_bytes": 553667072,
+                "reserved_bytes": 662700032,
+                "allocated_mib": 528.018,
+                "reserved_mib": 632.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7622.544,
+                "peak_reserved_margin_mib": 7518.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.119693,
+              "forward_seconds": 0.118392,
+              "postprocess_seconds": 0.001302,
+              "peak_memory": {
+                "allocated_bytes": 553667072,
+                "reserved_bytes": 662700032,
+                "allocated_mib": 528.018,
+                "reserved_mib": 632.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7622.544,
+                "peak_reserved_margin_mib": 7518.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.126515,
+          "mean_peak_allocated_mib": 528.018,
+          "mean_peak_reserved_mib": 632.0
+        },
+        "0.75": {
+          "status": "completed",
+          "scale": 0.75,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.303851,
+              "forward_seconds": 0.30213,
+              "postprocess_seconds": 0.001721,
+              "peak_memory": {
+                "allocated_bytes": 1452108288,
+                "reserved_bytes": 1835008000,
+                "allocated_mib": 1384.838,
+                "reserved_mib": 1750.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6765.724,
+                "peak_reserved_margin_mib": 6400.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.298295,
+              "forward_seconds": 0.296759,
+              "postprocess_seconds": 0.001536,
+              "peak_memory": {
+                "allocated_bytes": 1452108288,
+                "reserved_bytes": 1835008000,
+                "allocated_mib": 1384.838,
+                "reserved_mib": 1750.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6765.724,
+                "peak_reserved_margin_mib": 6400.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.295741,
+              "forward_seconds": 0.293786,
+              "postprocess_seconds": 0.001955,
+              "peak_memory": {
+                "allocated_bytes": 1452108288,
+                "reserved_bytes": 1835008000,
+                "allocated_mib": 1384.838,
+                "reserved_mib": 1750.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6765.724,
+                "peak_reserved_margin_mib": 6400.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.299296,
+          "mean_peak_allocated_mib": 1384.838,
+          "mean_peak_reserved_mib": 1750.0
+        },
+        "1.0": {
+          "status": "completed",
+          "scale": 1.0,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.67083,
+              "forward_seconds": 0.668866,
+              "postprocess_seconds": 0.001964,
+              "peak_memory": {
+                "allocated_bytes": 3158436352,
+                "reserved_bytes": 4076863488,
+                "allocated_mib": 3012.12,
+                "reserved_mib": 3888.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5138.442,
+                "peak_reserved_margin_mib": 4262.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.695121,
+              "forward_seconds": 0.693314,
+              "postprocess_seconds": 0.001807,
+              "peak_memory": {
+                "allocated_bytes": 3158436352,
+                "reserved_bytes": 4076863488,
+                "allocated_mib": 3012.12,
+                "reserved_mib": 3888.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5138.442,
+                "peak_reserved_margin_mib": 4262.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.696392,
+              "forward_seconds": 0.694395,
+              "postprocess_seconds": 0.001997,
+              "peak_memory": {
+                "allocated_bytes": 3158436352,
+                "reserved_bytes": 4076863488,
+                "allocated_mib": 3012.12,
+                "reserved_mib": 3888.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5138.442,
+                "peak_reserved_margin_mib": 4262.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.687448,
+          "mean_peak_allocated_mib": 3012.12,
+          "mean_peak_reserved_mib": 3888.0
+        },
+        "1.25": {
+          "status": "completed",
+          "scale": 1.25,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 1.479409,
+              "forward_seconds": 1.476708,
+              "postprocess_seconds": 0.002702,
+              "peak_memory": {
+                "allocated_bytes": 5875108352,
+                "reserved_bytes": 6742343680,
+                "allocated_mib": 5602.94,
+                "reserved_mib": 6430.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 2547.622,
+                "peak_reserved_margin_mib": 1720.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 1.45737,
+              "forward_seconds": 1.454856,
+              "postprocess_seconds": 0.002513,
+              "peak_memory": {
+                "allocated_bytes": 5875108352,
+                "reserved_bytes": 6742343680,
+                "allocated_mib": 5602.94,
+                "reserved_mib": 6430.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 2547.622,
+                "peak_reserved_margin_mib": 1720.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 1.44931,
+              "forward_seconds": 1.446873,
+              "postprocess_seconds": 0.002437,
+              "peak_memory": {
+                "allocated_bytes": 5875108352,
+                "reserved_bytes": 6742343680,
+                "allocated_mib": 5602.94,
+                "reserved_mib": 6430.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 2547.622,
+                "peak_reserved_margin_mib": 1720.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 1.46203,
+          "mean_peak_allocated_mib": 5602.94,
+          "mean_peak_reserved_mib": 6430.0
+        },
+        "1.5": {
+          "status": "OOM",
+          "scale": 1.5,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "attempts": 1,
+          "repeats": [
+            {
+              "repeat": 0,
+              "status": "OOM",
+              "error": "CUDA out of memory. Tried to allocate 1.75 GiB. GPU 0 has a total capacity of 7.96 GiB of which 0 bytes is free. Of the allocated memory 6.89 GiB is allocated by PyTorch, and 141.63 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+              "peak_memory": {
+                "allocated_bytes": 7392851456,
+                "reserved_bytes": 7541358592,
+                "allocated_mib": 7050.373,
+                "reserved_mib": 7192.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 1100.189,
+                "peak_reserved_margin_mib": 958.562
+              }
+            }
+          ],
+          "oom_error": "CUDA out of memory. Tried to allocate 1.75 GiB. GPU 0 has a total capacity of 7.96 GiB of which 0 bytes is free. Of the allocated memory 6.89 GiB is allocated by PyTorch, and 141.63 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+          "fallback": "batch1"
+        }
+      }
+    },
+    "fixed_strategy": {
+      "0.5": {
+        "scale": 0.5,
+        "padded_size_hw": [
+          480,
+          544
+        ],
+        "selected_view_batching": 2,
+        "reason": "batch2 completed, faster, and peak reserved memory stayed below 90% of device capacity"
+      },
+      "0.75": {
+        "scale": 0.75,
+        "padded_size_hw": [
+          704,
+          832
+        ],
+        "selected_view_batching": 1,
+        "reason": "fallback to batch1 because batch2 was unavailable, slower, or lacked memory margin"
+      },
+      "1.0": {
+        "scale": 1.0,
+        "padded_size_hw": [
+          960,
+          1088
+        ],
+        "selected_view_batching": 1,
+        "reason": "fallback to batch1 because batch2 was unavailable, slower, or lacked memory margin"
+      },
+      "1.25": {
+        "scale": 1.25,
+        "padded_size_hw": [
+          1184,
+          1376
+        ],
+        "selected_view_batching": 1,
+        "reason": "fallback to batch1 because batch2 was unavailable, slower, or lacked memory margin"
+      },
+      "1.5": {
+        "scale": 1.5,
+        "padded_size_hw": [
+          1408,
+          1632
+        ],
+        "selected_view_batching": 1,
+        "reason": "fallback to batch1 because batch2 was unavailable, slower, or lacked memory margin"
+      }
+    }
+  },
+  "evaluation": {
+    "mode": "optimized",
+    "effective_view_batching": 2,
+    "sample_count": 8,
+    "sample_ids": [
+      "03-01-01-0066-240526121121-08-99",
+      "03-01-01-0066-240526121123-12-99",
+      "01-01-01-0163-240523093820-02-99",
+      "06-01-01-0167-230920140388-12-99",
+      "06-01-01-0148-230920140360-12-99",
+      "06-01-01-0148-230920140375-12-99",
+      "01-01-01-0215-240523094342-02-99",
+      "02-01-01-0061-240524104347-12-99"
+    ],
+    "warmup_samples": [],
+    "loader": {
+      "num_workers": 0,
+      "pin_memory": true,
+      "persistent_workers": false,
+      "prefetch_factor": null,
+      "batch_size": 1,
+      "loader_init_seconds": 0.000157
+    },
+    "sample_results": [
+      {
+        "sample_id": "03-01-01-0066-240526121121-08-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.466224,
+        "timings": {
+          "h2d_seconds": 0.041158,
+          "ten_views_seconds": 4.865332,
+          "view_wall_seconds": 4.865332,
+          "forward_seconds": 4.825966,
+          "postprocess_seconds": 0.039366,
+          "metric_seconds": 0.009795
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.181019,
+            "forward_group_seconds": 0.165092,
+            "postprocess_group_seconds": 0.015927,
+            "elapsed_seconds": 0.090509,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.181019,
+            "forward_group_seconds": 0.165092,
+            "postprocess_group_seconds": 0.015927,
+            "elapsed_seconds": 0.090509,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.215108,
+            "forward_group_seconds": 0.207403,
+            "postprocess_group_seconds": 0.007704,
+            "elapsed_seconds": 0.215108,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.209941,
+            "forward_group_seconds": 0.201336,
+            "postprocess_group_seconds": 0.008605,
+            "elapsed_seconds": 0.209941,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.514082,
+            "forward_group_seconds": 0.51213,
+            "postprocess_group_seconds": 0.001951,
+            "elapsed_seconds": 0.514082,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.37471,
+            "forward_group_seconds": 0.373881,
+            "postprocess_group_seconds": 0.00083,
+            "elapsed_seconds": 0.37471,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.646628,
+            "forward_group_seconds": 0.646065,
+            "postprocess_group_seconds": 0.000564,
+            "elapsed_seconds": 0.646628,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.588866,
+            "forward_group_seconds": 0.587704,
+            "postprocess_group_seconds": 0.001162,
+            "elapsed_seconds": 0.588866,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.123962,
+            "forward_group_seconds": 1.123303,
+            "postprocess_group_seconds": 0.000659,
+            "elapsed_seconds": 1.123962,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 1.011016,
+            "forward_group_seconds": 1.009052,
+            "postprocess_group_seconds": 0.001964,
+            "elapsed_seconds": 1.011016,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 14.35,
+          "macc": 18.78,
+          "mf1": 16.68,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 72.46,
+              "accuracy": 95.48,
+              "f1": 84.03,
+              "target_pixels": 196684
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 78.36,
+              "accuracy": 89.14,
+              "f1": 87.87,
+              "target_pixels": 21600
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 64.36,
+              "accuracy": 97.01,
+              "f1": 78.31,
+              "target_pixels": 35543
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 71617
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              187799,
+              2666,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              6219,
+              0
+            ],
+            [
+              0,
+              0,
+              19255,
+              0,
+              0,
+              403,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1942,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1062,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              34481,
+              0
+            ],
+            [
+              0,
+              61436,
+              306,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              9875,
+              0
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.392494
+      },
+      {
+        "sample_id": "03-01-01-0066-240526121123-12-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.501558,
+        "timings": {
+          "h2d_seconds": 0.040314,
+          "ten_views_seconds": 4.521374,
+          "view_wall_seconds": 4.521374,
+          "forward_seconds": 4.511393,
+          "postprocess_seconds": 0.009981,
+          "metric_seconds": 0.009507
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.139183,
+            "forward_group_seconds": 0.137139,
+            "postprocess_group_seconds": 0.002044,
+            "elapsed_seconds": 0.069592,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.139183,
+            "forward_group_seconds": 0.137139,
+            "postprocess_group_seconds": 0.002044,
+            "elapsed_seconds": 0.069592,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.171828,
+            "forward_group_seconds": 0.171358,
+            "postprocess_group_seconds": 0.000469,
+            "elapsed_seconds": 0.171828,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.157414,
+            "forward_group_seconds": 0.156366,
+            "postprocess_group_seconds": 0.001049,
+            "elapsed_seconds": 0.157414,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.365659,
+            "forward_group_seconds": 0.365047,
+            "postprocess_group_seconds": 0.000612,
+            "elapsed_seconds": 0.365659,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.319629,
+            "forward_group_seconds": 0.318854,
+            "postprocess_group_seconds": 0.000775,
+            "elapsed_seconds": 0.319629,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.641946,
+            "forward_group_seconds": 0.641373,
+            "postprocess_group_seconds": 0.000574,
+            "elapsed_seconds": 0.641946,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.613439,
+            "forward_group_seconds": 0.611819,
+            "postprocess_group_seconds": 0.00162,
+            "elapsed_seconds": 0.613439,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.13682,
+            "forward_group_seconds": 1.135787,
+            "postprocess_group_seconds": 0.001033,
+            "elapsed_seconds": 1.13682,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 0.975456,
+            "forward_group_seconds": 0.97365,
+            "postprocess_group_seconds": 0.001806,
+            "elapsed_seconds": 0.975456,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 17.78,
+          "macc": 19.13,
+          "mf1": 18.79,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 88.99,
+              "accuracy": 95.93,
+              "f1": 94.18,
+              "target_pixels": 113516
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 98.5,
+              "accuracy": 99.26,
+              "f1": 99.25,
+              "target_pixels": 213624
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 79.14,
+              "accuracy": 91.77,
+              "f1": 88.36,
+              "target_pixels": 38872
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 7306
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              108896,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              4620,
+              0
+            ],
+            [
+              0,
+              0,
+              212050,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1574,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1548,
+              1652,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              35672,
+              0
+            ],
+            [
+              0,
+              7299,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              7,
+              0
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.128248
+      },
+      {
+        "sample_id": "01-01-01-0163-240523093820-02-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.533307,
+        "timings": {
+          "h2d_seconds": 0.038966,
+          "ten_views_seconds": 4.572629,
+          "view_wall_seconds": 4.572629,
+          "forward_seconds": 4.563079,
+          "postprocess_seconds": 0.00955,
+          "metric_seconds": 0.013514
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.128032,
+            "forward_group_seconds": 0.126227,
+            "postprocess_group_seconds": 0.001805,
+            "elapsed_seconds": 0.064016,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.128032,
+            "forward_group_seconds": 0.126227,
+            "postprocess_group_seconds": 0.001805,
+            "elapsed_seconds": 0.064016,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.157928,
+            "forward_group_seconds": 0.157422,
+            "postprocess_group_seconds": 0.000506,
+            "elapsed_seconds": 0.157928,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.155572,
+            "forward_group_seconds": 0.154903,
+            "postprocess_group_seconds": 0.000669,
+            "elapsed_seconds": 0.155572,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.353473,
+            "forward_group_seconds": 0.35286,
+            "postprocess_group_seconds": 0.000613,
+            "elapsed_seconds": 0.353473,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.322349,
+            "forward_group_seconds": 0.321606,
+            "postprocess_group_seconds": 0.000743,
+            "elapsed_seconds": 0.322349,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.643446,
+            "forward_group_seconds": 0.642551,
+            "postprocess_group_seconds": 0.000895,
+            "elapsed_seconds": 0.643446,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.618114,
+            "forward_group_seconds": 0.616574,
+            "postprocess_group_seconds": 0.00154,
+            "elapsed_seconds": 0.618114,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.170147,
+            "forward_group_seconds": 1.169432,
+            "postprocess_group_seconds": 0.000715,
+            "elapsed_seconds": 1.170147,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 1.023568,
+            "forward_group_seconds": 1.021503,
+            "postprocess_group_seconds": 0.002065,
+            "elapsed_seconds": 1.023568,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 12.6,
+          "macc": 12.91,
+          "mf1": 12.96,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 93.32,
+              "accuracy": 94.22,
+              "f1": 96.55,
+              "target_pixels": 288110
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 9005
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 2567
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 95.68,
+              "accuracy": 99.48,
+              "f1": 97.79,
+              "target_pixels": 708742
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              271450,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              16660
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              9005
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              79,
+              16,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              2472
+            ],
+            [
+              0,
+              0,
+              2740,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              942,
+              705060
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.217848
+      },
+      {
+        "sample_id": "06-01-01-0167-230920140388-12-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.480982,
+        "timings": {
+          "h2d_seconds": 0.039244,
+          "ten_views_seconds": 4.591418,
+          "view_wall_seconds": 4.591418,
+          "forward_seconds": 4.581649,
+          "postprocess_seconds": 0.00977,
+          "metric_seconds": 0.008525
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.147634,
+            "forward_group_seconds": 0.145497,
+            "postprocess_group_seconds": 0.002138,
+            "elapsed_seconds": 0.073817,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.147634,
+            "forward_group_seconds": 0.145497,
+            "postprocess_group_seconds": 0.002138,
+            "elapsed_seconds": 0.073817,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.174199,
+            "forward_group_seconds": 0.17374,
+            "postprocess_group_seconds": 0.000459,
+            "elapsed_seconds": 0.174199,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.162334,
+            "forward_group_seconds": 0.161148,
+            "postprocess_group_seconds": 0.001186,
+            "elapsed_seconds": 0.162334,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.34739,
+            "forward_group_seconds": 0.34661,
+            "postprocess_group_seconds": 0.00078,
+            "elapsed_seconds": 0.34739,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.313451,
+            "forward_group_seconds": 0.312717,
+            "postprocess_group_seconds": 0.000735,
+            "elapsed_seconds": 0.313451,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.649051,
+            "forward_group_seconds": 0.648472,
+            "postprocess_group_seconds": 0.000579,
+            "elapsed_seconds": 0.649051,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.617948,
+            "forward_group_seconds": 0.616423,
+            "postprocess_group_seconds": 0.001525,
+            "elapsed_seconds": 0.617948,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.163243,
+            "forward_group_seconds": 1.162498,
+            "postprocess_group_seconds": 0.000745,
+            "elapsed_seconds": 1.163243,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 1.016167,
+            "forward_group_seconds": 1.014544,
+            "postprocess_group_seconds": 0.001624,
+            "elapsed_seconds": 1.016167,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 23.48,
+          "macc": 25.02,
+          "mf1": 24.88,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 79.41,
+              "accuracy": 99.39,
+              "f1": 88.52,
+              "target_pixels": 35189
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 97.07,
+              "accuracy": 99.94,
+              "f1": 98.51,
+              "target_pixels": 8013
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 99.63,
+              "accuracy": 100.0,
+              "f1": 99.81,
+              "target_pixels": 39980
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 76.04,
+              "accuracy": 76.04,
+              "f1": 86.39,
+              "target_pixels": 37647
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              34973,
+              71,
+              0,
+              0,
+              0,
+              145,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              8008,
+              0,
+              0,
+              0,
+              5,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              39980,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              8854,
+              166,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              28627,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.177149
+      },
+      {
+        "sample_id": "06-01-01-0148-230920140360-12-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.470456,
+        "timings": {
+          "h2d_seconds": 0.039691,
+          "ten_views_seconds": 4.643477,
+          "view_wall_seconds": 4.643477,
+          "forward_seconds": 4.63362,
+          "postprocess_seconds": 0.009857,
+          "metric_seconds": 0.007931
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.147546,
+            "forward_group_seconds": 0.145569,
+            "postprocess_group_seconds": 0.001977,
+            "elapsed_seconds": 0.073773,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.147546,
+            "forward_group_seconds": 0.145569,
+            "postprocess_group_seconds": 0.001977,
+            "elapsed_seconds": 0.073773,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.178975,
+            "forward_group_seconds": 0.178232,
+            "postprocess_group_seconds": 0.000744,
+            "elapsed_seconds": 0.178975,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.158095,
+            "forward_group_seconds": 0.157083,
+            "postprocess_group_seconds": 0.001013,
+            "elapsed_seconds": 0.158095,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.370465,
+            "forward_group_seconds": 0.370017,
+            "postprocess_group_seconds": 0.000448,
+            "elapsed_seconds": 0.370465,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.323505,
+            "forward_group_seconds": 0.322381,
+            "postprocess_group_seconds": 0.001124,
+            "elapsed_seconds": 0.323505,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.647999,
+            "forward_group_seconds": 0.647432,
+            "postprocess_group_seconds": 0.000567,
+            "elapsed_seconds": 0.647999,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.618825,
+            "forward_group_seconds": 0.617155,
+            "postprocess_group_seconds": 0.00167,
+            "elapsed_seconds": 0.618825,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.174708,
+            "forward_group_seconds": 1.174016,
+            "postprocess_group_seconds": 0.000692,
+            "elapsed_seconds": 1.174708,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 1.023359,
+            "forward_group_seconds": 1.021735,
+            "postprocess_group_seconds": 0.001623,
+            "elapsed_seconds": 1.023359,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 16.35,
+          "macc": 16.53,
+          "mf1": 17.56,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 47.9,
+              "accuracy": 47.9,
+              "f1": 64.77,
+              "target_pixels": 4092
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 97.4,
+              "accuracy": 100.0,
+              "f1": 98.68,
+              "target_pixels": 79731
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 100.0,
+              "accuracy": 100.0,
+              "f1": 100.0,
+              "target_pixels": 33726
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              1960,
+              2132,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              79731,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              33726,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.219478
+      },
+      {
+        "sample_id": "06-01-01-0148-230920140375-12-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.495299,
+        "timings": {
+          "h2d_seconds": 0.040406,
+          "ten_views_seconds": 4.561748,
+          "view_wall_seconds": 4.561748,
+          "forward_seconds": 4.553113,
+          "postprocess_seconds": 0.008634,
+          "metric_seconds": 0.007852
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.149402,
+            "forward_group_seconds": 0.147567,
+            "postprocess_group_seconds": 0.001835,
+            "elapsed_seconds": 0.074701,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.149402,
+            "forward_group_seconds": 0.147567,
+            "postprocess_group_seconds": 0.001835,
+            "elapsed_seconds": 0.074701,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.167822,
+            "forward_group_seconds": 0.167073,
+            "postprocess_group_seconds": 0.000748,
+            "elapsed_seconds": 0.167822,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.140409,
+            "forward_group_seconds": 0.139802,
+            "postprocess_group_seconds": 0.000607,
+            "elapsed_seconds": 0.140409,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.32332,
+            "forward_group_seconds": 0.322922,
+            "postprocess_group_seconds": 0.000398,
+            "elapsed_seconds": 0.32332,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.332069,
+            "forward_group_seconds": 0.331325,
+            "postprocess_group_seconds": 0.000744,
+            "elapsed_seconds": 0.332069,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.643673,
+            "forward_group_seconds": 0.643091,
+            "postprocess_group_seconds": 0.000582,
+            "elapsed_seconds": 0.643673,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.619554,
+            "forward_group_seconds": 0.618334,
+            "postprocess_group_seconds": 0.00122,
+            "elapsed_seconds": 0.619554,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.167479,
+            "forward_group_seconds": 1.166524,
+            "postprocess_group_seconds": 0.000954,
+            "elapsed_seconds": 1.167479,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 1.01802,
+            "forward_group_seconds": 1.016475,
+            "postprocess_group_seconds": 0.001546,
+            "elapsed_seconds": 1.01802,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 26.19,
+          "macc": 26.53,
+          "mf1": 28.59,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 96.38,
+              "accuracy": 100.0,
+              "f1": 98.16,
+              "target_pixels": 11013
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 98.33,
+              "accuracy": 99.93,
+              "f1": 99.16,
+              "target_pixels": 93808
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 100.0,
+              "accuracy": 100.0,
+              "f1": 100.0,
+              "target_pixels": 11987
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 47.57,
+              "accuracy": 47.57,
+              "f1": 64.47,
+              "target_pixels": 658
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 50.52,
+              "accuracy": 50.52,
+              "f1": 67.13,
+              "target_pixels": 3084
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              11013,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              69,
+              93739,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              11987,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              345,
+              0,
+              0,
+              0,
+              313,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              1526,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1558,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.164533
+      },
+      {
+        "sample_id": "01-01-01-0215-240523094342-02-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.503274,
+        "timings": {
+          "h2d_seconds": 0.039789,
+          "ten_views_seconds": 4.640998,
+          "view_wall_seconds": 4.640998,
+          "forward_seconds": 4.631459,
+          "postprocess_seconds": 0.009539,
+          "metric_seconds": 0.013446
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.145578,
+            "forward_group_seconds": 0.143718,
+            "postprocess_group_seconds": 0.001861,
+            "elapsed_seconds": 0.072789,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.145578,
+            "forward_group_seconds": 0.143718,
+            "postprocess_group_seconds": 0.001861,
+            "elapsed_seconds": 0.072789,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.175342,
+            "forward_group_seconds": 0.174862,
+            "postprocess_group_seconds": 0.00048,
+            "elapsed_seconds": 0.175342,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.159854,
+            "forward_group_seconds": 0.158719,
+            "postprocess_group_seconds": 0.001135,
+            "elapsed_seconds": 0.159854,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.374672,
+            "forward_group_seconds": 0.374244,
+            "postprocess_group_seconds": 0.000428,
+            "elapsed_seconds": 0.374672,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.34773,
+            "forward_group_seconds": 0.346934,
+            "postprocess_group_seconds": 0.000796,
+            "elapsed_seconds": 0.34773,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.64865,
+            "forward_group_seconds": 0.648075,
+            "postprocess_group_seconds": 0.000575,
+            "elapsed_seconds": 0.64865,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.612144,
+            "forward_group_seconds": 0.610674,
+            "postprocess_group_seconds": 0.001471,
+            "elapsed_seconds": 0.612144,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.163573,
+            "forward_group_seconds": 1.16289,
+            "postprocess_group_seconds": 0.000684,
+            "elapsed_seconds": 1.163573,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 1.013455,
+            "forward_group_seconds": 1.011344,
+            "postprocess_group_seconds": 0.002111,
+            "elapsed_seconds": 1.013455,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 3.8,
+          "macc": 6.31,
+          "mf1": 4.84,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 113314
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 256098
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 33252
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 57.06,
+              "accuracy": 94.62,
+              "f1": 72.66,
+              "target_pixels": 605760
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              337,
+              0,
+              112977
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              3576,
+              0,
+              252522
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              33252
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              32565,
+              0,
+              573195
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.256456
+      },
+      {
+        "sample_id": "02-01-01-0061-240524104347-12-99",
+        "original_size_hw": [
+          932,
+          1082
+        ],
+        "dataset_seconds": 0.495682,
+        "timings": {
+          "h2d_seconds": 0.039195,
+          "ten_views_seconds": 4.594841,
+          "view_wall_seconds": 4.594841,
+          "forward_seconds": 4.585124,
+          "postprocess_seconds": 0.009717,
+          "metric_seconds": 0.009949
+        },
+        "view_records": [
+          {
+            "scale": 0.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.180164,
+            "forward_group_seconds": 0.178373,
+            "postprocess_group_seconds": 0.001791,
+            "elapsed_seconds": 0.090082,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              466,
+              541
+            ],
+            "padded_size_hw": [
+              480,
+              544
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 2,
+            "batch_group_index": 0,
+            "batch_group_elapsed_seconds": 0.180164,
+            "forward_group_seconds": 0.178373,
+            "postprocess_group_seconds": 0.001791,
+            "elapsed_seconds": 0.090082,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 1,
+            "forward_record_index": 0
+          },
+          {
+            "scale": 0.75,
+            "flipped": false,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 1,
+            "batch_group_elapsed_seconds": 0.161534,
+            "forward_group_seconds": 0.160765,
+            "postprocess_group_seconds": 0.000769,
+            "elapsed_seconds": 0.161534,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 1
+          },
+          {
+            "scale": 0.75,
+            "flipped": true,
+            "scaled_size_hw": [
+              699,
+              812
+            ],
+            "padded_size_hw": [
+              704,
+              832
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 2,
+            "batch_group_elapsed_seconds": 0.138542,
+            "forward_group_seconds": 0.137519,
+            "postprocess_group_seconds": 0.001023,
+            "elapsed_seconds": 0.138542,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 2
+          },
+          {
+            "scale": 1.0,
+            "flipped": false,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 3,
+            "batch_group_elapsed_seconds": 0.325937,
+            "forward_group_seconds": 0.32518,
+            "postprocess_group_seconds": 0.000758,
+            "elapsed_seconds": 0.325937,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 3
+          },
+          {
+            "scale": 1.0,
+            "flipped": true,
+            "scaled_size_hw": [
+              932,
+              1082
+            ],
+            "padded_size_hw": [
+              960,
+              1088
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 4,
+            "batch_group_elapsed_seconds": 0.333275,
+            "forward_group_seconds": 0.332473,
+            "postprocess_group_seconds": 0.000802,
+            "elapsed_seconds": 0.333275,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 4
+          },
+          {
+            "scale": 1.25,
+            "flipped": false,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 5,
+            "batch_group_elapsed_seconds": 0.645305,
+            "forward_group_seconds": 0.644723,
+            "postprocess_group_seconds": 0.000582,
+            "elapsed_seconds": 0.645305,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 5
+          },
+          {
+            "scale": 1.25,
+            "flipped": true,
+            "scaled_size_hw": [
+              1165,
+              1352
+            ],
+            "padded_size_hw": [
+              1184,
+              1376
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 6,
+            "batch_group_elapsed_seconds": 0.621478,
+            "forward_group_seconds": 0.620341,
+            "postprocess_group_seconds": 0.001137,
+            "elapsed_seconds": 0.621478,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 6
+          },
+          {
+            "scale": 1.5,
+            "flipped": false,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 7,
+            "batch_group_elapsed_seconds": 1.169592,
+            "forward_group_seconds": 1.168893,
+            "postprocess_group_seconds": 0.000699,
+            "elapsed_seconds": 1.169592,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 7
+          },
+          {
+            "scale": 1.5,
+            "flipped": true,
+            "scaled_size_hw": [
+              1398,
+              1623
+            ],
+            "padded_size_hw": [
+              1408,
+              1632
+            ],
+            "restored_size_hw": [
+              932,
+              1082
+            ],
+            "batch_size": 1,
+            "batch_group_index": 8,
+            "batch_group_elapsed_seconds": 1.019014,
+            "forward_group_seconds": 1.016857,
+            "postprocess_group_seconds": 0.002157,
+            "elapsed_seconds": 1.019014,
+            "timing_scope": "batch_group_amortized",
+            "local_index": 0,
+            "forward_record_index": 8
+          }
+        ],
+        "metrics_percent": {
+          "miou": 15.46,
+          "macc": 16.57,
+          "mf1": 17.17,
+          "per_class": [
+            {
+              "index": 0,
+              "name": "person",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 1,
+              "name": "cable",
+              "iou": 50.94,
+              "accuracy": 55.06,
+              "f1": 67.5,
+              "target_pixels": 44699
+            },
+            {
+              "index": 2,
+              "name": "tube",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 3,
+              "name": "indicator",
+              "iou": 88.88,
+              "accuracy": 97.03,
+              "f1": 94.11,
+              "target_pixels": 37997
+            },
+            {
+              "index": 4,
+              "name": "metal fixture",
+              "iou": 92.14,
+              "accuracy": 96.45,
+              "f1": 95.91,
+              "target_pixels": 204763
+            },
+            {
+              "index": 5,
+              "name": "container",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 4028
+            },
+            {
+              "index": 6,
+              "name": "tools & materials",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 7,
+              "name": "door",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 8,
+              "name": "electrical equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 9,
+              "name": "electronic equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 10,
+              "name": "mining equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 11,
+              "name": "anchoring equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 12,
+              "name": "support equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 13,
+              "name": "rescue equipment",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            },
+            {
+              "index": 14,
+              "name": "rail area",
+              "iou": 0.0,
+              "accuracy": 0.0,
+              "f1": 0.0,
+              "target_pixels": 0
+            }
+          ],
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              24610,
+              13387,
+              1402,
+              5223,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              77,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              264,
+              0,
+              36870,
+              419,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              444,
+              0
+            ],
+            [
+              0,
+              3350,
+              638,
+              1990,
+              197486,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1299,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              93,
+              3935,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ]
+        },
+        "peak_memory": {
+          "allocated_bytes": 4928841728,
+          "reserved_bytes": 6901727232,
+          "allocated_mib": 4700.51,
+          "reserved_mib": 6582.0
+        },
+        "total_seconds": 5.19697
+      }
+    ],
+    "aggregate": {
+      "dataset_seconds": 3.946782,
+      "h2d_seconds": 0.318763,
+      "ten_views_seconds": 36.991817,
+      "forward_seconds": 36.885403,
+      "postprocess_seconds": 0.106414,
+      "metric_seconds": 0.080519,
+      "total_seconds": 41.753176,
+      "seconds_per_sample": 5.219147,
+      "ms_per_view": 462.397712,
+      "dataset_preprocess_percent": 9.453,
+      "h2d_percent": 0.763,
+      "forward_percent": 88.342,
+      "postprocess_percent": 0.255,
+      "metric_percent": 0.193,
+      "metrics_percent": {
+        "miou": 33.53,
+        "macc": 36.89,
+        "mf1": 38.18,
+        "per_class": [
+          {
+            "index": 0,
+            "name": "person",
+            "iou": 0.0,
+            "accuracy": 0.0,
+            "f1": 0.0,
+            "target_pixels": 0
+          },
+          {
+            "index": 1,
+            "name": "cable",
+            "iou": 61.25,
+            "accuracy": 71.21,
+            "f1": 75.97,
+            "target_pixels": 518507
+          },
+          {
+            "index": 2,
+            "name": "tube",
+            "iou": 93.71,
+            "accuracy": 97.07,
+            "f1": 96.75,
+            "target_pixels": 704886
+          },
+          {
+            "index": 3,
+            "name": "indicator",
+            "iou": 23.44,
+            "accuracy": 23.68,
+            "f1": 37.98,
+            "target_pixels": 348813
+          },
+          {
+            "index": 4,
+            "name": "metal fixture",
+            "iou": 92.14,
+            "accuracy": 96.45,
+            "f1": 95.91,
+            "target_pixels": 204763
+          },
+          {
+            "index": 5,
+            "name": "container",
+            "iou": 6.15,
+            "accuracy": 6.68,
+            "f1": 11.59,
+            "target_pixels": 4686
+          },
+          {
+            "index": 6,
+            "name": "tools & materials",
+            "iou": 99.63,
+            "accuracy": 100.0,
+            "f1": 99.81,
+            "target_pixels": 39980
+          },
+          {
+            "index": 7,
+            "name": "door",
+            "iou": 0.0,
+            "accuracy": 0.0,
+            "f1": 0.0,
+            "target_pixels": 0
+          },
+          {
+            "index": 8,
+            "name": "electrical equipment",
+            "iou": 0.0,
+            "accuracy": 0.0,
+            "f1": 0.0,
+            "target_pixels": 0
+          },
+          {
+            "index": 9,
+            "name": "electronic equipment",
+            "iou": 0.0,
+            "accuracy": 0.0,
+            "f1": 0.0,
+            "target_pixels": 0
+          },
+          {
+            "index": 10,
+            "name": "mining equipment",
+            "iou": 0.0,
+            "accuracy": 0.0,
+            "f1": 0.0,
+            "target_pixels": 0
+          },
+          {
+            "index": 11,
+            "name": "anchoring equipment",
+            "iou": 0.0,
+            "accuracy": 0.0,
+            "f1": 0.0,
+            "target_pixels": 0
+          },
+          {
+            "index": 12,
+            "name": "support equipment",
+            "iou": 0.0,
+            "accuracy": 0.0,
+            "f1": 0.0,
+            "target_pixels": 0
+          },
+          {
+            "index": 13,
+            "name": "rescue equipment",
+            "iou": 56.38,
+            "accuracy": 66.46,
+            "f1": 72.11,
+            "target_pixels": 150965
+          },
+          {
+            "index": 14,
+            "name": "rail area",
+            "iou": 70.22,
+            "accuracy": 91.73,
+            "f1": 82.51,
+            "target_pixels": 1393425
+          }
+        ],
+        "confusion_matrix": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            369251,
+            18256,
+            1402,
+            5223,
+            0,
+            145,
+            0,
+            0,
+            0,
+            0,
+            0,
+            337,
+            10916,
+            112977
+          ],
+          [
+            0,
+            69,
+            684233,
+            0,
+            0,
+            403,
+            5,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3516,
+            16660
+          ],
+          [
+            0,
+            264,
+            0,
+            82583,
+            419,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            3576,
+            444,
+            261527
+          ],
+          [
+            0,
+            3350,
+            638,
+            1990,
+            197486,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1299,
+            0
+          ],
+          [
+            0,
+            345,
+            0,
+            93,
+            3935,
+            313,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            39980,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            11543,
+            3360,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            100338,
+            35724
+          ],
+          [
+            0,
+            68735,
+            3046,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            32565,
+            10824,
+            1278255
+          ]
+        ],
+        "scope": "selected subset; not full val-dev"
+      },
+      "peak_memory": {
+        "allocated_bytes": 4928841728,
+        "reserved_bytes": 6901727232,
+        "allocated_mib": 4700.51,
+        "reserved_mib": 6582.0
+      }
+    }
+  },
+  "duration_seconds": 72.222
+}

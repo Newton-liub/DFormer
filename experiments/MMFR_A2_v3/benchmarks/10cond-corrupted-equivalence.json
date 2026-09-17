@@ -1,0 +1,563 @@
+{
+  "checkpoint": {
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --verify corrupted-equivalence --verify-samples 2 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-corrupted-equivalence.json' --quiet",
+  "comparisons": [
+    {
+      "condition": "blur_050__misalignment_050",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "686c3bdf4e3441036faff2b292e405c1f1d8f9419d69b1a153d761f784bac260",
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    },
+    {
+      "condition": "entire_missing_100",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "15d540c68e7e390ea9fad2b9478ba655ff798dba04b74690c328aa639ffd6d5e",
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    },
+    {
+      "condition": "misalignment_075",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "c1b93a67ab86c23e734ad67792177842cfb8fa65c815dd74cf33cbc0254cf747",
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    },
+    {
+      "condition": "spatial_dropout_075",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "7e54ad147ae86b6ba03ee35b38dccb8eba9d4241062bdba41f6021485ae4f3c0",
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    },
+    {
+      "condition": "blur_050__misalignment_050",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "22265fa230fa7e0f1cff183fd96cf34a3acef860a2421b69375721c616abdd0f",
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    },
+    {
+      "condition": "entire_missing_100",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "7d400d1856792d8f2453de32152dbed6287195bfa5e204e796eeeb0244eca2d8",
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    },
+    {
+      "condition": "misalignment_075",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "703f2f0fd1ca68c9497993aebf962514f2fa925535529ef7f12b35426eeb4a0a",
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    },
+    {
+      "condition": "spatial_dropout_075",
+      "confusion_matrix_equal": true,
+      "corrupted_depth_sha256_equal": true,
+      "equal": true,
+      "metric_differences_sample_minus_condition": {
+        "macc": 0.0,
+        "mf1": 0.0,
+        "miou": 0.0
+      },
+      "mismatched_prediction_pixels": 0,
+      "prediction_sha256": "4700410bfc175fddf20a3c0e177c0d33f43de2d20cf73720a2a1b3bb87fd950d",
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "total_prediction_pixels": 1008424,
+      "validity_state_sha256_equal": true
+    }
+  ],
+  "condition_count": 4,
+  "condition_major_output_dir": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\corrupted-equivalence\\condition-major",
+  "conditions": [
+    "spatial_dropout@0.75",
+    "misalignment@0.75",
+    "entire_missing@1.0",
+    "blur@0.5+misalignment@0.5"
+  ],
+  "duration_seconds": 80.38,
+  "environment": {
+    "cuda": "12.8",
+    "cudnn": 90701,
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "numpy": "2.3.5",
+    "os": "Windows-11-10.0.26200-SP0",
+    "pid": 48652,
+    "python": "3.13.9",
+    "tf32_enabled": false,
+    "torch": "2.7.0+cu128"
+  },
+  "evaluation_seed": 2026091401,
+  "evidence_kind": "museg-10condition-verification-corrupted-equivalence",
+  "exit_code": 0,
+  "failures": [],
+  "forward_rng_policy": "reset-per-unit",
+  "generated_at_utc": "2026-09-17T01:33:23.401928+00:00",
+  "official_test_included": false,
+  "protocol": {
+    "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+    "raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3"
+  },
+  "runner": {
+    "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
+    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+  },
+  "sample_count": 2,
+  "sample_major_output_dir": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\corrupted-equivalence\\sample-major",
+  "schema_version": "museg-10condition-mainval-verification-v1",
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "status": "PASS",
+  "unit_count": 8,
+  "view_batching": 2,
+  "view_reuse_self_check": [
+    {
+      "bitwise_equal": true,
+      "entry": "RGB/03-01-01-0066-240526121121-08-99.jpg",
+      "max_abs_diff": 0.0,
+      "per_view": [
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.5,
+          "scaled_size_hw": [
+            466,
+            541
+          ],
+          "view_index": 0
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.5,
+          "scaled_size_hw": [
+            466,
+            541
+          ],
+          "view_index": 1
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.75,
+          "scaled_size_hw": [
+            699,
+            812
+          ],
+          "view_index": 2
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.75,
+          "scaled_size_hw": [
+            699,
+            812
+          ],
+          "view_index": 3
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.0,
+          "scaled_size_hw": [
+            932,
+            1082
+          ],
+          "view_index": 4
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.0,
+          "scaled_size_hw": [
+            932,
+            1082
+          ],
+          "view_index": 5
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.25,
+          "scaled_size_hw": [
+            1165,
+            1352
+          ],
+          "view_index": 6
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.25,
+          "scaled_size_hw": [
+            1165,
+            1352
+          ],
+          "view_index": 7
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.5,
+          "scaled_size_hw": [
+            1398,
+            1623
+          ],
+          "view_index": 8
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.5,
+          "scaled_size_hw": [
+            1398,
+            1623
+          ],
+          "view_index": 9
+        }
+      ],
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "view_count": 10
+    },
+    {
+      "bitwise_equal": true,
+      "entry": "RGB/03-01-01-0066-240526121123-12-99.jpg",
+      "max_abs_diff": 0.0,
+      "per_view": [
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.5,
+          "scaled_size_hw": [
+            466,
+            541
+          ],
+          "view_index": 0
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.5,
+          "scaled_size_hw": [
+            466,
+            541
+          ],
+          "view_index": 1
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.75,
+          "scaled_size_hw": [
+            699,
+            812
+          ],
+          "view_index": 2
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 0.75,
+          "scaled_size_hw": [
+            699,
+            812
+          ],
+          "view_index": 3
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.0,
+          "scaled_size_hw": [
+            932,
+            1082
+          ],
+          "view_index": 4
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.0,
+          "scaled_size_hw": [
+            932,
+            1082
+          ],
+          "view_index": 5
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.25,
+          "scaled_size_hw": [
+            1165,
+            1352
+          ],
+          "view_index": 6
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.25,
+          "scaled_size_hw": [
+            1165,
+            1352
+          ],
+          "view_index": 7
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": false,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.5,
+          "scaled_size_hw": [
+            1398,
+            1623
+          ],
+          "view_index": 8
+        },
+        {
+          "depth_bitwise_equal": true,
+          "depth_max_abs_diff": 0.0,
+          "flipped": true,
+          "metadata_equal": true,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "rgb_bitwise_equal": true,
+          "rgb_max_abs_diff": 0.0,
+          "scale": 1.5,
+          "scaled_size_hw": [
+            1398,
+            1623
+          ],
+          "view_index": 9
+        }
+      ],
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "view_count": 10
+    }
+  ]
+}

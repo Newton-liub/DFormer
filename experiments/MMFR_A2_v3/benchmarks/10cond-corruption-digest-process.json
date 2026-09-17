@@ -1,0 +1,1107 @@
+{
+  "call_order": [
+    "clean",
+    "spatial_dropout_075",
+    "gaussian_noise_075",
+    "blur_075",
+    "quantization_075",
+    "misalignment_075",
+    "entire_missing_100",
+    "spatial_dropout_050__gaussian_noise_050",
+    "blur_050__misalignment_050",
+    "quantization_050__misalignment_050"
+  ],
+  "checkpoint": {
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --protocol 'protocols\\mmfr-a2-train-integration-v3.template.json' --config local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --device cuda --view-batching 2 --benchmark-dir 'experiments\\MMFR_A2_v3\\benchmarks' --quiet --verify corruption-digest --verify-samples 3 --benchmark-output 'D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\10cond-corruption-digest-process.json'",
+  "condition_count": 10,
+  "digest_map_sha256": "1958f1b5c74b73b2ffbf2f4f6e9cae742437c89537f9217a437cf5c17478db34",
+  "duration_seconds": 1.545,
+  "environment": {
+    "cuda": "12.8",
+    "cudnn": 90701,
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "numpy": "2.3.5",
+    "os": "Windows-11-10.0.26200-SP0",
+    "pid": 24492,
+    "python": "3.13.9",
+    "tf32_enabled": false,
+    "torch": "2.7.0+cu128"
+  },
+  "evaluation_seed": 2026091401,
+  "evidence_kind": "museg-10condition-verification-corruption-digest",
+  "exit_code": 0,
+  "generated_at_utc": "2026-09-17T01:31:46.184181+00:00",
+  "official_test_included": false,
+  "protocol": {
+    "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+    "raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3"
+  },
+  "runner": {
+    "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
+    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+  },
+  "sample_count": 3,
+  "schema_version": "museg-10condition-mainval-verification-v1",
+  "shuffle_conditions": false,
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "status": "PASS",
+  "unit_count": 30,
+  "unit_digest_map": [
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "blur_050__misalignment_050",
+      "97441e92318327cdf553194b734cf813cf249322603092d0d42ab3442ccf7c0e",
+      "49c4fb235872a67395212429626a9f39577f678c8d1ce617f27254362f256ef8"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "blur_075",
+      "00b7e9d49f89498f102e856668627da63c9f751ebf170a3915a60dbba310e25a",
+      "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "clean",
+      "817a5594a29188dc82c0224d1a8981c73a9abe1dd30c7ba9325c052041eb893c",
+      "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "entire_missing_100",
+      "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77",
+      "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "gaussian_noise_075",
+      "187d69352229e0f0420385302b9b96d20549fcc309ab0cd87211647db158c450",
+      "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "misalignment_075",
+      "cdf7d5a429839594e6074d700fdf09e64d01aa85d703d4084b3f8bbb197cad42",
+      "48d045d2c421d381d90c4e6b787ec9625310bda51b4b325a73acaa16d549f23d"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "quantization_050__misalignment_050",
+      "ae5ed1f0d2621594ee46c56889b82b785ee33a4dd7d5a9582f7efcc708fadd73",
+      "60bf1585b13e0f524cd4b1291eb66661b044aca4f817e579019e9510800c2448"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "quantization_075",
+      "a687b3318a5b0553890c55005bf214f299bb13fbbc3959ed06298531082b44da",
+      "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "spatial_dropout_050__gaussian_noise_050",
+      "a34a8b1cc023fb5ee4f56a65fa243203db666f50d2cf0060bc2e7bb1098cba0c",
+      "8a38a0e6960ff6a36fc028d06e50ca415bb8d7f5df52b4c889883d03ee4d77ca"
+    ],
+    [
+      "01-01-01-0163-240523093820-02-99",
+      "spatial_dropout_075",
+      "aeb0ee0fd33da858c5055e670dafbf2152c0685da028b9ef5928ef9593edc32c",
+      "9f2773b6e5908bc6f70803182f85225a316249afc43b555f6b05ec56a2e89a37"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "blur_050__misalignment_050",
+      "8d1c977068bc52d38f927f93f9ad4bc00aa57f28ff41bfc7b93a54bd35a06c77",
+      "0d0f10f48d61cb3e5a2f68b5a2832983d42f21775f9a64d93b2c7de8cbeae1a6"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "blur_075",
+      "46bddbf085596b512546448446dd86583b81249d699c8de5ae1fa49f14044acf",
+      "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "clean",
+      "1a210beec5cbc783281b949c130c3deddc8e5064e3ce1a0b74785f7b9156d7c4",
+      "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "entire_missing_100",
+      "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77",
+      "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "gaussian_noise_075",
+      "e07b9c3a06e9a3af625d730f2e54e4d061a3660bde24673663d5f680bc3c07cd",
+      "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "misalignment_075",
+      "50ae918f98e27faafb4f22ba8ef5a010685482783364147f4df45a54054a98ca",
+      "770d9b9d23d80f7476cb937f521c69103e4666297e135eebe7be138342f30737"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "quantization_050__misalignment_050",
+      "2d7daa2fd55d4ccc45e20ff2c8655bae061481e0a38ccad11afebf61d13dca14",
+      "f1857e24b26dd078b494515bac3e84cdd6a0878fb1b7058a5398b4acdca070a9"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "quantization_075",
+      "98362373fbb29738b2249b920661497b2a3c3faa9fb79cced21a7bebc19e4fff",
+      "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "spatial_dropout_050__gaussian_noise_050",
+      "6558174631c78f66d96cc37ace234aff06388ab7b6fb97d12377ee245d376545",
+      "939d8a1e68ef9ad9c5dbae6e09775212b5b2c51b62f8def64c9e3f27e30ae94f"
+    ],
+    [
+      "03-01-01-0066-240526121121-08-99",
+      "spatial_dropout_075",
+      "0cedd7112dadc8d5c3fa6450f458d91024bebf9e6b729d9c99b2b3421ef68e4b",
+      "7ab5882d1e109087dc21c67ba86ca34dad4c5979ce36fb7c04a238006b8058bd"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "blur_050__misalignment_050",
+      "b748edc302e23e4f9899fea5609e319faa9f4db974d5f197451443f0f2ef76ac",
+      "bc0f1efaff4b105e50d9cc7b032d4518e4d966055a5258a9b0f2e04764ae4846"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "blur_075",
+      "850908c3b4f33d655ca1f7a61dc953b34260de5d200ce5dffa1aaea8613686a0",
+      "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "clean",
+      "10b718f35b460f20b7f2f986a0100ff33f5df3ce51267930eb56dc60fd18f5af",
+      "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "entire_missing_100",
+      "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77",
+      "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "gaussian_noise_075",
+      "87154409bbe45684466d7ebf326ead252b85db9d440e49d3a48b60512c8d1650",
+      "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "misalignment_075",
+      "7a64c7a4b850cb11f1d1aa1fc2b3d622160af89753411a6ddbc81b082192c908",
+      "1853837e4e1babf238962a5b00e133c3b94eb6b02109adc58a1da0ac4c97b916"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "quantization_050__misalignment_050",
+      "27b3294d74c3489edb67ffcea2cc3abc0aefc1f6e242f286ac0b2e9bd1895d00",
+      "37f49e8af3b425da9cea95c0d3a77d489e2fe48fd1c39d210a99c8786ef22392"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "quantization_075",
+      "d136c1d044696e11100e86aaa5df026d3ed1f959195c7fee102d892bab40b657",
+      "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "spatial_dropout_050__gaussian_noise_050",
+      "0fa9c9eb969545e9ab80af59ef54fb258f027f4772cb4a19058d7146994eb33f",
+      "b522d757abadda522f491c199a4263001c4be96074818221065bf569d1a5ccf2"
+    ],
+    [
+      "03-01-01-0066-240526121123-12-99",
+      "spatial_dropout_075",
+      "62edcccf24660fbeb4edf61743c55cbe6dd0647d5cf3e63ef4035b1ca9a40f5d",
+      "5a97a6d4de290545033e25415c2cfd14c209791a37ead709539aeed1c10bff2f"
+    ]
+  ],
+  "units": [
+    {
+      "call_index": 0,
+      "condition": "clean",
+      "condition_index": 0,
+      "corrupted_depth_sha256": "1a210beec5cbc783281b949c130c3deddc8e5064e3ce1a0b74785f7b9156d7c4",
+      "depth_bitwise_equal_raw": true,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": false,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        0,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [],
+      "strict_no_op": true,
+      "validity_state_sha256": "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    },
+    {
+      "call_index": 1,
+      "condition": "spatial_dropout_075",
+      "condition_index": 1,
+      "corrupted_depth_sha256": "0cedd7112dadc8d5c3fa6450f458d91024bebf9e6b729d9c99b2b3421ef68e4b",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        1,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "7ab5882d1e109087dc21c67ba86ca34dad4c5979ce36fb7c04a238006b8058bd"
+    },
+    {
+      "call_index": 2,
+      "condition": "gaussian_noise_075",
+      "condition_index": 2,
+      "corrupted_depth_sha256": "e07b9c3a06e9a3af625d730f2e54e4d061a3660bde24673663d5f680bc3c07cd",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        2,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    },
+    {
+      "call_index": 3,
+      "condition": "blur_075",
+      "condition_index": 3,
+      "corrupted_depth_sha256": "46bddbf085596b512546448446dd86583b81249d699c8de5ae1fa49f14044acf",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        3,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    },
+    {
+      "call_index": 4,
+      "condition": "quantization_075",
+      "condition_index": 4,
+      "corrupted_depth_sha256": "98362373fbb29738b2249b920661497b2a3c3faa9fb79cced21a7bebc19e4fff",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        4,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "282e31d686a9bafa88758f6836d6a73249e233ce163c8a514719af2acfe820fe"
+    },
+    {
+      "call_index": 5,
+      "condition": "misalignment_075",
+      "condition_index": 5,
+      "corrupted_depth_sha256": "50ae918f98e27faafb4f22ba8ef5a010685482783364147f4df45a54054a98ca",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        5,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "770d9b9d23d80f7476cb937f521c69103e4666297e135eebe7be138342f30737"
+    },
+    {
+      "call_index": 6,
+      "condition": "entire_missing_100",
+      "condition_index": 6,
+      "corrupted_depth_sha256": "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        6,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77"
+    },
+    {
+      "call_index": 7,
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_index": 7,
+      "corrupted_depth_sha256": "6558174631c78f66d96cc37ace234aff06388ab7b6fb97d12377ee245d376545",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        7,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "939d8a1e68ef9ad9c5dbae6e09775212b5b2c51b62f8def64c9e3f27e30ae94f"
+    },
+    {
+      "call_index": 8,
+      "condition": "blur_050__misalignment_050",
+      "condition_index": 8,
+      "corrupted_depth_sha256": "8d1c977068bc52d38f927f93f9ad4bc00aa57f28ff41bfc7b93a54bd35a06c77",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        8,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "0d0f10f48d61cb3e5a2f68b5a2832983d42f21775f9a64d93b2c7de8cbeae1a6"
+    },
+    {
+      "call_index": 9,
+      "condition": "quantization_050__misalignment_050",
+      "condition_index": 9,
+      "corrupted_depth_sha256": "2d7daa2fd55d4ccc45e20ff2c8655bae061481e0a38ccad11afebf61d13dca14",
+      "depth_bitwise_equal_raw": false,
+      "position": 0,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        9,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "specs": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "f1857e24b26dd078b494515bac3e84cdd6a0878fb1b7058a5398b4acdca070a9"
+    },
+    {
+      "call_index": 0,
+      "condition": "clean",
+      "condition_index": 0,
+      "corrupted_depth_sha256": "10b718f35b460f20b7f2f986a0100ff33f5df3ce51267930eb56dc60fd18f5af",
+      "depth_bitwise_equal_raw": true,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": false,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        0,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [],
+      "strict_no_op": true,
+      "validity_state_sha256": "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    },
+    {
+      "call_index": 1,
+      "condition": "spatial_dropout_075",
+      "condition_index": 1,
+      "corrupted_depth_sha256": "62edcccf24660fbeb4edf61743c55cbe6dd0647d5cf3e63ef4035b1ca9a40f5d",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        1,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "5a97a6d4de290545033e25415c2cfd14c209791a37ead709539aeed1c10bff2f"
+    },
+    {
+      "call_index": 2,
+      "condition": "gaussian_noise_075",
+      "condition_index": 2,
+      "corrupted_depth_sha256": "87154409bbe45684466d7ebf326ead252b85db9d440e49d3a48b60512c8d1650",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        2,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    },
+    {
+      "call_index": 3,
+      "condition": "blur_075",
+      "condition_index": 3,
+      "corrupted_depth_sha256": "850908c3b4f33d655ca1f7a61dc953b34260de5d200ce5dffa1aaea8613686a0",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        3,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    },
+    {
+      "call_index": 4,
+      "condition": "quantization_075",
+      "condition_index": 4,
+      "corrupted_depth_sha256": "d136c1d044696e11100e86aaa5df026d3ed1f959195c7fee102d892bab40b657",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        4,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "37bfac51974051435e4071739cfa2d38a858a998f7526d586823feffabab00d4"
+    },
+    {
+      "call_index": 5,
+      "condition": "misalignment_075",
+      "condition_index": 5,
+      "corrupted_depth_sha256": "7a64c7a4b850cb11f1d1aa1fc2b3d622160af89753411a6ddbc81b082192c908",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        5,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "1853837e4e1babf238962a5b00e133c3b94eb6b02109adc58a1da0ac4c97b916"
+    },
+    {
+      "call_index": 6,
+      "condition": "entire_missing_100",
+      "condition_index": 6,
+      "corrupted_depth_sha256": "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        6,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77"
+    },
+    {
+      "call_index": 7,
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_index": 7,
+      "corrupted_depth_sha256": "0fa9c9eb969545e9ab80af59ef54fb258f027f4772cb4a19058d7146994eb33f",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        7,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "b522d757abadda522f491c199a4263001c4be96074818221065bf569d1a5ccf2"
+    },
+    {
+      "call_index": 8,
+      "condition": "blur_050__misalignment_050",
+      "condition_index": 8,
+      "corrupted_depth_sha256": "b748edc302e23e4f9899fea5609e319faa9f4db974d5f197451443f0f2ef76ac",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        8,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "bc0f1efaff4b105e50d9cc7b032d4518e4d966055a5258a9b0f2e04764ae4846"
+    },
+    {
+      "call_index": 9,
+      "condition": "quantization_050__misalignment_050",
+      "condition_index": 9,
+      "corrupted_depth_sha256": "27b3294d74c3489edb67ffcea2cc3abc0aefc1f6e242f286ac0b2e9bd1895d00",
+      "depth_bitwise_equal_raw": false,
+      "position": 1,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        9,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "specs": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "37f49e8af3b425da9cea95c0d3a77d489e2fe48fd1c39d210a99c8786ef22392"
+    },
+    {
+      "call_index": 0,
+      "condition": "clean",
+      "condition_index": 0,
+      "corrupted_depth_sha256": "817a5594a29188dc82c0224d1a8981c73a9abe1dd30c7ba9325c052041eb893c",
+      "depth_bitwise_equal_raw": true,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": false,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        0,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [],
+      "strict_no_op": true,
+      "validity_state_sha256": "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    },
+    {
+      "call_index": 1,
+      "condition": "spatial_dropout_075",
+      "condition_index": 1,
+      "corrupted_depth_sha256": "aeb0ee0fd33da858c5055e670dafbf2152c0685da028b9ef5928ef9593edc32c",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        1,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "9f2773b6e5908bc6f70803182f85225a316249afc43b555f6b05ec56a2e89a37"
+    },
+    {
+      "call_index": 2,
+      "condition": "gaussian_noise_075",
+      "condition_index": 2,
+      "corrupted_depth_sha256": "187d69352229e0f0420385302b9b96d20549fcc309ab0cd87211647db158c450",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        2,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    },
+    {
+      "call_index": 3,
+      "condition": "blur_075",
+      "condition_index": 3,
+      "corrupted_depth_sha256": "00b7e9d49f89498f102e856668627da63c9f751ebf170a3915a60dbba310e25a",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        3,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    },
+    {
+      "call_index": 4,
+      "condition": "quantization_075",
+      "condition_index": 4,
+      "corrupted_depth_sha256": "a687b3318a5b0553890c55005bf214f299bb13fbbc3959ed06298531082b44da",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        4,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "74f92dce10bd796b36eae6f42a933b9c364b1abc1828ae2a740a069e854f68a8"
+    },
+    {
+      "call_index": 5,
+      "condition": "misalignment_075",
+      "condition_index": 5,
+      "corrupted_depth_sha256": "cdf7d5a429839594e6074d700fdf09e64d01aa85d703d4084b3f8bbb197cad42",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        5,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "48d045d2c421d381d90c4e6b787ec9625310bda51b4b325a73acaa16d549f23d"
+    },
+    {
+      "call_index": 6,
+      "condition": "entire_missing_100",
+      "condition_index": 6,
+      "corrupted_depth_sha256": "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        6,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "c92629b9093566efacbbdd23d8b9d648104ee5d31a9fcf40797108e4c186ed77"
+    },
+    {
+      "call_index": 7,
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_index": 7,
+      "corrupted_depth_sha256": "a34a8b1cc023fb5ee4f56a65fa243203db666f50d2cf0060bc2e7bb1098cba0c",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        7,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "8a38a0e6960ff6a36fc028d06e50ca415bb8d7f5df52b4c889883d03ee4d77ca"
+    },
+    {
+      "call_index": 8,
+      "condition": "blur_050__misalignment_050",
+      "condition_index": 8,
+      "corrupted_depth_sha256": "97441e92318327cdf553194b734cf813cf249322603092d0d42ab3442ccf7c0e",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        8,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "49c4fb235872a67395212429626a9f39577f678c8d1ce617f27254362f256ef8"
+    },
+    {
+      "call_index": 9,
+      "condition": "quantization_050__misalignment_050",
+      "condition_index": 9,
+      "corrupted_depth_sha256": "ae5ed1f0d2621594ee46c56889b82b785ee33a4dd7d5a9582f7efcc708fadd73",
+      "depth_bitwise_equal_raw": false,
+      "position": 2,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        9,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "specs": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "strict_no_op": false,
+      "validity_state_sha256": "60bf1585b13e0f524cd4b1291eb66661b044aca4f817e579019e9510800c2448"
+    }
+  ]
+}

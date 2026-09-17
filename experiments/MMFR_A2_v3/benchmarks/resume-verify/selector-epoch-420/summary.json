@@ -1,0 +1,171 @@
+{
+  "checkpoint": {
+    "file_name": "selector-epoch-420.pth",
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "condition_definition_sha256": "6b4b129dd72a6976bf069655ffd77cd59ec63218b46a5bceea40043d606d4225",
+  "coverage": {
+    "conditions_completed": [
+      "clean",
+      "entire_missing_100"
+    ],
+    "conditions_present": [
+      "clean",
+      "entire_missing_100"
+    ],
+    "conditions_requested": [
+      "clean",
+      "entire_missing_100"
+    ],
+    "is_full_ten_condition_full_val_dev": false
+  },
+  "duration_seconds": 32.147,
+  "evaluation_seed": 2026091401,
+  "evidence_kind": "museg-10condition-mainval-summary",
+  "groups": {
+    "clean": {
+      "conditions": {
+        "clean": {
+          "completed": true,
+          "condition_id": "clean",
+          "macc": 24.85,
+          "mf1": 23.93,
+          "miou": 21.85,
+          "sample_count": 3
+        }
+      },
+      "expected_conditions": [
+        "clean"
+      ],
+      "mean": {
+        "condition_count": 1,
+        "macc": 24.85,
+        "mf1": 23.93,
+        "miou": 21.85
+      }
+    },
+    "mixed_corruptions": {
+      "conditions": {},
+      "expected_conditions": [],
+      "mean": null
+    },
+    "single_corruptions": {
+      "conditions": {
+        "entire_missing_100": {
+          "completed": true,
+          "condition_id": "entire_missing@1.0",
+          "macc": 22.21,
+          "mf1": 21.53,
+          "miou": 18.15,
+          "sample_count": 3
+        }
+      },
+      "expected_conditions": [
+        "entire_missing_100"
+      ],
+      "mean": {
+        "condition_count": 1,
+        "macc": 22.21,
+        "mf1": 21.53,
+        "miou": 18.15
+      }
+    }
+  },
+  "max_samples_effective": 3,
+  "mean_over_all_conditions": {
+    "condition_count": 2,
+    "macc": 23.53,
+    "mf1": 22.73,
+    "miou": 20.0
+  },
+  "mean_over_corrupted_conditions": {
+    "condition_count": 1,
+    "macc": 22.21,
+    "mf1": 21.53,
+    "miou": 18.15
+  },
+  "official_test_included": false,
+  "order": "sample-major",
+  "protocol": {
+    "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+    "raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3"
+  },
+  "protocol_primary_score": {
+    "available": true,
+    "basis": "unweighted macro mean of the per-condition rounded mIoU values",
+    "computed_from": [
+      "entire_missing_100"
+    ],
+    "name": "unweighted-macro-mean-single-condition-mIoU",
+    "value": 18.15
+  },
+  "resume_decisions": [
+    {
+      "condition": "clean",
+      "condition_id": "clean",
+      "decision": "pending",
+      "existing_completed": true,
+      "existing_identity_sha256": "0c194b6c947d71d17f43ee56fd0b63b20a29b8f8c2c18968ff0c99c46f273098",
+      "expected_identity_sha256": "d7184bf54a16c9878c7cee1e633122b5b771b5cc5c0630f1b3e4fb58b327fb17",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\selector-epoch-420\\clean\\metrics.json",
+      "mismatched_identity_fields": [
+        "max_samples",
+        "sample_count",
+        "sample_set_sha256"
+      ],
+      "reason": "existing identity does not match; subset or drifted evidence is never reused"
+    },
+    {
+      "condition": "entire_missing_100",
+      "condition_id": "entire_missing@1.0",
+      "decision": "pending",
+      "existing_completed": true,
+      "existing_identity_sha256": "f928ec28789e7cd46c694c54d3fd0e24380fab0234b642c4435c97d46bf79410",
+      "expected_identity_sha256": "bef1050d2d4dd5513ed041fc6c4a2c582daaf94e99d0d14de72f9055506f6a3b",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\selector-epoch-420\\entire_missing_100\\metrics.json",
+      "mismatched_identity_fields": [
+        "max_samples",
+        "sample_count",
+        "sample_set_sha256"
+      ],
+      "reason": "existing identity does not match; subset or drifted evidence is never reused"
+    }
+  ],
+  "runner": {
+    "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
+    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+  },
+  "sample_count": 3,
+  "sample_count_source": "stored per-condition metrics.json (not the current invocation)",
+  "sample_set_sha256": "841d06cab06f6dabf63f2c9c43f7350409732482665eeddd99fdf25f4d207b9c",
+  "schema_version": "museg-10condition-mainval-evidence-v1",
+  "scoring_note": "only descriptive group means and the frozen primary score are reported; no additional checkpoint-selection score is defined here",
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "role": "val_dev",
+    "sample_count_total": 318,
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "stored_sample_counts": [
+    3
+  ],
+  "stored_sample_set_sha256": [
+    "841d06cab06f6dabf63f2c9c43f7350409732482665eeddd99fdf25f4d207b9c"
+  ],
+  "subset": true,
+  "timestamp_utc": "2026-09-17T01:37:27.379923+00:00",
+  "view_batching": {
+    "effective": {
+      "0.5": 2,
+      "0.75": 1,
+      "1.0": 1,
+      "1.25": 1,
+      "1.5": 1
+    },
+    "rationale": "frozen per-scale choice recorded by the verified micro-batch probe",
+    "requested_view_batching": 2,
+    "source": "experiments\\MMFR_A2_v3\\benchmarks\\microbatch-strategy-final.json",
+    "source_sha256": "a1e90e08658a7d93751fd358fc9f9f2ac6a009ec3aef7896bb57fd713dcd7eaf"
+  }
+}

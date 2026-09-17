@@ -203,6 +203,15 @@ cloud/
 # Machine-local materialized training protocol manifests
 protocols/generated/
 
+# Machine-local experiment assets: large binaries, caches and prediction dumps stay out of Git.
+# Small structured evidence (benchmarks/, logs/ and future eval_results/ JSON) is intentionally kept
+# so that the verification results and the formal main-val metrics travel with the repository.
+# Note: a bare `checkpoints` pattern (above) already ignores experiments/**/checkpoints/.
+experiments/**/eval_cache/
+experiments/**/tb/
+experiments/**/*.npz
+experiments/**/*.pth
+
 .history
 *.ipynb
 pyrightconfig.json

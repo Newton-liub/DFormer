@@ -1,0 +1,1315 @@
+{
+  "check_count": 30,
+  "checkpoint": {
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "checks": [
+    {
+      "bitwise_equal_raw_depth": true,
+      "changed_pixels": 0,
+      "condition": "clean",
+      "condition_id": "clean",
+      "empty_spec_apply_failures_bitwise_equal_raw_depth": true,
+      "group": "clean",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": false,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        0,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "state_matches_uint8_sentinel": true,
+      "validity_state_equals_depth_positive": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "spatial_dropout_075",
+      "condition_id": "spatial_dropout@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        1,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "gaussian_noise_075",
+      "condition_id": "gaussian_noise@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        2,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "blur_075",
+      "condition_id": "blur@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        3,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "quantization_075",
+      "condition_id": "quantization@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        4,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "misalignment_075",
+      "condition_id": "misalignment@0.75",
+      "dx_px": 0,
+      "dy_px": -4,
+      "expected_invalid_pixels": 4328,
+      "expected_spec_order": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.004291845493562232,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 27.05,
+      "max_shift_y_px": 23.3,
+      "misalignment_spec_position": 0,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 4328,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        5,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "condition": "entire_missing_100",
+      "condition_id": "entire_missing@1.0",
+      "entire_missing_all_zero_depth": true,
+      "entire_missing_missing_fraction": 1.0,
+      "entire_missing_state_all_false": true,
+      "expected_spec_order": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        6,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+      "expected_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        7,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "blur_050__misalignment_050",
+      "condition_id": "blur@0.5+misalignment@0.5",
+      "dx_px": -3,
+      "dy_px": 12,
+      "expected_invalid_pixels": 15744,
+      "expected_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.015612480464566493,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 18.03333333333333,
+      "max_shift_y_px": 15.533333333333333,
+      "misalignment_spec_position": 1,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 15744,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        8,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "quantization_050__misalignment_050",
+      "condition_id": "quantization@0.5+misalignment@0.5",
+      "dx_px": -7,
+      "dy_px": -3,
+      "expected_invalid_pixels": 9749,
+      "expected_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.009667560470595702,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 18.03333333333333,
+      "max_shift_y_px": 15.533333333333333,
+      "misalignment_spec_position": 1,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 9749,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121121-08-99",
+      "seed_words": [
+        2026091401,
+        9,
+        96155078,
+        629898586,
+        1696300807,
+        2672834079
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "bitwise_equal_raw_depth": true,
+      "changed_pixels": 0,
+      "condition": "clean",
+      "condition_id": "clean",
+      "empty_spec_apply_failures_bitwise_equal_raw_depth": true,
+      "group": "clean",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": false,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        0,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "state_matches_uint8_sentinel": true,
+      "validity_state_equals_depth_positive": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "spatial_dropout_075",
+      "condition_id": "spatial_dropout@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        1,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "gaussian_noise_075",
+      "condition_id": "gaussian_noise@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        2,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "blur_075",
+      "condition_id": "blur@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        3,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "quantization_075",
+      "condition_id": "quantization@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        4,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "misalignment_075",
+      "condition_id": "misalignment@0.75",
+      "dx_px": -9,
+      "dy_px": 3,
+      "expected_invalid_pixels": 11607,
+      "expected_spec_order": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.01151003942785971,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 27.05,
+      "max_shift_y_px": 23.3,
+      "misalignment_spec_position": 0,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 11607,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        5,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "condition": "entire_missing_100",
+      "condition_id": "entire_missing@1.0",
+      "entire_missing_all_zero_depth": true,
+      "entire_missing_missing_fraction": 1.0,
+      "entire_missing_state_all_false": true,
+      "expected_spec_order": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        6,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+      "expected_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        7,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "blur_050__misalignment_050",
+      "condition_id": "blur@0.5+misalignment@0.5",
+      "dx_px": 12,
+      "dy_px": 8,
+      "expected_invalid_pixels": 19744,
+      "expected_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.019579065948450255,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 18.03333333333333,
+      "max_shift_y_px": 15.533333333333333,
+      "misalignment_spec_position": 1,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 19744,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        8,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "quantization_050__misalignment_050",
+      "condition_id": "quantization@0.5+misalignment@0.5",
+      "dx_px": -9,
+      "dy_px": -13,
+      "expected_invalid_pixels": 22337,
+      "expected_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.022150404988377906,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 18.03333333333333,
+      "max_shift_y_px": 15.533333333333333,
+      "misalignment_spec_position": 1,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 22337,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "03-01-01-0066-240526121123-12-99",
+      "seed_words": [
+        2026091401,
+        9,
+        3821496342,
+        4014891801,
+        3607187354,
+        2833581603
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "bitwise_equal_raw_depth": true,
+      "changed_pixels": 0,
+      "condition": "clean",
+      "condition_id": "clean",
+      "empty_spec_apply_failures_bitwise_equal_raw_depth": true,
+      "group": "clean",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": false,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        0,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "state_matches_uint8_sentinel": true,
+      "validity_state_equals_depth_positive": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "spatial_dropout_075",
+      "condition_id": "spatial_dropout@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        1,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "gaussian_noise_075",
+      "condition_id": "gaussian_noise@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        2,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "blur_075",
+      "condition_id": "blur@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        3,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "quantization_075",
+      "condition_id": "quantization@0.75",
+      "expected_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        4,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "condition": "misalignment_075",
+      "condition_id": "misalignment@0.75",
+      "dx_px": 24,
+      "dy_px": -20,
+      "expected_invalid_pixels": 43528,
+      "expected_spec_order": [
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.75
+        }
+      ],
+      "group": "single_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.04316438323562311,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 27.05,
+      "max_shift_y_px": 23.3,
+      "misalignment_spec_position": 0,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 43528,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        5,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "condition": "entire_missing_100",
+      "condition_id": "entire_missing@1.0",
+      "entire_missing_all_zero_depth": true,
+      "entire_missing_missing_fraction": 1.0,
+      "entire_missing_state_all_false": true,
+      "expected_spec_order": [
+        {
+          "kind": "entire_missing",
+          "modality": "depth",
+          "severity": 1.0
+        }
+      ],
+      "group": "single_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        6,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+      "expected_spec_order": [
+        {
+          "kind": "spatial_dropout",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "gaussian_noise",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        7,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "blur_050__misalignment_050",
+      "condition_id": "blur@0.5+misalignment@0.5",
+      "dx_px": 4,
+      "dy_px": -14,
+      "expected_invalid_pixels": 18820,
+      "expected_spec_order": [
+        {
+          "kind": "blur",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.018662784701673107,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 18.03333333333333,
+      "max_shift_y_px": 15.533333333333333,
+      "misalignment_spec_position": 1,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 18820,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        8,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    },
+    {
+      "applied_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "condition": "quantization_050__misalignment_050",
+      "condition_id": "quantization@0.5+misalignment@0.5",
+      "dx_px": 15,
+      "dy_px": 14,
+      "expected_invalid_pixels": 28918,
+      "expected_spec_order": [
+        {
+          "kind": "quantization",
+          "modality": "depth",
+          "severity": 0.5
+        },
+        {
+          "kind": "misalignment",
+          "modality": "depth",
+          "severity": 0.5
+        }
+      ],
+      "group": "mixed_corruptions",
+      "invalid_fraction_identity_holds": true,
+      "invalid_fraction_reported": 0.028676429755737667,
+      "invalid_pixel_count_identity_holds": true,
+      "max_shift_x_px": 18.03333333333333,
+      "max_shift_y_px": 15.533333333333333,
+      "misalignment_spec_position": 1,
+      "nonzero_shift_enforced": true,
+      "raw_size_hw": [
+        932,
+        1082
+      ],
+      "reported_invalid_pixels": 28918,
+      "rgb_bitwise_equal_raw": true,
+      "rng_constructed": true,
+      "sample_id": "01-01-01-0163-240523093820-02-99",
+      "seed_words": [
+        2026091401,
+        9,
+        3648273037,
+        1548831003,
+        2218486591,
+        2214923903
+      ],
+      "spec_order_matches_frozen_definition": true,
+      "state_matches_uint8_sentinel": true,
+      "transport_declared": "integer-translate-depth-and-validity-together",
+      "within_frozen_axis_bounds": true
+    }
+  ],
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --verify condition-sanity --verify-samples 3 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-condition-sanity.json' --quiet",
+  "condition_count": 10,
+  "duration_seconds": 1.53,
+  "environment": {
+    "cuda": "12.8",
+    "cudnn": 90701,
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "numpy": "2.3.5",
+    "os": "Windows-11-10.0.26200-SP0",
+    "pid": 51632,
+    "python": "3.13.9",
+    "tf32_enabled": false,
+    "torch": "2.7.0+cu128"
+  },
+  "evaluation_seed": 2026091401,
+  "evidence_kind": "museg-10condition-verification-condition-sanity",
+  "exit_code": 0,
+  "failures": [],
+  "frozen_definitions": {
+    "blur": "mask-normalized blur, sigma = severity * 0.0125 * min(H, W)",
+    "clean": "strict no-op; no random draw; bitwise identical to the raw Depth",
+    "entire_missing": "severity 1.0; the whole Depth plane is cleared and V_state becomes all-false",
+    "misalignment": "one integer dy/dx translation, |dy| <= severity * 0.03333333333333333 * H and |dx| <= severity * 0.03333333333333333 * W, Depth and validity transported together (MID-A)",
+    "mixed": "two specs applied in the frozen protocol order"
+  },
+  "generated_at_utc": "2026-09-17T01:31:53.169008+00:00",
+  "official_test_included": false,
+  "protocol": {
+    "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+    "raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3"
+  },
+  "runner": {
+    "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
+    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+  },
+  "sample_count": 3,
+  "schema_version": "museg-10condition-mainval-verification-v1",
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,337 @@
+{
+  "checkpoint": {
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --verify timing --verify-samples 8 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-timing-first8.json' --quiet",
+  "condition_count": 10,
+  "conditions": [
+    {
+      "condition": "clean",
+      "condition_id": "clean",
+      "elapsed_seconds": 36.875326,
+      "forward_seconds": 33.806317,
+      "mean_seconds_per_sample": 4.609416,
+      "peak_allocated_bytes": 4928956416,
+      "peak_allocated_mib": 4700.619,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.407801,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.930407,
+        4.333656,
+        4.760977,
+        4.809797,
+        4.666614,
+        4.322979,
+        4.612197,
+        4.438699
+      ]
+    },
+    {
+      "condition": "spatial_dropout_075",
+      "condition_id": "spatial_dropout@0.75",
+      "elapsed_seconds": 35.930801,
+      "forward_seconds": 32.749549,
+      "mean_seconds_per_sample": 4.49135,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.535893,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.506116,
+        4.380249,
+        4.735378,
+        4.664146,
+        4.473363,
+        4.334415,
+        4.448158,
+        4.388975
+      ]
+    },
+    {
+      "condition": "gaussian_noise_075",
+      "condition_id": "gaussian_noise@0.75",
+      "elapsed_seconds": 37.486009,
+      "forward_seconds": 34.206411,
+      "mean_seconds_per_sample": 4.685751,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.624452,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.536591,
+        4.332292,
+        5.066655,
+        4.749702,
+        4.716298,
+        5.220169,
+        4.477665,
+        4.386635
+      ]
+    },
+    {
+      "condition": "blur_075",
+      "condition_id": "blur@0.75",
+      "elapsed_seconds": 36.481483,
+      "forward_seconds": 33.222762,
+      "mean_seconds_per_sample": 4.560185,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.59365,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.663025,
+        4.346925,
+        4.867194,
+        4.64381,
+        4.678473,
+        4.309109,
+        4.45135,
+        4.521596
+      ]
+    },
+    {
+      "condition": "quantization_075",
+      "condition_id": "quantization@0.75",
+      "elapsed_seconds": 37.051711,
+      "forward_seconds": 33.819336,
+      "mean_seconds_per_sample": 4.631464,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.612047,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.977529,
+        4.305634,
+        4.890158,
+        4.663698,
+        4.938195,
+        4.424803,
+        4.46226,
+        4.389435
+      ]
+    },
+    {
+      "condition": "misalignment_075",
+      "condition_id": "misalignment@0.75",
+      "elapsed_seconds": 37.72425,
+      "forward_seconds": 34.513476,
+      "mean_seconds_per_sample": 4.715531,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.592105,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.432406,
+        4.309715,
+        4.651483,
+        4.534045,
+        5.307351,
+        5.633,
+        4.519986,
+        4.336264
+      ]
+    },
+    {
+      "condition": "entire_missing_100",
+      "condition_id": "entire_missing@1.0",
+      "elapsed_seconds": 36.189435,
+      "forward_seconds": 32.951545,
+      "mean_seconds_per_sample": 4.523679,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.601936,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.349452,
+        4.445849,
+        4.55672,
+        4.81558,
+        4.56416,
+        4.49288,
+        4.457175,
+        4.507618
+      ]
+    },
+    {
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+      "elapsed_seconds": 36.685114,
+      "forward_seconds": 33.356753,
+      "mean_seconds_per_sample": 4.585639,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.712448,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.38573,
+        4.493343,
+        5.208806,
+        4.566751,
+        4.422291,
+        4.412199,
+        4.507675,
+        4.688319
+      ]
+    },
+    {
+      "condition": "blur_050__misalignment_050",
+      "condition_id": "blur@0.5+misalignment@0.5",
+      "elapsed_seconds": 36.174183,
+      "forward_seconds": 32.955854,
+      "mean_seconds_per_sample": 4.521773,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.589061,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.351722,
+        4.785967,
+        4.5465,
+        4.705676,
+        4.348599,
+        4.462067,
+        4.506058,
+        4.467594
+      ]
+    },
+    {
+      "condition": "quantization_050__misalignment_050",
+      "condition_id": "quantization@0.5+misalignment@0.5",
+      "elapsed_seconds": 36.723376,
+      "forward_seconds": 33.47651,
+      "mean_seconds_per_sample": 4.590422,
+      "peak_allocated_bytes": 4928825344,
+      "peak_allocated_mib": 4700.494,
+      "peak_reserved_bytes": 6897532928,
+      "peak_reserved_mib": 6578.0,
+      "preprocess_including_corruption_seconds": 2.566546,
+      "sample_count": 8,
+      "sample_elapsed_seconds": [
+        4.275027,
+        4.885965,
+        4.703318,
+        4.491179,
+        4.38147,
+        4.99383,
+        4.593458,
+        4.399128
+      ]
+    }
+  ],
+  "device_memory": {
+    "free_mib": 1178.723,
+    "total_mib": 8150.562
+  },
+  "duration_seconds": 377.083,
+  "environment": {
+    "cuda": "12.8",
+    "cudnn": 90701,
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "numpy": "2.3.5",
+    "os": "Windows-11-10.0.26200-SP0",
+    "pid": 50608,
+    "python": "3.13.9",
+    "tf32_enabled": false,
+    "torch": "2.7.0+cu128"
+  },
+  "evaluation_seed": 2026091401,
+  "evidence_kind": "museg-10condition-verification-timing",
+  "exit_code": 0,
+  "extrapolation": {
+    "assumptions": [
+      "the ten-view FP32 forward dominates the unit cost, so cost scales with (samples x conditions)",
+      "the first samples of val-dev are representative of the whole 318-sample split; no per-sample size weighting is applied",
+      "the same checkpoint and the same view-batching strategy are used",
+      "four checkpoints are evaluated sequentially on the same GPU with no other workload",
+      "corruption and view assembly are inside the unit timer; sample reading and the per-sample RGB view cache are added once per sample",
+      "model load time, dataset warm-up and per-run overhead are excluded"
+    ],
+    "four_checkpoints_flat_hours": 16.311,
+    "four_checkpoints_sample_weighted_hours": 16.223,
+    "measured_condition_count": 10,
+    "measured_sample_count": 8,
+    "one_checkpoint_flat_hours": 4.078,
+    "one_checkpoint_flat_seconds": 14679.813,
+    "one_checkpoint_sample_weighted_hours": 4.056,
+    "target_samples": 318
+  },
+  "failures": [],
+  "generated_at_utc": "2026-09-17T01:37:41.063394+00:00",
+  "max_unit_seconds": 5.633,
+  "mean_seconds_per_sample_all_conditions": 45.915211,
+  "mean_seconds_per_unit": 4.591521,
+  "min_unit_seconds": 4.275027,
+  "official_test_included": false,
+  "order": "sample-major",
+  "overall_peak_device_memory": {
+    "allocated_bytes": 4928825344,
+    "allocated_mib": 4700.494,
+    "reserved_bytes": 6897532928,
+    "reserved_mib": 6578.0
+  },
+  "per_sample_read_and_cache_seconds": 0.247723,
+  "protocol": {
+    "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+    "raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3"
+  },
+  "read_seconds_total": 0.137232,
+  "rgb_cache_seconds_total": 1.844552,
+  "runner": {
+    "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
+    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+  },
+  "sample_count": 8,
+  "schema_version": "museg-10condition-mainval-verification-v1",
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "status": "PASS",
+  "total_seconds": 373.935,
+  "unit_count": 80,
+  "view_batching": {
+    "effective": {
+      "0.5": 2,
+      "0.75": 1,
+      "1.0": 1,
+      "1.25": 1,
+      "1.5": 1
+    },
+    "rationale": "frozen per-scale choice recorded by the verified micro-batch probe",
+    "requested_view_batching": 2,
+    "source": "experiments\\MMFR_A2_v3\\benchmarks\\microbatch-strategy-final.json",
+    "source_sha256": "a1e90e08658a7d93751fd358fc9f9f2ac6a009ec3aef7896bb57fd713dcd7eaf"
+  },
+  "written_metrics": [
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\clean\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\spatial_dropout_075\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\gaussian_noise_075\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\blur_075\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\quantization_075\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\misalignment_075\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\entire_missing_100\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\spatial_dropout_050__gaussian_noise_050\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\blur_050__misalignment_050\\metrics.json",
+    "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\timing-run\\selector-epoch-420\\quantization_050__misalignment_050\\metrics.json"
+  ]
+}

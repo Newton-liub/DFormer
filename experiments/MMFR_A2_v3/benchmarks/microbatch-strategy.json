@@ -1,0 +1,759 @@
+{
+  "schema_version": "museg-checkpoint-fast-evidence-v1",
+  "generated_at_utc": "2026-09-16T18:06:29.106181+00:00",
+  "status": "completed",
+  "official_test_included": false,
+  "command_line": "python -m tools.evaluate_museg_checkpoint_fast --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --output 'experiments\\MMFR_A2_v3\\benchmarks\\microbatch-strategy.json' --config local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3 --device cuda --max-samples 1 --view-batching 2 --mode optimized --num-workers 0 --pin-memory --microbatch-probe --microbatch-repeats 3 --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+  "mode": "optimized",
+  "requested_view_batching": 2,
+  "sample_selection": "first",
+  "max_samples": 1,
+  "forward_precision": "fp32",
+  "logits_fusion_precision": "fp32",
+  "tf32_enabled": false,
+  "frozen_evaluator_module": "tools.evaluate_museg_checkpoint as EV",
+  "reused_frozen_functions": [
+    "EV.configure_fp32_forward",
+    "EV.load_model",
+    "EV.MUSegPostEvalDataset",
+    "EV.MSFLIP_GEOMETRY",
+    "EV.build_msflip_views",
+    "EV.msflip_whole_logits",
+    "EV.restore_logits_to_metric_grid",
+    "EV.update_confusion",
+    "EV.metrics_from_confusion",
+    "EV.apply_channel_order"
+  ],
+  "optimized_postprocess_contract": [
+    "F.interpolate to padded_size_hw",
+    "crop to scaled_size_hw",
+    "torch.flip(dims=(-1,)) when flipped",
+    "F.interpolate to original label grid",
+    "FP32 sum then arithmetic mean over ten views"
+  ],
+  "dataset_root": "D:\\0Project\\dataset\\MUSeg_DFormer",
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+    "sample_count": 318
+  },
+  "selected_entries": [
+    "RGB/03-01-01-0066-240526121121-08-99.jpg"
+  ],
+  "checkpoint": {
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "config_module": "local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3",
+  "model": "DFormerv2_S",
+  "input_contract": {
+    "channel_order": "RGB",
+    "normalization": {
+      "identity": "rgb-imagenet-rgb-order-v1",
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    }
+  },
+  "environment": {
+    "python": "3.13.9",
+    "torch": "2.7.0+cu128",
+    "cuda": "12.8",
+    "cudnn": 90701,
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "tf32_enabled": false,
+    "os": "Windows-11-10.0.26200-SP0",
+    "pid": 44372
+  },
+  "model_load_seconds": 2.659684,
+  "data_loader_requested": {
+    "num_workers": 0,
+    "pin_memory": true,
+    "persistent_workers": false,
+    "prefetch_factor": 2
+  },
+  "microbatch_probe": {
+    "status": "completed",
+    "sample_id": "06-01-01-0352-230920140646-10-99",
+    "sample_entry": "RGB/06-01-01-0352-230920140646-10-99.jpg",
+    "repeats_requested": 3,
+    "order": "batch1 scales small-to-large, then batch2 scales small-to-large",
+    "oom_policy": "one OOM is recorded; later batch2 scales are skipped after the first OOM",
+    "measurements": {
+      "1": {
+        "0.5": {
+          "status": "completed",
+          "scale": 0.5,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.645965,
+              "forward_seconds": 0.6291,
+              "postprocess_seconds": 0.016865,
+              "peak_memory": {
+                "allocated_bytes": 402999808,
+                "reserved_bytes": 557842432,
+                "allocated_mib": 384.331,
+                "reserved_mib": 532.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7766.231,
+                "peak_reserved_margin_mib": 7618.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.180548,
+              "forward_seconds": 0.175677,
+              "postprocess_seconds": 0.004871,
+              "peak_memory": {
+                "allocated_bytes": 401881600,
+                "reserved_bytes": 578813952,
+                "allocated_mib": 383.264,
+                "reserved_mib": 552.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7767.298,
+                "peak_reserved_margin_mib": 7598.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.169838,
+              "forward_seconds": 0.165746,
+              "postprocess_seconds": 0.004092,
+              "peak_memory": {
+                "allocated_bytes": 401881600,
+                "reserved_bytes": 578813952,
+                "allocated_mib": 383.264,
+                "reserved_mib": 552.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7767.298,
+                "peak_reserved_margin_mib": 7598.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.332117,
+          "mean_peak_allocated_mib": 383.62,
+          "mean_peak_reserved_mib": 545.333
+        },
+        "0.75": {
+          "status": "completed",
+          "scale": 0.75,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.338204,
+              "forward_seconds": 0.337197,
+              "postprocess_seconds": 0.001007,
+              "peak_memory": {
+                "allocated_bytes": 850274304,
+                "reserved_bytes": 1126170624,
+                "allocated_mib": 810.885,
+                "reserved_mib": 1074.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7339.677,
+                "peak_reserved_margin_mib": 7076.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.292798,
+              "forward_seconds": 0.291367,
+              "postprocess_seconds": 0.001431,
+              "peak_memory": {
+                "allocated_bytes": 850274304,
+                "reserved_bytes": 1126170624,
+                "allocated_mib": 810.885,
+                "reserved_mib": 1074.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7339.677,
+                "peak_reserved_margin_mib": 7076.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.294907,
+              "forward_seconds": 0.293616,
+              "postprocess_seconds": 0.00129,
+              "peak_memory": {
+                "allocated_bytes": 850274304,
+                "reserved_bytes": 1126170624,
+                "allocated_mib": 810.885,
+                "reserved_mib": 1074.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7339.677,
+                "peak_reserved_margin_mib": 7076.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.308636,
+          "mean_peak_allocated_mib": 810.885,
+          "mean_peak_reserved_mib": 1074.0
+        },
+        "1.0": {
+          "status": "completed",
+          "scale": 1.0,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.662751,
+              "forward_seconds": 0.661394,
+              "postprocess_seconds": 0.001357,
+              "peak_memory": {
+                "allocated_bytes": 1708861440,
+                "reserved_bytes": 2113929216,
+                "allocated_mib": 1629.697,
+                "reserved_mib": 2016.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6520.865,
+                "peak_reserved_margin_mib": 6134.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.658617,
+              "forward_seconds": 0.65723,
+              "postprocess_seconds": 0.001387,
+              "peak_memory": {
+                "allocated_bytes": 1708861440,
+                "reserved_bytes": 2113929216,
+                "allocated_mib": 1629.697,
+                "reserved_mib": 2016.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6520.865,
+                "peak_reserved_margin_mib": 6134.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.652858,
+              "forward_seconds": 0.651663,
+              "postprocess_seconds": 0.001195,
+              "peak_memory": {
+                "allocated_bytes": 1708861440,
+                "reserved_bytes": 2113929216,
+                "allocated_mib": 1629.697,
+                "reserved_mib": 2016.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6520.865,
+                "peak_reserved_margin_mib": 6134.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.658075,
+          "mean_peak_allocated_mib": 1629.697,
+          "mean_peak_reserved_mib": 2016.0
+        },
+        "1.25": {
+          "status": "completed",
+          "scale": 1.25,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 1.270428,
+              "forward_seconds": 1.268627,
+              "postprocess_seconds": 0.001801,
+              "peak_memory": {
+                "allocated_bytes": 3066062848,
+                "reserved_bytes": 3944742912,
+                "allocated_mib": 2924.025,
+                "reserved_mib": 3762.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5226.537,
+                "peak_reserved_margin_mib": 4388.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 1.272938,
+              "forward_seconds": 1.270184,
+              "postprocess_seconds": 0.002754,
+              "peak_memory": {
+                "allocated_bytes": 3066062848,
+                "reserved_bytes": 3944742912,
+                "allocated_mib": 2924.025,
+                "reserved_mib": 3762.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5226.537,
+                "peak_reserved_margin_mib": 4388.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 1.245755,
+              "forward_seconds": 1.244046,
+              "postprocess_seconds": 0.001709,
+              "peak_memory": {
+                "allocated_bytes": 3066062848,
+                "reserved_bytes": 3944742912,
+                "allocated_mib": 2924.025,
+                "reserved_mib": 3762.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5226.537,
+                "peak_reserved_margin_mib": 4388.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 1.26304,
+          "mean_peak_allocated_mib": 2924.025,
+          "mean_peak_reserved_mib": 3762.0
+        },
+        "1.5": {
+          "status": "completed",
+          "scale": 1.5,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 2.231561,
+              "forward_seconds": 2.227738,
+              "postprocess_seconds": 0.003823,
+              "peak_memory": {
+                "allocated_bytes": 4929497088,
+                "reserved_bytes": 6473908224,
+                "allocated_mib": 4701.135,
+                "reserved_mib": 6174.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 3449.427,
+                "peak_reserved_margin_mib": 1976.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 2.120582,
+              "forward_seconds": 2.118092,
+              "postprocess_seconds": 0.00249,
+              "peak_memory": {
+                "allocated_bytes": 4929497088,
+                "reserved_bytes": 6473908224,
+                "allocated_mib": 4701.135,
+                "reserved_mib": 6174.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 3449.427,
+                "peak_reserved_margin_mib": 1976.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 2.133179,
+              "forward_seconds": 2.130117,
+              "postprocess_seconds": 0.003063,
+              "peak_memory": {
+                "allocated_bytes": 4929497088,
+                "reserved_bytes": 6473908224,
+                "allocated_mib": 4701.135,
+                "reserved_mib": 6174.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 3449.427,
+                "peak_reserved_margin_mib": 1976.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 2.161774,
+          "mean_peak_allocated_mib": 4701.135,
+          "mean_peak_reserved_mib": 6174.0
+        }
+      },
+      "2": {
+        "0.5": {
+          "status": "completed",
+          "scale": 0.5,
+          "padded_size_hw": [
+            480,
+            544
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.188699,
+              "forward_seconds": 0.18733,
+              "postprocess_seconds": 0.001369,
+              "peak_memory": {
+                "allocated_bytes": 553667072,
+                "reserved_bytes": 662700032,
+                "allocated_mib": 528.018,
+                "reserved_mib": 632.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7622.544,
+                "peak_reserved_margin_mib": 7518.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.129122,
+              "forward_seconds": 0.127797,
+              "postprocess_seconds": 0.001325,
+              "peak_memory": {
+                "allocated_bytes": 553667072,
+                "reserved_bytes": 662700032,
+                "allocated_mib": 528.018,
+                "reserved_mib": 632.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7622.544,
+                "peak_reserved_margin_mib": 7518.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.126705,
+              "forward_seconds": 0.125134,
+              "postprocess_seconds": 0.001572,
+              "peak_memory": {
+                "allocated_bytes": 553667072,
+                "reserved_bytes": 662700032,
+                "allocated_mib": 528.018,
+                "reserved_mib": 632.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 7622.544,
+                "peak_reserved_margin_mib": 7518.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.148175,
+          "mean_peak_allocated_mib": 528.018,
+          "mean_peak_reserved_mib": 632.0
+        },
+        "0.75": {
+          "status": "completed",
+          "scale": 0.75,
+          "padded_size_hw": [
+            704,
+            832
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.306268,
+              "forward_seconds": 0.304416,
+              "postprocess_seconds": 0.001852,
+              "peak_memory": {
+                "allocated_bytes": 1452108288,
+                "reserved_bytes": 1835008000,
+                "allocated_mib": 1384.838,
+                "reserved_mib": 1750.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6765.724,
+                "peak_reserved_margin_mib": 6400.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.300952,
+              "forward_seconds": 0.299232,
+              "postprocess_seconds": 0.001721,
+              "peak_memory": {
+                "allocated_bytes": 1452108288,
+                "reserved_bytes": 1835008000,
+                "allocated_mib": 1384.838,
+                "reserved_mib": 1750.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6765.724,
+                "peak_reserved_margin_mib": 6400.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.302544,
+              "forward_seconds": 0.300737,
+              "postprocess_seconds": 0.001808,
+              "peak_memory": {
+                "allocated_bytes": 1452108288,
+                "reserved_bytes": 1835008000,
+                "allocated_mib": 1384.838,
+                "reserved_mib": 1750.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 6765.724,
+                "peak_reserved_margin_mib": 6400.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.303255,
+          "mean_peak_allocated_mib": 1384.838,
+          "mean_peak_reserved_mib": 1750.0
+        },
+        "1.0": {
+          "status": "completed",
+          "scale": 1.0,
+          "padded_size_hw": [
+            960,
+            1088
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 0.677497,
+              "forward_seconds": 0.67545,
+              "postprocess_seconds": 0.002047,
+              "peak_memory": {
+                "allocated_bytes": 3158436352,
+                "reserved_bytes": 4076863488,
+                "allocated_mib": 3012.12,
+                "reserved_mib": 3888.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5138.442,
+                "peak_reserved_margin_mib": 4262.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 0.693289,
+              "forward_seconds": 0.691036,
+              "postprocess_seconds": 0.002253,
+              "peak_memory": {
+                "allocated_bytes": 3158436352,
+                "reserved_bytes": 4076863488,
+                "allocated_mib": 3012.12,
+                "reserved_mib": 3888.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5138.442,
+                "peak_reserved_margin_mib": 4262.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 0.6964,
+              "forward_seconds": 0.694165,
+              "postprocess_seconds": 0.002234,
+              "peak_memory": {
+                "allocated_bytes": 3158436352,
+                "reserved_bytes": 4076863488,
+                "allocated_mib": 3012.12,
+                "reserved_mib": 3888.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 5138.442,
+                "peak_reserved_margin_mib": 4262.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 0.689062,
+          "mean_peak_allocated_mib": 3012.12,
+          "mean_peak_reserved_mib": 3888.0
+        },
+        "1.25": {
+          "status": "completed",
+          "scale": 1.25,
+          "padded_size_hw": [
+            1184,
+            1376
+          ],
+          "attempts": 3,
+          "repeats": [
+            {
+              "repeat": 0,
+              "ten_views_seconds": 2.308645,
+              "forward_seconds": 2.29222,
+              "postprocess_seconds": 0.016425,
+              "peak_memory": {
+                "allocated_bytes": 5875108352,
+                "reserved_bytes": 6742343680,
+                "allocated_mib": 5602.94,
+                "reserved_mib": 6430.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 2547.622,
+                "peak_reserved_margin_mib": 1720.562
+              }
+            },
+            {
+              "repeat": 1,
+              "ten_views_seconds": 2.595064,
+              "forward_seconds": 2.577208,
+              "postprocess_seconds": 0.017856,
+              "peak_memory": {
+                "allocated_bytes": 5875108352,
+                "reserved_bytes": 6742343680,
+                "allocated_mib": 5602.94,
+                "reserved_mib": 6430.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 2547.622,
+                "peak_reserved_margin_mib": 1720.562
+              }
+            },
+            {
+              "repeat": 2,
+              "ten_views_seconds": 1.684058,
+              "forward_seconds": 1.681349,
+              "postprocess_seconds": 0.002709,
+              "peak_memory": {
+                "allocated_bytes": 5875108352,
+                "reserved_bytes": 6742343680,
+                "allocated_mib": 5602.94,
+                "reserved_mib": 6430.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 2547.622,
+                "peak_reserved_margin_mib": 1720.562
+              }
+            }
+          ],
+          "mean_ten_views_seconds": 2.195922,
+          "mean_peak_allocated_mib": 5602.94,
+          "mean_peak_reserved_mib": 6430.0
+        },
+        "1.5": {
+          "status": "OOM",
+          "scale": 1.5,
+          "padded_size_hw": [
+            1408,
+            1632
+          ],
+          "attempts": 1,
+          "repeats": [
+            {
+              "repeat": 0,
+              "status": "OOM",
+              "error": "CUDA out of memory. Tried to allocate 1.75 GiB. GPU 0 has a total capacity of 7.96 GiB of which 0 bytes is free. Of the allocated memory 6.89 GiB is allocated by PyTorch, and 141.63 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+              "peak_memory": {
+                "allocated_bytes": 7392851456,
+                "reserved_bytes": 7541358592,
+                "allocated_mib": 7050.373,
+                "reserved_mib": 7192.0
+              },
+              "memory_margin": {
+                "total_mib": 8150.562,
+                "peak_allocated_margin_mib": 1100.189,
+                "peak_reserved_margin_mib": 958.562
+              }
+            }
+          ],
+          "oom_error": "CUDA out of memory. Tried to allocate 1.75 GiB. GPU 0 has a total capacity of 7.96 GiB of which 0 bytes is free. Of the allocated memory 6.89 GiB is allocated by PyTorch, and 141.63 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)",
+          "fallback": "batch1"
+        }
+      }
+    },
+    "fixed_strategy": {
+      "0.5": {
+        "scale": 0.5,
+        "padded_size_hw": [
+          480,
+          544
+        ],
+        "selected_view_batching": 2,
+        "reason": "batch2 completed, faster, and peak reserved memory stayed below 90% of device capacity"
+      },
+      "0.75": {
+        "scale": 0.75,
+        "padded_size_hw": [
+          704,
+          832
+        ],
+        "selected_view_batching": 2,
+        "reason": "batch2 completed, faster, and peak reserved memory stayed below 90% of device capacity"
+      },
+      "1.0": {
+        "scale": 1.0,
+        "padded_size_hw": [
+          960,
+          1088
+        ],
+        "selected_view_batching": 1,
+        "reason": "fallback to batch1 because batch2 was unavailable, slower, or lacked memory margin"
+      },
+      "1.25": {
+        "scale": 1.25,
+        "padded_size_hw": [
+          1184,
+          1376
+        ],
+        "selected_view_batching": 1,
+        "reason": "fallback to batch1 because batch2 was unavailable, slower, or lacked memory margin"
+      },
+      "1.5": {
+        "scale": 1.5,
+        "padded_size_hw": [
+          1408,
+          1632
+        ],
+        "selected_view_batching": 1,
+        "reason": "fallback to batch1 because batch2 was unavailable, slower, or lacked memory margin"
+      }
+    }
+  },
+  "duration_seconds": 33.844
+}
