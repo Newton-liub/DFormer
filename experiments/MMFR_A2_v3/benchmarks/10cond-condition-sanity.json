@@ -1269,9 +1269,9 @@
       "within_frozen_axis_bounds": true
     }
   ],
-  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --verify condition-sanity --verify-samples 3 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-condition-sanity.json' --quiet",
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --quiet --verify condition-sanity --verify-samples 3 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-condition-sanity.json'",
   "condition_count": 10,
-  "duration_seconds": 1.53,
+  "duration_seconds": 1.523,
   "environment": {
     "cuda": "12.8",
     "cudnn": 90701,
@@ -1279,7 +1279,7 @@
     "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
     "numpy": "2.3.5",
     "os": "Windows-11-10.0.26200-SP0",
-    "pid": 51632,
+    "pid": 60104,
     "python": "3.13.9",
     "tf32_enabled": false,
     "torch": "2.7.0+cu128"
@@ -1295,7 +1295,7 @@
     "misalignment": "one integer dy/dx translation, |dy| <= severity * 0.03333333333333333 * H and |dx| <= severity * 0.03333333333333333 * W, Depth and validity transported together (MID-A)",
     "mixed": "two specs applied in the frozen protocol order"
   },
-  "generated_at_utc": "2026-09-17T01:31:53.169008+00:00",
+  "generated_at_utc": "2026-09-17T03:12:30.720911+00:00",
   "official_test_included": false,
   "protocol": {
     "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
@@ -1303,7 +1303,7 @@
   },
   "runner": {
     "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
-    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
   },
   "sample_count": 3,
   "schema_version": "museg-10condition-mainval-verification-v1",

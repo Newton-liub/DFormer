@@ -301,7 +301,7 @@
     "rgb_corruption": "none (every condition corrupts Depth only)",
     "validity_mask": "np.ones(depth.shape, bool) on the raw aligned grid (no crop, no pad)"
   },
-  "elapsed_seconds": 8.812401,
+  "elapsed_seconds": 9.554837,
   "evaluation_seed": 2026091401,
   "evidence_kind": "museg-10condition-mainval-condition-metrics",
   "expected_sample_count": 2,
@@ -325,7 +325,7 @@
     "max_samples": 2,
     "order": "sample-major",
     "protocol_raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3",
-    "runner_sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1",
+    "runner_sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a",
     "sample_count": 2,
     "sample_count_total": 318,
     "sample_set_sha256": "52025840c800cab71373802acf409878feedb6f2a18356c37c123dcc290c4666",
@@ -336,11 +336,11 @@
     "view_batching_requested": 2,
     "view_reuse": true
   },
-  "identity_sha256": "192c4e1caf0eb6b20ac9c0fe8f56c9aa2a577a70b355d6e2d500dc2998f9ef7c",
+  "identity_sha256": "a5fbf8dc672ea9ef1dcbeffc198a797983237b286889457389e1cbe90f7d5791",
   "logits_fusion_precision": "fp32",
   "macc": 19.3,
   "max_samples_effective": 2,
-  "mean_unit_seconds": 4.4062,
+  "mean_unit_seconds": 4.777418,
   "metrics_percent": {
     "confusion_matrix": [
       [
@@ -737,26 +737,26 @@
   },
   "per_sample": [
     {
-      "elapsed_seconds": 4.506799,
-      "forward_seconds": 4.136788,
+      "elapsed_seconds": 4.859813,
+      "forward_seconds": 4.412193,
       "macc": 18.72,
       "mf1": 17.03,
       "miou": 14.88,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "03-01-01-0066-240526121121-08-99",
-      "ten_views_seconds": 4.144504
+      "ten_views_seconds": 4.420554
     },
     {
-      "elapsed_seconds": 4.305601,
-      "forward_seconds": 3.927855,
+      "elapsed_seconds": 4.695024,
+      "forward_seconds": 4.305386,
       "macc": 19.23,
       "mf1": 18.84,
       "miou": 17.87,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "03-01-01-0066-240526121123-12-99",
-      "ten_views_seconds": 3.935423
+      "ten_views_seconds": 4.334325
     }
   ],
   "per_sample_corruption_digests": [
@@ -813,7 +813,7 @@
   },
   "runner": {
     "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
-    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
   },
   "sample_count": 2,
   "schema_version": "museg-10condition-mainval-evidence-v1",
@@ -827,10 +827,10 @@
   },
   "subset": true,
   "tf32_enabled": false,
-  "timestamp_utc": "2026-09-17T01:34:05.317370+00:00",
+  "timestamp_utc": "2026-09-17T03:14:30.829736+00:00",
   "timing_breakdown_seconds": {
-    "forward": 8.064643,
-    "preprocess_including_corruption": 0.611606
+    "forward": 8.717579,
+    "preprocess_including_corruption": 0.672139
   },
   "validity_state_aggregate_sha256": "0c9499a0a74c397dadbcdd684193b3ec64bc427521a2e40b4ee9e708db657a2e",
   "view_batching": {

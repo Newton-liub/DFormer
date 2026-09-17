@@ -24,6 +24,56 @@ generator state is controlled.  The runner restores a fixed base state before ev
 ``(sample, condition)`` forward (``--forward-rng reset-per-unit``), which makes results
 order-independent, and exposes ``--forward-rng progressive`` only so a byte-level
 comparison against the frozen sequential reference path is possible.
+
+Scheduling order
+----------------
+``--order sample-major`` walks the selected samples in order and evaluates all requested
+conditions for one sample before moving on.  It is the faster order because the
+condition-independent RGB view tensors of a sample are built once and reused by every
+condition of that sample, but **every condition finishes at the same moment** (the end of
+the run), so nothing can be persisted before the last sample.  All ten ``metrics.json``
+files are written in one tail pass.
+
+``--order condition-major`` walks the conditions and evaluates all selected samples for
+one condition before moving on.  It is slower: the frozen views (including the RGB
+resize/normalize/flip/pad work) are rebuilt for every unit instead of being reused across
+the ten conditions of a sample.  In exchange, a condition is *finished* as soon as its
+last sample is done, and this runner then **immediately** builds, atomically writes and
+releases that condition's ``metrics.json`` before starting the next condition.  The
+per-condition accumulators (``per_sample``/``units``/``predictions``) are dropped at that
+point, so a ten-condition run never holds ten conditions of evidence in memory at once.
+
+Evidence durability and interrupts
+----------------------------------
+Each ``metrics.json`` is written through the ``atomic_write_json`` path (temp file ->
+``flush`` + ``os.fsync`` -> ``os.replace``), so a file that exists on disk is always a
+complete, parseable document; a half-written file can never become evidence.
+
+Under ``--order condition-major`` a ``KeyboardInterrupt`` (Ctrl+C), a hard process kill
+or any other exception can therefore only destroy the condition that was *in flight*:
+
+* conditions already flushed during this invocation stay on disk, unchanged;
+* the in-flight condition writes **no** ``metrics.json`` and stays pending for the next run;
+* ``summary.json`` and ``run_manifest.json`` are **not** written for an incomplete
+  invocation, because a partially covered summary/manifest would look like a finished
+  evaluation.  They are written only when every condition requested by this invocation is
+  present on disk with ``completed=true``;
+* the aborted invocation prints an explicit ``interrupted``/``aborted`` JSON record that
+  lists the conditions already on disk and the conditions still missing, and exits with
+  ``130`` for SIGINT (``4`` when the evidence set is incomplete for any other reason).
+
+Recovering is the normal resume path: rerun the identical command with ``--resume``.  The
+already flushed conditions are skipped by identity and the missing ones are evaluated.
+
+Under ``--order sample-major`` the same interrupt policy applies, but because no condition
+finishes early an interrupted run simply leaves every requested condition pending; nothing
+is lost that a rerun would not recompute anyway.
+
+Exit codes
+----------
+``0`` success, ``2`` runtime/configuration failure, ``3`` device/environment limit
+(CUDA OOM), ``4`` evidence set incomplete so summary/manifest were refused, ``130``
+interrupted by SIGINT.
 """
 
 from __future__ import annotations
@@ -39,6 +89,7 @@ import os
 import platform
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -62,6 +113,13 @@ from utils.dataloader.multimodal_failure_v3 import (
 
 SCHEMA_VERSION = "museg-10condition-mainval-evidence-v1"
 VERIFY_SCHEMA_VERSION = "museg-10condition-mainval-verification-v1"
+
+# Process exit codes (see the module docstring "Exit codes").
+EXIT_OK = 0
+EXIT_FAILED = 2
+EXIT_ENVIRONMENT_LIMIT = 3
+EXIT_INCOMPLETE_EVIDENCE = 4
+EXIT_INTERRUPTED = 130
 
 DEFAULT_CONFIG = "local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3"
 DEFAULT_PROTOCOL = "protocols/mmfr-a2-train-integration-v3.template.json"
@@ -816,6 +874,32 @@ def plan_conditions(
     return skipped, pending, decisions
 
 
+def summarise_disk_state(checkpoint_dir: Path, conditions: Sequence[Condition]) -> dict[str, Any]:
+    """Read back, condition by condition, what the on-disk evidence currently covers.
+
+    This is what the caller inspects after an interrupt or before writing a summary: only
+    ``metrics.json`` files that exist *and* carry ``completed=true`` count as finished.
+    """
+    completed: list[str] = []
+    pending: list[str] = []
+    details: dict[str, Any] = {}
+    for condition in conditions:
+        existing = _read_existing_metrics(checkpoint_dir / condition.directory / "metrics.json")
+        if existing is None:
+            details[condition.directory] = {"metrics_json": False, "completed": False, "sample_count": 0}
+            pending.append(condition.directory)
+            continue
+        is_complete = existing.get("completed") is True
+        details[condition.directory] = {
+            "metrics_json": True,
+            "completed": bool(is_complete),
+            "sample_count": int(existing.get("sample_count") or 0),
+            "identity_sha256": existing.get("identity_sha256"),
+        }
+        (completed if is_complete else pending).append(condition.directory)
+    return {"completed": completed, "pending": pending, "conditions": details}
+
+
 def run_engine(
     settings: RunSettings,
     config: Any,
@@ -962,6 +1046,64 @@ def run_engine(
         accumulator["per_sample"].append(sample_record)
         del logits, result, sample_like
 
+    written: dict[str, dict[str, Any]] = {}
+
+    def release_condition(condition: Condition) -> None:
+        """Drop one condition's accumulator once its metrics.json is safely on disk.
+
+        Verification callers that asked for per-unit evidence keep exactly the records
+        they requested; the formal run collects nothing, so its accumulators are fully
+        released and a ten-condition run never holds ten conditions of evidence at once.
+        """
+        accumulator = accumulators.get(condition.directory)
+        if accumulator is None:
+            return
+        if collect_units or collect_predictions:
+            accumulators[condition.directory] = {
+                key: accumulator[key]
+                for key in ("units", "hist", "per_sample", "predictions")
+                if key in accumulator
+            }
+        else:
+            accumulators.pop(condition.directory, None)
+
+    def flush_condition(condition: Condition) -> dict[str, Any]:
+        """Build, atomically write and then release one finished condition."""
+        accumulator = accumulators[condition.directory]
+        per_sample = accumulator["per_sample"]
+        completed = len(per_sample) == len(selected_entries)
+        payload = build_metrics_payload(
+            settings=settings,
+            config=config,
+            condition=condition,
+            condition_definition_sha256=settings.condition_definition_sha256,
+            selected_entries=selected_entries,
+            accumulator=accumulator,
+            completed=completed,
+            call_index=call_index.get(condition.directory),
+            batching_evidence=settings.batching_evidence,
+        )
+        target = checkpoint_dir / condition.directory / "metrics.json"
+        atomic_write_json(target, payload)
+        if settings.save_predictions:
+            collected = accumulator["predictions"]
+            if len(collected) != len(per_sample):
+                raise RuntimeError(
+                    "prediction collection is incomplete "
+                    f"({len(collected)} of {len(per_sample)}); refusing to write a partial npz"
+                )
+            arrays = {f"prediction_{index:04d}": item["prediction"] for index, item in enumerate(collected)}
+            np.savez_compressed(
+                target.parent / "predictions.npz",
+                sample_ids=np.asarray([item["sample_id"] for item in collected]),
+                **arrays,
+            )
+        written[condition.directory] = payload
+        release_condition(condition)
+        if emit is not None:
+            emit(f"wrote {target} completed={completed}")
+        return payload
+
     if pending:
         if settings.order == "sample-major":
             for position, entry in enumerate(selected_entries):
@@ -1004,7 +1146,8 @@ def run_engine(
                         )
                 del rgb_cache, rgb_uint8, depth_uint8, label
         elif settings.order == "condition-major":
-            for condition in call_order:
+            for completed_in_run, condition in enumerate(call_order, start=1):
+                condition_started = time.perf_counter()
                 for entry in selected_entries:
                     normalized_id = normalize_sample_id(entry)
                     read_started = time.perf_counter()
@@ -1026,44 +1169,30 @@ def run_engine(
                             f"miou={accumulators[condition.directory]['per_sample'][-1]['miou']}"
                         )
                     del rgb_uint8, depth_uint8, label
+                # This condition is finished: flush it now, before the next condition can
+                # be interrupted, so a later crash can no longer cost these samples.
+                condition_seconds = time.perf_counter() - condition_started
+                flush_condition(condition)
+                if emit is not None:
+                    emit(
+                        f"[condition-major] {condition.condition_id} flushed "
+                        f"({completed_in_run}/{len(call_order)} conditions completed in this run, "
+                        f"{len(skipped) + completed_in_run}/10 conditions complete overall); "
+                        f"condition_seconds={condition_seconds:.3f}; "
+                        f"remaining_conditions={len(call_order) - completed_in_run}"
+                    )
+                del condition_seconds
         else:
             raise ValueError(f"unsupported --order: {settings.order}")
 
-    # Write every completed condition immediately, atomically.
-    written: dict[str, dict[str, Any]] = {}
+    # Only the sample-major order still has to write here: under sample-major every
+    # requested condition finishes at the same instant (the end of the sample loop), so a
+    # per-condition flush inside that loop is impossible.  Every condition-major flush has
+    # already happened inside its loop above.
     for condition in pending:
-        accumulator = accumulators[condition.directory]
-        per_sample = accumulator["per_sample"]
-        completed = len(per_sample) == len(selected_entries)
-        payload = build_metrics_payload(
-            settings=settings,
-            config=config,
-            condition=condition,
-            condition_definition_sha256=settings.condition_definition_sha256,
-            selected_entries=selected_entries,
-            accumulator=accumulator,
-            completed=completed,
-            call_index=call_index.get(condition.directory),
-            batching_evidence=settings.batching_evidence,
-        )
-        target = checkpoint_dir / condition.directory / "metrics.json"
-        atomic_write_json(target, payload)
-        if settings.save_predictions:
-            collected = accumulator["predictions"]
-            if len(collected) != len(per_sample):
-                raise RuntimeError(
-                    "prediction collection is incomplete "
-                    f"({len(collected)} of {len(per_sample)}); refusing to write a partial npz"
-                )
-            arrays = {f"prediction_{index:04d}": item["prediction"] for index, item in enumerate(collected)}
-            np.savez_compressed(
-                target.parent / "predictions.npz",
-                sample_ids=np.asarray([item["sample_id"] for item in collected]),
-                **arrays,
-            )
-        written[condition.directory] = payload
-        if emit is not None:
-            emit(f"wrote {target} completed={completed}")
+        if condition.directory in written:
+            continue
+        flush_condition(condition)
 
     for condition in skipped:
         existing = _read_existing_metrics(checkpoint_dir / condition.directory / "metrics.json")
@@ -1578,8 +1707,27 @@ def run_evaluation(args: argparse.Namespace) -> int:
     manifest_path = settings.output_dir / "run_manifest.json"
 
     if args.summary_only:
-        written: dict[str, dict[str, Any]] = {}
         checkpoint_dir = settings.output_dir / settings.checkpoint.stem
+        state = summarise_disk_state(checkpoint_dir, context.conditions)
+        if state["pending"]:
+            print(
+                json.dumps(
+                    {
+                        "status": "incomplete",
+                        "mode": "summary-only",
+                        "exit_code": EXIT_INCOMPLETE_EVIDENCE,
+                        "summary_written": False,
+                        "conditions_not_completed": state["pending"],
+                        "note": (
+                            "summary.json is only written when every requested condition is on disk with "
+                            "completed=true; rerun the evaluation with --resume to fill the gaps"
+                        ),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return EXIT_INCOMPLETE_EVIDENCE
+        written: dict[str, dict[str, Any]] = {}
         for condition in context.conditions:
             existing = _read_existing_metrics(checkpoint_dir / condition.directory / "metrics.json")
             if existing is not None:
@@ -1596,18 +1744,69 @@ def run_evaluation(args: argparse.Namespace) -> int:
         summary["duration_seconds"] = round(time.monotonic() - started_monotonic, 3)
         atomic_write_json(summary_path, summary)
         print(json.dumps({"status": "completed", "mode": "summary-only", "summary": str(summary_path)}))
-        return 0
+        return EXIT_OK
 
     model = load_eval_model(context, settings)
-    engine = run_engine(
-        settings,
-        context.config,
-        model,
-        context.device,
-        context.conditions,
-        context.selected_entries,
-        emit=emit,
-    )
+    checkpoint_dir = settings.output_dir / settings.checkpoint.stem
+    try:
+        engine = run_engine(
+            settings,
+            context.config,
+            model,
+            context.device,
+            context.conditions,
+            context.selected_entries,
+            emit=emit,
+        )
+    except BaseException as exc:
+        # Never write summary.json / run_manifest.json for an invocation that did not
+        # finish its requested conditions: a partial summary would look like a finished
+        # evaluation.  Conditions already flushed by run_engine stay exactly as they are.
+        interrupted = isinstance(exc, KeyboardInterrupt)
+        state = summarise_disk_state(checkpoint_dir, context.conditions)
+        notice = {
+            "status": "interrupted" if interrupted else "aborted",
+            "reason": "KeyboardInterrupt (SIGINT)" if interrupted else f"{type(exc).__name__}: {exc}",
+            "exit_code": EXIT_INTERRUPTED if interrupted else EXIT_FAILED,
+            "summary_written": False,
+            "run_manifest_written": False,
+            "checkpoint_dir": str(checkpoint_dir),
+            "conditions_completed_on_disk": state["completed"],
+            "conditions_missing_on_disk": state["pending"],
+            "condition_details": state["conditions"],
+            "note": (
+                "conditions already flushed to disk are preserved unchanged; the condition that was in "
+                "flight wrote no metrics.json and is still pending; rerun the identical command with "
+                "--resume to evaluate only the missing conditions"
+            ),
+        }
+        print(json.dumps(notice, ensure_ascii=False), flush=True)
+        if interrupted:
+            return EXIT_INTERRUPTED
+        raise
+
+    # summary.json / run_manifest.json describe a finished evaluation, so they are written
+    # only when every condition requested by this invocation is complete on disk.
+    state = summarise_disk_state(checkpoint_dir, context.conditions)
+    if state["pending"]:
+        print(
+            json.dumps(
+                {
+                    "status": "incomplete",
+                    "exit_code": EXIT_INCOMPLETE_EVIDENCE,
+                    "summary_written": False,
+                    "run_manifest_written": False,
+                    "conditions_not_completed": state["pending"],
+                    "note": (
+                        "summary.json and run_manifest.json are only written when every requested "
+                        "condition is complete; rerun with --resume to fill the gaps"
+                    ),
+                },
+                ensure_ascii=False,
+            )
+        )
+        return EXIT_INCOMPLETE_EVIDENCE
+
     summary = build_summary(
         settings=settings,
         written=engine["written"],
@@ -1747,7 +1946,7 @@ def run_evaluation(args: argparse.Namespace) -> int:
         )
     )
     del model
-    return 0
+    return EXIT_OK
 
 
 def environment_report(device: torch.device) -> dict[str, Any]:
@@ -1797,7 +1996,7 @@ def _verify_common(context: Context, name: str, started: float) -> dict[str, Any
 def _finish(report: dict[str, Any], path: Path, started: float, emit: Any) -> int:
     report["duration_seconds"] = round(time.monotonic() - started, 3)
     report.pop("started_monotonic", None)
-    report["exit_code"] = 0 if report["status"] == "PASS" else 2
+    report["exit_code"] = EXIT_OK if report["status"] == "PASS" else EXIT_FAILED
     file_sha = atomic_write_json(path, report)
     report["benchmark_file_sha256"] = file_sha
     if emit is not None:
@@ -2597,6 +2796,317 @@ def verify_corrupted_equivalence(context: Context, report: dict[str, Any], emit:
     return report
 
 
+def _force_kill(process: subprocess.Popen) -> dict[str, Any]:
+    """Hard-terminate a running evaluation process the way ``Stop-Process -Force`` would.
+
+    ``taskkill /F /T /PID`` is the PowerShell ``Stop-Process -Force`` equivalent on
+    Windows: the process gets no chance to flush anything, which is exactly the crash the
+    per-condition flush has to survive.  ``kill()`` is only a fallback for a taskkill that
+    did not report success.
+    """
+    taskkill = subprocess.run(
+        ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+        capture_output=True,
+        text=True,
+    )
+    if taskkill.returncode != 0:
+        process.kill()
+    try:
+        process.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=30)
+    return {
+        "pid": int(process.pid),
+        "taskkill_command": ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+        "taskkill_exit_code": int(taskkill.returncode),
+        "taskkill_stdout": taskkill.stdout.strip(),
+        "taskkill_stderr": taskkill.stderr.strip(),
+        "returncode": None if process.returncode is None else int(process.returncode),
+    }
+
+
+def verify_resume_interrupt_scenario(
+    context: Context,
+    interrupt_dir: Path,
+    conditions: Sequence[Condition],
+    sample_count: int,
+    emit: Any,
+    timeout_seconds: float = 900.0,
+) -> tuple[dict[str, Any], list[str]]:
+    """Kill a condition-major run mid-flight and prove that resume repairs the evidence.
+
+    The run is started with a fresh output directory and terminated with a hard process
+    kill as soon as the first condition has been flushed.  The disk state right after the
+    kill, and the skip/fill decisions and final coverage of an identical ``--resume``
+    rerun, are both recorded as raw evidence.
+    """
+    args = context.args
+    failures: list[str] = []
+    if interrupt_dir.exists():
+        shutil.rmtree(interrupt_dir)
+    interrupt_dir.mkdir(parents=True, exist_ok=True)
+
+    condition_spec = ",".join(condition.condition_id for condition in conditions)
+    command = [
+        sys.executable,
+        "-m",
+        "tools.evaluate_museg_10condition",
+        "--checkpoint", str(context.checkpoint),
+        "--split", str(context.split),
+        "--split-role", "val_dev",
+        "--expected-checkpoint-sha256", context.checkpoint_sha256,
+        "--expected-split-sha256", context.split_sha256,
+        "--protocol", str(context.protocol.path),
+        "--config", args.config,
+        "--dataset-root", str(context.dataset_root),
+        "--device", args.device,
+        "--output-dir", str(interrupt_dir),
+        "--view-batching", str(args.view_batching),
+        "--conditions", condition_spec,
+        "--max-samples", str(sample_count),
+        "--order", "condition-major",
+        "--forward-rng", "reset-per-unit",
+        "--resume",
+        "--quiet",
+    ]
+    run_dir = interrupt_dir / context.checkpoint.stem
+    metrics_paths = {
+        condition.directory: run_dir / condition.directory / "metrics.json" for condition in conditions
+    }
+    summary_path = run_dir / "summary.json"
+    manifest_path = interrupt_dir / "run_manifest.json"
+    log_path = interrupt_dir / "killed-run-console.log"
+
+    def completed_conditions() -> list[str]:
+        return [
+            condition.directory
+            for condition in conditions
+            if (_read_existing_metrics(metrics_paths[condition.directory]) or {}).get("completed") is True
+        ]
+
+    kill_started = time.monotonic()
+    forced = False
+    with log_path.open("w", encoding="utf-8", newline="\n") as log:
+        log.write("command: " + shlex.join(command) + "\n")
+        log.flush()
+        process = subprocess.Popen(
+            command,
+            cwd=str(context.repo_root),
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        deadline = time.monotonic() + float(timeout_seconds)
+        flushed_before_kill: list[str] = []
+        exited_before_kill: int | None = None
+        while time.monotonic() < deadline:
+            flushed_before_kill = completed_conditions()
+            if flushed_before_kill:
+                break
+            if process.poll() is not None:
+                exited_before_kill = int(process.returncode)
+                break
+            time.sleep(0.25)
+        if exited_before_kill is not None or not flushed_before_kill:
+            # The run ended (or timed out) before any condition could be flushed: the
+            # scenario cannot demonstrate anything, so fail closed instead of pretending.
+            if process.poll() is None:
+                kill = _force_kill(process)
+                reason = "timed out before the first condition was flushed"
+            else:
+                kill = {
+                    "pid": int(process.pid),
+                    "taskkill_command": None,
+                    "taskkill_exit_code": None,
+                    "returncode": exited_before_kill,
+                }
+                reason = f"the run exited (code {exited_before_kill}) before the first condition was flushed"
+            forced = True
+        else:
+            kill = _force_kill(process)
+            reason = None
+    kill_seconds = time.monotonic() - kill_started
+    if reason is not None:
+        failures.append(f"interrupt scenario: {reason}")
+    time.sleep(1.0)
+    # Captured immediately after the kill and before the resume rerun: the rerun is
+    # supposed to create these files, so they must be sampled at the right moment.
+    summary_exists_after_kill = summary_path.is_file()
+    manifest_exists_after_kill = manifest_path.is_file()
+
+    digests_before_resume = {
+        directory: EV.file_sha256(metrics_paths[directory])
+        for directory in flushed_before_kill
+        if metrics_paths[directory].is_file()
+    }
+    disk_after_kill = {
+        condition.directory: summarise_disk_state(run_dir, [condition])["conditions"][condition.directory]
+        for condition in conditions
+    }
+    finished_after_kill = [directory for directory, state in disk_after_kill.items() if state["completed"]]
+    present_after_kill = [directory for directory, state in disk_after_kill.items() if state["metrics_json"]]
+    absent_after_kill = [directory for directory, state in disk_after_kill.items() if not state["metrics_json"]]
+    leftover_temporaries = sorted(path.name for path in run_dir.rglob(".*.tmp-*"))
+    if not forced:
+        if finished_after_kill != flushed_before_kill:
+            failures.append(
+                "interrupt scenario: the conditions completed on disk differ from the ones flushed before the kill"
+            )
+        if not finished_after_kill:
+            failures.append("interrupt scenario: no condition survived the kill")
+        if set(present_after_kill) != set(finished_after_kill):
+            failures.append(
+                "interrupt scenario: a condition without metrics.json appeared on disk, or a flushed condition is missing"
+            )
+        if not absent_after_kill:
+            failures.append("interrupt scenario: the kill left every condition on disk, so nothing was interrupted")
+        if finished_after_kill != [c.directory for c in conditions if c.directory in finished_after_kill]:
+            failures.append("interrupt scenario: the flushed conditions are not a prefix of the condition order")
+        for directory in finished_after_kill:
+            if disk_after_kill[directory]["sample_count"] != sample_count:
+                failures.append(
+                    f"interrupt scenario: {directory} was flushed with "
+                    f"{disk_after_kill[directory]['sample_count']} samples instead of {sample_count}"
+                )
+        if summary_exists_after_kill:
+            failures.append("interrupt scenario: an interrupted run wrote summary.json")
+        if manifest_exists_after_kill:
+            failures.append("interrupt scenario: an interrupted run wrote run_manifest.json")
+
+    resume_started = time.monotonic()
+    resumed = subprocess.run(command, cwd=str(context.repo_root), capture_output=True, text=True)
+    resume_seconds = time.monotonic() - resume_started
+    summary: dict[str, Any] = {}
+    if summary_path.is_file():
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    decisions = {
+        str(decision.get("condition")): str(decision.get("decision"))
+        for decision in summary.get("resume_decisions", [])
+    }
+    final_state = {
+        condition.directory: summarise_disk_state(run_dir, [condition])["conditions"][condition.directory]
+        for condition in conditions
+    }
+    completed_after_resume = [directory for directory, state in final_state.items() if state["completed"]]
+    digests_after_resume = {
+        directory: EV.file_sha256(metrics_paths[directory])
+        for directory in flushed_before_kill
+        if metrics_paths[directory].is_file()
+    }
+    coverage = summary.get("coverage", {})
+    expected_directories = [condition.directory for condition in conditions]
+    skipped_expected = list(flushed_before_kill)
+    pending_expected = [directory for directory in expected_directories if directory not in skipped_expected]
+    if resumed.returncode != 0:
+        failures.append(f"interrupt scenario: the resume rerun exited with {resumed.returncode}")
+    if decisions != {directory: "skipped" for directory in skipped_expected} | {
+        directory: "pending" for directory in pending_expected
+    }:
+        failures.append(f"interrupt scenario: unexpected resume decisions {decisions}")
+    if completed_after_resume != expected_directories:
+        failures.append("interrupt scenario: the resume rerun did not complete every requested condition")
+    for directory in expected_directories:
+        if final_state[directory]["sample_count"] != sample_count:
+            failures.append(f"interrupt scenario: {directory} ended with the wrong sample count")
+    if sorted(coverage.get("conditions_completed", [])) != sorted(expected_directories):
+        failures.append("interrupt scenario: summary.json does not cover all requested conditions")
+    if digests_before_resume != digests_after_resume:
+        failures.append(
+            "interrupt scenario: a condition flushed before the kill was rewritten by the resume rerun"
+        )
+    if emit is not None:
+        emit(
+            f"interrupt scenario: flushed_before_kill={flushed_before_kill} "
+            f"absent_after_kill={absent_after_kill} resume_exit={resumed.returncode} "
+            f"completed_after_resume={completed_after_resume}"
+        )
+
+    phase7 = {
+        "phase": "phase7_condition_major_killed_mid_run",
+        "command": command,
+        "exit_code": kill.get("returncode"),
+        "elapsed_seconds": round(kill_seconds, 3),
+        "stdout_tail": "",
+        "stderr_tail": "",
+        "decisions": [],
+        "conditions_completed": finished_after_kill,
+        "mean_over_all_conditions": None,
+        "killed": True,
+        "summary_written": summary_exists_after_kill,
+        "run_manifest_written": manifest_exists_after_kill,
+        "conditions_flushed_before_kill": flushed_before_kill,
+        "conditions_present_after_kill": present_after_kill,
+        "conditions_absent_after_kill": absent_after_kill,
+        "note": "hard kill; this phase has no summary.json by design, so resume_decisions is empty",
+    }
+    phase8 = {
+        "phase": "phase8_resume_after_kill",
+        "command": command,
+        "exit_code": int(resumed.returncode),
+        "elapsed_seconds": round(resume_seconds, 3),
+        "stdout_tail": resumed.stdout.strip()[-1500:],
+        "stderr_tail": resumed.stderr.strip()[-1500:] if resumed.returncode != 0 else "",
+        "decisions": [
+            {
+                "condition": decision.get("condition"),
+                "decision": decision.get("decision"),
+                "reason": decision.get("reason"),
+                "mismatched_identity_fields": decision.get("mismatched_identity_fields"),
+            }
+            for decision in summary.get("resume_decisions", [])
+        ],
+        "conditions_completed": coverage.get("conditions_completed"),
+        "mean_over_all_conditions": summary.get("mean_over_all_conditions"),
+        "killed": False,
+        "skipped_conditions": sorted(
+            directory for directory, decision in decisions.items() if decision == "skipped"
+        ),
+        "refilled_conditions": sorted(
+            directory for directory, decision in decisions.items() if decision == "pending"
+        ),
+        "final_metrics_sample_counts": {
+            directory: final_state[directory]["sample_count"] for directory in expected_directories
+        },
+    }
+    scenario = {
+        "interrupt_dir": str(interrupt_dir),
+        "console_log": str(log_path),
+        "conditions": expected_directories,
+        "condition_spec": condition_spec,
+        "sample_count": sample_count,
+        "order": "condition-major",
+        "forward_rng_policy": "reset-per-unit",
+        "kill": kill,
+        "forced_kill_after_clean_exit": bool(forced),
+        "disk_after_kill": disk_after_kill,
+        "conditions_flushed_before_kill": flushed_before_kill,
+        "conditions_absent_after_kill": absent_after_kill,
+        "leftover_temporary_files": leftover_temporaries,
+        "summary_written_by_killed_run": bool(summary_exists_after_kill),
+        "run_manifest_written_by_killed_run": bool(manifest_exists_after_kill),
+        "flushed_metrics_sha256_before_resume": digests_before_resume,
+        "flushed_metrics_sha256_after_resume": digests_after_resume,
+        "flushed_condition_was_never_rewritten": bool(digests_before_resume == digests_after_resume),
+        "resume": {
+            "exit_code": int(resumed.returncode),
+            "elapsed_seconds": round(resume_seconds, 3),
+            "decisions": decisions,
+            "skipped": sorted(directory for directory, value in decisions.items() if value == "skipped"),
+            "refilled": sorted(directory for directory, value in decisions.items() if value == "pending"),
+            "coverage_conditions_completed": coverage.get("conditions_completed"),
+            "coverage_conditions_present": coverage.get("conditions_present"),
+            "mean_over_all_conditions": summary.get("mean_over_all_conditions"),
+            "summary_path": str(summary_path),
+            "summary_sha256": EV.file_sha256(summary_path) if summary_path.is_file() else None,
+        },
+        "final_metrics_sample_counts": {
+            directory: final_state[directory]["sample_count"] for directory in expected_directories
+        },
+    }
+    return {"phase7": phase7, "phase8": phase8, "scenario": scenario}, failures
+
+
 def verify_resume(context: Context, report: dict[str, Any], emit: Any) -> dict[str, Any]:
     """Prove skip / rerun / identity-mismatch behaviour of the resume logic."""
     args = context.args
@@ -2684,6 +3194,60 @@ def verify_resume(context: Context, report: dict[str, Any], emit: Any) -> dict[s
         if completed.returncode != 0:
             failures.append(f"{phase['phase']} exited with {completed.returncode}")
 
+    # Real mid-run interruption: three conditions, four samples, condition-major.  The
+    # process is hard-killed as soon as the first condition has been flushed, which is the
+    # scenario the per-condition flush was added for.
+    interrupt_conditions = resolve_conditions(
+        "clean,spatial_dropout@0.75,gaussian_noise@0.75", context.all_conditions
+    )
+    interrupt_result, interrupt_failures = verify_resume_interrupt_scenario(
+        context,
+        resume_dir / "interrupt",
+        interrupt_conditions,
+        4,
+        emit,
+    )
+    phase_records.extend([interrupt_result["phase7"], interrupt_result["phase8"]])
+    failures.extend(interrupt_failures)
+    interrupt = interrupt_result["scenario"]
+    interrupt_expectations = [
+        (
+            "interrupt_scenario_flushed_at_least_one_condition_before_the_kill",
+            len(interrupt["conditions_flushed_before_kill"]) >= 1,
+        ),
+        (
+            "interrupt_scenario_left_at_least_one_condition_pending",
+            len(interrupt["conditions_absent_after_kill"]) >= 1,
+        ),
+        (
+            "interrupt_scenario_wrote_no_metrics_json_for_the_pending_condition",
+            set(interrupt["conditions_flushed_before_kill"]).isdisjoint(interrupt["conditions_absent_after_kill"]),
+        ),
+        ("interrupt_scenario_wrote_no_summary_json", not interrupt["summary_written_by_killed_run"]),
+        (
+            "interrupt_scenario_wrote_no_run_manifest_json",
+            not interrupt["run_manifest_written_by_killed_run"],
+        ),
+        (
+            "interrupt_scenario_resume_skipped_every_flushed_condition",
+            sorted(interrupt["resume"]["skipped"]) == sorted(interrupt["conditions_flushed_before_kill"]),
+        ),
+        (
+            "interrupt_scenario_resume_refilled_every_missing_condition",
+            sorted(interrupt["resume"]["refilled"]) == sorted(interrupt["conditions_absent_after_kill"]),
+        ),
+        (
+            "interrupt_scenario_resume_final_coverage_is_complete",
+            sorted(interrupt["resume"]["coverage_conditions_completed"] or [])
+            == sorted([condition.directory for condition in interrupt_conditions]),
+        ),
+        (
+            "interrupt_scenario_resume_did_not_rewrite_the_flushed_condition",
+            bool(interrupt["flushed_condition_was_never_rewritten"]),
+        ),
+        ("interrupt_scenario_resume_exit_code_is_zero", interrupt["resume"]["exit_code"] == 0),
+    ]
+
     def decisions_of(phase_name: str) -> dict[str, str]:
         for record in phase_records:
             if record["phase"] == phase_name:
@@ -2709,6 +3273,7 @@ def verify_resume(context: Context, report: dict[str, Any], emit: Any) -> dict[s
         ("phase6_recomputes_clean_because_the_stored_identity_is_not_original", phase6.get("clean") == "pending"),
         ("phase6_recomputes_entire_missing_because_the_stored_identity_is_not_original", phase6.get("entire_missing_100") == "pending"),
     ]
+    expectations.extend(interrupt_expectations)
     for name, satisfied in expectations:
         if not satisfied:
             failures.append(f"resume expectation failed: {name}")
@@ -2721,6 +3286,10 @@ def verify_resume(context: Context, report: dict[str, Any], emit: Any) -> dict[s
             "resume_dir": str(resume_dir),
             "sample_count": sample_count,
             "phases": phase_records,
+            "interrupt_scenario": interrupt,
+            "interrupt_scenario_expectations": [
+                {"name": name, "satisfied": bool(satisfied)} for name, satisfied in interrupt_expectations
+            ],
             "expectations": [{"name": name, "satisfied": bool(satisfied)} for name, satisfied in expectations],
             "failures": failures,
         }
@@ -2801,6 +3370,142 @@ def verify_timing(context: Context, report: dict[str, Any], emit: Any) -> dict[s
     flat_four = flat_one_checkpoint * 4
     sample_weighted_one = per_sample_all_conditions * 318
     sample_weighted_four = sample_weighted_one * 4
+
+    # ---------------------------------------------------------------------------------
+    # Measured condition-major cost: same checkpoint, same samples, same micro-batch
+    # strategy, only the scheduling order differs.  This is what running the formal
+    # evaluation in the durable order actually costs.
+    # ---------------------------------------------------------------------------------
+    cm_spec = args.verify_conditions or ",".join(
+        condition.condition_id for condition in context.all_conditions[:3]
+    )
+    cm_conditions = resolve_conditions(cm_spec, context.all_conditions)
+    cm_args = copy.copy(args)
+    cm_args.output_dir = _resolve(args.benchmark_dir) / "timing-run-condition-major"
+    cm_args.max_samples = count
+    cm_args.conditions = cm_spec
+    cm_args.order = "condition-major"
+    cm_args.forward_rng = "reset-per-unit"
+    cm_args.resume = False
+    cm_args.quiet = True
+    cm_context = copy.copy(context)
+    cm_context.args = cm_args
+    cm_context.conditions = cm_conditions
+    cm_context.selected_entries = select_entries(
+        cm_context.dataset_root, cm_context.split_entries, "first", count
+    )
+    cm_settings = make_settings(cm_context)
+    cm_model = load_eval_model(cm_context, cm_settings)
+    if cm_context.device.type == "cuda":
+        torch.cuda.reset_peak_memory_stats(cm_context.device)
+    cm_started = time.monotonic()
+    cm_engine = run_engine(
+        cm_settings,
+        cm_context.config,
+        cm_model,
+        cm_context.device,
+        cm_conditions,
+        cm_context.selected_entries,
+        emit=emit,
+    )
+    FAST._sync(cm_context.device)
+    cm_total_seconds = time.monotonic() - cm_started
+    cm_peak = FAST._peak_memory(cm_context.device)
+    cm_device_memory = FAST._device_memory_info(cm_context.device)
+    del cm_model
+    torch.cuda.empty_cache()
+
+    cm_condition_reports: list[dict[str, Any]] = []
+    cm_unit_seconds: list[float] = []
+    for condition in cm_conditions:
+        payload = cm_engine["written"][condition.directory]
+        cm_per_sample = payload["per_sample"]
+        cm_unit_seconds.extend(float(record["elapsed_seconds"]) for record in cm_per_sample)
+        cm_condition_reports.append(
+            {
+                "condition": condition.directory,
+                "condition_id": condition.condition_id,
+                "sample_count": len(cm_per_sample),
+                "elapsed_seconds": payload["elapsed_seconds"],
+                "seconds_per_unit": round(payload["elapsed_seconds"] / len(cm_per_sample), 6),
+                "seconds_per_condition_at_318": round(payload["elapsed_seconds"] / len(cm_per_sample) * 318.0, 3),
+                "forward_seconds": payload["timing_breakdown_seconds"]["forward"],
+                "preprocess_including_corruption_seconds": payload["timing_breakdown_seconds"][
+                    "preprocess_including_corruption"
+                ],
+                "peak_allocated_mib": payload["peak_device_memory"]["allocated_mib"],
+                "peak_reserved_mib": payload["peak_device_memory"]["reserved_mib"],
+                "sample_elapsed_seconds": [float(record["elapsed_seconds"]) for record in cm_per_sample],
+                "metrics_written_completed": payload["completed"],
+            }
+        )
+    cm_samples = len(cm_context.selected_entries)
+    cm_mean_unit_seconds = float(np.mean(cm_unit_seconds)) if cm_unit_seconds else float("nan")
+    cm_mean_per_condition_seconds = float(
+        np.mean([record["elapsed_seconds"] for record in cm_condition_reports])
+    )
+    cm_mean_per_condition_at_318 = cm_mean_per_condition_seconds * 318.0 / cm_samples
+    cm_one_checkpoint_seconds = cm_mean_per_condition_at_318 * 10
+    cm_four_checkpoints_seconds = cm_one_checkpoint_seconds * 4
+    # Sample-major counterpart: one condition's share of the ten-condition per-sample cost.
+    sm_per_condition_at_318 = per_sample_all_conditions / len(local_context.conditions) * 318.0
+    cm_cost = {
+        "sample_count": cm_samples,
+        "condition_count": len(cm_conditions),
+        "unit_count": len(cm_unit_seconds),
+        "conditions": cm_condition_reports,
+        "condition_spec": cm_spec,
+        "total_seconds": round(cm_total_seconds, 3),
+        "mean_seconds_per_unit": round(cm_mean_unit_seconds, 6),
+        "mean_seconds_per_condition_measured": round(cm_mean_per_condition_seconds, 6),
+        "min_unit_seconds": round(float(min(cm_unit_seconds)), 6) if cm_unit_seconds else None,
+        "max_unit_seconds": round(float(max(cm_unit_seconds)), 6) if cm_unit_seconds else None,
+        "read_seconds_total": round(float(cm_engine["read_seconds_total"]), 6),
+        "view_assembly_seconds_total": round(float(cm_engine["view_assembly_seconds_total"]), 6),
+        "overall_peak_device_memory": cm_peak,
+        "device_memory_after_both_orders": cm_device_memory,
+        "written_metrics": [
+            str(cm_settings.output_dir / context.checkpoint.stem / condition.directory / "metrics.json")
+            for condition in cm_conditions
+        ],
+        "extrapolation": {
+            "seconds_per_condition_at_318_samples": round(cm_mean_per_condition_at_318, 3),
+            "one_checkpoint_seconds": round(cm_one_checkpoint_seconds, 3),
+            "one_checkpoint_hours": round(cm_one_checkpoint_seconds / 3600.0, 3),
+            "four_checkpoints_seconds": round(cm_four_checkpoints_seconds, 3),
+            "four_checkpoints_hours": round(cm_four_checkpoints_seconds / 3600.0, 3),
+            "assumptions": [
+                "a finished condition is extrapolated from its own measured per-unit cost to 318 samples",
+                "the ten-condition total uses the mean of the measured conditions for the unmeasured ones",
+                "the same checkpoint, samples, view-batching strategy and GPU as the sample-major section",
+                "condition-major rebuilds the frozen views (RGB resize/normalize/flip/pad included) for every unit, "
+                "so sample reading and RGB view construction are paid once per condition instead of once per sample",
+                "model load time and process start-up are excluded",
+            ],
+        },
+        "comparison_with_sample_major": {
+            "sample_major_mean_seconds_per_unit": round(mean_unit_seconds, 6),
+            "condition_major_mean_seconds_per_unit": round(cm_mean_unit_seconds, 6),
+            "unit_cost_ratio_condition_over_sample": round(cm_mean_unit_seconds / mean_unit_seconds, 6),
+            "sample_major_seconds_per_condition_at_318": round(sm_per_condition_at_318, 3),
+            "condition_major_seconds_per_condition_at_318": round(cm_mean_per_condition_at_318, 3),
+            "per_condition_ratio_condition_over_sample": round(cm_mean_per_condition_at_318 / sm_per_condition_at_318, 6),
+            "absolute_per_condition_penalty_seconds": round(cm_mean_per_condition_at_318 - sm_per_condition_at_318, 3),
+            "sample_major_one_checkpoint_seconds": round(sample_weighted_one, 3),
+            "condition_major_one_checkpoint_seconds": round(cm_one_checkpoint_seconds, 3),
+            "one_checkpoint_ratio_condition_over_sample": round(cm_one_checkpoint_seconds / sample_weighted_one, 6),
+            "sample_major_peak_allocated_mib": peak.get("allocated_mib"),
+            "condition_major_peak_allocated_mib": cm_peak.get("allocated_mib"),
+            "sample_major_peak_reserved_mib": peak.get("reserved_mib"),
+            "condition_major_peak_reserved_mib": cm_peak.get("reserved_mib"),
+        },
+        "note": (
+            "condition-major is the durable order: it costs extra view construction but flushes one "
+            "metrics.json per finished condition, so an interrupted run never loses more than the "
+            "condition in flight"
+        ),
+    }
+
     report.update(
         {
             "status": "PASS",
@@ -2840,6 +3545,7 @@ def verify_timing(context: Context, report: dict[str, Any], emit: Any) -> dict[s
                 "four_checkpoints_sample_weighted_hours": round(sample_weighted_four / 3600.0, 3),
                 "target_samples": 318,
             },
+            "condition_major_cost": cm_cost,
             "written_metrics": [
                 str(settings.output_dir / context.checkpoint.stem / condition.directory / "metrics.json")
                 for condition in local_context.conditions
@@ -2918,14 +3624,30 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.verify != "none":
             return run_verification(args)
         return run_evaluation(args)
+    except KeyboardInterrupt:
+        # SIGINT anywhere outside the evaluated-condition flush path: report and exit with
+        # the conventional 130 instead of a bare traceback.
+        print(
+            json.dumps(
+                {
+                    "status": "interrupted",
+                    "signal": "SIGINT",
+                    "exit_code": EXIT_INTERRUPTED,
+                    "summary_written": False,
+                    "run_manifest_written": False,
+                }
+            ),
+            flush=True,
+        )
+        return EXIT_INTERRUPTED
     except torch.OutOfMemoryError as exc:
         print(json.dumps({"status": "environment_limit", "error_type": "cuda_out_of_memory", "error": str(exc)}))
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-        return 3
+        return EXIT_ENVIRONMENT_LIMIT
     except (OSError, RuntimeError, ValueError, ModuleNotFoundError, KeyError, TypeError) as exc:
         print(json.dumps({"status": "failed", "error_type": type(exc).__name__, "error": str(exc)}))
-        return 2
+        return EXIT_FAILED
 
 
 if __name__ == "__main__":

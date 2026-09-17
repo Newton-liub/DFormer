@@ -18,7 +18,7 @@
   "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --protocol 'protocols\\mmfr-a2-train-integration-v3.template.json' --config local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --device cuda --view-batching 2 --benchmark-dir 'experiments\\MMFR_A2_v3\\benchmarks' --quiet --verify corruption-digest --verify-samples 3 --shuffle-conditions --benchmark-output 'D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\10cond-corruption-digest-process-shuffled.json'",
   "condition_count": 10,
   "digest_map_sha256": "1958f1b5c74b73b2ffbf2f4f6e9cae742437c89537f9217a437cf5c17478db34",
-  "duration_seconds": 1.47,
+  "duration_seconds": 1.53,
   "environment": {
     "cuda": "12.8",
     "cudnn": 90701,
@@ -26,7 +26,7 @@
     "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
     "numpy": "2.3.5",
     "os": "Windows-11-10.0.26200-SP0",
-    "pid": 42628,
+    "pid": 52928,
     "python": "3.13.9",
     "tf32_enabled": false,
     "torch": "2.7.0+cu128"
@@ -34,7 +34,7 @@
   "evaluation_seed": 2026091401,
   "evidence_kind": "museg-10condition-verification-corruption-digest",
   "exit_code": 0,
-  "generated_at_utc": "2026-09-17T01:31:49.519556+00:00",
+  "generated_at_utc": "2026-09-17T03:12:26.815025+00:00",
   "official_test_included": false,
   "protocol": {
     "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
@@ -42,7 +42,7 @@
   },
   "runner": {
     "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
-    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
   },
   "sample_count": 3,
   "schema_version": "museg-10condition-mainval-verification-v1",

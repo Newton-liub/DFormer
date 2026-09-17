@@ -296,7 +296,7 @@
     "rgb_corruption": "none (every condition corrupts Depth only)",
     "validity_mask": "np.ones(depth.shape, bool) on the raw aligned grid (no crop, no pad)"
   },
-  "elapsed_seconds": 37.486009,
+  "elapsed_seconds": 37.609742,
   "evaluation_seed": 2026091401,
   "evidence_kind": "museg-10condition-mainval-condition-metrics",
   "expected_sample_count": 8,
@@ -320,7 +320,7 @@
     "max_samples": 8,
     "order": "sample-major",
     "protocol_raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3",
-    "runner_sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1",
+    "runner_sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a",
     "sample_count": 8,
     "sample_count_total": 318,
     "sample_set_sha256": "78d40d2c6832c0e6662fa9e792f69557ab5a6e9711caa98d39f6d8601e5eaf8a",
@@ -331,11 +331,11 @@
     "view_batching_requested": 2,
     "view_reuse": true
   },
-  "identity_sha256": "0a2ce894f492fdaaa622fc7c83d4a61f700ce3cda9c4c34a88a6c8201bb91775",
+  "identity_sha256": "48f7b7fb1c03488f29284c58868bf00156f03be537dec67a56dbad4f34641d4f",
   "logits_fusion_precision": "fp32",
   "macc": 35.35,
   "max_samples_effective": 8,
-  "mean_unit_seconds": 4.685751,
+  "mean_unit_seconds": 4.701218,
   "metrics_percent": {
     "confusion_matrix": [
       [
@@ -732,92 +732,92 @@
   },
   "per_sample": [
     {
-      "elapsed_seconds": 4.536591,
-      "forward_seconds": 4.142282,
+      "elapsed_seconds": 4.651461,
+      "forward_seconds": 4.247182,
       "macc": 18.78,
       "mf1": 16.87,
       "miou": 14.68,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "03-01-01-0066-240526121121-08-99",
-      "ten_views_seconds": 4.149816
+      "ten_views_seconds": 4.254703
     },
     {
-      "elapsed_seconds": 4.332292,
-      "forward_seconds": 3.962618,
+      "elapsed_seconds": 4.618057,
+      "forward_seconds": 4.180193,
       "macc": 19.3,
       "mf1": 18.9,
       "miou": 17.96,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "03-01-01-0066-240526121123-12-99",
-      "ten_views_seconds": 3.970296
+      "ten_views_seconds": 4.188476
     },
     {
-      "elapsed_seconds": 5.066655,
-      "forward_seconds": 4.627538,
+      "elapsed_seconds": 4.875536,
+      "forward_seconds": 4.469253,
       "macc": 8.46,
       "mf1": 8.6,
       "miou": 6.87,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "01-01-01-0163-240523093820-02-99",
-      "ten_views_seconds": 4.659575
+      "ten_views_seconds": 4.507643
     },
     {
-      "elapsed_seconds": 4.749702,
-      "forward_seconds": 4.328874,
+      "elapsed_seconds": 4.383899,
+      "forward_seconds": 4.008878,
       "macc": 24.95,
       "mf1": 24.69,
       "miou": 23.13,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "06-01-01-0167-230920140388-12-99",
-      "ten_views_seconds": 4.36328
+      "ten_views_seconds": 4.017652
     },
     {
-      "elapsed_seconds": 4.716298,
-      "forward_seconds": 4.319886,
+      "elapsed_seconds": 4.548891,
+      "forward_seconds": 4.117752,
       "macc": 16.25,
       "mf1": 17.29,
       "miou": 16.06,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "06-01-01-0148-230920140360-12-99",
-      "ten_views_seconds": 4.350969
+      "ten_views_seconds": 4.14856
     },
     {
-      "elapsed_seconds": 5.220169,
-      "forward_seconds": 4.794297,
+      "elapsed_seconds": 4.74332,
+      "forward_seconds": 4.286569,
       "macc": 27.38,
       "mf1": 29.35,
       "miou": 27.1,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "06-01-01-0148-230920140375-12-99",
-      "ten_views_seconds": 4.802423
+      "ten_views_seconds": 4.322068
     },
     {
-      "elapsed_seconds": 4.477665,
-      "forward_seconds": 4.052414,
+      "elapsed_seconds": 4.56302,
+      "forward_seconds": 4.13357,
       "macc": 6.67,
       "mf1": 5.02,
       "miou": 4.01,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "01-01-01-0215-240523094342-02-99",
-      "ten_views_seconds": 4.059922
+      "ten_views_seconds": 4.142672
     },
     {
-      "elapsed_seconds": 4.386635,
-      "forward_seconds": 3.978502,
+      "elapsed_seconds": 5.225558,
+      "forward_seconds": 4.811989,
       "macc": 16.57,
       "mf1": 17.14,
       "miou": 15.42,
       "peak_allocated_bytes": 4928825344,
       "peak_reserved_bytes": 6897532928,
       "sample_id": "02-01-01-0061-240524104347-12-99",
-      "ten_views_seconds": 4.012125
+      "ten_views_seconds": 4.825161
     }
   ],
   "per_sample_corruption_digests": [
@@ -904,7 +904,7 @@
   },
   "runner": {
     "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
-    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
   },
   "sample_count": 8,
   "schema_version": "museg-10condition-mainval-evidence-v1",
@@ -918,10 +918,10 @@
   },
   "subset": true,
   "tf32_enabled": false,
-  "timestamp_utc": "2026-09-17T01:43:57.855669+00:00",
+  "timestamp_utc": "2026-09-17T03:25:32.625925+00:00",
   "timing_breakdown_seconds": {
-    "forward": 34.206411,
-    "preprocess_including_corruption": 2.624452
+    "forward": 34.255386,
+    "preprocess_including_corruption": 2.680203
   },
   "validity_state_aggregate_sha256": "c919f39c914719d874509fde2205592319a9c2bb12cf5d88c076e7baafabaa31",
   "view_batching": {

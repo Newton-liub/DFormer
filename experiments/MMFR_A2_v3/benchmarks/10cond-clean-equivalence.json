@@ -773,7 +773,7 @@
       }
     ]
   },
-  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --verify clean-equivalence --verify-samples 3 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-clean-equivalence.json' --quiet",
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --quiet --verify clean-equivalence --verify-samples 3 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-clean-equivalence.json'",
   "comparison_contract": {
     "aligned_reference": "tools.evaluate_museg_checkpoint_fast reference implementation (EV.MUSegPostEvalDataset + FAST._run_reference_sample) after torch.manual_seed(base_rng_seed), same sample order, one forward per view",
     "confusion_matrix": "per sample and aggregate",
@@ -781,7 +781,7 @@
     "pass_criterion": "runner == aligned_reference for every sample, and the plain CLI must be reproduced exactly by the reference with one extra CPU draw",
     "prediction": "argmax on the restored original-grid logits, compared per pixel"
   },
-  "duration_seconds": 68.576,
+  "duration_seconds": 69.923,
   "environment": {
     "cuda": "12.8",
     "cudnn": 90701,
@@ -789,7 +789,7 @@
     "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
     "numpy": "2.3.5",
     "os": "Windows-11-10.0.26200-SP0",
-    "pid": 38700,
+    "pid": 35176,
     "python": "3.13.9",
     "tf32_enabled": false,
     "torch": "2.7.0+cu128"
@@ -799,7 +799,7 @@
   "exit_code": 0,
   "failures": [],
   "forward_rng_policy": "progressive",
-  "generated_at_utc": "2026-09-17T01:32:03.676114+00:00",
+  "generated_at_utc": "2026-09-17T03:12:34.124243+00:00",
   "official_test_included": false,
   "per_sample": [
     {
@@ -1264,8 +1264,8 @@
   ],
   "reference_exit_code": 0,
   "reference_report": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\10cond-clean-equivalence-cli-reference.json",
-  "reference_report_sha256": "41a06b5a3dd73c9f3e2394dc38e691a60a65af59ebb28588468376ecad8d836c",
-  "reference_seconds": 20.031,
+  "reference_report_sha256": "088422262840a175eb5b6f48ec701d9587dd98f2a29c3b2260af24f6793b43fd",
+  "reference_seconds": 20.298,
   "rng_alignment": {
     "cli_matches_aligned_reference": false,
     "cli_matches_primed_reference": true,
@@ -1274,7 +1274,7 @@
   },
   "runner": {
     "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
-    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
   },
   "runner_aggregate_metrics": {
     "confusion_matrix": [

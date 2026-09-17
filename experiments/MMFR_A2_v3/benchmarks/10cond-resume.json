@@ -3,8 +3,8 @@
     "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
     "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
   },
-  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --verify resume --verify-samples 3 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-resume.json' --quiet",
-  "duration_seconds": 162.313,
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --quiet --verify resume --verify-samples 3 --benchmark-output 'experiments\\MMFR_A2_v3\\benchmarks\\10cond-resume.json'",
+  "duration_seconds": 233.383,
   "environment": {
     "cuda": "12.8",
     "cudnn": 90701,
@@ -12,7 +12,7 @@
     "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
     "numpy": "2.3.5",
     "os": "Windows-11-10.0.26200-SP0",
-    "pid": 43876,
+    "pid": 49736,
     "python": "3.13.9",
     "tf32_enabled": false,
     "torch": "2.7.0+cu128"
@@ -64,10 +64,194 @@
     {
       "name": "phase6_recomputes_entire_missing_because_the_stored_identity_is_not_original",
       "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_flushed_at_least_one_condition_before_the_kill",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_left_at_least_one_condition_pending",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_wrote_no_metrics_json_for_the_pending_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_wrote_no_summary_json",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_wrote_no_run_manifest_json",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_skipped_every_flushed_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_refilled_every_missing_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_final_coverage_is_complete",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_did_not_rewrite_the_flushed_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_exit_code_is_zero",
+      "satisfied": true
     }
   ],
   "failures": [],
-  "generated_at_utc": "2026-09-17T01:34:46.342692+00:00",
+  "generated_at_utc": "2026-09-17T03:41:05.709358+00:00",
+  "interrupt_scenario": {
+    "condition_spec": "clean,spatial_dropout@0.75,gaussian_noise@0.75",
+    "conditions": [
+      "clean",
+      "spatial_dropout_075",
+      "gaussian_noise_075"
+    ],
+    "conditions_absent_after_kill": [
+      "spatial_dropout_075",
+      "gaussian_noise_075"
+    ],
+    "conditions_flushed_before_kill": [
+      "clean"
+    ],
+    "console_log": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\interrupt\\killed-run-console.log",
+    "disk_after_kill": {
+      "clean": {
+        "completed": true,
+        "identity_sha256": "9add40dd6eb567c2f8493273157786ab1ad2567ed1bd8ab60d45db00866ae43b",
+        "metrics_json": true,
+        "sample_count": 4
+      },
+      "gaussian_noise_075": {
+        "completed": false,
+        "metrics_json": false,
+        "sample_count": 0
+      },
+      "spatial_dropout_075": {
+        "completed": false,
+        "metrics_json": false,
+        "sample_count": 0
+      }
+    },
+    "final_metrics_sample_counts": {
+      "clean": 4,
+      "gaussian_noise_075": 4,
+      "spatial_dropout_075": 4
+    },
+    "flushed_condition_was_never_rewritten": true,
+    "flushed_metrics_sha256_after_resume": {
+      "clean": "8c77e0d5e3ac5e2b786e449a4fbc7950988bc519cafa6354e8d9d288bea1faf4"
+    },
+    "flushed_metrics_sha256_before_resume": {
+      "clean": "8c77e0d5e3ac5e2b786e449a4fbc7950988bc519cafa6354e8d9d288bea1faf4"
+    },
+    "forced_kill_after_clean_exit": false,
+    "forward_rng_policy": "reset-per-unit",
+    "interrupt_dir": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\interrupt",
+    "kill": {
+      "pid": 60008,
+      "returncode": 1,
+      "taskkill_command": [
+        "taskkill",
+        "/F",
+        "/T",
+        "/PID",
+        "60008"
+      ],
+      "taskkill_exit_code": 0,
+      "taskkill_stderr": "",
+      "taskkill_stdout": "成功: 已终止 PID 60008 (属于 PID 49736 子进程)的进程。"
+    },
+    "leftover_temporary_files": [],
+    "order": "condition-major",
+    "resume": {
+      "coverage_conditions_completed": [
+        "clean",
+        "gaussian_noise_075",
+        "spatial_dropout_075"
+      ],
+      "coverage_conditions_present": [
+        "clean",
+        "gaussian_noise_075",
+        "spatial_dropout_075"
+      ],
+      "decisions": {
+        "clean": "skipped",
+        "gaussian_noise_075": "pending",
+        "spatial_dropout_075": "pending"
+      },
+      "elapsed_seconds": 47.051,
+      "exit_code": 0,
+      "mean_over_all_conditions": {
+        "condition_count": 3,
+        "macc": 29.72,
+        "mf1": 29.34,
+        "miou": 26.51
+      },
+      "refilled": [
+        "gaussian_noise_075",
+        "spatial_dropout_075"
+      ],
+      "skipped": [
+        "clean"
+      ],
+      "summary_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\interrupt\\selector-epoch-420\\summary.json",
+      "summary_sha256": "609ab2ef9d86e454b4efbda60f306ecb23d5dafa7c4c5707e480fe26e351486c"
+    },
+    "run_manifest_written_by_killed_run": false,
+    "sample_count": 4,
+    "summary_written_by_killed_run": false
+  },
+  "interrupt_scenario_expectations": [
+    {
+      "name": "interrupt_scenario_flushed_at_least_one_condition_before_the_kill",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_left_at_least_one_condition_pending",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_wrote_no_metrics_json_for_the_pending_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_wrote_no_summary_json",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_wrote_no_run_manifest_json",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_skipped_every_flushed_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_refilled_every_missing_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_final_coverage_is_complete",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_did_not_rewrite_the_flushed_condition",
+      "satisfied": true
+    },
+    {
+      "name": "interrupt_scenario_resume_exit_code_is_zero",
+      "satisfied": true
+    }
+  ],
   "official_test_included": false,
   "phases": [
     {
@@ -115,7 +299,7 @@
           "reason": "no existing metrics.json"
         }
       ],
-      "elapsed_seconds": 20.677,
+      "elapsed_seconds": 20.681,
       "exit_code": 0,
       "mean_over_all_conditions": {
         "condition_count": 1,
@@ -125,7 +309,7 @@
       },
       "phase": "phase1_first_condition_only",
       "stderr_tail": "",
-      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 18.086, \"coverage\": [\"clean\"]}"
+      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 18.249, \"coverage\": [\"clean\"]}"
     },
     {
       "command": [
@@ -179,7 +363,7 @@
           "reason": "no existing metrics.json"
         }
       ],
-      "elapsed_seconds": 21.182,
+      "elapsed_seconds": 20.853,
       "exit_code": 0,
       "mean_over_all_conditions": {
         "condition_count": 2,
@@ -189,7 +373,7 @@
       },
       "phase": "phase2_resume_adds_condition",
       "stderr_tail": "",
-      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 18.591, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
+      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 18.349, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
     },
     {
       "command": [
@@ -243,7 +427,7 @@
           "reason": "completed with a matching identity"
         }
       ],
-      "elapsed_seconds": 5.534,
+      "elapsed_seconds": 5.278,
       "exit_code": 0,
       "mean_over_all_conditions": {
         "condition_count": 2,
@@ -253,7 +437,7 @@
       },
       "phase": "phase3_resume_idempotent",
       "stderr_tail": "",
-      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 3.04, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
+      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 2.902, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
     },
     {
       "command": [
@@ -315,7 +499,7 @@
           "reason": "existing identity does not match; subset or drifted evidence is never reused"
         }
       ],
-      "elapsed_seconds": 35.185,
+      "elapsed_seconds": 34.675,
       "exit_code": 0,
       "mean_over_all_conditions": {
         "condition_count": 2,
@@ -325,7 +509,7 @@
       },
       "phase": "phase4_seed_changed_must_not_reuse",
       "stderr_tail": "",
-      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 32.589, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
+      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 32.219, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
     },
     {
       "command": [
@@ -391,7 +575,7 @@
           "reason": "existing identity does not match; subset or drifted evidence is never reused"
         }
       ],
-      "elapsed_seconds": 44.654,
+      "elapsed_seconds": 44.596,
       "exit_code": 0,
       "mean_over_all_conditions": {
         "condition_count": 2,
@@ -401,7 +585,7 @@
       },
       "phase": "phase5_sample_set_changed_must_not_reuse",
       "stderr_tail": "",
-      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 42.067, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
+      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 42.119, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
     },
     {
       "command": [
@@ -463,7 +647,7 @@
           "reason": "existing identity does not match; subset or drifted evidence is never reused"
         }
       ],
-      "elapsed_seconds": 34.781,
+      "elapsed_seconds": 34.864,
       "exit_code": 0,
       "mean_over_all_conditions": {
         "condition_count": 2,
@@ -473,7 +657,158 @@
       },
       "phase": "phase6_original_identity_still_mismatched",
       "stderr_tail": "",
-      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 32.147, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
+      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\run_manifest.json\", \"duration_seconds\": 32.274, \"coverage\": [\"clean\", \"entire_missing_100\"]}"
+    },
+    {
+      "command": [
+        "D:\\2Env\\anaconda\\python.exe",
+        "-m",
+        "tools.evaluate_museg_10condition",
+        "--checkpoint",
+        "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+        "--split",
+        "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+        "--split-role",
+        "val_dev",
+        "--expected-checkpoint-sha256",
+        "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597",
+        "--expected-split-sha256",
+        "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+        "--protocol",
+        "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+        "--config",
+        "local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3",
+        "--dataset-root",
+        "D:\\0Project\\dataset\\MUSeg_DFormer",
+        "--device",
+        "cuda",
+        "--output-dir",
+        "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\interrupt",
+        "--view-batching",
+        "2",
+        "--conditions",
+        "clean,spatial_dropout@0.75,gaussian_noise@0.75",
+        "--max-samples",
+        "4",
+        "--order",
+        "condition-major",
+        "--forward-rng",
+        "reset-per-unit",
+        "--resume",
+        "--quiet"
+      ],
+      "conditions_absent_after_kill": [
+        "spatial_dropout_075",
+        "gaussian_noise_075"
+      ],
+      "conditions_completed": [
+        "clean"
+      ],
+      "conditions_flushed_before_kill": [
+        "clean"
+      ],
+      "conditions_present_after_kill": [
+        "clean"
+      ],
+      "decisions": [],
+      "elapsed_seconds": 24.078,
+      "exit_code": 1,
+      "killed": true,
+      "mean_over_all_conditions": null,
+      "note": "hard kill; this phase has no summary.json by design, so resume_decisions is empty",
+      "phase": "phase7_condition_major_killed_mid_run",
+      "run_manifest_written": false,
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "summary_written": false
+    },
+    {
+      "command": [
+        "D:\\2Env\\anaconda\\python.exe",
+        "-m",
+        "tools.evaluate_museg_10condition",
+        "--checkpoint",
+        "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+        "--split",
+        "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+        "--split-role",
+        "val_dev",
+        "--expected-checkpoint-sha256",
+        "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597",
+        "--expected-split-sha256",
+        "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+        "--protocol",
+        "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+        "--config",
+        "local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3",
+        "--dataset-root",
+        "D:\\0Project\\dataset\\MUSeg_DFormer",
+        "--device",
+        "cuda",
+        "--output-dir",
+        "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\interrupt",
+        "--view-batching",
+        "2",
+        "--conditions",
+        "clean,spatial_dropout@0.75,gaussian_noise@0.75",
+        "--max-samples",
+        "4",
+        "--order",
+        "condition-major",
+        "--forward-rng",
+        "reset-per-unit",
+        "--resume",
+        "--quiet"
+      ],
+      "conditions_completed": [
+        "clean",
+        "gaussian_noise_075",
+        "spatial_dropout_075"
+      ],
+      "decisions": [
+        {
+          "condition": "clean",
+          "decision": "skipped",
+          "mismatched_identity_fields": null,
+          "reason": "completed with a matching identity"
+        },
+        {
+          "condition": "spatial_dropout_075",
+          "decision": "pending",
+          "mismatched_identity_fields": null,
+          "reason": "no existing metrics.json"
+        },
+        {
+          "condition": "gaussian_noise_075",
+          "decision": "pending",
+          "mismatched_identity_fields": null,
+          "reason": "no existing metrics.json"
+        }
+      ],
+      "elapsed_seconds": 47.051,
+      "exit_code": 0,
+      "final_metrics_sample_counts": {
+        "clean": 4,
+        "gaussian_noise_075": 4,
+        "spatial_dropout_075": 4
+      },
+      "killed": false,
+      "mean_over_all_conditions": {
+        "condition_count": 3,
+        "macc": 29.72,
+        "mf1": 29.34,
+        "miou": 26.51
+      },
+      "phase": "phase8_resume_after_kill",
+      "refilled_conditions": [
+        "gaussian_noise_075",
+        "spatial_dropout_075"
+      ],
+      "skipped_conditions": [
+        "clean"
+      ],
+      "stderr_tail": "",
+      "stdout_tail": "15\nspatial True\nS 1\nD 512\nR 64\ntrain_steps 6\neval_steps 7\ninv_t 100\neta 0.9\nrand_init True\n{\"status\": \"completed\", \"summary\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\interrupt\\\\selector-epoch-420\\\\summary.json\", \"run_manifest\": \"D:\\\\0Project\\\\DFormer\\\\experiments\\\\MMFR_A2_v3\\\\benchmarks\\\\resume-verify\\\\interrupt\\\\run_manifest.json\", \"duration_seconds\": 44.574, \"coverage\": [\"clean\", \"gaussian_noise_075\", \"spatial_dropout_075\"]}"
     }
   ],
   "protocol": {
@@ -483,7 +818,7 @@
   "resume_dir": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify",
   "runner": {
     "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
-    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
   },
   "sample_count": 3,
   "schema_version": "museg-10condition-mainval-verification-v1",

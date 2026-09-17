@@ -191,7 +191,7 @@
     "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
     "numpy": "2.3.5",
     "os": "Windows-11-10.0.26200-SP0",
-    "pid": 48476,
+    "pid": 59600,
     "python": "3.13.9",
     "tf32_enabled": false,
     "torch": "2.7.0+cu128"
@@ -222,7 +222,7 @@
       "horizontal_flip"
     ]
   },
-  "generated_at_utc": "2026-09-17T01:37:27.383052+00:00",
+  "generated_at_utc": "2026-09-17T03:43:45.720413+00:00",
   "input_contract": {
     "channel_order": "RGB",
     "normalization": {
@@ -386,8 +386,8 @@
         "condition_id": "clean",
         "decision": "pending",
         "existing_completed": true,
-        "existing_identity_sha256": "0c194b6c947d71d17f43ee56fd0b63b20a29b8f8c2c18968ff0c99c46f273098",
-        "expected_identity_sha256": "d7184bf54a16c9878c7cee1e633122b5b771b5cc5c0630f1b3e4fb58b327fb17",
+        "existing_identity_sha256": "70a88abf8d8457d6276791fda40fdb0ac783d91431f4b5205a735645907c23f1",
+        "expected_identity_sha256": "b5a9e9e4b6c2eb20b3bfeeec880ad32b95d4aef848cc53e6f1dde8b2f662a06a",
         "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\selector-epoch-420\\clean\\metrics.json",
         "mismatched_identity_fields": [
           "max_samples",
@@ -401,8 +401,8 @@
         "condition_id": "entire_missing@1.0",
         "decision": "pending",
         "existing_completed": true,
-        "existing_identity_sha256": "f928ec28789e7cd46c694c54d3fd0e24380fab0234b642c4435c97d46bf79410",
-        "expected_identity_sha256": "bef1050d2d4dd5513ed041fc6c4a2c582daaf94e99d0d14de72f9055506f6a3b",
+        "existing_identity_sha256": "33e0ad843c1710071d7c4f29d875ff492679c3e84cc5a222a0941c6c08ef4a8a",
+        "expected_identity_sha256": "cabd67cd16e4ca052abd883f047e552d11883511fc46fb8478c7f00813b9b462",
         "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\selector-epoch-420\\entire_missing_100\\metrics.json",
         "mismatched_identity_fields": [
           "max_samples",
@@ -420,7 +420,7 @@
       "entire_missing_100"
     ],
     "checkpoint_dir": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\resume-verify\\selector-epoch-420",
-    "duration_seconds": 32.147,
+    "duration_seconds": 32.274,
     "pending_conditions": [
       "clean",
       "entire_missing_100"
@@ -430,7 +430,7 @@
   },
   "runner": {
     "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
-    "sha256": "25b4d568c08ad1f1ee015d16720a05c8e37d0e229d14215f6815659004a9a9c1"
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
   },
   "samples": {
     "max_samples": 3,
