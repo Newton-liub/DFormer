@@ -1,0 +1,862 @@
+{
+  "caching_contract": {
+    "backbone_encoder_fusion_caching": false,
+    "feature_caching": false,
+    "note": "sample-major reuses only the condition-independent RGB view tensors of one sample across its ten conditions; condition-major rebuilds the frozen views for every unit",
+    "rgb_multiscale_view_tensors_reused_within_one_sample": false,
+    "rgb_view_reuse_self_checked": true
+  },
+  "checkpoint": {
+    "file_name": "latest.pth",
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\latest.pth",
+    "sha256": "4ea4dc7feae31be9c146fb4ecdbc24b41cd1248a4b12ba15c8b7424a206b3813"
+  },
+  "command_line": "python -m tools.evaluate_museg_10condition --checkpoint 'experiments\\MMFR_A2_v3\\checkpoints\\latest.pth' --split 'data\\splits\\MUSeg\\dev-v1\\val-dev.txt' --split-role val_dev --expected-checkpoint-sha256 4ea4dc7feae31be9c146fb4ecdbc24b41cd1248a4b12ba15c8b7424a206b3813 --expected-split-sha256 1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83 --dataset-root 'D:\\0Project\\dataset\\MUSeg_DFormer' --output-dir 'experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1' --resume --order condition-major --view-batching 2",
+  "conditions": {
+    "condition_definition_sha256": "6b4b129dd72a6976bf069655ffd77cd59ec63218b46a5bceea40043d606d4225",
+    "order": [
+      {
+        "condition_id": "clean",
+        "directory": "clean",
+        "group": "clean",
+        "index": 0,
+        "specs": []
+      },
+      {
+        "condition_id": "spatial_dropout@0.75",
+        "directory": "spatial_dropout_075",
+        "group": "single_corruptions",
+        "index": 1,
+        "specs": [
+          {
+            "kind": "spatial_dropout",
+            "modality": "depth",
+            "severity": 0.75
+          }
+        ]
+      },
+      {
+        "condition_id": "gaussian_noise@0.75",
+        "directory": "gaussian_noise_075",
+        "group": "single_corruptions",
+        "index": 2,
+        "specs": [
+          {
+            "kind": "gaussian_noise",
+            "modality": "depth",
+            "severity": 0.75
+          }
+        ]
+      },
+      {
+        "condition_id": "blur@0.75",
+        "directory": "blur_075",
+        "group": "single_corruptions",
+        "index": 3,
+        "specs": [
+          {
+            "kind": "blur",
+            "modality": "depth",
+            "severity": 0.75
+          }
+        ]
+      },
+      {
+        "condition_id": "quantization@0.75",
+        "directory": "quantization_075",
+        "group": "single_corruptions",
+        "index": 4,
+        "specs": [
+          {
+            "kind": "quantization",
+            "modality": "depth",
+            "severity": 0.75
+          }
+        ]
+      },
+      {
+        "condition_id": "misalignment@0.75",
+        "directory": "misalignment_075",
+        "group": "single_corruptions",
+        "index": 5,
+        "specs": [
+          {
+            "kind": "misalignment",
+            "modality": "depth",
+            "severity": 0.75
+          }
+        ]
+      },
+      {
+        "condition_id": "entire_missing@1.0",
+        "directory": "entire_missing_100",
+        "group": "single_corruptions",
+        "index": 6,
+        "specs": [
+          {
+            "kind": "entire_missing",
+            "modality": "depth",
+            "severity": 1.0
+          }
+        ]
+      },
+      {
+        "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+        "directory": "spatial_dropout_050__gaussian_noise_050",
+        "group": "mixed_corruptions",
+        "index": 7,
+        "specs": [
+          {
+            "kind": "spatial_dropout",
+            "modality": "depth",
+            "severity": 0.5
+          },
+          {
+            "kind": "gaussian_noise",
+            "modality": "depth",
+            "severity": 0.5
+          }
+        ]
+      },
+      {
+        "condition_id": "blur@0.5+misalignment@0.5",
+        "directory": "blur_050__misalignment_050",
+        "group": "mixed_corruptions",
+        "index": 8,
+        "specs": [
+          {
+            "kind": "blur",
+            "modality": "depth",
+            "severity": 0.5
+          },
+          {
+            "kind": "misalignment",
+            "modality": "depth",
+            "severity": 0.5
+          }
+        ]
+      },
+      {
+        "condition_id": "quantization@0.5+misalignment@0.5",
+        "directory": "quantization_050__misalignment_050",
+        "group": "mixed_corruptions",
+        "index": 9,
+        "specs": [
+          {
+            "kind": "quantization",
+            "modality": "depth",
+            "severity": 0.5
+          },
+          {
+            "kind": "misalignment",
+            "modality": "depth",
+            "severity": 0.5
+          }
+        ]
+      }
+    ],
+    "requested": [
+      "clean",
+      "spatial_dropout_075",
+      "gaussian_noise_075",
+      "blur_075",
+      "quantization_075",
+      "misalignment_075",
+      "entire_missing_100",
+      "spatial_dropout_050__gaussian_noise_050",
+      "blur_050__misalignment_050",
+      "quantization_050__misalignment_050"
+    ]
+  },
+  "config_module": "local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3",
+  "determinism_scheme": {
+    "corruption": {
+      "clean_condition": "no random draw; bitwise no-op",
+      "engine": "numpy.PCG64 + SeedSequence",
+      "sample_id_normalization": "path separators unified to '/', SHA-256 over UTF-8, first 16 bytes big-endian uint32",
+      "seed_words": [
+        "evaluation_seed",
+        "condition_index_0_based",
+        "sample_id_sha256_u32_be_0",
+        "sample_id_sha256_u32_be_1",
+        "sample_id_sha256_u32_be_2",
+        "sample_id_sha256_u32_be_3"
+      ],
+      "shared_progressing_generator": false,
+      "unit": "(sample, condition)"
+    },
+    "model_forward": {
+      "base_rng_seed": 2026091401,
+      "base_rng_seed_source": "frozen protocol evaluation seed",
+      "policy": "reset-per-unit",
+      "rationale": "torch.rand in models/decoders/ham_head.py NMF2D makes every forward stochastic unless the torch generator is controlled; reset-per-unit makes each (sample, condition) result independent of the call order"
+    }
+  },
+  "environment": {
+    "cuda": "12.8",
+    "cudnn": 90701,
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "numpy": "2.3.5",
+    "os": "Windows-11-10.0.26200-SP0",
+    "pid": 65020,
+    "python": "3.13.9",
+    "tf32_enabled": false,
+    "torch": "2.7.0+cu128"
+  },
+  "evaluation_seed": 2026091401,
+  "evidence_kind": "museg-10condition-mainval-run-manifest",
+  "frozen_constants": {
+    "amp": false,
+    "depth_normalization_mean": 0.48,
+    "depth_normalization_std": 0.28,
+    "depth_validity": "(raw Depth uint8 > 0) & validity_mask",
+    "forward_precision": "fp32",
+    "logits_fusion_precision": "fp32",
+    "pad_divisor": 32,
+    "rgb_corruption": "none (every condition corrupts Depth only)",
+    "scales": [
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5
+    ],
+    "tf32_enabled": false,
+    "validity_mask": "np.ones(depth.shape, bool) on the raw aligned grid (no crop, no pad)",
+    "view_count": 10,
+    "views_per_scale": [
+      "original",
+      "horizontal_flip"
+    ]
+  },
+  "generated_at_utc": "2026-09-18T02:02:20.903865+00:00",
+  "input_contract": {
+    "channel_order": "RGB",
+    "normalization": {
+      "identity": "rgb-imagenet-rgb-order-v1",
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    }
+  },
+  "official_test_included": false,
+  "order": "condition-major",
+  "protocol": {
+    "document_status": "cloud-probe-and-checkpoint-gate-passed-awaiting-one-arm-screening-authorization",
+    "frozen_hard_check": {
+      "literal_contract": {
+        "evaluator": "msflip-whole-original-grid-v1",
+        "mixed_conditions": [
+          [
+            [
+              "spatial_dropout",
+              0.5
+            ],
+            [
+              "gaussian_noise",
+              0.5
+            ]
+          ],
+          [
+            [
+              "blur",
+              0.5
+            ],
+            [
+              "misalignment",
+              0.5
+            ]
+          ],
+          [
+            [
+              "quantization",
+              0.5
+            ],
+            [
+              "misalignment",
+              0.5
+            ]
+          ]
+        ],
+        "primary_score": "unweighted-macro-mean-single-condition-mIoU",
+        "sample_count": 318,
+        "seed": 2026091401,
+        "single_conditions": [
+          [
+            "spatial_dropout",
+            0.75
+          ],
+          [
+            "gaussian_noise",
+            0.75
+          ],
+          [
+            "blur",
+            0.75
+          ],
+          [
+            "quantization",
+            0.75
+          ],
+          [
+            "misalignment",
+            0.75
+          ],
+          [
+            "entire_missing",
+            1.0
+          ]
+        ]
+      },
+      "mismatches": [],
+      "parsed_evaluation": {
+        "evaluator": "msflip-whole-original-grid-v1",
+        "mixed_conditions": [
+          [
+            [
+              "spatial_dropout",
+              0.5
+            ],
+            [
+              "gaussian_noise",
+              0.5
+            ]
+          ],
+          [
+            [
+              "blur",
+              0.5
+            ],
+            [
+              "misalignment",
+              0.5
+            ]
+          ],
+          [
+            [
+              "quantization",
+              0.5
+            ],
+            [
+              "misalignment",
+              0.5
+            ]
+          ]
+        ],
+        "primary_score": "unweighted-macro-mean-single-condition-mIoU",
+        "sample_count": 318,
+        "seed": 2026091401,
+        "single_conditions": [
+          [
+            "spatial_dropout",
+            0.75
+          ],
+          [
+            "gaussian_noise",
+            0.75
+          ],
+          [
+            "blur",
+            0.75
+          ],
+          [
+            "quantization",
+            0.75
+          ],
+          [
+            "misalignment",
+            0.75
+          ],
+          [
+            "entire_missing",
+            1.0
+          ]
+        ]
+      },
+      "status": "PASS"
+    },
+    "node": "evaluation",
+    "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+    "raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3"
+  },
+  "resume": {
+    "decisions": [
+      {
+        "condition": "clean",
+        "condition_id": "clean",
+        "decision": "skipped",
+        "existing_identity_sha256": "e201ad9fc4865944cca80d598ad8b7065ea0d2b454c90e3361766f7239c2402c",
+        "expected_identity_sha256": "e201ad9fc4865944cca80d598ad8b7065ea0d2b454c90e3361766f7239c2402c",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\clean\\metrics.json",
+        "reason": "completed with a matching identity"
+      },
+      {
+        "condition": "spatial_dropout_075",
+        "condition_id": "spatial_dropout@0.75",
+        "decision": "skipped",
+        "existing_identity_sha256": "0509b18cfb7299f79c935f4405da90b3cf7e8ce99e1d220571d95daaa8f37ecb",
+        "expected_identity_sha256": "0509b18cfb7299f79c935f4405da90b3cf7e8ce99e1d220571d95daaa8f37ecb",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\spatial_dropout_075\\metrics.json",
+        "reason": "completed with a matching identity"
+      },
+      {
+        "condition": "gaussian_noise_075",
+        "condition_id": "gaussian_noise@0.75",
+        "decision": "skipped",
+        "existing_identity_sha256": "f8c97919341ddeaa65f190383c5e5ff65fa9c0708f88409b49ad9ff354e05ec6",
+        "expected_identity_sha256": "f8c97919341ddeaa65f190383c5e5ff65fa9c0708f88409b49ad9ff354e05ec6",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\gaussian_noise_075\\metrics.json",
+        "reason": "completed with a matching identity"
+      },
+      {
+        "condition": "blur_075",
+        "condition_id": "blur@0.75",
+        "decision": "skipped",
+        "existing_identity_sha256": "506cab0d01e1b1cb9d2391dce551e4f973e69a1d8e07bdc9d13e58b62352a289",
+        "expected_identity_sha256": "506cab0d01e1b1cb9d2391dce551e4f973e69a1d8e07bdc9d13e58b62352a289",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\blur_075\\metrics.json",
+        "reason": "completed with a matching identity"
+      },
+      {
+        "condition": "quantization_075",
+        "condition_id": "quantization@0.75",
+        "decision": "skipped",
+        "existing_identity_sha256": "3b4e01f750cd24eec4d3f059f9b8a81811d7383998fd994b096bc88ca54cfb04",
+        "expected_identity_sha256": "3b4e01f750cd24eec4d3f059f9b8a81811d7383998fd994b096bc88ca54cfb04",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\quantization_075\\metrics.json",
+        "reason": "completed with a matching identity"
+      },
+      {
+        "condition": "misalignment_075",
+        "condition_id": "misalignment@0.75",
+        "decision": "skipped",
+        "existing_identity_sha256": "205b671cb32a38e2b1e5d9afbade7f6fba1663cd2af94384b29da111562f2278",
+        "expected_identity_sha256": "205b671cb32a38e2b1e5d9afbade7f6fba1663cd2af94384b29da111562f2278",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\misalignment_075\\metrics.json",
+        "reason": "completed with a matching identity"
+      },
+      {
+        "condition": "entire_missing_100",
+        "condition_id": "entire_missing@1.0",
+        "decision": "pending",
+        "expected_identity_sha256": "6985f3e8af801829a7d851a384eef43b075769ed548bcb3f7bedf3fc25d9197c",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\entire_missing_100\\metrics.json",
+        "reason": "no existing metrics.json"
+      },
+      {
+        "condition": "spatial_dropout_050__gaussian_noise_050",
+        "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+        "decision": "pending",
+        "expected_identity_sha256": "dd9b6b424b042124df45d11c8e6423767621d1f072c3809f3aa5eac90dc72f6f",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\spatial_dropout_050__gaussian_noise_050\\metrics.json",
+        "reason": "no existing metrics.json"
+      },
+      {
+        "condition": "blur_050__misalignment_050",
+        "condition_id": "blur@0.5+misalignment@0.5",
+        "decision": "pending",
+        "expected_identity_sha256": "c2a7a61ca301c433989cf12bfd7f66b75784eb6065a141d1d5eddf10bc48836a",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\blur_050__misalignment_050\\metrics.json",
+        "reason": "no existing metrics.json"
+      },
+      {
+        "condition": "quantization_050__misalignment_050",
+        "condition_id": "quantization@0.5+misalignment@0.5",
+        "decision": "pending",
+        "expected_identity_sha256": "8e036ab87000ea3c78007092a08d8144dd4086ce5a3a5ed2a94d27c11adbaafa",
+        "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\quantization_050__misalignment_050\\metrics.json",
+        "reason": "no existing metrics.json"
+      }
+    ],
+    "enabled": true
+  },
+  "run": {
+    "call_order": [
+      "entire_missing_100",
+      "spatial_dropout_050__gaussian_noise_050",
+      "blur_050__misalignment_050",
+      "quantization_050__misalignment_050"
+    ],
+    "checkpoint_dir": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest",
+    "duration_seconds": 6029.602,
+    "pending_conditions": [
+      "entire_missing_100",
+      "spatial_dropout_050__gaussian_noise_050",
+      "blur_050__misalignment_050",
+      "quantization_050__misalignment_050"
+    ],
+    "skipped_conditions": [
+      "clean",
+      "spatial_dropout_075",
+      "gaussian_noise_075",
+      "blur_075",
+      "quantization_075",
+      "misalignment_075"
+    ],
+    "summary_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\latest\\summary.json"
+  },
+  "runner": {
+    "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
+  },
+  "samples": {
+    "max_samples": null,
+    "sample_selection": "first",
+    "sample_set_sha256": "27001f07ace56a10936aba518f3bb971aad83ee94018782832ee74cf19e53f42",
+    "selected_count": 318,
+    "selected_entries": [
+      "RGB/03-01-01-0066-240526121121-08-99.jpg",
+      "RGB/03-01-01-0066-240526121123-12-99.jpg",
+      "RGB/01-01-01-0163-240523093820-02-99.jpg",
+      "RGB/06-01-01-0167-230920140388-12-99.jpg",
+      "RGB/06-01-01-0148-230920140360-12-99.jpg",
+      "RGB/06-01-01-0148-230920140375-12-99.jpg",
+      "RGB/01-01-01-0215-240523094342-02-99.jpg",
+      "RGB/02-01-01-0061-240524104347-12-99.jpg",
+      "RGB/02-01-01-0061-240524104352-12-99.jpg",
+      "RGB/02-01-01-0179-240524100700-08-99.jpg",
+      "RGB/02-01-01-0032-240524101126-04-99.jpg",
+      "RGB/02-01-01-0032-240524101128-04-99.jpg",
+      "RGB/02-01-01-0032-240524101136-04-99.jpg",
+      "RGB/01-01-01-0491-240523102307-04-99.jpg",
+      "RGB/05-01-01-0036-231211114740-02-99.jpg",
+      "RGB/05-01-01-0036-231211114750-02-99.jpg",
+      "RGB/01-01-01-0411-240523101036-04-99.jpg",
+      "RGB/06-01-01-0111-230920140280-12-99.jpg",
+      "RGB/06-01-01-0111-230920140281-12-99.jpg",
+      "RGB/04-01-01-0031-230808080111-12-99.jpg",
+      "RGB/04-01-01-0031-230808080112-12-99.jpg",
+      "RGB/04-01-01-0031-230808080113-12-99.jpg",
+      "RGB/01-01-01-0492-240523102324-02-99.jpg",
+      "RGB/04-01-01-0038-230808080130-12-99.jpg",
+      "RGB/04-01-01-0038-230808080131-12-99.jpg",
+      "RGB/06-01-01-0022-230920140194-08-99.jpg",
+      "RGB/06-01-01-0022-230920140195-08-99.jpg",
+      "RGB/06-01-01-0282-230920140727-12-99.jpg",
+      "RGB/06-01-01-0282-230920140746-10-99.jpg",
+      "RGB/06-01-01-0282-230920140748-12-99.jpg",
+      "RGB/01-01-01-0148-240523093655-02-99.jpg",
+      "RGB/01-01-01-0006-240523093816-02-99.jpg",
+      "RGB/01-01-01-0006-240523093817-02-99.jpg",
+      "RGB/02-01-01-0323-240524104612-12-99.jpg",
+      "RGB/06-01-01-0315-230920140603-12-99.jpg",
+      "RGB/06-01-01-0315-230920140618-12-99.jpg",
+      "RGB/03-01-01-0038-240526120155-08-99.jpg",
+      "RGB/03-01-01-0038-240526120157-08-99.jpg",
+      "RGB/03-01-01-0284-240526111123-04-99.jpg",
+      "RGB/01-01-01-0068-240523101120-04-99.jpg",
+      "RGB/01-01-01-0068-240523101123-04-99.jpg",
+      "RGB/03-01-01-0276-240526103014-04-99.jpg",
+      "RGB/04-01-01-0060-230808080211-08-99.jpg",
+      "RGB/04-01-01-0060-230808080213-10-99.jpg",
+      "RGB/04-01-01-0060-230808080214-10-99.jpg",
+      "RGB/03-01-01-0065-240526121113-04-99.jpg",
+      "RGB/03-01-01-0065-240526121114-02-99.jpg",
+      "RGB/01-01-01-0347-240523095756-04-99.jpg",
+      "RGB/03-01-01-0068-240526123821-08-99.jpg",
+      "RGB/03-01-01-0068-240526123823-12-99.jpg",
+      "RGB/04-01-01-0088-230808080358-10-99.jpg",
+      "RGB/04-01-01-0088-230808080360-10-99.jpg",
+      "RGB/04-01-01-0088-230808080363-12-99.jpg",
+      "RGB/04-01-01-0088-230808080364-12-99.jpg",
+      "RGB/04-01-01-0026-230808080084-12-99.jpg",
+      "RGB/04-01-01-0026-230808080087-12-99.jpg",
+      "RGB/04-01-01-0026-230808080088-12-99.jpg",
+      "RGB/03-01-01-0362-240526113401-08-99.jpg",
+      "RGB/01-01-01-0030-240523094738-04-99.jpg",
+      "RGB/01-01-01-0030-240523094740-04-99.jpg",
+      "RGB/03-01-01-0290-240526111144-06-99.jpg",
+      "RGB/02-01-01-0297-240524103832-04-99.jpg",
+      "RGB/03-01-01-0117-240526100650-12-99.jpg",
+      "RGB/06-01-01-0017-230920140163-10-99.jpg",
+      "RGB/06-01-01-0017-230920140164-12-99.jpg",
+      "RGB/06-01-01-0017-230920140165-12-99.jpg",
+      "RGB/06-01-01-0027-230920140767-12-99.jpg",
+      "RGB/06-01-01-0027-230920140768-12-99.jpg",
+      "RGB/06-01-01-0027-230920140777-12-99.jpg",
+      "RGB/02-01-01-0150-240524100339-02-99.jpg",
+      "RGB/01-01-01-0176-240523094001-04-99.jpg",
+      "RGB/06-01-01-0074-230920140096-04-99.jpg",
+      "RGB/06-01-01-0232-230920140518-12-99.jpg",
+      "RGB/06-01-01-0232-230920140527-12-99.jpg",
+      "RGB/01-01-01-0090-240523104226-12-99.jpg",
+      "RGB/01-01-01-0090-240523104228-12-99.jpg",
+      "RGB/06-01-01-0182-230920140444-08-99.jpg",
+      "RGB/06-01-01-0182-230920140445-04-99.jpg",
+      "RGB/02-01-01-0295-240524103735-04-99.jpg",
+      "RGB/04-01-01-0078-230808080274-04-99.jpg",
+      "RGB/04-01-01-0078-230808080275-04-99.jpg",
+      "RGB/01-01-01-0244-240523094707-06-99.jpg",
+      "RGB/03-01-01-0026-240526102535-10-99.jpg",
+      "RGB/03-01-01-0026-240526102536-10-99.jpg",
+      "RGB/04-01-01-0081-230808080283-04-99.jpg",
+      "RGB/04-01-01-0081-230808080284-04-99.jpg",
+      "RGB/01-01-01-0571-240523104316-06-99.jpg",
+      "RGB/02-01-01-0258-240524101853-04-99.jpg",
+      "RGB/01-01-01-0245-240523094710-02-99.jpg",
+      "RGB/05-01-01-0010-231211111590-04-99.jpg",
+      "RGB/01-01-01-0437-240523101643-02-99.jpg",
+      "RGB/05-01-01-0011-231211111680-04-99.jpg",
+      "RGB/01-01-01-0002-240523093232-04-99.jpg",
+      "RGB/01-01-01-0002-240523093236-04-99.jpg",
+      "RGB/03-01-01-0173-240526101853-04-99.jpg",
+      "RGB/01-01-01-0374-240523100113-04-99.jpg",
+      "RGB/01-01-01-0078-240523102138-04-99.jpg",
+      "RGB/01-01-01-0078-240523102139-04-99.jpg",
+      "RGB/04-01-01-0001-230808080001-12-99.jpg",
+      "RGB/04-01-01-0001-230808080002-10-99.jpg",
+      "RGB/04-01-01-0001-230808080094-12-99.jpg",
+      "RGB/04-01-01-0001-230808080390-12-99.jpg",
+      "RGB/04-01-01-0001-230808080401-12-99.jpg",
+      "RGB/02-01-01-0349-240524111259-02-99.jpg",
+      "RGB/06-01-01-0178-230920140429-04-99.jpg",
+      "RGB/06-01-01-0178-230920140430-04-99.jpg",
+      "RGB/06-01-01-0178-230920140431-04-99.jpg",
+      "RGB/03-01-01-0154-240526101442-04-99.jpg",
+      "RGB/06-01-01-0235-230920140547-12-99.jpg",
+      "RGB/06-01-01-0235-230920140548-12-99.jpg",
+      "RGB/06-01-01-0235-230920140549-12-99.jpg",
+      "RGB/02-01-01-0132-240524095610-06-99.jpg",
+      "RGB/03-01-01-0164-240526101715-04-99.jpg",
+      "RGB/06-01-01-0277-230920140721-06-99.jpg",
+      "RGB/06-01-01-0277-230920140722-06-99.jpg",
+      "RGB/06-01-01-0277-230920140723-06-99.jpg",
+      "RGB/06-01-01-0277-230920140724-08-99.jpg",
+      "RGB/06-01-01-0277-230920140725-06-99.jpg",
+      "RGB/06-01-01-0277-230920140726-06-99.jpg",
+      "RGB/02-01-01-0332-240524104712-10-99.jpg",
+      "RGB/06-01-01-0122-230920140299-10-99.jpg",
+      "RGB/06-01-01-0039-230920140720-12-99.jpg",
+      "RGB/06-01-01-0085-230920140109-10-99.jpg",
+      "RGB/02-01-01-0306-240524104259-04-99.jpg",
+      "RGB/01-01-01-0584-240523104433-04-99.jpg",
+      "RGB/03-01-01-0275-240526103010-06-99.jpg",
+      "RGB/03-01-01-0041-240526113342-12-99.jpg",
+      "RGB/03-01-01-0041-240526113346-12-99.jpg",
+      "RGB/03-01-01-0344-240526112409-08-99.jpg",
+      "RGB/01-01-01-0473-240523102059-04-99.jpg",
+      "RGB/03-01-01-0192-240526102014-02-99.jpg",
+      "RGB/01-01-01-0273-240523094917-04-99.jpg",
+      "RGB/01-01-01-0295-240523095056-02-99.jpg",
+      "RGB/01-01-01-0122-240523093402-02-99.jpg",
+      "RGB/03-01-01-0288-240526111137-04-99.jpg",
+      "RGB/03-01-01-0343-240526112259-04-99.jpg",
+      "RGB/03-01-01-0032-240526111244-04-99.jpg",
+      "RGB/03-01-01-0032-240526111247-04-99.jpg",
+      "RGB/03-01-01-0032-240526111249-04-99.jpg",
+      "RGB/06-01-01-0265-230920140672-04-99.jpg",
+      "RGB/01-01-01-0480-240523102221-04-99.jpg",
+      "RGB/02-01-01-0311-240524104325-12-99.jpg",
+      "RGB/03-01-01-0033-240526111238-10-99.jpg",
+      "RGB/03-01-01-0033-240526111240-12-99.jpg",
+      "RGB/03-01-01-0033-240526111242-06-99.jpg",
+      "RGB/02-01-01-0041-240524101928-10-99.jpg",
+      "RGB/02-01-01-0041-240524101932-12-99.jpg",
+      "RGB/02-01-01-0041-240524101943-08-99.jpg",
+      "RGB/01-01-01-0253-240523094735-02-99.jpg",
+      "RGB/06-01-01-0170-230920140390-10-99.jpg",
+      "RGB/06-01-01-0170-230920140391-10-99.jpg",
+      "RGB/03-01-01-0242-240526102704-02-99.jpg",
+      "RGB/01-01-01-0379-240523100337-06-99.jpg",
+      "RGB/01-01-01-0107-240523093228-02-99.jpg",
+      "RGB/06-01-01-0019-230920140174-10-99.jpg",
+      "RGB/06-01-01-0019-230920140175-10-99.jpg",
+      "RGB/06-01-01-0019-230920140176-08-99.jpg",
+      "RGB/05-01-01-0005-231211111060-02-99.jpg",
+      "RGB/02-01-01-0092-240524094349-12-99.jpg",
+      "RGB/04-01-01-0045-230808080188-10-99.jpg",
+      "RGB/04-01-01-0045-230808080189-08-99.jpg",
+      "RGB/06-01-01-0068-230920140074-04-99.jpg",
+      "RGB/06-01-01-0068-230920140075-04-99.jpg",
+      "RGB/01-01-01-0581-240523104411-04-99.jpg",
+      "RGB/01-01-01-0365-240523100029-08-99.jpg",
+      "RGB/01-01-01-0373-240523100111-04-99.jpg",
+      "RGB/04-01-01-0066-230808080265-08-99.jpg",
+      "RGB/04-01-01-0066-230808080267-08-99.jpg",
+      "RGB/06-01-01-0165-230920140385-10-99.jpg",
+      "RGB/06-01-01-0165-230920140387-10-99.jpg",
+      "RGB/03-01-01-0023-240526102256-08-99.jpg",
+      "RGB/03-01-01-0023-240526102257-08-99.jpg",
+      "RGB/03-01-01-0427-240526123944-12-99.jpg",
+      "RGB/02-01-01-0178-240524100658-08-99.jpg",
+      "RGB/06-01-01-0055-230920140042-04-99.jpg",
+      "RGB/06-01-01-0055-230920140043-04-99.jpg",
+      "RGB/06-01-01-0055-230920140044-04-99.jpg",
+      "RGB/06-01-01-0055-230920140045-04-99.jpg",
+      "RGB/06-01-01-0154-230920140382-12-99.jpg",
+      "RGB/06-01-01-0154-230920140383-10-99.jpg",
+      "RGB/06-01-01-0154-230920140423-06-99.jpg",
+      "RGB/06-01-01-0154-230920140424-06-99.jpg",
+      "RGB/04-01-01-0049-230808080183-08-99.jpg",
+      "RGB/04-01-01-0049-230808080186-08-99.jpg",
+      "RGB/04-01-01-0049-230808080198-08-99.jpg",
+      "RGB/03-01-01-0410-240526121003-12-99.jpg",
+      "RGB/03-01-01-0391-240526120720-04-99.jpg",
+      "RGB/06-01-01-0095-230920140217-06-99.jpg",
+      "RGB/06-01-01-0095-230920140218-06-99.jpg",
+      "RGB/03-01-01-0184-240526101934-06-99.jpg",
+      "RGB/06-01-01-0246-230920140580-08-99.jpg",
+      "RGB/06-01-01-0246-230920140591-10-99.jpg",
+      "RGB/06-01-01-0246-230920140592-10-99.jpg",
+      "RGB/01-01-01-0470-240523102052-04-99.jpg",
+      "RGB/03-01-01-0220-240526102455-02-99.jpg",
+      "RGB/03-01-01-0196-240526102027-02-99.jpg",
+      "RGB/06-01-01-0160-230920140371-04-99.jpg",
+      "RGB/01-01-01-0071-240523101553-04-99.jpg",
+      "RGB/01-01-01-0071-240523101613-04-99.jpg",
+      "RGB/01-01-01-0071-240523101618-04-99.jpg",
+      "RGB/03-01-01-0319-240526111914-02-99.jpg",
+      "RGB/01-01-01-0140-240523093600-04-99.jpg",
+      "RGB/06-01-01-0109-230920140265-10-99.jpg",
+      "RGB/06-01-01-0109-230920140266-08-99.jpg",
+      "RGB/06-01-01-0109-230920140267-06-99.jpg",
+      "RGB/06-01-01-0109-230920140268-06-99.jpg",
+      "RGB/06-01-01-0109-230920140269-06-99.jpg",
+      "RGB/03-01-01-0419-240526123858-02-99.jpg",
+      "RGB/02-01-01-0173-240524100615-06-99.jpg",
+      "RGB/02-01-01-0114-240524094855-04-99.jpg",
+      "RGB/05-01-01-0025-231211115620-02-99.jpg",
+      "RGB/01-01-01-0062-240523100513-10-99.jpg",
+      "RGB/01-01-01-0062-240523100520-08-99.jpg",
+      "RGB/03-01-01-0204-240526102121-02-99.jpg",
+      "RGB/01-01-01-0570-240523104305-02-99.jpg",
+      "RGB/06-01-01-0133-230920140322-08-99.jpg",
+      "RGB/06-01-01-0133-230920140323-06-99.jpg",
+      "RGB/02-01-01-0260-240524101951-04-99.jpg",
+      "RGB/06-01-01-0054-230920140038-06-99.jpg",
+      "RGB/06-01-01-0054-230920140041-04-99.jpg",
+      "RGB/06-01-01-0011-230920140370-06-99.jpg",
+      "RGB/01-01-01-0531-240523103358-12-99.jpg",
+      "RGB/01-01-01-0309-240523095307-12-99.jpg",
+      "RGB/02-01-01-0327-240524104647-12-99.jpg",
+      "RGB/02-01-01-0240-240524101731-06-99.jpg",
+      "RGB/01-01-01-0524-240523103328-02-99.jpg",
+      "RGB/03-01-01-0115-240526100643-12-99.jpg",
+      "RGB/03-01-01-0191-240526102011-04-99.jpg",
+      "RGB/02-01-01-0107-240524094637-10-99.jpg",
+      "RGB/03-01-01-0339-240526112240-06-99.jpg",
+      "RGB/03-01-01-0368-240526113511-02-99.jpg",
+      "RGB/04-01-01-0030-230808080098-12-99.jpg",
+      "RGB/04-01-01-0030-230808080114-12-99.jpg",
+      "RGB/04-01-01-0030-230808080126-12-99.jpg",
+      "RGB/04-01-01-0030-230808080149-12-99.jpg",
+      "RGB/03-01-01-0093-240526100422-08-99.jpg",
+      "RGB/06-01-01-0156-230920140364-06-99.jpg",
+      "RGB/04-01-01-0014-230808080409-06-99.jpg",
+      "RGB/04-01-01-0014-230808080410-06-99.jpg",
+      "RGB/04-01-01-0014-230808080411-06-99.jpg",
+      "RGB/04-01-01-0014-230808080413-04-99.jpg",
+      "RGB/04-01-01-0014-230808080414-06-99.jpg",
+      "RGB/04-01-01-0014-230808080415-04-99.jpg",
+      "RGB/01-01-01-0566-240523104257-06-99.jpg",
+      "RGB/03-01-01-0021-240526102003-06-99.jpg",
+      "RGB/03-01-01-0021-240526102005-08-99.jpg",
+      "RGB/02-01-01-0140-240524095735-02-99.jpg",
+      "RGB/01-01-01-0414-240523101128-02-99.jpg",
+      "RGB/03-01-01-0181-240526101929-02-99.jpg",
+      "RGB/01-01-01-0549-240523103940-06-99.jpg",
+      "RGB/03-01-01-0089-240526100406-04-99.jpg",
+      "RGB/05-01-01-0062-231211117140-04-99.jpg",
+      "RGB/05-01-01-0062-231211117150-04-99.jpg",
+      "RGB/02-01-01-0283-240524103235-08-99.jpg",
+      "RGB/02-01-01-0018-240524095422-08-99.jpg",
+      "RGB/02-01-01-0018-240524095424-06-99.jpg",
+      "RGB/02-01-01-0018-240524095426-08-99.jpg",
+      "RGB/02-01-01-0018-240524095428-08-99.jpg",
+      "RGB/02-01-01-0018-240524095429-08-99.jpg",
+      "RGB/06-01-01-0210-230920140505-04-99.jpg",
+      "RGB/06-01-01-0210-230920140506-06-99.jpg",
+      "RGB/06-01-01-0210-230920140507-04-99.jpg",
+      "RGB/01-01-01-0486-240523102247-02-99.jpg",
+      "RGB/02-01-01-0113-240524094849-10-99.jpg",
+      "RGB/01-01-01-0493-240523102400-02-99.jpg",
+      "RGB/02-01-01-0070-240524111232-04-99.jpg",
+      "RGB/02-01-01-0070-240524111237-04-99.jpg",
+      "RGB/02-01-01-0070-240524111240-06-99.jpg",
+      "RGB/01-01-01-0329-240523095533-04-99.jpg",
+      "RGB/01-01-01-0513-240523102632-02-99.jpg",
+      "RGB/06-01-01-0352-230920140646-10-99.jpg",
+      "RGB/06-01-01-0332-230921160057-10-99.jpg",
+      "RGB/06-01-01-0332-230921160060-10-99.jpg",
+      "RGB/01-01-01-0288-240523095035-02-99.jpg",
+      "RGB/02-01-01-0003-240524094201-12-99.jpg",
+      "RGB/02-01-01-0003-240524094203-12-99.jpg",
+      "RGB/01-01-01-0468-240523102039-04-99.jpg",
+      "RGB/06-01-01-0346-230921160051-12-99.jpg",
+      "RGB/06-01-01-0346-230921160052-12-99.jpg",
+      "RGB/06-01-01-0346-230921160056-12-99.jpg",
+      "RGB/06-01-01-0346-230921160058-12-99.jpg",
+      "RGB/02-01-01-0190-240524100821-12-99.jpg",
+      "RGB/01-01-01-0495-240523102404-04-99.jpg",
+      "RGB/01-01-01-0507-240523102611-02-99.jpg",
+      "RGB/01-01-01-0169-240523093839-04-99.jpg",
+      "RGB/05-01-01-0045-231211117780-02-99.jpg",
+      "RGB/05-01-01-0045-231211117790-02-99.jpg",
+      "RGB/01-01-01-0494-240523102403-04-99.jpg",
+      "RGB/06-01-01-0155-230920140599-10-99.jpg",
+      "RGB/01-01-01-0528-240523103334-02-99.jpg",
+      "RGB/01-01-01-0439-240523101647-02-99.jpg",
+      "RGB/01-01-01-0370-240523100055-12-99.jpg",
+      "RGB/01-01-01-0558-240523104038-02-99.jpg",
+      "RGB/03-01-01-0058-240526123805-04-99.jpg",
+      "RGB/03-01-01-0058-240526123808-04-99.jpg",
+      "RGB/03-01-01-0058-240526123813-06-99.jpg",
+      "RGB/03-01-01-0058-240526123815-06-99.jpg",
+      "RGB/03-01-01-0058-240526123816-04-99.jpg",
+      "RGB/03-01-01-0058-240526123818-06-99.jpg",
+      "RGB/06-01-01-0168-230920140392-10-99.jpg",
+      "RGB/06-01-01-0168-230920140393-08-99.jpg",
+      "RGB/06-01-01-0168-230920140394-08-99.jpg",
+      "RGB/06-01-01-0174-230920140398-02-99.jpg",
+      "RGB/06-01-01-0174-230920140399-04-99.jpg",
+      "RGB/03-01-01-0092-240526100415-02-99.jpg",
+      "RGB/02-01-01-0175-240524100623-04-99.jpg",
+      "RGB/03-01-01-0138-240526101155-04-99.jpg",
+      "RGB/02-01-01-0247-240524101808-08-99.jpg",
+      "RGB/01-01-01-0142-240523093630-06-99.jpg",
+      "RGB/01-01-01-0542-240523103719-06-99.jpg",
+      "RGB/01-01-01-0505-240523102609-02-99.jpg",
+      "RGB/02-01-01-0189-240524100808-04-99.jpg",
+      "RGB/03-01-01-0139-240526101158-04-99.jpg",
+      "RGB/03-01-01-0403-240526120806-08-99.jpg",
+      "RGB/06-01-01-0263-230920140666-10-99.jpg",
+      "RGB/06-01-01-0263-230920140667-08-99.jpg",
+      "RGB/06-01-01-0263-230920140668-04-99.jpg",
+      "RGB/06-01-01-0263-230920140670-04-99.jpg"
+    ],
+    "split_path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "split_role": "val_dev",
+    "split_sample_count": 318,
+    "split_sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83",
+    "subset": false
+  },
+  "schema_version": "museg-10condition-mainval-evidence-v1",
+  "shuffle_conditions": false,
+  "view_batching": {
+    "effective": {
+      "0.5": 2,
+      "0.75": 1,
+      "1.0": 1,
+      "1.25": 1,
+      "1.5": 1
+    },
+    "rationale": "frozen per-scale choice recorded by the verified micro-batch probe",
+    "requested_view_batching": 2,
+    "source": "experiments\\MMFR_A2_v3\\benchmarks\\microbatch-strategy-final.json",
+    "source_sha256": "a1e90e08658a7d93751fd358fc9f9f2ac6a009ec3aef7896bb57fd713dcd7eaf"
+  },
+  "view_reuse_self_check": {
+    "all_bitwise_equal": true,
+    "checks": [],
+    "max_abs_diff": null,
+    "samples_checked": 0
+  }
+}

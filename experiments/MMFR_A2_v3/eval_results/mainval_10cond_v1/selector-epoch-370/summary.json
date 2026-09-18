@@ -1,0 +1,329 @@
+{
+  "checkpoint": {
+    "file_name": "selector-epoch-370.pth",
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-370.pth",
+    "sha256": "78e4e8924becd38c5007584b4bfb2d05401365281418fa3b1bfe11ff922da45b"
+  },
+  "condition_definition_sha256": "6b4b129dd72a6976bf069655ffd77cd59ec63218b46a5bceea40043d606d4225",
+  "coverage": {
+    "conditions_completed": [
+      "blur_050__misalignment_050",
+      "blur_075",
+      "clean",
+      "entire_missing_100",
+      "gaussian_noise_075",
+      "misalignment_075",
+      "quantization_050__misalignment_050",
+      "quantization_075",
+      "spatial_dropout_050__gaussian_noise_050",
+      "spatial_dropout_075"
+    ],
+    "conditions_present": [
+      "blur_050__misalignment_050",
+      "blur_075",
+      "clean",
+      "entire_missing_100",
+      "gaussian_noise_075",
+      "misalignment_075",
+      "quantization_050__misalignment_050",
+      "quantization_075",
+      "spatial_dropout_050__gaussian_noise_050",
+      "spatial_dropout_075"
+    ],
+    "conditions_requested": [
+      "clean",
+      "spatial_dropout_075",
+      "gaussian_noise_075",
+      "blur_075",
+      "quantization_075",
+      "misalignment_075",
+      "entire_missing_100",
+      "spatial_dropout_050__gaussian_noise_050",
+      "blur_050__misalignment_050",
+      "quantization_050__misalignment_050"
+    ],
+    "is_full_ten_condition_full_val_dev": true
+  },
+  "duration_seconds": 14526.055,
+  "evaluation_seed": 2026091401,
+  "evidence_kind": "museg-10condition-mainval-summary",
+  "groups": {
+    "clean": {
+      "conditions": {
+        "clean": {
+          "completed": true,
+          "condition_id": "clean",
+          "macc": 69.62,
+          "mf1": 70.91,
+          "miou": 56.73,
+          "sample_count": 318
+        }
+      },
+      "expected_conditions": [
+        "clean"
+      ],
+      "mean": {
+        "condition_count": 1,
+        "macc": 69.62,
+        "mf1": 70.91,
+        "miou": 56.73
+      }
+    },
+    "mixed_corruptions": {
+      "conditions": {
+        "blur_050__misalignment_050": {
+          "completed": true,
+          "condition_id": "blur@0.5+misalignment@0.5",
+          "macc": 69.17,
+          "mf1": 70.46,
+          "miou": 56.24,
+          "sample_count": 318
+        },
+        "quantization_050__misalignment_050": {
+          "completed": true,
+          "condition_id": "quantization@0.5+misalignment@0.5",
+          "macc": 69.24,
+          "mf1": 70.29,
+          "miou": 55.93,
+          "sample_count": 318
+        },
+        "spatial_dropout_050__gaussian_noise_050": {
+          "completed": true,
+          "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+          "macc": 68.37,
+          "mf1": 68.92,
+          "miou": 54.05,
+          "sample_count": 318
+        }
+      },
+      "expected_conditions": [
+        "spatial_dropout_050__gaussian_noise_050",
+        "blur_050__misalignment_050",
+        "quantization_050__misalignment_050"
+      ],
+      "mean": {
+        "condition_count": 3,
+        "macc": 68.9267,
+        "mf1": 69.89,
+        "miou": 55.4067
+      }
+    },
+    "single_corruptions": {
+      "conditions": {
+        "blur_075": {
+          "completed": true,
+          "condition_id": "blur@0.75",
+          "macc": 69.59,
+          "mf1": 70.89,
+          "miou": 56.71,
+          "sample_count": 318
+        },
+        "entire_missing_100": {
+          "completed": true,
+          "condition_id": "entire_missing@1.0",
+          "macc": 65.26,
+          "mf1": 65.59,
+          "miou": 50.45,
+          "sample_count": 318
+        },
+        "gaussian_noise_075": {
+          "completed": true,
+          "condition_id": "gaussian_noise@0.75",
+          "macc": 69.05,
+          "mf1": 69.92,
+          "miou": 55.53,
+          "sample_count": 318
+        },
+        "misalignment_075": {
+          "completed": true,
+          "condition_id": "misalignment@0.75",
+          "macc": 68.61,
+          "mf1": 69.68,
+          "miou": 55.12,
+          "sample_count": 318
+        },
+        "quantization_075": {
+          "completed": true,
+          "condition_id": "quantization@0.75",
+          "macc": 69.55,
+          "mf1": 70.83,
+          "miou": 56.64,
+          "sample_count": 318
+        },
+        "spatial_dropout_075": {
+          "completed": true,
+          "condition_id": "spatial_dropout@0.75",
+          "macc": 67.73,
+          "mf1": 68.21,
+          "miou": 53.25,
+          "sample_count": 318
+        }
+      },
+      "expected_conditions": [
+        "spatial_dropout_075",
+        "gaussian_noise_075",
+        "blur_075",
+        "quantization_075",
+        "misalignment_075",
+        "entire_missing_100"
+      ],
+      "mean": {
+        "condition_count": 6,
+        "macc": 68.2983,
+        "mf1": 69.1867,
+        "miou": 54.6167
+      }
+    }
+  },
+  "max_samples_effective": null,
+  "mean_over_all_conditions": {
+    "condition_count": 10,
+    "macc": 68.619,
+    "mf1": 69.57,
+    "miou": 55.065
+  },
+  "mean_over_corrupted_conditions": {
+    "condition_count": 9,
+    "macc": 68.5078,
+    "mf1": 69.4211,
+    "miou": 54.88
+  },
+  "official_test_included": false,
+  "order": "condition-major",
+  "protocol": {
+    "path": "D:\\0Project\\DFormer\\protocols\\mmfr-a2-train-integration-v3.template.json",
+    "raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3"
+  },
+  "protocol_primary_score": {
+    "available": true,
+    "basis": "unweighted macro mean of the per-condition rounded mIoU values",
+    "computed_from": [
+      "spatial_dropout_075",
+      "gaussian_noise_075",
+      "blur_075",
+      "quantization_075",
+      "misalignment_075",
+      "entire_missing_100"
+    ],
+    "name": "unweighted-macro-mean-single-condition-mIoU",
+    "value": 54.6167
+  },
+  "resume_decisions": [
+    {
+      "condition": "clean",
+      "condition_id": "clean",
+      "decision": "pending",
+      "expected_identity_sha256": "88d7d8e2daf08b9aa8db8b800cc7a0fe82c970d00b5713249c2238659ea57410",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\clean\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "spatial_dropout_075",
+      "condition_id": "spatial_dropout@0.75",
+      "decision": "pending",
+      "expected_identity_sha256": "8235f7b22f862c903907b6db09aa354a28a3c4756803157f38351b814771d328",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\spatial_dropout_075\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "gaussian_noise_075",
+      "condition_id": "gaussian_noise@0.75",
+      "decision": "pending",
+      "expected_identity_sha256": "4ef331beba06ea7bb5d30d0f641b857402869e1a0f9b22fa56f6a71c5bc2910d",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\gaussian_noise_075\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "blur_075",
+      "condition_id": "blur@0.75",
+      "decision": "pending",
+      "expected_identity_sha256": "cb3c02e8222d44d42d60d0ba3304bd92498bd6fc492f813ce3e13ee477e25d6f",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\blur_075\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "quantization_075",
+      "condition_id": "quantization@0.75",
+      "decision": "pending",
+      "expected_identity_sha256": "a3551697629066e6cd29278a3a81763273819a5e46f99b326a71171ff958929a",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\quantization_075\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "misalignment_075",
+      "condition_id": "misalignment@0.75",
+      "decision": "pending",
+      "expected_identity_sha256": "82a4debdc2ca759f2169662c0ac97cbb71f852114a19c7167f864bd9a8469144",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\misalignment_075\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "entire_missing_100",
+      "condition_id": "entire_missing@1.0",
+      "decision": "pending",
+      "expected_identity_sha256": "ed13a735d5c9a5b62344a4f9524979d38d4221d228f34e508d9caeab838c5a20",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\entire_missing_100\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "spatial_dropout_050__gaussian_noise_050",
+      "condition_id": "spatial_dropout@0.5+gaussian_noise@0.5",
+      "decision": "pending",
+      "expected_identity_sha256": "8b7bcd1d45c5afb9bd75de2b09d548274486409cb0c392845b4ec33663034b4c",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\spatial_dropout_050__gaussian_noise_050\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "blur_050__misalignment_050",
+      "condition_id": "blur@0.5+misalignment@0.5",
+      "decision": "pending",
+      "expected_identity_sha256": "600b21f1ba3a1f6ffab5414db35aaac3d9a9c22cfdbad5094a95770d7b49bb7d",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\blur_050__misalignment_050\\metrics.json",
+      "reason": "no existing metrics.json"
+    },
+    {
+      "condition": "quantization_050__misalignment_050",
+      "condition_id": "quantization@0.5+misalignment@0.5",
+      "decision": "pending",
+      "expected_identity_sha256": "772de4eb98e72026b4d3473d53356d4f4e439435255ea3579aa68cc228bb3013",
+      "metrics_path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\eval_results\\mainval_10cond_v1\\selector-epoch-370\\quantization_050__misalignment_050\\metrics.json",
+      "reason": "no existing metrics.json"
+    }
+  ],
+  "runner": {
+    "path": "D:\\0Project\\DFormer\\tools\\evaluate_museg_10condition.py",
+    "sha256": "1c6736a67939fc8b7de571396a6ce113c02daf0726cc981dac3f85b55b9bec7a"
+  },
+  "sample_count": 318,
+  "sample_count_source": "stored per-condition metrics.json (not the current invocation)",
+  "sample_set_sha256": "27001f07ace56a10936aba518f3bb971aad83ee94018782832ee74cf19e53f42",
+  "schema_version": "museg-10condition-mainval-evidence-v1",
+  "scoring_note": "only descriptive group means and the frozen primary score are reported; no additional checkpoint-selection score is defined here",
+  "split": {
+    "path": "D:\\0Project\\DFormer\\data\\splits\\MUSeg\\dev-v1\\val-dev.txt",
+    "role": "val_dev",
+    "sample_count_total": 318,
+    "sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "stored_sample_counts": [
+    318
+  ],
+  "stored_sample_set_sha256": [
+    "27001f07ace56a10936aba518f3bb971aad83ee94018782832ee74cf19e53f42"
+  ],
+  "subset": false,
+  "timestamp_utc": "2026-09-17T21:27:56.299027+00:00",
+  "view_batching": {
+    "effective": {
+      "0.5": 2,
+      "0.75": 1,
+      "1.0": 1,
+      "1.25": 1,
+      "1.5": 1
+    },
+    "rationale": "frozen per-scale choice recorded by the verified micro-batch probe",
+    "requested_view_batching": 2,
+    "source": "experiments\\MMFR_A2_v3\\benchmarks\\microbatch-strategy-final.json",
+    "source_sha256": "a1e90e08658a7d93751fd358fc9f9f2ac6a009ec3aef7896bb57fd713dcd7eaf"
+  }
+}
