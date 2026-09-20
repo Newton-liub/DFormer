@@ -1,0 +1,832 @@
+{
+  "bootstrap_rule": {
+    "group_value": "mean image mIoU inside the group",
+    "interval": "2.5 / 97.5 percentile, linear interpolation",
+    "replicates": 10000,
+    "seed": 20260908,
+    "source": "tools.mve.dvc_a1_core.paired_effect (project pre-registered rule)",
+    "unit": "location group = first four filename segments"
+  },
+  "conditions": [
+    "clean",
+    "spatial_dropout@0.75",
+    "entire_missing@1.0"
+  ],
+  "decision": {
+    "checks": {
+      "strict_clean_loss_within_0.50": false,
+      "strict_spatial_gain_at_least_0.50": false,
+      "strict_spatial_interval_lower_above_zero": false
+    },
+    "criteria": {
+      "clean_loss_tolerance_points": -0.5,
+      "interval": "paired location-group bootstrap 95% percentile interval must exclude 0",
+      "spatial_dropout_gain_threshold_points": 0.5
+    },
+    "measured": {
+      "best_non_reference_spatial_dropout_delta": -1.7,
+      "strict_clean_delta": -3.48,
+      "strict_spatial_dropout_delta": -1.77,
+      "strict_spatial_dropout_interval95": [
+        -0.5028686224489797,
+        -0.15774362244897977
+      ]
+    },
+    "verdict": "NO-GO"
+  },
+  "delta_miou_vs_original": {
+    "aggregated": {
+      "clean": -3.26,
+      "entire_missing@1.0": 0.06,
+      "spatial_dropout@0.75": -1.7
+    },
+    "geometry_off": {
+      "clean": -4.45,
+      "entire_missing@1.0": 0.06,
+      "spatial_dropout@0.75": -1.81
+    },
+    "strict": {
+      "clean": -3.48,
+      "entire_missing@1.0": 0.06,
+      "spatial_dropout@0.75": -1.77
+    }
+  },
+  "official_test_included": false,
+  "output_dir": "experiments\\MMFR_OracleA\\eval",
+  "per_class_iou": {
+    "aggregated": {
+      "clean": {
+        "anchoring equipment": 60.03,
+        "cable": 54.12,
+        "container": 25.2,
+        "door": 65.57,
+        "electrical equipment": 61.54,
+        "electronic equipment": 54.11,
+        "indicator": 74.72,
+        "metal fixture": 45.82,
+        "mining equipment": 28.7,
+        "person": 52.53,
+        "rail area": 73.35,
+        "rescue equipment": 41.64,
+        "support equipment": 38.18,
+        "tools & materials": 71.47,
+        "tube": 60.09
+      },
+      "entire_missing@1.0": {
+        "anchoring equipment": 58.95,
+        "cable": 52.87,
+        "container": 25.23,
+        "door": 63.59,
+        "electrical equipment": 61.36,
+        "electronic equipment": 45.9,
+        "indicator": 74.74,
+        "metal fixture": 44.55,
+        "mining equipment": 29.12,
+        "person": 52.33,
+        "rail area": 72.68,
+        "rescue equipment": 41.64,
+        "support equipment": 37.93,
+        "tools & materials": 69.13,
+        "tube": 59.12
+      },
+      "spatial_dropout@0.75": {
+        "anchoring equipment": 59.04,
+        "cable": 53.05,
+        "container": 25.22,
+        "door": 63.82,
+        "electrical equipment": 61.38,
+        "electronic equipment": 46.1,
+        "indicator": 74.66,
+        "metal fixture": 44.39,
+        "mining equipment": 29.16,
+        "person": 52.19,
+        "rail area": 72.73,
+        "rescue equipment": 41.76,
+        "support equipment": 38.89,
+        "tools & materials": 69.23,
+        "tube": 59.11
+      }
+    },
+    "geometry_off": {
+      "clean": {
+        "anchoring equipment": 58.96,
+        "cable": 52.89,
+        "container": 25.23,
+        "door": 63.63,
+        "electrical equipment": 61.37,
+        "electronic equipment": 45.84,
+        "indicator": 74.75,
+        "metal fixture": 44.55,
+        "mining equipment": 29.12,
+        "person": 52.3,
+        "rail area": 72.68,
+        "rescue equipment": 41.64,
+        "support equipment": 37.97,
+        "tools & materials": 69.13,
+        "tube": 59.13
+      },
+      "entire_missing@1.0": {
+        "anchoring equipment": 58.96,
+        "cable": 52.89,
+        "container": 25.23,
+        "door": 63.63,
+        "electrical equipment": 61.37,
+        "electronic equipment": 45.84,
+        "indicator": 74.75,
+        "metal fixture": 44.55,
+        "mining equipment": 29.12,
+        "person": 52.3,
+        "rail area": 72.68,
+        "rescue equipment": 41.64,
+        "support equipment": 37.97,
+        "tools & materials": 69.13,
+        "tube": 59.13
+      },
+      "spatial_dropout@0.75": {
+        "anchoring equipment": 58.96,
+        "cable": 52.89,
+        "container": 25.23,
+        "door": 63.63,
+        "electrical equipment": 61.37,
+        "electronic equipment": 45.84,
+        "indicator": 74.75,
+        "metal fixture": 44.55,
+        "mining equipment": 29.12,
+        "person": 52.3,
+        "rail area": 72.68,
+        "rescue equipment": 41.64,
+        "support equipment": 37.97,
+        "tools & materials": 69.13,
+        "tube": 59.13
+      }
+    },
+    "original": {
+      "clean": {
+        "anchoring equipment": 60.88,
+        "cable": 59.21,
+        "container": 25.77,
+        "door": 74.71,
+        "electrical equipment": 63.21,
+        "electronic equipment": 52.65,
+        "indicator": 74.85,
+        "metal fixture": 48.09,
+        "mining equipment": 30.82,
+        "person": 54.92,
+        "rail area": 79.58,
+        "rescue equipment": 44.73,
+        "support equipment": 45.86,
+        "tools & materials": 73.03,
+        "tube": 67.57
+      },
+      "entire_missing@1.0": {
+        "anchoring equipment": 59.17,
+        "cable": 52.84,
+        "container": 25.25,
+        "door": 63.67,
+        "electrical equipment": 61.33,
+        "electronic equipment": 46.17,
+        "indicator": 74.73,
+        "metal fixture": 44.47,
+        "mining equipment": 28.94,
+        "person": 52.47,
+        "rail area": 72.64,
+        "rescue equipment": 41.5,
+        "support equipment": 36.89,
+        "tools & materials": 69.18,
+        "tube": 59.04
+      },
+      "spatial_dropout@0.75": {
+        "anchoring equipment": 59.56,
+        "cable": 55.14,
+        "container": 25.3,
+        "door": 67.28,
+        "electrical equipment": 61.9,
+        "electronic equipment": 48.01,
+        "indicator": 75.29,
+        "metal fixture": 47.18,
+        "mining equipment": 32.54,
+        "person": 51.1,
+        "rail area": 74.82,
+        "rescue equipment": 42.81,
+        "support equipment": 43.12,
+        "tools & materials": 70.62,
+        "tube": 61.58
+      }
+    },
+    "strict": {
+      "clean": {
+        "anchoring equipment": 59.33,
+        "cable": 53.87,
+        "container": 25.21,
+        "door": 64.87,
+        "electrical equipment": 61.8,
+        "electronic equipment": 53.81,
+        "indicator": 74.76,
+        "metal fixture": 45.0,
+        "mining equipment": 29.06,
+        "person": 52.57,
+        "rail area": 73.08,
+        "rescue equipment": 41.29,
+        "support equipment": 37.66,
+        "tools & materials": 71.43,
+        "tube": 60.01
+      },
+      "entire_missing@1.0": {
+        "anchoring equipment": 58.96,
+        "cable": 52.89,
+        "container": 25.23,
+        "door": 63.63,
+        "electrical equipment": 61.37,
+        "electronic equipment": 45.84,
+        "indicator": 74.75,
+        "metal fixture": 44.55,
+        "mining equipment": 29.12,
+        "person": 52.3,
+        "rail area": 72.68,
+        "rescue equipment": 41.64,
+        "support equipment": 37.97,
+        "tools & materials": 69.13,
+        "tube": 59.13
+      },
+      "spatial_dropout@0.75": {
+        "anchoring equipment": 58.96,
+        "cable": 53.01,
+        "container": 25.24,
+        "door": 63.83,
+        "electrical equipment": 61.44,
+        "electronic equipment": 46.05,
+        "indicator": 74.67,
+        "metal fixture": 44.58,
+        "mining equipment": 29.14,
+        "person": 52.38,
+        "rail area": 72.74,
+        "rescue equipment": 41.61,
+        "support equipment": 37.88,
+        "tools & materials": 69.11,
+        "tube": 59.14
+      }
+    }
+  },
+  "per_class_iou_delta_vs_original": {
+    "aggregated": {
+      "clean": {
+        "anchoring equipment": -0.85,
+        "cable": -5.09,
+        "container": -0.57,
+        "door": -9.14,
+        "electrical equipment": -1.67,
+        "electronic equipment": 1.46,
+        "indicator": -0.13,
+        "metal fixture": -2.27,
+        "mining equipment": -2.12,
+        "person": -2.39,
+        "rail area": -6.23,
+        "rescue equipment": -3.09,
+        "support equipment": -7.68,
+        "tools & materials": -1.56,
+        "tube": -7.48
+      },
+      "entire_missing@1.0": {
+        "anchoring equipment": -0.22,
+        "cable": 0.03,
+        "container": -0.02,
+        "door": -0.08,
+        "electrical equipment": 0.03,
+        "electronic equipment": -0.27,
+        "indicator": 0.01,
+        "metal fixture": 0.08,
+        "mining equipment": 0.18,
+        "person": -0.14,
+        "rail area": 0.04,
+        "rescue equipment": 0.14,
+        "support equipment": 1.04,
+        "tools & materials": -0.05,
+        "tube": 0.08
+      },
+      "spatial_dropout@0.75": {
+        "anchoring equipment": -0.52,
+        "cable": -2.09,
+        "container": -0.08,
+        "door": -3.46,
+        "electrical equipment": -0.52,
+        "electronic equipment": -1.91,
+        "indicator": -0.63,
+        "metal fixture": -2.79,
+        "mining equipment": -3.38,
+        "person": 1.09,
+        "rail area": -2.09,
+        "rescue equipment": -1.05,
+        "support equipment": -4.23,
+        "tools & materials": -1.39,
+        "tube": -2.47
+      }
+    },
+    "geometry_off": {
+      "clean": {
+        "anchoring equipment": -1.92,
+        "cable": -6.32,
+        "container": -0.54,
+        "door": -11.08,
+        "electrical equipment": -1.84,
+        "electronic equipment": -6.81,
+        "indicator": -0.1,
+        "metal fixture": -3.54,
+        "mining equipment": -1.7,
+        "person": -2.62,
+        "rail area": -6.9,
+        "rescue equipment": -3.09,
+        "support equipment": -7.89,
+        "tools & materials": -3.9,
+        "tube": -8.44
+      },
+      "entire_missing@1.0": {
+        "anchoring equipment": -0.21,
+        "cable": 0.05,
+        "container": -0.02,
+        "door": -0.04,
+        "electrical equipment": 0.04,
+        "electronic equipment": -0.33,
+        "indicator": 0.02,
+        "metal fixture": 0.08,
+        "mining equipment": 0.18,
+        "person": -0.17,
+        "rail area": 0.04,
+        "rescue equipment": 0.14,
+        "support equipment": 1.08,
+        "tools & materials": -0.05,
+        "tube": 0.09
+      },
+      "spatial_dropout@0.75": {
+        "anchoring equipment": -0.6,
+        "cable": -2.25,
+        "container": -0.07,
+        "door": -3.65,
+        "electrical equipment": -0.53,
+        "electronic equipment": -2.17,
+        "indicator": -0.54,
+        "metal fixture": -2.63,
+        "mining equipment": -3.42,
+        "person": 1.2,
+        "rail area": -2.14,
+        "rescue equipment": -1.17,
+        "support equipment": -5.15,
+        "tools & materials": -1.49,
+        "tube": -2.45
+      }
+    },
+    "strict": {
+      "clean": {
+        "anchoring equipment": -1.55,
+        "cable": -5.34,
+        "container": -0.56,
+        "door": -9.84,
+        "electrical equipment": -1.41,
+        "electronic equipment": 1.16,
+        "indicator": -0.09,
+        "metal fixture": -3.09,
+        "mining equipment": -1.76,
+        "person": -2.35,
+        "rail area": -6.5,
+        "rescue equipment": -3.44,
+        "support equipment": -8.2,
+        "tools & materials": -1.6,
+        "tube": -7.56
+      },
+      "entire_missing@1.0": {
+        "anchoring equipment": -0.21,
+        "cable": 0.05,
+        "container": -0.02,
+        "door": -0.04,
+        "electrical equipment": 0.04,
+        "electronic equipment": -0.33,
+        "indicator": 0.02,
+        "metal fixture": 0.08,
+        "mining equipment": 0.18,
+        "person": -0.17,
+        "rail area": 0.04,
+        "rescue equipment": 0.14,
+        "support equipment": 1.08,
+        "tools & materials": -0.05,
+        "tube": 0.09
+      },
+      "spatial_dropout@0.75": {
+        "anchoring equipment": -0.6,
+        "cable": -2.13,
+        "container": -0.06,
+        "door": -3.45,
+        "electrical equipment": -0.46,
+        "electronic equipment": -1.96,
+        "indicator": -0.62,
+        "metal fixture": -2.6,
+        "mining equipment": -3.4,
+        "person": 1.28,
+        "rail area": -2.08,
+        "rescue equipment": -1.2,
+        "support equipment": -5.24,
+        "tools & materials": -1.51,
+        "tube": -2.44
+      }
+    }
+  },
+  "sample_level": {
+    "aggregated": {
+      "clean": {
+        "concentration": {
+          "max_delta": 5.800000000000001,
+          "mean_delta": -0.5652201257861635,
+          "median_delta": -0.08999999999999986,
+          "min_delta": -9.39,
+          "sum_delta_miou_points": -179.74,
+          "sum_negative_delta_points": -242.76,
+          "sum_positive_delta_points": 63.019999999999996,
+          "top_5pct_delta_sum": 41.510000000000005,
+          "top_5pct_sample_share_of_sum": -0.2309446978969623
+        },
+        "group_level_concentration": {
+          "median_group_delta": -0.20500000000000015,
+          "sum_group_delta_points": -144.03999999999996,
+          "top_5pct_group_share_of_sum": -0.1866148292141073
+        },
+        "loss": 189,
+        "mean_image_delta": -0.5652201257861635,
+        "median_image_delta": -0.08999999999999986,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -1.0135714285714286,
+            -0.4731619897959184
+          ],
+          "left": "aggregated",
+          "paired_group_count": 196,
+          "point_percentage_points": -0.7348979591836734,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 39,
+        "win": 90
+      },
+      "entire_missing@1.0": {
+        "concentration": {
+          "max_delta": 0.4299999999999997,
+          "mean_delta": -0.01179245283018858,
+          "median_delta": 0.0,
+          "min_delta": -0.9100000000000001,
+          "sum_delta_miou_points": -3.749999999999968,
+          "sum_negative_delta_points": -12.26999999999998,
+          "sum_positive_delta_points": 8.520000000000012,
+          "top_5pct_delta_sum": 4.3300000000000045,
+          "top_5pct_sample_share_of_sum": -1.1546666666666776
+        },
+        "group_level_concentration": {
+          "median_group_delta": 0.0,
+          "sum_group_delta_points": 0.20000000000001505,
+          "top_5pct_group_share_of_sum": 15.499999999998856
+        },
+        "loss": 126,
+        "mean_image_delta": -0.01179245283018858,
+        "median_image_delta": 0.0,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -0.017757653061224534,
+            0.018724489795918477
+          ],
+          "left": "aggregated",
+          "paired_group_count": 196,
+          "point_percentage_points": 0.0010204081632653812,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 75,
+        "win": 117
+      },
+      "spatial_dropout@0.75": {
+        "concentration": {
+          "max_delta": 4.649999999999999,
+          "mean_delta": -0.24757861635220133,
+          "median_delta": -0.019999999999999796,
+          "min_delta": -7.190000000000001,
+          "sum_delta_miou_points": -78.73000000000002,
+          "sum_negative_delta_points": -126.83,
+          "sum_positive_delta_points": 48.09999999999998,
+          "top_5pct_delta_sum": 29.49,
+          "top_5pct_sample_share_of_sum": -0.3745713197002412
+        },
+        "group_level_concentration": {
+          "median_group_delta": -0.05000000000000022,
+          "sum_group_delta_points": -63.589999999999975,
+          "top_5pct_group_share_of_sum": -0.32568013838653886
+        },
+        "loss": 176,
+        "mean_image_delta": -0.24757861635220133,
+        "median_image_delta": -0.019999999999999796,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -0.5002091836734691,
+            -0.16096045918367355
+          ],
+          "left": "aggregated",
+          "paired_group_count": 196,
+          "point_percentage_points": -0.3244387755102039,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 38,
+        "win": 104
+      }
+    },
+    "geometry_off": {
+      "clean": {
+        "concentration": {
+          "max_delta": 5.639999999999997,
+          "mean_delta": -0.688364779874214,
+          "median_delta": -0.09499999999999886,
+          "min_delta": -10.21,
+          "sum_delta_miou_points": -218.90000000000003,
+          "sum_negative_delta_points": -280.55999999999995,
+          "sum_positive_delta_points": 61.66,
+          "top_5pct_delta_sum": 37.379999999999995,
+          "top_5pct_sample_share_of_sum": -0.17076290543627223
+        },
+        "group_level_concentration": {
+          "median_group_delta": -0.17500000000000016,
+          "sum_group_delta_points": -167.53,
+          "top_5pct_group_share_of_sum": -0.1527487614158658
+        },
+        "loss": 192,
+        "mean_image_delta": -0.6883647798742137,
+        "median_image_delta": -0.09499999999999886,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -1.1615892857142853,
+            -0.5725982142857143
+          ],
+          "left": "geometry_off",
+          "paired_group_count": 196,
+          "point_percentage_points": -0.8547448979591835,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 35,
+        "win": 91
+      },
+      "entire_missing@1.0": {
+        "concentration": {
+          "max_delta": 0.46000000000000085,
+          "mean_delta": -0.0119811320754716,
+          "median_delta": 0.0,
+          "min_delta": -0.9200000000000017,
+          "sum_delta_miou_points": -3.8099999999999685,
+          "sum_negative_delta_points": -12.839999999999986,
+          "sum_positive_delta_points": 9.030000000000015,
+          "top_5pct_delta_sum": 4.560000000000003,
+          "top_5pct_sample_share_of_sum": -1.1968503937007982
+        },
+        "group_level_concentration": {
+          "median_group_delta": 0.0,
+          "sum_group_delta_points": 0.4300000000000268,
+          "top_5pct_group_share_of_sum": 7.581395348836743
+        },
+        "loss": 127,
+        "mean_image_delta": -0.011981132075471601,
+        "median_image_delta": 0.0,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -0.017193877551020215,
+            0.020460459183673597
+          ],
+          "left": "geometry_off",
+          "paired_group_count": 196,
+          "point_percentage_points": 0.0021938775510205438,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 69,
+        "win": 122
+      },
+      "spatial_dropout@0.75": {
+        "concentration": {
+          "max_delta": 4.640000000000001,
+          "mean_delta": -0.25672955974842776,
+          "median_delta": -0.030000000000000693,
+          "min_delta": -7.280000000000001,
+          "sum_delta_miou_points": -81.64000000000003,
+          "sum_negative_delta_points": -129.84999999999997,
+          "sum_positive_delta_points": 48.20999999999998,
+          "top_5pct_delta_sum": 30.459999999999994,
+          "top_5pct_sample_share_of_sum": -0.3731014208721213
+        },
+        "group_level_concentration": {
+          "median_group_delta": -0.05499999999999967,
+          "sum_group_delta_points": -64.27999999999999,
+          "top_5pct_group_share_of_sum": -0.3475420037336653
+        },
+        "loss": 174,
+        "mean_image_delta": -0.2567295597484277,
+        "median_image_delta": -0.030000000000000693,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -0.5078635204081631,
+            -0.1598456632653061
+          ],
+          "left": "geometry_off",
+          "paired_group_count": 196,
+          "point_percentage_points": -0.3279591836734693,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 44,
+        "win": 100
+      }
+    },
+    "strict": {
+      "clean": {
+        "concentration": {
+          "max_delta": 5.610000000000003,
+          "mean_delta": -0.5985849056603775,
+          "median_delta": -0.06500000000000114,
+          "min_delta": -10.16,
+          "sum_delta_miou_points": -190.35000000000002,
+          "sum_negative_delta_points": -253.00999999999996,
+          "sum_positive_delta_points": 62.65999999999999,
+          "top_5pct_delta_sum": 39.540000000000006,
+          "top_5pct_sample_share_of_sum": -0.20772261623325453
+        },
+        "group_level_concentration": {
+          "median_group_delta": -0.17500000000000016,
+          "sum_group_delta_points": -149.95999999999998,
+          "top_5pct_group_share_of_sum": -0.17698052814083762
+        },
+        "loss": 188,
+        "mean_image_delta": -0.5985849056603775,
+        "median_image_delta": -0.06500000000000114,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -1.0570522959183675,
+            -0.49372321428571453
+          ],
+          "left": "strict",
+          "paired_group_count": 196,
+          "point_percentage_points": -0.7651020408163264,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 34,
+        "win": 96
+      },
+      "entire_missing@1.0": {
+        "concentration": {
+          "max_delta": 0.46000000000000085,
+          "mean_delta": -0.0119811320754716,
+          "median_delta": 0.0,
+          "min_delta": -0.9200000000000017,
+          "sum_delta_miou_points": -3.8099999999999685,
+          "sum_negative_delta_points": -12.839999999999986,
+          "sum_positive_delta_points": 9.030000000000015,
+          "top_5pct_delta_sum": 4.560000000000003,
+          "top_5pct_sample_share_of_sum": -1.1968503937007982
+        },
+        "group_level_concentration": {
+          "median_group_delta": 0.0,
+          "sum_group_delta_points": 0.4300000000000268,
+          "top_5pct_group_share_of_sum": 7.581395348836743
+        },
+        "loss": 127,
+        "mean_image_delta": -0.011981132075471601,
+        "median_image_delta": 0.0,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -0.017193877551020215,
+            0.020460459183673597
+          ],
+          "left": "strict",
+          "paired_group_count": 196,
+          "point_percentage_points": 0.0021938775510205438,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 69,
+        "win": 122
+      },
+      "spatial_dropout@0.75": {
+        "concentration": {
+          "max_delta": 4.669999999999998,
+          "mean_delta": -0.2517295597484278,
+          "median_delta": -0.020000000000002238,
+          "min_delta": -7.330000000000002,
+          "sum_delta_miou_points": -80.05000000000004,
+          "sum_negative_delta_points": -127.86999999999999,
+          "sum_positive_delta_points": 47.819999999999965,
+          "top_5pct_delta_sum": 29.869999999999997,
+          "top_5pct_sample_share_of_sum": -0.3731417863835101
+        },
+        "group_level_concentration": {
+          "median_group_delta": -0.0449999999999999,
+          "sum_group_delta_points": -63.610000000000014,
+          "top_5pct_group_share_of_sum": -0.3422417858827227
+        },
+        "loss": 175,
+        "mean_image_delta": -0.25172955974842776,
+        "median_image_delta": -0.020000000000002238,
+        "paired_group_bootstrap_miou": {
+          "interval95_percentage_points": [
+            -0.5028686224489797,
+            -0.15774362244897977
+          ],
+          "left": "strict",
+          "paired_group_count": 196,
+          "point_percentage_points": -0.32454081632653065,
+          "right": "original"
+        },
+        "paired_group_count": 196,
+        "sample_count": 318,
+        "tie": 44,
+        "win": 99
+      }
+    }
+  },
+  "schema_version": "mmfr-oracle-a-analysis-v1",
+  "table_miou": {
+    "aggregated": {
+      "clean": {
+        "macc": 67.55,
+        "mf1": 68.67,
+        "miou": 53.8
+      },
+      "entire_missing@1.0": {
+        "macc": 67.09,
+        "mf1": 67.69,
+        "miou": 52.61
+      },
+      "spatial_dropout@0.75": {
+        "macc": 67.19,
+        "mf1": 67.79,
+        "miou": 52.72
+      }
+    },
+    "geometry_off": {
+      "clean": {
+        "macc": 67.09,
+        "mf1": 67.7,
+        "miou": 52.61
+      },
+      "entire_missing@1.0": {
+        "macc": 67.09,
+        "mf1": 67.7,
+        "miou": 52.61
+      },
+      "spatial_dropout@0.75": {
+        "macc": 67.09,
+        "mf1": 67.7,
+        "miou": 52.61
+      }
+    },
+    "original": {
+      "clean": {
+        "macc": 69.86,
+        "mf1": 71.33,
+        "miou": 57.06
+      },
+      "entire_missing@1.0": {
+        "macc": 67.0,
+        "mf1": 67.62,
+        "miou": 52.55
+      },
+      "spatial_dropout@0.75": {
+        "macc": 68.77,
+        "mf1": 69.3,
+        "miou": 54.42
+      }
+    },
+    "strict": {
+      "clean": {
+        "macc": 67.37,
+        "mf1": 68.49,
+        "miou": 53.58
+      },
+      "entire_missing@1.0": {
+        "macc": 67.09,
+        "mf1": 67.7,
+        "miou": 52.61
+      },
+      "spatial_dropout@0.75": {
+        "macc": 67.1,
+        "mf1": 67.73,
+        "miou": 52.65
+      }
+    }
+  },
+  "timestamp_utc": "2026-09-20T03:34:47.984041+00:00",
+  "variants": [
+    "original",
+    "strict",
+    "aggregated",
+    "geometry_off"
+  ]
+}

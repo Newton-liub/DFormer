@@ -24,6 +24,7 @@ from typing import Tuple
 import sys
 import os
 from collections import OrderedDict
+from collections.abc import Mapping
 
 
 class LayerNorm2d(nn.Module):
@@ -195,6 +196,101 @@ def build_dvg_b1_pairwise_gates(stage_reliability: torch.Tensor, split_or_not: b
     return flattened[:, None, :, None] * flattened[:, None, None, :]
 
 
+ORACLE_GEOMETRY_MODES = ("continuous", "strict")
+
+
+def normalize_geometry_oracle(geometry_oracle, reference: torch.Tensor):
+    """Validate the additive ``MMFR-Oracle-A`` Depth-geometry control.
+
+    ``geometry_oracle`` is a mapping that controls **only** the Depth-derived geometry
+    contribution ``self.weight[1] * mask_d`` inside :class:`GeoPriorGen`.  Recognized
+    keys:
+
+    * ``mode``: ``"continuous"`` keeps the interpolated valid fraction ``c_i`` and uses
+      ``c_i * c_j`` as the pair gate; ``"strict"`` uses the exact binary rule
+      ``r_i = (interpolated invalidity == 0)`` and ``r_i * r_j``;
+    * ``invalidity``: ``[B,1,H,W]`` float32 map on the **padded view grid** holding
+      ``1 - validity`` of the Depth tensor the model actually consumes.  ``None`` is only
+      accepted when ``depth_geometry_off`` is true;
+    * ``depth_geometry_off``: when true the whole Depth-derived contribution is removed,
+      which is the mask-independent ``Depth-Geometry-Off`` control.
+
+    ``None`` selects the historical path unchanged.  This path never touches the Depth
+    input tensor, the position/spatial prior, ``sin``/``cos``, Q/K/V, the decoder or the
+    logits.
+    """
+    if geometry_oracle is None:
+        return None
+    if not isinstance(geometry_oracle, Mapping):
+        raise TypeError("geometry_oracle must be a mapping or None")
+    mode = geometry_oracle.get("mode", "continuous")
+    if mode not in ORACLE_GEOMETRY_MODES:
+        raise ValueError(f"geometry_oracle mode must be one of {ORACLE_GEOMETRY_MODES}, got {mode!r}")
+    depth_geometry_off = bool(geometry_oracle.get("depth_geometry_off", False))
+    invalidity = geometry_oracle.get("invalidity")
+    if invalidity is None:
+        if not depth_geometry_off:
+            raise ValueError("geometry_oracle requires an invalidity map unless depth_geometry_off is true")
+        return {"mode": str(mode), "invalidity": None, "depth_geometry_off": True}
+    if not torch.is_tensor(invalidity):
+        raise TypeError("geometry_oracle invalidity must be a torch.Tensor or None")
+    if invalidity.ndim != 4 or invalidity.shape[1] != 1:
+        raise ValueError("geometry_oracle invalidity must have shape [B,1,H,W]")
+    if invalidity.shape[0] != reference.shape[0] or tuple(invalidity.shape[-2:]) != tuple(reference.shape[-2:]):
+        raise ValueError("geometry_oracle invalidity must match the padded view batch and spatial geometry")
+    invalidity = invalidity.to(device=reference.device, dtype=torch.float32)
+    if not bool(torch.isfinite(invalidity).all()):
+        raise ValueError("geometry_oracle invalidity must contain only finite values")
+    if bool((invalidity < 0).any()) or bool((invalidity > 1).any()):
+        raise ValueError("geometry_oracle invalidity values must lie in [0,1]")
+    return {"mode": str(mode), "invalidity": invalidity, "depth_geometry_off": depth_geometry_off}
+
+
+def build_oracle_stage_reliability(geometry_oracle, HW_tuple: Tuple[int, int], reference: torch.Tensor):
+    """Downsample the view-level invalidity with the exact operator used for Depth.
+
+    ``GeoPriorGen.forward`` resamples the Depth patches with
+    ``F.interpolate(..., mode="bilinear", align_corners=False)``.  Applying the same
+    operator to the view-level invalidity gives every stage token a reliability defined
+    over exactly the same receptive support as the Depth value it is paired with.  In
+    ``continuous`` mode the result is the weighted valid fraction ``c_i`` of that
+    support; in ``strict`` mode the exact test ``interpolated invalidity == 0`` yields a
+    binary ``r_i`` because every bilinear weight is non-negative.
+    """
+    invalidity = geometry_oracle["invalidity"]
+    if invalidity is None:
+        return None
+    height, width = int(HW_tuple[0]), int(HW_tuple[1])
+    if height <= 0 or width <= 0:
+        raise ValueError("stage geometry must be positive")
+    downsampled = F.interpolate(invalidity, size=(height, width), mode="bilinear", align_corners=False)
+    if not bool(torch.isfinite(downsampled).all()):
+        raise ValueError("downsampled Oracle-A invalidity contains non-finite values")
+    if geometry_oracle["mode"] == "strict":
+        reliability = (downsampled == 0).to(dtype=reference.dtype)
+    else:
+        reliability = (1.0 - downsampled).clamp(0.0, 1.0).to(dtype=reference.dtype)
+    if not bool(torch.isfinite(reliability).all()):
+        raise ValueError("Oracle-A stage reliability contains non-finite values")
+    if bool((reliability < 0).any()) or bool((reliability > 1).any()):
+        raise ValueError("Oracle-A stage reliability values must lie in [0,1]")
+    return reliability
+
+
+def build_oracle_pairwise_gates(stage_reliability: torch.Tensor, split_or_not: bool):
+    """Build the query/key symmetric product gate from a stage reliability field."""
+    if stage_reliability.ndim != 4 or stage_reliability.shape[1] != 1:
+        raise ValueError("Oracle-A stage reliability must have shape [B,1,H,W]")
+    reliability = stage_reliability[:, 0]
+    if split_or_not:
+        h_values = reliability.transpose(1, 2)
+        gate_h = h_values[:, None, :, :, None] * h_values[:, None, :, None, :]
+        gate_w = reliability[:, None, :, :, None] * reliability[:, None, :, None, :]
+        return gate_h, gate_w
+    flattened = reliability.flatten(1)
+    return flattened[:, None, :, None] * flattened[:, None, None, :]
+
+
 class GeoPriorGen(nn.Module):
     def __init__(self, embed_dim, num_heads, initial_value, heads_range):
         super().__init__()
@@ -253,7 +349,7 @@ class GeoPriorGen(nn.Module):
         mask = mask * self.decay[:, None, None]
         return mask
 
-    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False, oracle_reliability=None):
+    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False, oracle_reliability=None, geometry_oracle=None):
         """
         depth_map: depth patches
         HW_tuple: (H, W)
@@ -261,10 +357,26 @@ class GeoPriorGen(nn.Module):
         """
         depth_map = F.interpolate(depth_map, size=HW_tuple, mode="bilinear", align_corners=False)
 
+        if oracle_reliability is not None and geometry_oracle is not None:
+            raise ValueError("oracle_reliability (DVG-B1) and geometry_oracle (Oracle-A) are mutually exclusive")
+
         if oracle_reliability is not None:
             if tuple(oracle_reliability.shape[-2:]) != tuple(HW_tuple):
                 raise ValueError("Oracle reliability does not match the current GSA stage")
             pairwise_gate = build_dvg_b1_pairwise_gates(oracle_reliability, split_or_not)
+        elif geometry_oracle is not None:
+            if bool(geometry_oracle["depth_geometry_off"]):
+                # The Depth-Geometry-Off control is expressed as an all-zero reliability
+                # field so that it flows through exactly the same expression and keeps the
+                # same tensor shape as every other path.  ``x + weight[1] * (0 * mask_d)``
+                # is bitwise ``x`` because every added term is a signed zero.
+                zero_reliability = depth_map.new_zeros(
+                    (depth_map.shape[0], 1, int(HW_tuple[0]), int(HW_tuple[1]))
+                )
+                pairwise_gate = build_oracle_pairwise_gates(zero_reliability, split_or_not)
+            else:
+                stage_reliability = build_oracle_stage_reliability(geometry_oracle, HW_tuple, depth_map)
+                pairwise_gate = build_oracle_pairwise_gates(stage_reliability, split_or_not)
         else:
             pairwise_gate = None
 
@@ -513,7 +625,14 @@ class RGBD_Block(nn.Module):
             self.gamma_1 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
             self.gamma_2 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
 
-    def forward(self, x: torch.Tensor, x_e: torch.Tensor, split_or_not=False, oracle_reliability=None):
+    def forward(
+        self,
+        x: torch.Tensor,
+        x_e: torch.Tensor,
+        split_or_not=False,
+        oracle_reliability=None,
+        geometry_oracle=None,
+    ):
         x = x + self.cnn_pos_encode(x)
         b, h, w, d = x.size()
 
@@ -522,6 +641,7 @@ class RGBD_Block(nn.Module):
             x_e,
             split_or_not=split_or_not,
             oracle_reliability=oracle_reliability,
+            geometry_oracle=geometry_oracle,
         )
         if self.layerscale:
             x = x + self.drop_path(self.gamma_1 * self.Attention(self.layer_norm1(x), geo_prior, split_or_not))
@@ -584,8 +704,12 @@ class BasicLayer(nn.Module):
         else:
             self.downsample = None
 
-    def forward(self, x, x_e, oracle_corruption_mask=None):
+    def forward(self, x, x_e, oracle_corruption_mask=None, geometry_oracle=None):
         b, h, w, d = x.size()
+        if oracle_corruption_mask is not None and geometry_oracle is not None:
+            raise ValueError(
+                "oracle_corruption_mask (DVG-B1) and geometry_oracle (Oracle-A) are mutually exclusive"
+            )
         oracle_reliability = None
         if oracle_corruption_mask is not None:
             oracle_reliability = build_dvg_b1_stage_reliability(oracle_corruption_mask, (h, w))
@@ -597,6 +721,7 @@ class BasicLayer(nn.Module):
                     x_e=x_e,
                     split_or_not=self.split_or_not,
                     oracle_reliability=oracle_reliability,
+                    geometry_oracle=geometry_oracle,
                 )
             else:
                 x = blk(
@@ -604,6 +729,7 @@ class BasicLayer(nn.Module):
                     x_e,
                     split_or_not=self.split_or_not,
                     oracle_reliability=oracle_reliability,
+                    geometry_oracle=geometry_oracle,
                 )
         if self.downsample is not None:
             x_down = self.downsample(x)
@@ -738,10 +864,11 @@ class dformerv2(nn.Module):
     def no_weight_decay_keywords(self):
         return {"relative_position_bias_table"}
 
-    def forward(self, x, x_e, oracle_corruption_mask=None):
+    def forward(self, x, x_e, oracle_corruption_mask=None, geometry_oracle=None):
         # rgb input
         x = self.patch_embed(x)
         oracle_corruption_mask = normalize_dvg_b1_corruption_mask(oracle_corruption_mask, x_e)
+        geometry_oracle = normalize_geometry_oracle(geometry_oracle, x_e)
         # depth input
         x_e = x_e[:, 0, :, :].unsqueeze(1)
 
@@ -749,7 +876,12 @@ class dformerv2(nn.Module):
 
         for i in range(self.num_layers):
             layer = self.layers[i]
-            x_out, x = layer(x, x_e, oracle_corruption_mask=oracle_corruption_mask)
+            x_out, x = layer(
+                x,
+                x_e,
+                oracle_corruption_mask=oracle_corruption_mask,
+                geometry_oracle=geometry_oracle,
+            )
             if i in self.out_indices:
                 if i != 0:
                     x_out = self.extra_norms[i - 1](x_out)

@@ -1,0 +1,278 @@
+{
+  "batching_evidence": {
+    "effective": {
+      "0.5": 2,
+      "0.75": 1,
+      "1.0": 1,
+      "1.25": 1,
+      "1.5": 1
+    },
+    "rationale": "frozen per-scale choice recorded by the verified micro-batch probe",
+    "requested_view_batching": 2,
+    "source": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\benchmarks\\microbatch-strategy-final.json",
+    "source_sha256": "a1e90e08658a7d93751fd358fc9f9f2ac6a009ec3aef7896bb57fd713dcd7eaf"
+  },
+  "checkpoint": {
+    "path": "D:\\0Project\\DFormer\\experiments\\MMFR_A2_v3\\checkpoints\\selector-epoch-420.pth",
+    "sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597"
+  },
+  "delta_miou_vs_original": {
+    "aggregated": {
+      "clean": -1.49,
+      "entire_missing@1.0": 0.03,
+      "spatial_dropout@0.75": -0.24
+    },
+    "geometry_off": {
+      "clean": -1.69,
+      "entire_missing@1.0": 0.03,
+      "spatial_dropout@0.75": -0.22
+    },
+    "noop_continuous": {
+      "clean": 0.0,
+      "entire_missing@1.0": 0.0,
+      "spatial_dropout@0.75": 0.0
+    },
+    "noop_strict": {
+      "clean": 0.0,
+      "entire_missing@1.0": 0.0,
+      "spatial_dropout@0.75": 0.0
+    },
+    "strict": {
+      "clean": -1.64,
+      "entire_missing@1.0": 0.03,
+      "spatial_dropout@0.75": -0.24
+    }
+  },
+  "device": "cuda",
+  "identity": {
+    "checkpoint_sha256": "2b72eb7f28e5c4b4f52bdc43e2ac5c7298169325a412bfbcbc7a022c29822597",
+    "condition_definition_sha256": "6b4b129dd72a6976bf069655ffd77cd59ec63218b46a5bceea40043d606d4225",
+    "config_module": "local_configs.MUSeg.DFormerv2_S_MMFR_A2_DepthCorrupt_v3",
+    "evaluation_seed": 2026091401,
+    "official_test_included": false,
+    "protocol_raw_sha256": "814da56321fc5c4e0118b762177877553dfa3ed71e8f72721cb3d65764849da3",
+    "runner_sha256": "7c47898ea25d8eaf7f629a87eecd0f9efce6075986fbc2be9ab6754849495d9e",
+    "sample_count": 16,
+    "sample_set_sha256": "20bdbed7cbfeaa1b2ebdd120303b833a69683f9ba57a9d67f5bebe7907500855",
+    "split_role": "val_dev",
+    "split_sha256": "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"
+  },
+  "official_test_included": false,
+  "schema_version": "mmfr-oracle-a-evidence-v1",
+  "table_miou": {
+    "aggregated": {
+      "clean": {
+        "macc": 46.59,
+        "mf1": 48.29,
+        "miou": 41.63,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\aggregated\\clean\\metrics.json"
+      },
+      "entire_missing@1.0": {
+        "macc": 46.44,
+        "mf1": 48.05,
+        "miou": 41.43,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\aggregated\\entire_missing_100\\metrics.json"
+      },
+      "spatial_dropout@0.75": {
+        "macc": 46.38,
+        "mf1": 48.05,
+        "miou": 41.41,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\aggregated\\spatial_dropout_075\\metrics.json"
+      }
+    },
+    "geometry_off": {
+      "clean": {
+        "macc": 46.44,
+        "mf1": 48.06,
+        "miou": 41.43,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\geometry_off\\clean\\metrics.json"
+      },
+      "entire_missing@1.0": {
+        "macc": 46.44,
+        "mf1": 48.06,
+        "miou": 41.43,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\geometry_off\\entire_missing_100\\metrics.json"
+      },
+      "spatial_dropout@0.75": {
+        "macc": 46.44,
+        "mf1": 48.06,
+        "miou": 41.43,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\geometry_off\\spatial_dropout_075\\metrics.json"
+      }
+    },
+    "noop_continuous": {
+      "clean": {
+        "macc": 47.9,
+        "mf1": 49.11,
+        "miou": 43.12,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\noop_continuous\\clean\\metrics.json"
+      },
+      "entire_missing@1.0": {
+        "macc": 46.4,
+        "mf1": 48.04,
+        "miou": 41.4,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\noop_continuous\\entire_missing_100\\metrics.json"
+      },
+      "spatial_dropout@0.75": {
+        "macc": 46.51,
+        "mf1": 48.31,
+        "miou": 41.65,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\noop_continuous\\spatial_dropout_075\\metrics.json"
+      }
+    },
+    "noop_strict": {
+      "clean": {
+        "macc": 47.9,
+        "mf1": 49.11,
+        "miou": 43.12,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\noop_strict\\clean\\metrics.json"
+      },
+      "entire_missing@1.0": {
+        "macc": 46.4,
+        "mf1": 48.04,
+        "miou": 41.4,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\noop_strict\\entire_missing_100\\metrics.json"
+      },
+      "spatial_dropout@0.75": {
+        "macc": 46.51,
+        "mf1": 48.31,
+        "miou": 41.65,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\noop_strict\\spatial_dropout_075\\metrics.json"
+      }
+    },
+    "original": {
+      "clean": {
+        "macc": 47.9,
+        "mf1": 49.11,
+        "miou": 43.12,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\original\\clean\\metrics.json"
+      },
+      "entire_missing@1.0": {
+        "macc": 46.4,
+        "mf1": 48.04,
+        "miou": 41.4,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\original\\entire_missing_100\\metrics.json"
+      },
+      "spatial_dropout@0.75": {
+        "macc": 46.51,
+        "mf1": 48.31,
+        "miou": 41.65,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\original\\spatial_dropout_075\\metrics.json"
+      }
+    },
+    "strict": {
+      "clean": {
+        "macc": 46.53,
+        "mf1": 48.15,
+        "miou": 41.48,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\strict\\clean\\metrics.json"
+      },
+      "entire_missing@1.0": {
+        "macc": 46.44,
+        "mf1": 48.06,
+        "miou": 41.43,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\strict\\entire_missing_100\\metrics.json"
+      },
+      "spatial_dropout@0.75": {
+        "macc": 46.42,
+        "mf1": 48.04,
+        "miou": 41.41,
+        "path": "experiments\\MMFR_OracleA\\noaction16\\strict\\spatial_dropout_075\\metrics.json"
+      }
+    }
+  },
+  "timestamp_utc": "2026-09-20T04:00:54.487894+00:00",
+  "wall_clock_seconds": 1515.772,
+  "written": {
+    "aggregated/clean": {
+      "miou": 41.63,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\aggregated\\clean\\metrics.json",
+      "status": "completed"
+    },
+    "aggregated/entire_missing_100": {
+      "miou": 41.43,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\aggregated\\entire_missing_100\\metrics.json",
+      "status": "completed"
+    },
+    "aggregated/spatial_dropout_075": {
+      "miou": 41.41,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\aggregated\\spatial_dropout_075\\metrics.json",
+      "status": "completed"
+    },
+    "geometry_off/clean": {
+      "miou": 41.43,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\geometry_off\\clean\\metrics.json",
+      "status": "completed"
+    },
+    "geometry_off/entire_missing_100": {
+      "miou": 41.43,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\geometry_off\\entire_missing_100\\metrics.json",
+      "status": "completed"
+    },
+    "geometry_off/spatial_dropout_075": {
+      "miou": 41.43,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\geometry_off\\spatial_dropout_075\\metrics.json",
+      "status": "completed"
+    },
+    "noop_continuous/clean": {
+      "miou": 43.12,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\noop_continuous\\clean\\metrics.json",
+      "status": "completed"
+    },
+    "noop_continuous/entire_missing_100": {
+      "miou": 41.4,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\noop_continuous\\entire_missing_100\\metrics.json",
+      "status": "completed"
+    },
+    "noop_continuous/spatial_dropout_075": {
+      "miou": 41.65,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\noop_continuous\\spatial_dropout_075\\metrics.json",
+      "status": "completed"
+    },
+    "noop_strict/clean": {
+      "miou": 43.12,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\noop_strict\\clean\\metrics.json",
+      "status": "completed"
+    },
+    "noop_strict/entire_missing_100": {
+      "miou": 41.4,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\noop_strict\\entire_missing_100\\metrics.json",
+      "status": "completed"
+    },
+    "noop_strict/spatial_dropout_075": {
+      "miou": 41.65,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\noop_strict\\spatial_dropout_075\\metrics.json",
+      "status": "completed"
+    },
+    "original/clean": {
+      "miou": 43.12,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\original\\clean\\metrics.json",
+      "status": "completed"
+    },
+    "original/entire_missing_100": {
+      "miou": 41.4,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\original\\entire_missing_100\\metrics.json",
+      "status": "completed"
+    },
+    "original/spatial_dropout_075": {
+      "miou": 41.65,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\original\\spatial_dropout_075\\metrics.json",
+      "status": "completed"
+    },
+    "strict/clean": {
+      "miou": 41.48,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\strict\\clean\\metrics.json",
+      "status": "completed"
+    },
+    "strict/entire_missing_100": {
+      "miou": 41.43,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\strict\\entire_missing_100\\metrics.json",
+      "status": "completed"
+    },
+    "strict/spatial_dropout_075": {
+      "miou": 41.41,
+      "path": "experiments\\MMFR_OracleA\\noaction16\\strict\\spatial_dropout_075\\metrics.json",
+      "status": "completed"
+    }
+  }
+}
