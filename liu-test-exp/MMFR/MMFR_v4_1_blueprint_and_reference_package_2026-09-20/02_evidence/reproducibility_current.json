@@ -1,0 +1,48 @@
+﻿{
+  "schema_version": "mmfr-package-reproducibility-v2",
+  "recorded_at_utc": "2026-09-21T09:34:17.828053+00:00",
+  "package_name": "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
+  "package_layout": "second-directory-simplification",
+  "active_review_profile": "e1-batch1a-gateb",
+  "review_level": "L1",
+  "official_test": "sealed_unread",
+  "authoritative_research_status": "../../../doc/main/MUSeg-current-status.md",
+  "authoritative_open_decisions": "../../../doc/main/MUSeg-open-decisions.md",
+  "git": {
+    "branch": "perf/mmfr-a2-v3-pipeline-opt1",
+    "commit": "e8abbe2d0b87ea5b2e29069037fcf4bc8d7e57eb",
+    "workspace_dirty": true,
+    "package_tracking_state": "untracked"
+  },
+  "external_code": {
+    "root": "D:\\0Project\\origin",
+    "copied_into_package": false,
+    "provenance": "03_reference/external_reference_provenance_2026-09-21.md"
+  },
+  "source_materials": {
+    "path": "03_reference/source_materials/",
+    "count": 14,
+    "registry": "03_reference/MMFR_reference_registry_v4_1_2026-09-20.json",
+    "integrity_rule": "bytes and SHA-256 must match the registry source_manifest"
+  },
+  "canonical_review_sources": {
+    "protocol": "01_research/e1_batch1_protocol.md",
+    "report": "02_evidence/report_e1_batch1a_gateb.md",
+    "implementation_diff": "02_evidence/audit_implementation_diff.md",
+    "depth_audit": "02_evidence/audit_depth_input_contract.md",
+    "optimizer_audit": "02_evidence/audit_optimizer_coverage.md",
+    "validation": "02_evidence/validation_report.json"
+  },
+  "migration_evidence": {
+    "pre_migration_manifest": "90_archive/2026-09-21_directory_simplification/pre_migration_manifest.json",
+    "pre_migration_file_count": 33,
+    "pre_migration_source_material_count": 14
+  },
+  "review_packet": {
+    "path": "99_review_packet_current/",
+    "generated_only": true,
+    "expected_file_count": 6,
+    "human_entry": "REVIEW_BRIEF.md",
+    "machine_entry": "packet_manifest.json"
+  }
+}

@@ -13,6 +13,9 @@ archive-export/
 #paper
 doc/paper/
 
+# Local MMFR paper full texts and extraction artifacts
+/liu-test-exp/MMFR/附件/
+
 # dataset
 MUseg/
 !local_configs/MUSeg/

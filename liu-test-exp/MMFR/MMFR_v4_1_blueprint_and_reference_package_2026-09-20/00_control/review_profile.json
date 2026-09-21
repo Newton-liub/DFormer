@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "active_profile": "e1-batch1a-gateb",
+  "review_level": "L1",
+  "official_test": "sealed_unread",
+  "authoritative_status": {
+    "research_status": "../../../doc/main/MUSeg-current-status.md",
+    "open_decisions": "../../../doc/main/MUSeg-open-decisions.md"
+  },
+  "external_code_root": "D:\\0Project\\origin",
+  "review": {
+    "title": "MMFR E1 Batch 1A C0/F-lite Gate-B",
+    "current_task": "Engineering qualification review for C0 and F-lite under the frozen E1 Batch 1 protocol.",
+    "state_summary": [
+      "C0 Gate-B status: PASS.",
+      "F-lite Gate-B status: PASS.",
+      "The Gate-B report records failed_checks=[].",
+      "This establishes implementation qualification only; it does not provide training or model-effect results.",
+      "Formal 20-epoch / 2,560-update training remains unauthorized.",
+      "R-EM-lite is retired by observability; R-OE-lite is design-only and is not part of this review."
+    ],
+    "review_questions": [
+      "Is the recorded Gate-B evidence sufficient for the stated C0 and F-lite PASS conclusions?",
+      "Does the shared optimizer coverage repair satisfy the frozen Batch 1 contract without attributing shared optimizer effects to F-lite?",
+      "Does F-lite preserve zero-init/no-op identity before learning while establishing the required gradient path?",
+      "Does the implementation diff preserve the C0 baseline identity and isolate the F-lite adapter change?",
+      "Does the evidence support readiness to request a separate authorization decision for formal training, without itself granting that authorization?"
+    ],
+    "do_not_infer_or_authorize": [
+      "Formal training",
+      "Quick-Val",
+      "Main-Val",
+      "Checkpoint effect selection",
+      "R-OE-lite implementation",
+      "Batch 1B or Batch 2",
+      "Cloud execution",
+      "Official test"
+    ],
+    "reading_order": [
+      "CURRENT_REPORT.md",
+      "IMPLEMENTATION_DIFF.md",
+      "CURRENT_PROTOCOL.md",
+      "EVIDENCE_SUMMARY.md"
+    ],
+    "changed_since_previous_review": [
+      "The long-term package was simplified to control, research, evidence, and reference areas.",
+      "The current review packet was reduced from 13 files to a flat six-file interface.",
+      "The active profile moved from a Markdown field to review_profile.json.",
+      "Canonical research conclusions and authorization boundaries were not changed by the directory migration."
+    ],
+    "background_not_included": [
+      "Full research blueprint",
+      "Full screening plan",
+      "R-OE-lite design",
+      "Full literature audit",
+      "Full external provenance ledger",
+      "Reference index and registry",
+      "The 14 source-material files",
+      "Archives"
+    ]
+  },
+  "attachments": [
+    {
+      "packet_file": "CURRENT_PROTOCOL.md",
+      "role": "current_protocol",
+      "source": "01_research/e1_batch1_protocol.md",
+      "transform": "exact_copy"
+    },
+    {
+      "packet_file": "CURRENT_REPORT.md",
+      "role": "current_report",
+      "source": "02_evidence/report_e1_batch1a_gateb.md",
+      "transform": "exact_copy"
+    },
+    {
+      "packet_file": "IMPLEMENTATION_DIFF.md",
+      "role": "implementation_diff",
+      "source": "02_evidence/audit_implementation_diff.md",
+      "transform": "exact_copy"
+    }
+  ],
+  "summaries": [
+    {
+      "id": "depth_input_contract",
+      "title": "Depth input contract",
+      "status": "R-EM-lite protocol-blocked; replacement route is design-only",
+      "sources": [
+        "02_evidence/audit_depth_input_contract.md"
+      ],
+      "current_relevance": "The current model-visible Depth input cannot distinguish hidden causes that produce the same observable all-zero state.",
+      "key_conclusions": [
+        "R-EM-lite cannot infer whether an all-zero observable state came from entire missing, a naturally empty crop, or dropout that emptied the crop.",
+        "The retired R-EM-lite route does not block the current C0/F-lite Gate-B decision.",
+        "R-OE-lite is not included because it has not been implemented or authorized."
+      ]
+    },
+    {
+      "id": "optimizer_coverage",
+      "title": "Optimizer coverage",
+      "status": "PASS in the canonical Gate-B evidence",
+      "sources": [
+        "02_evidence/audit_optimizer_coverage.md",
+        "02_evidence/report_e1_batch1a_gateb.md"
+      ],
+      "current_relevance": "C0 and F-lite must share the same repaired optimizer identity so a shared optimizer correction cannot be misattributed to F-lite.",
+      "key_conclusions": [
+        "The pre-implementation audit identified 29 uncovered Geo.weight tensors in the current A2 v3 path, while 14 SyncBN parameters were already covered.",
+        "Gate-B confirmed every trainable parameter has optimizer membership exactly one.",
+        "All 29 Geo.weight tensors are in base_decay and all 14 SyncBN parameters are in base_no_decay for both C0 and F-lite."
+      ]
+    },
+    {
+      "id": "external_code_provenance",
+      "title": "External code provenance",
+      "status": "No direct external code copy",
+      "sources": [
+        "03_reference/external_reference_provenance_2026-09-21.md"
+      ],
+      "current_relevance": "External repositories are static references only and remain outside the MMFR package.",
+      "key_conclusions": [
+        "External repositories remain under D:\\0Project\\origin.",
+        "The provenance ledger records repository identity, license boundaries, code anchors, and direct-copy status.",
+        "The current F-lite implementation is not claimed as a faithful reproduction of ConD or another external method."
+      ]
+    },
+    {
+      "id": "literature_basis",
+      "title": "Literature basis",
+      "status": "Full literature re-review not required for this L1 Gate-B review",
+      "sources": [
+        "03_reference/literature_fulltext_audit.md"
+      ],
+      "current_relevance": "The current review concerns implementation qualification under an already frozen protocol, not route selection or a new literature claim.",
+      "key_conclusions": [
+        "The full literature audit remains canonical but is intentionally excluded from this L1 packet.",
+        "A future route or blueprint review must use an L2 profile if full literature evidence is required."
+      ]
+    },
+    {
+      "id": "reproducibility_identity",
+      "title": "Reproducibility identity",
+      "status": "Canonical machine-readable record retained",
+      "sources": [
+        "02_evidence/reproducibility_current.json",
+        "02_evidence/validation_report.json"
+      ],
+      "current_relevance": "The packet manifest and this summary expose the review-relevant identity without adding a separate reproducibility attachment.",
+      "key_conclusions": [
+        "The canonical reproducibility and validation files remain in 02_evidence.",
+        "The official-test state is sealed_unread.",
+        "The package contains 14 preserved source-material files and no copied external repository."
+      ]
+    }
+  ],
+  "hard_exclusions": [
+    "03_reference/source_materials/",
+    "03_reference/MMFR_reference_index_v4_1_2026-09-20.md",
+    "03_reference/MMFR_reference_registry_v4_1_2026-09-20.json",
+    "90_archive/",
+    "D:\\0Project\\origin external repositories",
+    "datasets",
+    "checkpoints",
+    "raw logs",
+    "telemetry",
+    "caches",
+    "official-test artifacts"
+  ]
+}

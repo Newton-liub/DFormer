@@ -1,0 +1,573 @@
+段落主题: 本清单已覆盖原 PR 合集全部 34 个编号：
+导出时间: 2026-09-16 18:08:49
+论文编号: PR024, PR028, PR030, PR036, PR038,  PR040, PR042, PR043, PR044, PR053, PR058, PR059, PR074, PR087, PR092, PR094, PR105, PR107, PR117, PR123, PR133, PR138, PR140, PR149, PR151, PR158, PR165, PR168, PR173, PR178
+================================================================================
+
+编号: PR024
+发表年份: 2026
+作者: Joanne Lin; Ruirui Lin; Yini Li; David Bull; Nantheera Anantrasirichai
+标题: ELVIS: Enhance Low-Light for Video Instance Segmentation in the Dark
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Video instance segmentation (VIS) for low-light content remains highly challenging for both humans and machines alike, due to noise, blur and other adverse conditions. The lack of large-scale annotated datasets and the limitations of current synthetic pipelines, particularly in modeling temporal degradations, further hinder progress. Moreover, existing VIS methods are not robust to the degradations found in low-light videos and, consequently, perform poorly even after finetuning. In this paper, we introduce \textbf{ELVIS} (\textbf{E}nhance \textbf{L}ow-Light for \textbf{V}ideo \textbf{I}nstance \textbf{S}egmentation), a framework that enables domain adaptation of state-of-the-art VIS models to low-light scenarios. ELVIS is comprised of an unsupervised synthetic low-light video pipeline that models both spatial and temporal degradations, a calibration-free degradation profile estimation network (VDP-Net) and an enhancement decoder head that disentangles degradations from content features. ELVIS improves performances by up to \textbf{+3.7AP} on the synthetic low-light YouTube-VIS 2019 dataset and beats two-stage baselines by at least \textbf{+2.8AP} on real low-light videos. Code and dataset available at: \href{https://joannelin168.github.io/research/ELVIS}{https://joannelin168.github.io/research/ELVIS}
+--------------------------------------------------------------------------------
+
+编号: PR028
+发表年份: 2026
+作者: Long Ma; Haoze Zheng; Yuhang Mao; Jinyuan Liu; Chengpei Xu; Xinwei Xue; Yi Wang; Xiangjian He; Weimin Wang
+标题: BiPA: Bilevel Prompt Adaptation for Underwater Instance Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Underwater instance segmentation is essential for fine-grained scene understanding. However, underwater imagery exhibits a strong domain gap from in-air vision due to severe degradation (e.g., turbidity). Consequently, despite its general segmentation ability, SAM degrades sharply underwater. In this work, we propose BiPA, which effectively adapts SAM to the underwater domain. To be concrete, we construct an underwater SAM with dual prompts and introduce a foreground-attentive injection block to enhance local foreground representation. We formulate dense prompt learning as a bilevel optimization, explicitly capturing the mutual dependency between prompt and model. To make this tractable, we design a two-stage learning strategy. The first stage adapts the dense prompt itself, updating it with Bayesian optimization to learn efficiently. The second stage fine-tunes the model parameters under the frozen optimized prompt, which finally enables effective cross-domain adaptation. Extensive experiments and analyses verify the superiority and efficiency of BiPA. The code is publicly available at https://github.com/ZeAstra/BiPA.
+--------------------------------------------------------------------------------
+
+
+
+编号: PR030
+发表年份: 2026
+作者: Gaoge Han; Yongkang Cheng; Zhe Chen; Shaoli Huang; Tongliang Liu
+标题: From 2D Alignment to 3D Plausibility: Unifying Heterogeneous 2D Priors and Penetration-Free Diffusion for Occlusion-Robust Two-Hand Reconstruction
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Two-hand reconstruction from monocular images is hampered by complex poses and severe occlusions, which often cause interaction misalignment and two-hand penetration. We address this by decoupling the problem into 2D structural alignment and 3D spatial interaction alignment, each handled by a tailored component. For 2D alignment, we pioneer the attempt to unify heterogeneous structural priors (keypoints, segmentation, and depth) from vision foundation models as complementary structured guidance for two-hand recovery. Instead of extracting priors prediction as explicit inputs, we propose a fusion-alignment encoder that absorbs their structural knowledge implicitly, achieving foundation-level guidance without foundation-level cost. For 3D spatial alignment, we propose a two-hand penetration-free diffusion model that learns a generative mapping from interpenetrated poses to realistic, collision-free configurations. Guided by collision gradients during denoising, the model converges toward the manifold of valid two-hand interactions, preserving geometric and kinematic coherence. This generative formulation approach enables physically credible reconstructions even under occlusion or ambiguous visual input. Extensive experiments on InterHand2.6M and HIC show state-of-the-art or leading performance in interaction alignment and penetration suppression. Project: https://gaogehan.github.io/A2P/
+--------------------------------------------------------------------------------
+
+编号: PR036
+发表年份: 2026
+作者: Minho Park; Sunghyun Park; Jungsoo Lee; Hyojin Park; Kyuwoong Hwang; Fatih Porikli; Jaegul Choo; Sungha Choi
+标题: Concept-Aware LoRA for Domain-Aligned Segmentation Dataset Generation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: This paper addresses the challenge of data scarcity in semantic segmentation by generating datasets through text-to-image (T2I) generation models, reducing image acquisition and labeling costs. Segmentation dataset generation faces two key challenges: 1) aligning generated samples with the target domain and 2) producing informative samples beyond the training data. Fine-tuning T2I models can help generate samples aligned with the target domain. However, it often overfits and memorizes training data, limiting their ability to generate diverse and well-aligned samples. To overcome these issues, we propose Concept-Aware LoRA (CA-LoRA), a novel fine-tuning approach that selectively identifies and updates only the weights associated with necessary concepts (e.g., style or viewpoint) for domain alignment while preserving the pretrained knowledge of the T2I model to produce informative samples. We demonstrate its effectiveness in generating datasets for urban-scene segmentation, outperforming baseline and state-of-the-art methods in in-domain (few-shot and fully-supervised) settings, as well as in domain generalization tasks, especially under challenging conditions such as adverse weather and varying illumination, further highlighting its superiority.
+--------------------------------------------------------------------------------
+
+编号: PR038
+发表年份: 2026
+作者: Jiyuan Liu; Jia Lin; Xiaofei Zhou; Runmin Cong; Deyang Liu; Zhi Liu
+标题: M4-SAM: Multi-Modal Mixture-of-Experts with Memory-Augmented SAM for RGB-D Video Salient Object Detection
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: The Segment Anything Model 2 (SAM2) has emerged as a foundation model for universal segmentation. Owing to its generalizable visual representations, SAM2 has been successfully applied to various downstream tasks. However, extending SAM2 to the RGB-D video salient object detection (RGB-D VSOD) task encounters three challenges including limited spatial modeling of linear LoRA, insufficient employment of SAM's multi-scale features, and dependence of initialization on explicit prompts. To address the issues, we present Multi-Modal Mixture-of-Experts with Memory-Augmented SAM (M4-SAM), which equips SAM2 with modality-related PEFT, hierarchical feature fusion, and prompt-free memory initialization. Firstly, we inject Modality-Aware MoE-LoRA, which employs convolutional experts to encode local spatial priors and introduces a modality dispatcher for efficient multi-modal fine-tuning, into SAM2's encoder. Secondly, we deploy Gated Multi-Level Feature Fusion, which hierarchically aggregates multi-scale encoder features with an adaptive gating mechanism, to balance spatial details and semantic context. Finally, to conduct zero-shot VSOD without manual prompts, we utilize a Pseudo-Guided Initialization, where a coarse mask is regarded as a pseudo prior and used to bootstrap the memory bank. Extensive experiments demonstrate that M4-SAM achieves the state-of-the-art performance across all evaluation metrics on three public RGB-D VSOD datasets.
+PR038 将 SAM2 扩展到 RGB-D Video Salient Object Detection，其主要价值在于提供了 RGB-D modality-aware expert routing、adaptive MoE 和 gated multi-level feature fusion 的直接跨任务先例，但该方法并未显式估计 Depth reliability，也不是面向 corrupted/missing Depth 设计的可靠性控制方法。
+
+M4-SAM 使用共享 Hiera/SAM2 encoder 分别处理 RGB 与 Depth，并在 encoder 中注入 Modality-Aware MoE-LoRA。其专家分为 RGB、Depth 和 Fusion 三组，每组包含不同感受野的卷积专家，包括 $3\times3$、$5\times5$ 以及 depthwise-pointwise convolution。组内 MoE Gating 根据输入 representation 动态选择 top-K experts，默认 $K=2$。同时，Modality Dispatcher 根据输入的模态身份执行组级路由：RGB stream 激活 RGB+Fusion groups，Depth stream 激活 Depth+Fusion groups。其 LoRA 更新可写为
+
+$$
+h=W_0x+BAx+B D(Ax),
+$$
+
+其中 $D(\cdot)$ 表示 modality dispatcher。
+
+需要注意，Modality Dispatcher 的条件变量是“当前输入属于 RGB 还是 Depth”，而不是当前 Depth 的质量或可靠度。即使 Depth 被噪声污染，该结构原则上仍将其路由至 Depth+Fusion expert groups。虽然组内 MoE gate 根据 feature representation 动态选择专家，输入退化可能隐式影响 expert activation，但论文没有将这种变化定义为 reliability，也没有使用 corruption/severity supervision 或证明 expert activation 与 Depth quality 之间存在可解释、单调的关系。因此该结构属于 modality-aware/input-adaptive routing，而非 explicit reliability-aware routing。
+
+RGB 与 Depth 的四级特征之后通过 UIM 和 RFB 融合得到统一的 multi-modal encoder features。论文随后提出的 Gated Multi-Level Feature Fusion 也不应被解释为 RGB-vs-Depth reliability gating。其 gate 作用于已经融合后的浅层 encoder representation 与经过 multi-scale spatial/channel enhancement 的 representation：
+
+$$
+G=\operatorname{Conv}_{gate}
+\left(
+\operatorname{Concat}(X_E^1,X_e)
+\right),
+$$
+
+$$
+\tilde X_E=
+FFN\left(
+G\cdot X_e+(1-G)\cdot X_E^1
+\right).
+$$
+
+因此该 gate 的作用是平衡不同层级和不同形式的 fused features，而不是根据 RGB/Depth 的可信程度调节两种模态的贡献。
+
+M4-SAM 还使用 Pseudo-Guided Temporal Memory。当前帧 fused feature 与 memory bank 中此前帧的 key/value 通过 cross-attention 聚合，以维持视频预测的时间一致性；第一帧没有历史信息时，则使用 decoder 产生的 coarse mask 作为 pseudo prior 初始化 memory，而不需要人工 point/box/mask prompt。这一部分主要解决 prompt-free video initialization 和 temporal consistency，与单帧 RGB-D 模态可靠性不是同一问题。
+
+对 MMFR 特别重要的是论文的 Depth Input ablation。在 RDVS 上，使用真实 Depth 时 E-measure/F-measure/MAE 为 0.927/0.802/0.027；将 RGB 直接复制为 pseudo-depth 时下降至 0.858/0.623/0.047；使用全零黑色 pseudo-depth 时为 0.895/0.768/0.029。该结果说明有效 Depth 提供明显的互补几何信息，同时也呈现出一个值得关注的现象：错误但具有结构的 pseudo-depth 可能比明显无信息的全零 Depth 更具破坏性。这可以作为 MMFR 区分“missing Depth”和“present-but-misleading Depth”的实验动机之一。
+
+但是该消融不能被描述为系统性的 Depth-corruption robustness benchmark。论文没有针对 Gaussian noise、spatial dropout、局部失效等退化进行 severity sweep，也没有训练或评价一个明确的 reliability estimator。三个公开数据集 DViSal、RDVS 和 ViDSOD-100 主要用于正常 RGB-D VSOD 评价，论文训练部分也没有描述专门的 Depth-corruption augmentation。
+
+论文在低照度定性实验中指出 DCTNet+ 和 SAM2-UNet “fail to assess the reliability of depth information”，并将 noisy Depth 与错误预测联系起来。该表述只能视为作者对基线失败现象的定性解释，不能据此声称 M4-SAM 自身显式估计 Depth reliability。M4-SAM 全文没有独立 reliability/confidence/uncertainty variable，也没有 reliability supervision、reliability calibration 或 reliability-conditioned modality suppression。
+
+因此 PR038 与 MMFR 的主要重合点是“RGB-D modality-aware dynamic routing / expert selection / gated feature fusion”，而不是“Depth failure diagnosis → reliability estimation → geometry-path intervention”。MMFR 在 novelty 表述中不应声称 modality-aware expert routing、dynamic MoE 或 generic gated RGB-D fusion 本身是新的；更合理的创新边界应继续放在：显式识别 degraded/missing Depth 的几何可靠性，并利用该可靠性直接调节 DFormerv2 的 Geometry Self-Attention / geometry path，而非仅按模态身份或普通 feature representation 进行路由。
+
+PR038 还提示 MMFR 的鲁棒性实验最好同时区分两类极端情况：`uninformative/missing depth` 与 `wrong-but-present/misleading depth`。若后者比全零缺失造成更大性能下降，则能够进一步证明“仅提供 fallback 不够，必须识别错误几何证据并主动抑制”的研究必要性。
+
+--------------------------------------------------------------------------------
+
+编号: PR040
+发表年份: 2026
+作者: Sungyong Park; Sooyoung Choi; Hyunsuh Koh; Youngjae Choi; Heewon Kim
+标题: CLP: A Real-World Dataset of Contaminated Lens Protectors for Robust Semantic Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: The reliability of autonomous systems in real-world environments is mainly dependent on the robustness of their visual perception.Although recent studies have advanced the handling of visual degradations, physical contaminants that adhere to the camera lens--such as mud, water droplets, and condensation--remain largely underexplored.To this end, we introduce the CLP (Contaminated Lens Protector) dataset, a real-world benchmark designed to evaluate perception performance under realistic lens-protector contamination.The CLP dataset offers degraded images across multiple types of contamination and various lens-to-protector distances, along with dense semantic segmentation masks and aligned restoration targets.This dataset enables robust segmentation and restoration studies in conditions that closely match those encountered by real-world autonomous systems.Experiments analyze strategies to improve perception under contamination with limited data, highlighting the importance of domain generalization, foundation models, data scale, and joint restoration-segmentation pipelines.
+
+PR040 是面向真实物理传感退化的 semantic-segmentation benchmark 工作，而不是 RGB-D/Depth reliability 方法。论文构建 CLP（Contaminated Lens Protectors）数据集，通过真实透明保护片上的 mud、water droplets 和 condensation 模拟摄像机在实际部署中的镜头污染，并利用 3D-printed holder 控制 lens-to-protector distance，从而获得严格对齐的 clean/degraded image pairs。数据集包含 600 个场景，划分为 480 个训练场景和 120 个测试场景；每个场景包含 protector-free original reference，以及 0/1/3/5 cm 四种距离下的 clean-protector 和 contaminated-protector 图像，并提供覆盖 125 类、19,203 instances 的 dense semantic annotations。
+
+CLP 的主要价值是说明 robust semantic segmentation 不应只依赖数字合成 corruption。真实物理污染会产生 blur、color shift、occlusion、scattering 等具有空间结构的复杂退化，而 paired clean–degraded acquisition 可以在保持场景与语义标签一致的情况下，直接测量真实 degradation 对下游 perception 的影响。该 benchmark-design 思路可以作为 MMFR 后续真实传感器失效实验的参考，但 CLP 只处理普通 RGB camera 的 lens contamination，没有 Depth modality、RGB-D fusion、Depth noise/missing、geometry reliability 或 reliability-conditioned intervention，因此不能作为 Depth corruption 方法论或 MMFR 的直接 baseline。
+
+论文的 distance-controlled experiment 还表明，物理控制参数不能简单等价为 corruption severity。Clean protector 的光学失真随 lens-to-protector distance 增大而增强，而 condensation 在较大距离下可能因为污染层远离焦平面而有所改善；mud 和 water droplets 的总体严重程度则对距离变化相对稳定，主要表现为遮挡模式发生变化。因此，在未来真实 Depth sensor degradation 实验中，也不应直接假定某个物理参数单调对应 reliability，而应首先验证其与实际 Depth error 或 downstream performance 的关系。对于当前 MMFR 的 synthetic corruption，人工定义的 Gaussian-noise/dropout strength 可以作为受控 severity；但 physical factor 与 effective degradation severity 应在论文中概念上区分。
+
+CLP 另一个对 MMFR 很重要的结论来自 restoration–segmentation experiment：更高的图像恢复指标并不保证更好的 downstream semantic segmentation。DiffUIR 在 restoration benchmark 中取得最高的整体 PSNR（27.92 dB），但接入 Mask2Former 后，在 condensation 上改善 segmentation 的同时，在 water 和 mud 条件下没有稳定收益。相比之下，task-aware UniRestore 是实验中能够较稳定提升 downstream segmentation 的 restoration 方法，整体约提升 1.6 mIoU。该结果说明 perception robustness 的优化目标不能仅由 PSNR/SSIM 等输入重建质量决定，task-aware information preservation 更重要。
+
+对 MMFR 而言，这支持“不要默认先恢复 Depth 再做 segmentation 就是最优方案”的研究逻辑。Depth restoration quality、Depth geometric reliability 和 downstream segmentation utility 是三个不同概念。MMFR 当前更有辨识度的路线仍应是直接估计 corrupted/missing Depth 对几何路径而言是否可信，再利用 reliability 干预 DFormerv2 geometry computation，而不是单纯追求恢复后的 Depth 与 clean Depth 在像素空间接近。
+
+CLP 的 segmentation benchmark 还显示不同 degradation type 对不同模型的影响明显不同。例如 SoMA 在 clean/mud/water/condensation 上的平均 mIoU 分别约为 57.4/40.0/51.4/43.2，DINOv2 分别约为 52.6/40.9/53.2/42.1。由此可见，一个单一 overall robustness score 可能掩盖明显的 condition-specific behavior。MMFR 最终实验应继续保留 clean、Gaussian noise、spatial dropout、entire missing 等各 condition 的独立结果，并可进一步汇报 corruption average、worst-condition performance 或跨 condition 波动，而不应只展示总平均值。
+
+此外，CLP 中真实镜头污染具有明显的空间非均匀性，这提示 MMFR 后续若需要提高 corruption realism，可以优先补充 structured/local Depth failure，例如连续区域 invalid、局部块状缺失或边界附近异常，而不仅仅增加更多 i.i.d. Gaussian-noise 设置。但这是从 PR040 benchmark design 得出的跨模态实验启发，不能写成 PR040 已研究 Depth failure。
+
+因此 PR040 最适合用于 MMFR 的 robust-perception motivation、physical-degradation benchmark design 以及 task-aware evaluation 论证，而不应进入“已有 Depth reliability / adaptive RGB-D fusion 方法”的核心 related-work 证据链。
+
+元数据纠错：当前 PR040 条目中的作者 `Hyunsuh Koh` 应更正为正式 CVPR 论文首页所示的 `Hyunseo Koh`；CVPR 2026 的会议标注正确。
+
+--------------------------------------------------------------------------------
+
+编号: PR042
+发表年份: 2026
+作者: Sohyun Lee; Yeho Gwon; Lukas Hoyer; Konrad Schindler; Christos Sakaridis; Suha Kwak
+标题: Robust Promptable Video Object Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: The performance of promptable video object segmentation (PVOS) models substantially degrades under input corruptions, which prevents PVOS deployment in safety-critical domains. This paper offers the first comprehensive study on robust PVOS (RobustPVOS). We first construct a new, comprehensive benchmark with two real-world evaluation datasets of 351 video clips and more than 2,500 object masks under real-world adverse conditions. At the same time, we generate synthetic training data by applying diverse and temporally varying corruptions to existing VOS datasets. Moreover, we present a new RobustPVOS method, dubbed Memory-object-conditioned Gated-rank Adaptation (MoGA). The key to successfully performing RobustPVOS is two-fold: effectively handling object-specific degradation and ensuring temporal consistency in predictions. MoGA leverages object-specific representations maintained in memory across frames to condition the robustification process, which allows the model to handle each tracked object differently in a temporally consistent way. Extensive experiments on our benchmark validate MoGA's efficacy, showing consistent and significant improvements across diverse corruption types on both synthetic and real-world datasets, establishing a strong baseline for future RobustPVOS research. Our benchmark is publicly available at https://sohyun-l.github.io/RobustPVOS_project_page/.
+
+PR042 研究的是单模态视频输入受 corruption 影响时的 Robust Promptable Video Object Segmentation，而非 RGB-D 多模态语义分割。其核心方法 MoGA（Memory-object-conditioned Gated-rank Adaptation）的关键思想是：真实退化具有明显的空间和时间非均匀性，因此不应对整幅图像、所有目标采用完全相同的鲁棒化策略，而应根据不同目标的历史状态实施 object-specific、temporally consistent adaptation。
+
+MoGA 基于 SAM2 的 memory bank。首先将普通 LoRA adapter
+
+$$
+\Delta W=BA
+$$
+
+进一步分解为多个 rank-1 component：
+
+$$
+\Delta W=\sum_{i=1}^{R}b_i a_i^\top.
+$$
+
+SAM2 memory bank 为每个目标维护 object pointer $m_o$。MoGA 使用共享的三层 MLP 根据每个 $m_o$ 生成 object-specific binary gating mask
+
+$$
+z_o=g(m_o)\in\{0,1\}^{R},
+$$
+
+并通过 Gumbel-Sigmoid 与 straight-through estimator 实现可微的离散 component selection。最终每个目标具有对应的 adapter
+
+$$
+\Delta W_o
+=
+\sum_{i=1}^{R}
+z_{o,i}b_i a_i^\top.
+$$
+
+因此其核心计算关系可以概括为：
+
+`historical object representation → conditional gating → rank-1 adapter-component selection → memory-attention intervention`。
+
+MoGA 被插入 SAM2 memory attention 的 self-attention Q/K/V projection 和 cross-attention Q projection。不同目标共享 rank-1 component 参数，但根据各自 object pointer 激活不同 component，从而避免为每个目标复制完整 adapter。
+
+需要特别注意，MoGA 的 gating mask 不是显式 corruption score、uncertainty 或 reliability。论文没有 corruption-type/severity supervision，也没有为 gate 提供独立标签。决定哪些 rank-1 component 被激活的 gating module 仅通过最终 segmentation objective 学习；训练损失由 focal loss 和 Dice loss组成。因此 MoGA 属于 task-driven implicit conditional routing，而不是 explicit degradation/reliability estimation。
+
+PR042 的 benchmark 包含真实和合成 corruption。真实测试数据来自 ACDC-Video 与 MVSeg，共 351 clips、16,840 frames、2,543 objects，覆盖 fog、rain、snow、night、low-light、noise 和 motion blur 等 adverse conditions。合成训练数据则向 MOSE、DAVIS 与 YouTube-VOS 注入 color jitter、Gaussian noise、ISO noise、motion blur、resampling blur、fog、rain、snow 共 8 种 corruption，并采用 Fourier-based temporal modulation 使 corruption intensity 随视频时间平滑变化。这一设计可作为 MMFR 后续构造动态或空间非均匀 degradation evaluation 的参考，但这些 corruption 作用于普通视觉视频输入，并非 Depth modality corruption，因此不能作为 RGB-D Depth failure benchmark 的直接先例。
+
+论文最值得 MMFR 借鉴的是 conditional-routing 消融。MVSeg-adv 上，无 conditioning、仅 memory-conditioning、memory + object-conditioning 的 J&F 分别为 69.6、70.9、71.8，说明仅加入适配参数不足，利用与当前目标状态相关的 conditioning signal 能进一步提高鲁棒性。该实验设计提示 MMFR 后续不仅应比较 baseline 与 reliability-conditioned intervention，还应考虑固定控制、condition-aware 控制以及 reliability-aware 控制，并通过 random/shuffled reliability 等对照排除“额外参数本身带来收益”的解释。
+
+论文同时评价 corrupted 与 clean performance。在 YouTube-VOS-C 上，SAM2 与 MoGA+SAM2 分别达到 78.7 和 79.9 J&F；在对应 clean YouTube-VOS 上分别为 82.2 和 82.6。这种“提高 degradation robustness，同时检查 clean performance 是否受损”的实验原则与 MMFR 的评价目标高度一致。
+
+PR042 与 MMFR 的结构相似性主要停留在抽象的 conditional intervention 层面。PR042 使用历史 object representation 隐式决定鲁棒 adapter component；MMFR 则计划针对 corrupted/missing Depth 显式估计 geometry reliability，并利用 reliability 干预 DFormerv2 geometry path。前者没有 RGB-D fusion、Depth reliability、sensor-failure diagnosis 或 geometry-path modulation，因此不能作为 MMFR 的直接方法或 baseline；但应作为“input/state-conditioned gated robustification 已存在”的跨任务先例，在 novelty 表述中避免声称动态 gating 或条件化网络路径本身是新的。
+
+对 MMFR 最值得保留的启发有两点：第一，退化可能具有空间非均匀性，单一 image-level reliability 未必足够，后续可根据实验结果考虑 region/pixel-level reliability；第二，条件化控制必须通过专门消融证明 conditioning signal 本身有效，而不能只证明增加一个 gate 或 adapter 后性能提升。
+
+--------------------------------------------------------------------------------
+
+编号: PR043
+发表年份: 2026
+作者: Minchong Chen; Xiaoyun Yuan; Junzhe Wan; Jianing Zhang; Jun Zhang
+标题: 3M-TI: High-Quality Mobile Thermal Imaging via Calibration-free Multi-Camera Cross-Modal Diffusion
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: The miniaturization of thermal sensors for mobile platforms inherently limits their spatial resolution and textural fidelity, leading to blurry and less informative images. Existing thermal super-resolution (SR) methods can be grouped into single-image and RGB-guided approaches: the former struggles to recover fine structures from limited information, while the latter relies on accurate and laborious cross-camera calibration, which hinders practical deployment and robustness. Here, we propose 3M-TI, a calibration-free Multi-camera cross-Modality diffusion framework for Mobile Thermal Imaging. At its core, 3M-TI integrates a cross-modal self-attention module (CSM) into the diffusion UNet, replacing the original self-attention layers to adaptively align thermal and RGB features throughout the denoising process, without requiring explicit camera calibration. This design enables the diffusion network to leverage its generative prior to enhance spatial resolution, structural fidelity, and texture detail in the super-resolved thermal images. Extensive evaluations on real-world mobile thermal cameras and public benchmarks validate our superior performance, achieving state-of-the-art results in both visual quality and quantitative metrics. More importantly, the thermal images enhanced by 3M-TI lead to substantial gains in critical downstream tasks like object detection and segmentation, underscoring its practical value for robust mobile thermal perception systems. More materials: https://github.com/work-submit/3MTI.
+--------------------------------------------------------------------------------
+
+编号: PR044
+发表年份: 2026
+作者: Shiqin Wang; Haoyang Chen; Huaizhou Huang; Yinkan He; Dongfang Sun; Xiaoqing Chen; Xingyu Liu; Zheng Wang; Kaiyan Zhao
+标题: Heuristic Self-Paced Learning for Domain Adaptive Semantic Segmentation under Adverse Conditions
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: The learning order of semantic classes significantly impacts unsupervised domain adaptation for semantic segmentation, especially under adverse weather conditions. Most existing curricula rely on handcrafted heuristics (e.g., fixed uncertainty metrics) and follow a static schedule, which fails to adapt to a model's evolving, high-dimensional training dynamics, leading to category bias. Inspired by Reinforcement Learning, we cast curriculum learning as a sequential decision problem and propose an autonomous class scheduler. This scheduler consists of two components: (i) a high-dimensional state encoder that maps the model's training status into a latent space and distills key features indicative of progress, and (ii) a category-fair policy-gradient objective that ensures balanced improvement across classes. Coupled with mixed source-target supervision, the learned class rankings direct the network's focus to the most informative classes at each stage, enabling more adaptive and dynamic learning. It is worth noting that our method achieves state-of-the-art performance on three widely used benchmarks (e.g., ACDC, Dark Zurich, and Nighttime Driving) and shows generalization ability in synthetic-to-real semantic segmentation.
+--------------------------------------------------------------------------------
+
+编号: PR053
+发表年份: 2026
+作者: Anh Thuan Tran; Jana Kosecka
+标题: VarSplat: Uncertainty-aware 3D Gaussian Splatting for Robust RGB-D SLAM
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Simultaneous Localization and Mapping (SLAM) with 3D Gaussian Splatting (3DGS) enables fast, differentiable rendering and high-fidelity reconstruction across diverse real-world scenes. However, existing 3DGS-SLAM approaches handle measurement reliability implicitly, making pose estimation and global alignment susceptible to drift in low-texture regions, transparent surfaces, or areas with complex reflectance properties. To this end, we introduce VarSplat, an uncertainty-aware 3DGS-SLAM system that explicitly learns per-splat appearance variance. By using the law of total variance with alpha compositing, we then render differentiable per-pixel uncertainty map via efficient, single-pass rasterization. This map guides tracking, submap registration, and loop detection toward focusing on reliable regions and contributes to more stable optimization. Experimental results on Replica (synthetic) and TUM-RGBD, ScanNet, and ScanNet++ (real-world) show that VarSplat improves robustness and achieves competitive or superior tracking, mapping, and novel view synthesis rendering compared to existing studies for dense RGB-D SLAM.
+
+PR053 提出 VarSplat，是一个 uncertainty-aware RGB-D 3D Gaussian Splatting SLAM 系统。其与 MMFR 最相关的价值不在 SLAM 或 3DGS 本身，而在于建立了一条明确的“显式 uncertainty → confidence → downstream intervention”链路，可作为 reliability-conditioned computation 的跨任务机制旁证；但该工作不属于 RGB-D semantic segmentation，也没有研究 corrupted/missing Depth，因此不能作为 MMFR 的直接 baseline 或分割任务证据。
+
+VarSplat 为每个 3D Gaussian 附加可学习的 appearance variance $\sigma_i^2$。需要注意，$\sigma_i^2$ 与描述 Gaussian 空间范围的 covariance $\Sigma_i$ 不同，也不是直接针对输入 Depth pixel 的 depth-reliability prediction；它表示该 Gaussian 平均颜色附近的 appearance uncertainty。通过 alpha compositing 和 total variance law，模型将 per-splat variance 传播为 differentiable per-pixel uncertainty：
+
+$$
+V
+=
+\sum_i w_i(\sigma_i^2+c_i^2)
+-
+\left(\sum_i w_ic_i\right)^2,
+$$
+
+其中 $w_i$ 为 Gaussian 的 alpha-compositing weight，$c_i$ 为平均颜色。
+
+该 uncertainty 不是任意 attention/gating score，而是利用 Gaussian negative log-likelihood 形式从 reconstruction residual 中学习：
+
+$$
+\mathcal{L}_{var}
+=
+\frac{
+\|\hat I-I\|_2^2+\|\hat D-D\|_2^2
+}{
+2V
+}
++\log V.
+$$
+
+因此较大的 RGB/Depth reconstruction residual 会推动模型学习较大的 variance，同时 $\log V$ 项防止模型通过无限放大 uncertainty 来规避误差。虽然论文将 $\sigma^2$ 定义为 appearance variance，但其训练梯度同时来自 color residual 和 depth residual，因此最终 uncertainty 同时受到视觉和几何观测不一致性的影响。
+
+随后，VarSplat 将 variance 显式转换为 confidence。对于 per-pixel uncertainty，作者采用 median-centered log normalization：
+
+$$
+\tilde V
+=
+\operatorname{median}_{\Omega}(\log V),
+$$
+
+$$
+w_p
+=
+\exp\left[
+-\frac{\log V-\tilde V}{\tau}
+\right].
+$$
+
+因此 uncertainty 越大的 pixel 获得越低的 confidence weight；类似方法也被用于 per-splat variance，以形成 submap-level reliability。该设计与 MMFR 在抽象层面具有相似性，即 reliability/uncertainty 不只是辅助输出，而是进一步被转换为控制 downstream computation 的权重。
+
+VarSplat 将 uncertainty 用于 tracking、registration 和 loop detection。Tracking 中，per-pixel confidence 主要调节 photometric residual：
+
+$$
+\mathcal L_{track}
+=
+\sum
+\lambda_c
+\left(
+w_p\odot\|\hat I-I\|_1
+\right)
++
+(1-\lambda_c)
+\|\hat D-D\|_1.
+$$
+
+Registration 同样使用 uncertainty-derived weight 调节 RGB photometric term；loop detection 则根据 per-splat variance 生成 submap reliability，并用于调整跨 submap similarity。需要特别注意，Depth residual 本身在 tracking/registration 中没有直接乘该 confidence，因此不能将 VarSplat 描述成“检测坏 Depth 后抑制 Depth modality”。Depth residual 的主要作用之一是参与 variance learning，使 uncertainty 对 geometry inconsistency 更敏感。
+
+Figure 5 表明加入 Depth residual 后，per-pixel uncertainty 更集中于 textureless region、depth holes 和 poorly constrained / glossy regions，同时在稳定表面保持较低。这种 uncertainty visualization 对 MMFR 的 reliability diagnostics 很有参考价值：未来除报告 reliability 与 corruption severity 的统计关系外，还应可视化 corrupted Depth、predicted reliability map 与 segmentation prediction，检查 spatial dropout、Depth hole、局部异常和 entire-missing 等区域是否获得符合预期的可靠度。
+
+PR053 的 uncertainty estimator 不能直接移植到 MMFR。VarSplat 的 $\sigma_i^2$ 是 3D map 中 Gaussian 的可学习参数，通过多帧、多视角 RGB-D observations 和 reconstruction residual 在 online mapping 过程中逐步优化；它并不是从单个 RGB-D frame 即时预测出的 reliability map。MMFR 则需要在普通 semantic-segmentation inference 中直接根据当前 RGB-D 输入判断 Depth/geometry 是否可信，因此二者的 estimator 所依赖的信息条件显著不同。
+
+论文的 downstream ablation 对 MMFR 很有参考意义。在 ScanNet 上，不使用 uncertainty 时 ATE RMSE 为 8.20；仅用于 tracking 为 7.63；tracking+loop detection 为 7.49；loop detection+registration 为 7.51；同时用于 tracking、loop detection 和 registration 时降至 6.53。该结果说明 uncertainty 的价值不仅来自“被预测出来”，还取决于其是否真正接入任务计算以及接入位置。MMFR 后续消融应同样区分 reliability estimator 本身与 reliability-conditioned geometry intervention 的贡献，并可比较固定控制、单 stage 控制和多 stage reliability control。
+
+VarSplat 还在 tracking/registration 使用 uncertainty 时冻结 variance，并停止相关梯度；variance 主要在 mapping 阶段学习。完整的 `freeze during tracking + depth residual + squared-L2 Gaussian NLL` 配置获得最佳 ATE RMSE。该设计提示 MMFR：若联合训练中出现 reliability 与主任务相互迎合、导致 reliability 失去可解释性的现象，可以考虑 stop-gradient、detach 或分阶段训练，但这属于可选优化思路，并非当前必须采用的机制。
+
+PR053 的 robustness 也不能等同于 MMFR 的 modality-failure robustness。其 Replica、TUM-RGBD、ScanNet 和 ScanNet++ 实验主要处理真实场景中自然存在的 low-texture region、reflective/transparent surface、depth discontinuity、depth hole 和 measurement instability，没有 Gaussian-noise severity sweep、spatial dropout 或 entire-missing Depth protocol。因此不能引用 PR053 证明已有研究已经系统解决 corrupted/missing Depth。
+
+此外，PR053 的 Related Work 明确指出更早的 RGB-D/SLAM 工作已经存在 depth/geometric uncertainty：例如 UncLe-SLAM 学习 per-pixel depth uncertainty 并用于 tracking/mapping reweighting，CG-SLAM 使用 depth-driven geometric uncertainty 指导 optimization 和 Gaussian selection，REMODE/SVO 也采用 probabilistic depth variance/filter。因此 MMFR 在 novelty 表述中不应使用宽泛的“现有 RGB-D 方法没有显式建模 Depth uncertainty”。创新范围必须限定在 RGB-D semantic segmentation、modality failure 和 DFormerv2 geometry-path intervention。
+
+PR053 与 MMFR 的关键边界可概括为：
+
+`PR053: multi-view RGB-D inconsistency → statistical uncertainty → confidence weighting → SLAM tracking/registration/loop control`
+
+而 MMFR 的目标是：
+
+`Depth degradation/missing → explicit geometry reliability → reliability-conditioned DFormerv2 geometry-path intervention → semantic segmentation`.
+
+因此 PR053 是“uncertainty/reliability 应真正参与 downstream computation”的重要跨任务旁证，但不是 Depth-failure semantic-segmentation 方法，也不构成 MMFR 的直接方法撞车。
+
+--------------------------------------------------------------------------------
+
+编号: PR058
+发表年份: 2026
+作者: Yikai Huang; Renmin Han; Yuxuan Wang; Youcheng Cai; Ligang Liu
+标题: Spatial-SAM: Spatially Consistent 3D Electron Microscopy Segmentation with SDF Memory and Semi-Supervised Learning
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Segment Anything Model (SAM)-based approaches have shown strong potential for biomedical image segmentation. However, these methods often struggle to preserve spatial consistency in 3D electron microscopy (3D-EM) data and still require extensive manual annotation. We propose Spatial-SAM, a spatially consistent and annotation-efficient framework for high-precision 3D-EM segmentation. It introduces a 3D Signed Distance Field (SDF) memory mechanism that replaces SAM2's memory with SDF representations precomputed by a 3D U-Net, providing richer geometric information and improving spatial consistency. It also combines SAM2's few-shot capability with a dual-track pseudo-label iterative optimization strategy to learn large-scale 3D-EM segmentation from minimal annotations. Experiments show Spatial-SAM significantly outperforms existing semi-supervised methods and performs comparably to state-of-the-art fully supervised approaches on multiple 3D-EM benchmarks, reducing annotation costs while preserving spatial consistency. Code is available at https://github.com/Giluir/Spatial-SAM.
+--------------------------------------------------------------------------------
+
+编号: PR059
+发表年份: 2026
+作者: Guodong Sun; Junjie Liu; Gaoyang Zhang; Bo Wu; Yang Zhang
+标题: Efficient RGB-D Scene Understanding via Multi-task Adaptive Learning and Cross-dimensional Feature Guidance
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Scene understanding plays a critical role in enabling intelligence and autonomy in robotic systems. Traditional approaches often face challenges, including occlusions, ambiguous boundaries, and the inability to adapt attention based on task-specific requirements and sample variations. To address these limitations, this paper presents an efficient RGB-D scene understanding model that performs a range of tasks, including semantic segmentation, instance segmentation, orientation estimation, panoptic segmentation, and scene classification. The proposed model incorporates an enhanced fusion encoder, which effectively leverages redundant information from both RGB and depth inputs. For semantic segmentation, we introduce normalized focus channel layers and a context feature interaction layer, designed to mitigate issues such as shallow feature misguidance and insufficient local-global feature representation. The instance segmentation task benefits from a non-bottleneck 1D structure, which achieves superior contour representation with fewer parameters. Additionally, we propose a multi-task adaptive loss function that dynamically adjusts the learning strategy for different tasks based on scene variations. Extensive experiments on the NYUv2, SUN RGB-D, and Cityscapes datasets demonstrate that our approach outperforms existing methods in both segmentation accuracy and processing speed.
+PR059 提出面向 RGB-D 场景理解的多任务网络，其核心属于 clean RGB-D 联合编码、跨维特征增强与多任务训练优化，而非模态失效鲁棒性方法。网络采用单一 fusion encoder 直接处理 RGBD 输入，backbone 基于 FasterNet-M；fusion block 利用通道冗余，仅对约 1/4 通道执行 partial convolution，再与其余通道拼接，以降低计算与内存访问开销。该结构从输入阶段即联合编码 RGB 与 Depth，没有独立的 Depth reliability estimator、modality gate、corruption diagnosis 或 RGB-only fallback。
+
+语义分支包含 NFCL（Normalized Focus Channel Layer）和 CFIL（Context Feature Interaction Layer）。NFCL 利用 BatchNorm 的可学习缩放参数 $\gamma$ 构造 channel importance：
+
+$$
+W_i=\frac{|\gamma_i|}{\sum_j|\gamma_j|},
+$$
+
+再对输入特征进行通道加权、Sigmoid 和逐元素增强。因此这里的权重表示 feature-channel importance，而不是 uncertainty、sensor quality 或 Depth reliability；论文也没有 reliability/corruption supervision。CFIL 则通过 $1\times1$ 与 $5\times5$ 多尺度池化、通道压缩、双线性上采样和特征拼接融合局部与全局上下文，同样属于 generic semantic feature enhancement，而不是 reliability-conditioned fusion。
+
+论文的 Multi-task Adaptive Learning 也不能与“模态自适应融合”混淆。它在每个 batch 后根据 semantic segmentation、instance center、instance offset、orientation estimation 和 scene classification 等任务的 loss 动态调整 task loss weight。具体先计算
+
+$$
+RL_k=\frac{L_k}{\sum_tL_t},
+$$
+
+再根据历史平均相对损失更新
+
+$$
+W_k=\max\left(\bar W_k(\mathrm{AvgRL}_k)^\alpha,W_{\min}\right),
+$$
+
+其中 $\alpha=0.01$、$W_{\min}=0.1$。因此其动态变量描述的是不同任务当前的训练难度/损失贡献，而不是 RGB 或 Depth 当前是否可信。
+
+对 MMFR 更关键的是，该工作没有进行 missing/noisy/corrupted Depth 条件下的鲁棒性训练或评价。作者在 limitation 中明确指出当前模型假设 RGB-D 输入已经良好标定且无噪声，并指出消费级 Depth sensor 会受到反射、透明表面、物体边界稀疏测量以及 calibration error 等问题影响，将 sensor-noise 和 calibration-error robustness 留作未来工作。因此 PR059 可作为“clean RGB-D scene understanding 与 cross-dimensional guidance”的结构背景，但不能作为“Depth 失效诊断、Depth reliability estimation、可靠性驱动模态融合或 geometry-path intervention”的已有先例。
+
+与 MMFR 的关系可以概括为：PR059 证明了在正常 RGB-D 条件下直接利用 RGB/Depth 互补信息、浅层 channel guidance 和 multi-scale context 有利于场景理解；但它始终默认 Depth 输入可用。MMFR 应利用这一差异，将问题明确推进到“Depth degradation diagnosis → geometry reliability → DFormerv2 geometry-path intervention”，而不是与 PR059 竞争普通 clean RGB-D feature fusion。
+
+实验上还需注意，Table 7 中单独替换 proposed fusion encoder 后，NYUv2 semantic mIoU 从 baseline 的 49.76 降至 46.83，instance PQ 则由 58.49 略升至 58.59；随后加入 adaptive loss、CFIL 和 NFCL 后 semantic mIoU 才依次恢复至 47.72、49.72 和最终 49.82。因此不宜单独引用 fusion encoder 作为显著提高 semantic accuracy 的证据，其主要价值更偏向效率、实例任务表现以及作为后续 decoder guidance 的联合编码基础。
+
+元数据纠错：当前提供的全文首页为 `arXiv:2603.07570v1 [cs.CV], 8 Mar 2026`，并标注 `Preprint submitted to Elsevier`；当前 PDF 本身不支持将该论文标记为 CVPR 2026。因此在没有后续正式出版信息的情况下，原条目的“期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)”应暂改为“arXiv preprint arXiv:2603.07570; preprint submitted to Elsevier”。
+
+--------------------------------------------------------------------------------
+
+
+
+编号: PR074
+发表年份: 2026
+作者: Rishabh Kabra; Maks Ovsjanikov; Drew A. Hudson; Ye Xia; Skanda Koppula; Andre Araujo; Joao Carreira; Niloy J. Mitra
+标题: A Mixed Diet Makes DINO An Omnivorous Vision Encoder
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Pre-trained vision encoders like DINOv2 have demonstrated exceptional performance on unimodal tasks. However, we observe that their features are poorly aligned across different visual modalities. For instance, the feature embedding for an RGB image and its corresponding depth map of the same scene exhibit a cosine similarity that is nearly identical to that of two random, unrelated images. To address this, we propose the Omnivorous Vision Encoder, a post-training framework that learns a modality-agnostic feature space. We fine-tune the encoder with a dual objective: first, to maximize the feature alignment between different modalities of the same scene; and second, a distillation objective that anchors the learned representations to a fully frozen teacher. The resulting student encoder becomes omnivorous" by producing more consistent embeddings for a given scene, regardless of the input modality (RGB, Depth, Segmentation, etc.). This approach enables robust cross-modal understanding while retaining the discriminative semantics of the original foundation model. Omnivorous model weights are available at https://github.com/google-deepmind/representations4d."
+
+PR074 的核心目标是学习 modality-agnostic representation，而非检测模态失效或估计模态可靠性。论文首先指出，现成视觉基础模型的跨模态表征并不会天然对齐：以 DINOv2 为例，同一场景 RGB 与 Depth 的 patch-level feature cosine similarity 在示例中约为 0.26，与随机 RGB 图像对的 0.24 接近，而 RGB 与其灰度图约为 0.86。这说明“同场景”并不意味着 RGB、Depth 等不同视觉模态在预训练特征空间中天然具有一致表示。
+
+方法采用 parameter-efficient teacher–student framework。以 DINOv2 ViT-B/14 为例，前 8 个 Transformer blocks 保持冻结，后 4 个高层 blocks 作为可学习 adapter。RGB、Depth 与 Segmentation 分别作为单独输入经过共享 backbone 与共享 adapter，被映射到统一的 modality-agnostic embedding space。因此该方法并不是 RGB-D 联合输入条件下的 feature fusion，也不存在独立 RGB branch、Depth branch 后进行可靠性加权融合的过程。
+
+跨模态对齐采用 symmetric InfoNCE。对于同一场景的不同模态特征构造 positive pair，不同场景构造 negative pair，并在 RGB–Segmentation、Segmentation–Depth 和 Depth–RGB 三种模态组合间进行平均：
+
+$$
+\mathcal{L}_{align}
+=
+\frac{1}{3}
+\sum_{k_1=1}^{3}
+\sum_{k_2>k_1}
+\mathcal{L}_{InfoNCE}(m_{k_1},m_{k_2}).
+$$
+
+为了避免单纯追求跨模态一致性导致 representational drift 或退化解，论文进一步使用冻结 teacher 提供 anchoring supervision，使 student 输出保持接近原始 pretrained representation：
+
+$$
+\mathcal{L}_{anchor}
+=
+\frac{1}{|\mathcal{M}|}
+\sum_{m\in\mathcal{M}}
+\left(1-\operatorname{sim}(h_m,h_m^*)\right),
+$$
+
+最终目标为
+
+$$
+\mathcal{L}_{total}
+=
+\mathcal{L}_{align}
++
+\lambda_{anchor}\mathcal{L}_{anchor},
+$$
+
+默认 $\lambda_{anchor}=10$。因此 anchoring 的主要作用是保留原 foundation model 的 discriminative semantics，而不是显式保留或预测某个 modality-specific reliability representation。论文消融还表明 cross-modal alignment 与 cross-scene discriminability 存在明显 trade-off，说明过强的模态对齐可能损伤原有判别结构。
+
+训练数据还采用 modality mixup。作者首先使用对应 RGB 图像的自然颜色 palette 对 Depth 和 Segmentation map 进行 colorization，再随机与 RGB 混合；训练时混合系数限制在 $[0,0.5]$，从而形成近似连续的 Depth–RGB–Segmentation modality spectrum。该设计旨在减少模型利用低层颜色统计完成跨模态对齐的捷径，并提高表征对不同视觉输入形式的 invariance。论文提到该策略可能帮助应对 imperfect depth/segmentation values，但它不是面向传感器失效设计的 Depth corruption protocol：没有 Gaussian noise、spatial dropout、entire missing 等受控退化，没有 corruption severity 标签，也没有根据退化程度学习 reliability。
+
+PR074 也没有显式 modality reliability score。论文中的 cosine similarity 和 feature agreement 被用于跨模态对齐目标、inter-modal retrieval 和 representation analysis，而没有将 cross-modal disagreement 转换为在线的 Depth confidence，再据此抑制或增强某条模态/几何路径。因此不能把该方法描述为 reliability-aware fusion、failure diagnosis 或 reliability-conditioned control。
+
+其实验重点包括 RGB/Depth/Segmentation inter-modal retrieval、冻结 backbone 后的 depth/segmentation/classification probe，以及 zero-shot cross-modal transfer。后者是在 RGB 上训练任务 head 后，将测试输入整体替换为 Segmentation 或未见过的 NOCS modality，以验证统一表示对 modality shift 的泛化能力。这与 RGB-D 联合推理条件下的 noisy/missing Depth robustness 不同，不能作为 MMFR 的 missing-depth 或 corrupted-depth segmentation baseline。
+
+对 MMFR 而言，PR074 最有价值的作用是提供“跨模态一致性可显式度量和学习”的表征层旁证，并提示 alignment 与原始判别能力之间存在 trade-off。其方法可以启发 MMFR 使用 feature consistency / cosine similarity 作为 corruption-condition 下的辅助诊断指标，但 cross-modal similarity 本身不能直接等同于 Depth reliability。MMFR 的关键区别仍应保持为：不要求将失效 Depth 强制对齐为正常模态，而是显式识别 Depth degradation/reliability，并将该可靠性用于 DFormerv2 geometry path 的条件化干预。
+
+建议将 MMFR-PR 清单中 PR074 的“模态对齐和保留模态特异性的表征思路”进一步精确为：“跨模态表征对齐，以及通过 anchoring 保留预训练表征的判别性/语义结构”；论文自身并未显式学习 modality-specific residual 或 modality reliability。
+
+--------------------------------------------------------------------------------
+
+编号: PR087
+发表年份: 2026
+作者: Xujing Tao; Chuxin Wang; Yubo Ai; Zhixin Cheng; Zhuoyuan Li; Liangsheng Liu; Yujia Chen; Xinjun Li; Qiao Li; Wenfei Yang; Tianzhu Zhang
+标题: GeoGuide: Hierarchical Geometric Guidance for Open-Vocabulary 3D Semantic Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Open-vocabulary 3D semantic segmentation aims to segment arbitrary categories beyond the training set. Existing methods predominantly rely on distilling knowledge from 2D open-vocabulary models. However, aligning 3D features to the 2D representation space restricts intrinsic 3D geometric learning and inherits errors from 2D predictions. To address these limitations, we propose GeoGuide, a novel framework that leverages pretrained 3D models to integrate hierarchical geometry-semantic consistency for open-vocabulary 3D segmentation. Specifically, we introduce an Uncertainty-based Superpoint Distillation module to fuse geometric and semantic features for estimating per-point uncertainty, adaptively weighting 2D features within superpoints to suppress noise while preserving discriminative information to enhance local semantic consistency. Furthermore, our Instance-level Mask Reconstruction module leverages geometric priors to enforce semantic consistency within instances by reconstructing complete instance masks. Additionally, our Inter-Instance Relation Consistency module aligns geometric and semantic similarity matrices to calibrate cross-instance consistency for same-category objects, mitigating viewpoint-induced semantic drift. Extensive experiments on ScanNet v2, Matterport3D, and nuScenes demonstrate the superior performance of GeoGuide.
+--------------------------------------------------------------------------------
+
+
+编号: PR092
+发表年份: 2026
+作者: Hongxiang Huang; Hongwei Ren; Xiaopeng Lin; Yulong Huang; Zeke Xie; Bojun Cheng
+标题: DIMOS: Disentangling Instance-level Moving Object Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Moving instance segmentation (MIS) attracts increasing attention due to its broad applications in traffic surveillance, autonomous driving, and animal tracking. Event cameras record asynchronous brightness changes, providing high temporal resolution and dynamic range, which makes them highly sensitive to motion information. By fusing event and image features, motion cues from events can complement spatial details from images, enhancing the performance of MIS. However, current multimodal MIS methods still struggle to segment small moving instances, as event cameras often yield sparse features under limited resolution. Moreover, event features entangle appearance attributes with motion cues, which further restricts effective cross-modal fusion. To address these challenges, we first propose a dual-disentangling feature extraction framework that separates and extracts appearance and motion information within both image and event modalities, thereby improving feature density. Subsequently, a multi-granularity cross-modal alignment is introduced to align distributionally and semantically consistent features across modalities, enabling more effective fusion with rich spatial and temporal details. The experiment results demonstrate that our method achieves state-of-the-art performance in multimodal MIS, especially for small instances under challenging conditions such as fast motion and low-light settings.
+--------------------------------------------------------------------------------
+
+编号: PR094
+发表年份: 2026
+作者: Bingyu Li; Feiyu Wang; Da Zhang; Zhiyuan Zhao; Junyu Gao; Xuelong Li
+标题: MARIS: Marine Open-Vocabulary Instance Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Most existing underwater instance segmentation approaches are constrained by close-vocabulary prediction, limiting their ability to recognize novel marine categories. To support evaluation, we introduce **MARIS** (_Marine Open-Vocabulary Instance Segmentation_), the first large-scale fine-grained benchmark for underwater Open-Vocabulary (OV) Instance segmentation (UOVIS), featuring a limited set of seen categories and diverse unseen categories. Although OV instance segmentation has shown promise on natural images, our analysis reveals that transfer to underwater scenes suffers from severe visual degradation (e.g., color attenuation) and semantic misalignment caused by lack underwater class definitions. To address these issues, we propose a unified framework with two complementary components. The Geometric Prior Enhancement Module (**GPEM**) leverages stable part-level and structural cues to maintain object consistency under degraded visual conditions. The Semantic Alignment Injection Mechanism (**SAIM**) enriches language embeddings with domain-specific priors, mitigating semantic ambiguity and improving recognition of unseen categories. Experiments show that our framework consistently outperforms existing OV baselines both In-Domain and Cross-Domain setting on MARIS, establishing a strong foundation for future underwater perception research. The code of this paper can be found in Github.
+--------------------------------------------------------------------------------
+
+编号: PR105
+发表年份: 2026
+作者: Hiromichi Kamata; Samuel Arthur Munro; Fuminori Homma
+标题: B³-Seg: Camera-Free, Training-Free 3DGS Segmentation via Analytic EIG and Beta-Bernoulli Bayesian Updates
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Interactive 3D Gaussian Splatting (3DGS) segmentation is essential for real-time editing of pre-reconstructed assets in film and game production.However, existing methods rely on predefined camera viewpoints, ground-truth labels, or costly retraining, making them impractical for low-latency use.We propose B^3-Seg (Beta--Bernoulli Bayesian Segmentation for 3DGS), a fast and theoretically grounded method for open-vocabulary 3DGS segmentation under camera-free and training-free conditions.Our approach reformulates segmentation as sequential Beta-Bernoulli Bayesian updates and actively selects the next view via analytic Expected Information Gain (EIG).This Bayesian formulation guarantees the adaptive monotonicity and submodularity of EIG, which produces a greedy (1-1/e) approximation to the optimal view sampling policy.Experiments on multiple datasets show that B^3-Seg achieves competitive results to high-cost supervised methods while operating end-to-end segmentation within a few seconds.The results demonstrate that B^3-Seg enables practical, interactive 3DGS segmentation with provable information efficiency.
+--------------------------------------------------------------------------------
+
+编号: PR107
+发表年份: 2026
+作者: Yulu Gao; Bohao Zhang; Zongheng Tang; Jitong Liao; Wenjun Wu; Si Liu
+标题: VGGT-Segmentor: Geometry-Enhanced Cross-View Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Instance-level object segmentation across disparate egocentric and exocentric views is a fundamental challenge in visual understanding, critical for applications in embodied AI and remote collaboration. This task is exceptionally difficult due to severe changes in scale, perspective, and occlusion, which destabilize direct pixel-level matching. While recent geometry-aware models like VGGT provide a strong foundation for feature alignment, we find they often fail at dense prediction tasks due to significant pixel-level projection drift, even when their internal object-level attention remains consistent. To bridge this gap, we introduce VGGT-Segmentor (VGGT-S), a framework that unifies robust geometric modeling with pixel-accurate semantic segmentation. VGGT-S leverages VGGT's powerful cross-view feature representation and introduces a novel Union Segmentation Head. This head operates in three stages: mask prompt fusion, point-guided prediction, and iterative mask refinement, effectively translating high-level feature alignment into a precise segmentation mask. Furthermore, we propose a single-image self-supervised training strategy that eliminates the need for paired annotations and enables strong generalization. On the Ego-Exo4D benchmark, VGGT-S sets a new state-of-the-art, achieving 67.7% and 68.0% average IoU for Ego-Exo and Exo-Ego tasks, respectively, significantly outperforming prior methods. Notably, our correspondence-free pretrained model surpasses most fully-supervised baselines, demonstrating the effectiveness and scalability of our approach.
+--------------------------------------------------------------------------------
+
+编号: PR117
+发表年份: 2026
+作者: Xianjie Liu; Keren Fu; Qijun Zhao
+标题: High-Precision Dichotomous Image Segmentation via Depth Integrity-Prior and Fine-Grained Patch Strategy
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: High-precision dichotomous image segmentation (DIS) is a task of extracting fine-grained objects from high-resolution images.Existing methods trade efficiency for accuracy: non-diffusion methods are fast but suffer from weak semantics and unstable spatial priors, causing false detections; diffusion-based methods offer high accuracy via strong generative priors but are computationally expensive.In depth maps, a complete object appears as a low variance region with a smooth interior and sharp boundaries, whereas the background exhibits a chaotic, high variance pattern due to disconnected surfaces at varying depths. We refer to this as the depth integrity-prior.Inspired by this, and noting that DIS currently lacks depth maps, we leverage pseudo-depth information from monocular depth estimation models to obtain essential semantic understanding, thereby rapidly revealing spatial differences across target objects and the background.To exploit this prior, we propose the Prior-guided Depth Fusion Network (PDFNet), which fuses RGB and pseudo-depth features for depth-aware structure perception. We further introduce a novel depth integrity-prior loss to enforce depth consistency in segmentation and a fine-grained enhancement module with adaptive patch selection to sharpen boundaries.Notably, PDFNet with DAM-v2 achieves SOTA (F^ max _b 0.915 on DIS-VD and 0.915 on DIS-TE) using less than half the params of diffusion-based methods.
+--------------------------------------------------------------------------------
+
+编号: PR123
+发表年份: 2026
+作者: Itai Lang; Dongwei Lyu; Dale Decatur; Rana Hanocka
+标题: Best Segmentation Buddies for Image-Shape Correspondence
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Finding correspondences is a fundamental and extensively researched problem in computer vision and graphics. In this work, we examine the underexplored task of estimating segmentation-to-segmentation correspondence between images in the wild and untextured 3D shapes. This task is highly challenging due to substantial differences in appearance, geometry, and viewpoint. Our approach bridges the cross-modality gap by linking pixels in the image segment to vertices in the corresponding semantic part of the 3D shape. To achieve this, we first distill deep visual features from a 2D vision model onto the 3D shape surface, allowing for the computation of feature similarity between image pixels and shape vertices. Then, we identify Best Segmentation Buddies, vertices whose most similar image pixel lies within the image segmentation region, enabling the reliable discovery of vertices in semantically corresponding shape parts. Finally, we leverage distilled 3D features from the 2D image segmentation model to segment the shape directly in 3D, bootstrapping the correspondence process. We demonstrate the generality and robustness of our approach across a wide range of image-shape pairs, showcasing accurate and semantically meaningful correspondences. Our project page is at https://threedle.github.io/bsb/.
+--------------------------------------------------------------------------------
+
+编号: PR133
+发表年份: 2026
+作者: Linkang Xu; Gang Li; Yue Song; Xiangxin Ji
+标题: Hilbert Curve-Based Attention Enabling Topology-Preserving Image Tensor Representation for Semantic Segmentation Network
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Drone-based building defect segmentation remains challenging due to complex surface textures and illumination variations. We propose TPSegformer, a topology-preserving segmentation framework that mitigates mis-segmentation in such scenarios. Its decoder incorporates a Hilbert curve-based topology-preserving mechanism to maintain spatial continuity and boundary precision during category layer computation. A lightweight multi-scale fusion module enhances semantic representation, while global context modeling strengthens holistic perception. Experiments on the building defect dataset show that TPSegformer outperforms existing segmentation methods, achieving 80.77% mIoU and 90.22% Acc. On the Dacl10k dataset, it maintains strong generalization, reaching 44.27% mIoU and 60.32% Acc across diverse materials and defect types. The code is available at : https://github.com/mumu-k/TPSegformer
+--------------------------------------------------------------------------------
+
+编号: PR138
+发表年份: 2026
+作者: Jinyu Han; Changguang Wu; Fuming Sun; Jinhui Tang
+标题: Beyond Appearance: Camouflaged Object Detection via Geometric Structure
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Depth priors provide salient geometric structure that benefits camouflaged object detection (COD), but directly using Monocular Depth Estimation (MDE) causes a task misalignment that still fails to identify camouflaged objects.To address this issue, we propose the Depth Segment Anything Model (DepthSAM), a MDE-adapted method specifically designed to mitigate this misalignment.DepthSAM incorporates two core innovations: (1) a Sparse Mixture-of-Experts Adapter (SMEA) that enables MDE to learn semantic information unique to camouflaged scenes, and (2) a Geometric-Semantic Fusion Module (GSFM) that efficiently integrates geometric cues with high-level semantics. With these components, DepthSAM achieves both robust semantic understanding in camouflaged environments and accurate segmentation of camouflaged objects.Extensive experiments show that DepthSAM achieves new SOTA performance on three major benchmarks. For example, on COD10K, its S_ \alpha and F_ b ^ \omega metrics surpass the best competing methods by 3.0% and 4.3%, respectively.
+--------------------------------------------------------------------------------
+
+编号: PR140
+发表年份: 2026
+作者: Xuesong Liu; Anke Xu; Wenbo Cao; Emmett Ientilucci
+标题: Structure-Aware Representation Distillation for Tiny-Dense Object Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Dense scenes containing numerous tiny objects pose a fundamental challenge for segmentation models, where small localization errors can significantly degrade downstream measurements. We present Structure-Aware Representation Distillation (SARD), a teacher-compatible framework that transfers structural knowledge from a large teacher to a compact student via feature-space alignment rather than mask imitation. SARD builds a structure-importance map by integrating boundary salience, geometric complexity, and local feature variation, and uses it to guide a unified representation loss that combines feature consistency with distribution alignment. This encourages the student to allocate capacity to geometrically informative regions while preserving global context. Experiments on Cityscapes, ADE20K, and a challenging rock fragmentation benchmark (RockFrag) show that SARD consistently improves both mIoU and boundary IoU over strong distillation baselines; on RockFrag, SARD improves a Swin-T student over CWD by +4.3 mIoU and +6.7 bIoU. A ResNet-50 student distilled from a Swin-L teacher achieves up to 7.7 times parameter reduction and 9 times higher throughput than the teacher, with no additional inference overhead beyond the student network, demonstrating that structure-aware representation distillation is effective and efficient for tiny-dense segmentation. Code is available at: https://github.com/liuuuuuuxuesong/SARD.
+--------------------------------------------------------------------------------
+
+编号: PR149
+发表年份: 2026
+作者: Shengzhe Chen; Hao Yan
+标题: D-Convexity: A Unified Differentiable Convex Shape Prior via Quasi-Concavity for Data-driven Image Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Convexity is a fundamental geometric prior that underlies many natural and man-made structures, yet remains challenging to impose effectively in end-to-end trainable segmentation networks. We revisit convexity from a functional perspective and propose a unified, threshold-free convexity prior based on the quasi-concavity of the network's output mask function u. Instead of constraining a single binary segmentation, we require all super-level sets of u to be convex, transforming global shape constraints into local, differentiable inequalities on u and its derivatives. From this principle, we derive zero, first, and second-order characterizations, yielding respectively a local midpoint convexification algorithm, a gradient-based condition linked to supporting hyperplanes, and a sufficient second-order inequality expressed as a quadratic form on the tangent plane. The first and second-order formulations produce a compact convolutional loss that can be densely applied across the image without thresholding. Our quasi-concavity losses integrate seamlessly with modern segmentation networks via the proposed convex gradient projection module (CGPM). They consistently enforce convexity and improve shape regularity across multiple datasets, outperforming networks tailored for retinal segmentation and surpassing previous shape-aware methods. Remarkably, our analysis unifies a wide spectrum of previous convex shape models, from discrete 1-0-1 line constraints and graph-cuts convexity formulations to curvature or signed distance Laplacian based level-set priors, within a single continuous and differentiable framework.
+--------------------------------------------------------------------------------
+
+编号: PR151
+发表年份: 2026
+作者: Yibo Zhao; Yigong Zhang; Jin Xie
+标题: MV3DIS: Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Conventional 3D instance segmentation methods rely on labor-intensive 3D annotations for supervised training, which limits their scalability and generalization to novel objects. Recent approaches leverage multi-view 2D masks from the Segment Anything Model (SAM) to guide the merging of 3D geometric primitives, thereby enabling zero-shot 3D instance segmentation. However, these methods typically process each frame independently and rely solely on 2D metrics, such as SAM prediction scores, to produce segmentation maps. This design overlooks multi-view correlations and inherent 3D priors, leading to inconsistent 2D masks across views and ultimately fragmented 3D segmentation. In this paper, we propose MV3DIS, a coarse-to-fine framework for zero-shot 3D instance segmentation that explicitly incorporates 3D priors. Specifically, we introduce a 3D-guided mask matching strategy that uses coarse 3D segments as a common reference to match 2D masks across views and consolidates multi-view mask consistency via 3D coverage distributions. Guided by these view-consistent 2D masks, the coarse 3D segments are further refined into precise 3D instances. Additionally, we introduce a depth consistency weighting scheme that quantifies projection reliability to suppress ambiguities from inter-object occlusions, thereby improving the robustness of 3D-to-2D correspondence. Extensive experiments on the ScanNetV2, ScanNet200, ScanNet++, Replica, and Matterport3D datasets demonstrate the effectiveness of MV3DIS, which achieves superior performance over previous methods.
+--------------------------------------------------------------------------------
+
+编号: PR158
+发表年份: 2026
+作者: Zijun He; Ping Wang; Xiaodong Wang; Chang Chen; Xin Yuan
+标题: Joint Spectral Image Reconstruction and Semantic Segmentation with Cooperative Unfolding
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Coded Aperture Snapshot Spectral Imaging (CASSI) is an emerging hyperspectral image (HSI) acquisition technique for downstream semantic segmentation. Due to the ill-posedness nature of CASSI systems, typical solutions are compelled to conduct a two-stage reconstruction-then-segmentation pipeline, namely viewing them as two separate tasks. However, we observe that such two tasks are interrelated and mutually reinforcing for representation learning, and thus separating them limits the overall accuracy and efficiency. To this end, we propose the first Cooperative Reconstruction-Segmentation Deep Unfolding Network (CRSDUN) to solve the reconstruction and segmentation tasks in parallel. To make the two mutually reinforcing, we introduce the Cross-Aggregated Super-Token Attention (CASTA) mechanism to enhance the representation interactions between HSI reconstruction and semantic segmentation. Extensive experiments on both synthetic and real-world HSI reconstruction-segmentation datasets demonstrate that our method achieves state-of-the-art in both spectral reconstruction and semantic segmentation. The code is available at \href https://github.com/zjhe02/CRSDUN https://github.com/zjhe02/CRSDUN .
+--------------------------------------------------------------------------------
+
+编号: PR165
+发表年份: 2026
+作者: Xuewei Li; Xinghan Bao; Zhimin Chen; Xi Li
+标题: REL-SF4PASS: Panoramic Semantic Segmentation with REL Depth Representation and Spherical Fusion
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: As an important and challenging problem in computer vision, Panoramic Semantic Segmentation (PASS) aims to give complete scene perception based on an ultra-wide angle of view. Most PASS methods often focus on spherical geometry with RGB input or using the depth information in original or HHA format, which does not make full use of panoramic image geometry. To address these shortcomings, we propose REL-SF4PASS with our REL depth representation based on cylindrical coordinate and Spherical-dynamic Multi-Modal Fusion SMMF. REL is made up of Rectified Depth, Elevation-Gained Vertical Inclination Angle, and Lateral Orientation Angle, which fully represents 3D space in cylindrical coordinate style and the surface normal direction. SMMF aims to ensure the diversity of fusion for different panoramic image regions and reduce the breakage of cylinder side surface expansion in ERP projection, which uses different fusion strategies to match the different regions in panoramic images. Experimental results show that REL-SF4PASS considerably improves performance and robustness on popular benchmark, Stanford2D3D Panoramic datasets. It gains 2.35% average mIoU improvement on all 3 folds and reduces the performance variance by approximately 70% when facing 3D disturbance.
+
+PR165 面向 RGB-D panoramic semantic segmentation，核心包括面向 ERP 全景几何的 REL Depth representation 与 region-level Spherical-dynamic Multi-Modal Fusion（SMMF）。其价值主要在于证明了显式几何表征和区域自适应 RGB-D 融合对 dense segmentation 的有效性，但该方法并未针对 corrupted/missing Depth 进行 reliability estimation，因此不能作为 MMFR 的直接失效鲁棒性方法或直接对比基线。
+
+REL 将原始 Depth 转换为三个几何通道：Rectified Depth（ReD）、Elevation-Gained Vertical Inclination Angle（EGVIA）和 Lateral Orientation Angle（LOA）。其中 ReD 表示基于圆柱坐标的平面距离，EGVIA 综合高度与表面法向相对重力方向的夹角，LOA 则描述表面法向相对于圆柱横向切线方向的朝向。该表示旨在显式编码像素的 3D location 与 surface-normal orientation，并针对全景 ERP geometry 弥补传统 HHA 对表面方向自由度表达不足的问题。
+
+SMMF 是一个真正的 region-adaptive dynamic RGB-D fusion 机制。模型不是对整幅全景图采用统一融合，而是在圆柱侧面采样多个重叠 region，并针对每个 region 独立决定 fusion strategy。对于第 i 个 fusion cell，模型设置多个并行 fusion experts：
+
+$$
+\{FusOp_j\}_{j=1}^{B},
+$$
+
+Gate Network 输出
+
+$$
+Prob=[Prob_1,Prob_2,\ldots,Prob_B],
+$$
+
+并计算
+
+$$
+OutCell_i=\sum_{j=1}^{B}Prob_j\cdot FusOp_j(x).
+$$
+
+论文采用 soft-to-hard 两阶段训练：soft stage 中多个 strategy 可以具有非零概率，hard stage 则将选择限制为 one-hot。尤其需要注意，作者明确将 `0` 定义为 no fusion（RGB-only），将 `1` 定义为 RGB-D fusion，并进一步采用 fusion early stop：若较早的 fusion cell 已选择 no-fusion，则后续 fusion cells 强制保持 no-fusion。
+
+因此 PR165 已经证明，在 RGB-D semantic segmentation 中，可以根据区域输入动态决定是否继续采用 RGB-D fusion。MMFR 后续不应把“动态选择 RGB-only / RGB-D”或“region-wise gated multimodal fusion”本身描述成全新的思想。
+
+但是，SMMF 的 gate 并不是 Depth reliability estimator。其设计依据主要是 panoramic ERP distortion、纬度区域差异与 spherical geometry prior。论文没有 Depth quality label、corruption severity、confidence/uncertainty supervision，也没有研究 gate output 与 Depth error 之间的校准关系。Figure 7 中不同 region 的 strategy-selection probability 主要用于证明同一 latitude 的区域倾向于采用相似策略，即 gate 学习到 spherical consistency，而不是识别哪块 Depth 已经损坏。
+
+论文所说的 robustness 也需要与 MMFR 的 modality-failure robustness 严格区分。REL-SF4PASS 使用 SGA validation 测试 3D rotation disturbance，通过不同 yaw/pitch/roll 改变 panoramic orientation，以检验模型是否过拟合固定 ERP projection pattern。该 `3D disturbance` 不是 Gaussian Depth noise、spatial dropout、sensor corruption 或 entire missing Depth，因此不能将论文约 70% variance reduction 转述为“对 Depth corruption 具有鲁棒性”。
+
+Fold 1 消融显示，普通 CMX 下 RGB、RGB-D、RGB-REL 的 mIoU 分别为 51.25、59.03、64.47；加入 dynamic fusion 后，RGB-REL+DyMM 为 66.73，RGB-REL+SMMF 达到 67.37。说明 depth representation 与 adaptive fusion 都能显著影响 segmentation performance。SGA validation 中，HHA+SMMF 的 mean mIoU / variance 为 62.237 / 5.316，REL-SF4PASS 为 65.380 / 1.607，说明 REL 在 panoramic 3D disturbance 下同时提高平均性能并减小跨扰动波动。
+
+对 MMFR 的方法学启发主要有两点。第一，Depth 的表达形式本身决定了几何信息如何进入网络，因此 MMFR 在干预 DFormerv2 geometry path 时应区分“几何特征是否有价值”和“当前几何特征是否可信”；高质量几何表示与可靠性判断属于两个不同问题。第二，鲁棒性评价不应只报告 corruption conditions 的平均 mIoU，还可以报告 condition-wise variance、range 或 worst-condition performance，以证明 reliability-conditioned intervention 不仅提高平均结果，而且真正降低不同失效条件下的性能波动。
+
+PR165 与 MMFR 的关键边界可以概括为：
+
+`PR165: panoramic region / spherical geometry → dynamic fusion strategy → RGB-only or RGB-D`
+
+而 MMFR 的目标是：
+
+`Depth degradation → explicit geometry reliability → reliability-conditioned DFormerv2 geometry-path intervention`。
+
+因此 PR165 是重要的 adaptive-fusion 邻近工作，但不是 MMFR 的 reliability-aware Depth failure 方法。它提醒 MMFR 的 novelty 不能停留在 generic gated fusion 或“动态决定是否使用 Depth”，而必须落在“失效诊断依据是什么、可靠性是否显式可解释、以及该可靠性是否直接控制 geometry-specific computation”上。
+
+另外，REL 的 ReD、EGVIA 和 LOA 都由原始 Depth、3D point cloud 与 surface normal 派生。论文没有研究原始 Depth 发生 noise/dropout/missing 后这些派生几何量的稳定性，因此不能据此认为更强的 geometry representation 会自然获得 modality-failure robustness。这个空白恰好与 MMFR “先判断几何是否可信，再决定如何使用几何”的研究逻辑相容。
+
+--------------------------------------------------------------------------------
+
+编号: PR168
+发表年份: 2026
+作者: Yu Huang; Zelin Peng; Changsong Wen; Xiaokang Yang; Wei Shen
+标题: Unlocking 3D Affordance Segmentation with 2D Semantic Knowledge
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Affordance segmentation aims to decompose 3D objects into parts that serve distinct functional roles, enabling models to reason about object interactions rather than mere recognition. Existing methods, mostly following the paradigm of 3D semantic segmentation or prompt-based frameworks, struggle when geometric cues are weak or ambiguous, as sparse point clouds provide limited functional information. To overcome this limitation, we leverage the rich semantic knowledge embedded in large-scale 2D Vision Foundation Models (VFMs) to guide 3D representation learning through a cross-modal alignment mechanism. Specifically, we propose Cross-Modal Affinity Transfer (CMAT), a pretraining strategy that compels the 3D encoder to align with the semantic structures induced by lifted 2D features. CMAT is driven by a core affinity alignment objective, supported by two auxiliary losses, geometric reconstruction and feature diversity, which together encourage structured and discriminative feature learning. Built upon the CMAT-pretrained backbone, we employ a lightweight affordance segmentor that injects text or visual prompts into the learned 3D space through an efficient cross-attention interface, enabling dense and prompt-aware affordance prediction while preserving the semantic organization established during pretraining. Extensive experiments demonstrate consistent improvements over previous state-of-the-art methods in both accuracy and efficiency.
+--------------------------------------------------------------------------------
+
+编号: PR173
+发表年份: 2026
+作者: Shaojie Zhuang; Guangshun Wei; Jiangxin He; Yuanfeng Zhou
+标题: Photo-Guided Tooth Segmentation on 3D Oral Scan Model
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: Accurate 3D tooth segmentation is fundamental for digital dentistry, orthodontic analysis, and clinical simulation. Intraoral scan (IOS) models often suffer from incomplete or unreliable texture information, making it difficult to delineate fine boundaries between teeth and gingiva, while 2D intraoral images provide rich semantic and chromatic information that can complement 3D geometry. Thus, we propose a novel Photo-guided 3D Model Tooth Segmentation framework, PMTSeg, that enhances 3D tooth segmentation by integrating texture cues from intraoral photos. Our framework introduces three key components: a Camera Alignment Module (CAM) for accurate image-model registration, a Feature Filtering Gate (FFG) for adaptive multi-view feature selection, and a Consistent Feature Learning (CFL) mechanism for learning texture-geometry correspondence. Our method supports arbitrary numbers and views of intraoral photos. Experiments show significant improvements in distinguishing adjacent teeth and tooth-gingiva boundaries, demonstrating that intraoral photographs serve as an efficient, semantically rich supplement to 3D scans for precise dental segmentation.
+--------------------------------------------------------------------------------
+
+编号: PR178
+发表年份: 2026
+作者: Pengchong Hu; Zhizhong Han
+标题: SGAD-SLAM: Splatting Gaussians at Adjusted Depth for Better Radiance Fields in RGBD SLAM
+期刊/出版物: IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR 2026)
+摘要: 3D Gaussian Splatting (3DGS) has made remarkable progress in RGBD SLAM. Current methods usually use 3D Gaussians or view-tied 3D Gaussians to represent radiance fields in tracking and mapping. However, these Gaussians are either too flexible or too limited in movements, resulting in slow convergence or limited rendering quality. To resolve this issue, we adopt pixel-aligned Gaussians but allow each Gaussian to adjust its position along its ray to maximize the rendering quality, even if Gaussians are simplified to improve system scalability. To speed up the tracking, we model the depth distribution around each pixel as a Gaussian distribution, and then use these distributions to align each frame to the 3D scene quickly. We report our evaluations on widely used benchmarks, justify our designs, and show advantages over the latest methods in view rendering, camera tracking, runtime, and storage complexity. Please see our project page for code and videos at https://machineperceptionlab.github.io/SGAD-SLAM-Project .
+--------------------------------------------------------------------------------
+
