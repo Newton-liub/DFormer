@@ -1,11 +1,12 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **状态时间：** 2026-09-15（MMFR A2 v3 本地资格、云端 probe 与恢复门禁历史批次）；2026-09-17（A2 v3 one-arm 训练与 10-condition Main-Val 历史批次）；2026-09-20（`MMFR-Oracle-A` 12/12 单元完成并裁决 `NO-GO`；MMFR v4.1 文献全文门禁）；2026-09-21（E1 Batch 1A C0/F-lite 实现与 Gate-B PASS，R-EM 退休，R-OE 设计冻结）
+> **状态时间：** 2026-09-15（MMFR A2 v3 本地资格、云端 probe 与恢复门禁历史批次）；2026-09-17（A2 v3 one-arm 训练与 10-condition Main-Val 历史批次）；2026-09-20（`MMFR-Oracle-A` 12/12 单元完成并裁决 `NO-GO`；MMFR v4.1 文献全文门禁）；2026-09-21（E1 Batch 1A C0/F-lite 实现与 Gate-B PASS，R-EM 退休，R-OE 设计冻结）；2026-09-22（本批次 Git 提交与远端同步）
 > **当前阶段：** 状态标识为 `mmfr-v4.1-e1-batch1a-c0-f-gateb-pass-ready-for-batch1-run-authorization`。`Gate-A-common=PASS`、`Gate-A-F=PASS`，C0 与 F-lite 已实现并通过最小 Gate-B；`R-EM-lite` 因 cause 不可观测而正式 `retired-by-observability`，不再阻塞 C0/F。`R-OE-lite` 已按 observable-empty 语义完成唯一设计冻结，但尚未实现，Batch 1B protocol 仍待单独关闭。
 > **授权边界：** 当前只完成 Batch 1A C0/F-lite 实现资格，不等于正式训练授权。未运行 20 epoch/2560 updates、Quick-Val、Main-Val、云端正式任务、checkpoint 效果选择或 official test；official test 继续为 `sealed_unread`。下一步只等待用户对 Batch 1A C0/F-lite 正式训练作单独授权；R-OE 实现、Batch 1B 与 Batch 2 仍未授权。
 > **大白话说明：** C0 和 F-lite 已经证明代码身份、优化器分组、初始等价、梯度路径和成本都符合冻结合同，可以进入“是否开跑正式训练”的审批；现在还没有训练结果。原 R-EM 想从相同的全零 Depth 推断隐藏原因，已因不可观测而退休；后继 R-OE 只承认“当前可见 Depth 为空”，目前只完成设计，没有写代码。
 > 本文件是 MUSeg 当前事实、授权边界、证据入口和恢复规则的唯一实时入口；计划、报告、审计和 Canvas 只承担各自形成时点的历史或详细证据职责。
 > **证据包维护：** MMFR v4.1 第二次目录简化已完成；canonical 材料现集中在 `00_control/`、`01_research/`、`02_evidence/`、`03_reference/`，当前上级模型审核入口为 `liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/99_review_packet_current/REVIEW_BRIEF.md`。六文件审核包 generation ID 为 `8d5657e0f1de834c1a6becc911ea6fb03922c88d88a7b70edac015a13fa0f6bf`，连续重建的 SHA-256 与字节数一致；`liu-test-exp/MMFR/附件/` 作为本机论文全文与提取产物层由 Git 忽略，可携带的审计结论与来源身份保留在 package 的 `03_reference/`。本次只改变证据组织和审核接口，不改变 Gate-B、训练授权或 official-test 状态。大白话说，给上级模型看的材料已经缩成一个可直接上传的六文件目录，论文全文仍可由本机 AI 按明确路径读取，但不会随 Git 仓库分发，研究结论没有因此变化。
+> **版本控制状态：** 2026-09-22 已将 `39c41a0`、`e8abbe2`、`580490c` 与 Batch 1A 实现提交 `ac54f90cda84af81903da6e7c645ebad60137299` 推送到 `origin/perf/mmfr-a2-v3-pipeline-opt1`。其中 `ac54f90` 固定 C0/F-lite 配置、F-lite adapter、四组 optimizer、weights-only restart、Gate-B 工具及相应状态和审计报告；该 Git 同步不改变训练授权边界。大白话说，最新代码和证据已经备份到远端分支，但仍不能据此启动正式训练。
 
 ## 1. 稳定基线
 
