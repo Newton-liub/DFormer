@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.14",
   "latestFormalReport": {
-    "path": "doc/reports/2026-09-10-museg-dformerv2-to-mve-group-meeting.md",
-    "periodStart": "2026-08-17",
-    "periodEnd": "2026-09-10",
-    "baseCommit": "5d0d836391cfb8cb2a3b60bca07f6e9d1b31895f",
-    "status": "formal-dformerv2-to-mve-group-meeting"
+    "path": "doc/reports/2026-09-21-mmfr-v4-external-reference-audit.md",
+    "periodStart": "2026-09-21",
+    "periodEnd": "2026-09-21",
+    "baseCommit": "e8abbe2d0b87ea5b2e29069037fcf4bc8d7e57eb",
+    "status": "formal-mmfr-v4-external-reference-audit"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-09-21-mmfr-v4-external-reference-audit.md",
+      "topic": "mmfr-v4-external-reference-audit",
+      "periodStart": "2026-09-21",
+      "periodEnd": "2026-09-21",
+      "baseCommit": "e8abbe2d0b87ea5b2e29069037fcf4bc8d7e57eb",
+      "verification": "external-repository-git-license-symbol-and-maskmentor-public-entry-audit",
+      "status": "formal-mmfr-v4-external-reference-audit"
+    },
     {
       "path": "doc/reports/2026-09-10-museg-dformerv2-to-mve-group-meeting.md",
       "topic": "museg-dformerv2-to-mve-group-meeting",

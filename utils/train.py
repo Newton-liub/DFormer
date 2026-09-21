@@ -48,7 +48,7 @@ from utils.experiment_tracker import (
     build_run_name,
     gpu_safety_violation,
 )
-from utils.init_func import configure_optimizers, group_weight
+from utils.init_func import build_e1_optimizer_param_groups, configure_optimizers, group_weight
 from utils.lr_policy import WarmUpPolyLR
 from utils.pyt_utils import all_reduce_tensor
 from utils.training_checkpoint import (
@@ -57,6 +57,7 @@ from utils.training_checkpoint import (
     build_split_metadata,
     file_sha256,
     get_git_commit,
+    load_weights_only_model_state,
     optimizer_step_was_applied,
     phase_uses_validation,
     prepare_output_directory,
@@ -474,6 +475,39 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         )
     else:
         logger.info("MMFR-A2 corruption disabled; the pre-A2 training path is unchanged")
+
+    e1_batch1_config = dict(getattr(config, "e1_batch1", None) or {})
+    e1_batch1_enabled = bool(e1_batch1_config.get("enabled", False))
+    if e1_batch1_enabled:
+        candidate = str(e1_batch1_config.get("candidate", ""))
+        if candidate not in ("C0", "F-lite"):
+            parser.error(f"unsupported E1 Batch 1A candidate {candidate!r}")
+        if not bool(e1_batch1_config.get("weights_only_restart", False)):
+            parser.error("E1 Batch 1A requires a weights-only restart")
+        if any(
+            bool(e1_batch1_config.get(field, False))
+            for field in ("restore_optimizer", "restore_scheduler", "restore_grad_scaler", "restore_rng")
+        ):
+            parser.error("E1 Batch 1A must not restore optimizer, scheduler, GradScaler or RNG state")
+        if int(e1_batch1_config.get("required_successful_updates", -1)) != 2560:
+            parser.error("E1 Batch 1A requires exactly 2560 successful updates")
+        if config.nepochs != 20 or config.niters_per_epoch != 128:
+            parser.error("E1 Batch 1A requires 20 epochs and 128 attempts per epoch")
+        if float(e1_batch1_config.get("base_lr", -1.0)) != 1e-5:
+            parser.error("E1 Batch 1A base LR must be 1e-5")
+        if float(e1_batch1_config.get("new_module_lr", -1.0)) != 3e-5:
+            parser.error("E1 Batch 1A new-module LR must be 3e-5")
+        if bool(getattr(config, "training_validation_enabled", True)):
+            parser.error("E1 Batch 1A training-time validation must remain disabled")
+        if not args.amp:
+            parser.error("E1 Batch 1A requires AMP; --no-amp is forbidden")
+        if not args.syncbn:
+            parser.error("E1 Batch 1A requires SyncBN; --no-syncbn is forbidden")
+        if engine.distributed:
+            parser.error("E1 Batch 1A requires DDP off and a single training process")
+        if int(args.gpus) != 1:
+            parser.error("E1 Batch 1A requires --gpus 1")
+        logger.info("MMFR E1 Batch 1A enabled: candidate=%s", candidate)
     if not args.use_seed and config.experiment_phase in {"development", "official"}:
         parser.error("development and official phases require deterministic --seed semantics")
     if args.use_seed:
@@ -514,7 +548,8 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     val_batch_size = int(getattr(config, "val_batch_size", default_val_batch_size))
     val_loader = None
     val_sampler = None
-    if config.val_source is not None:
+    training_validation_enabled = bool(getattr(config, "training_validation_enabled", True))
+    if config.val_source is not None and training_validation_enabled:
         val_loader, val_sampler = get_val_loader(
             engine,
             RGBXDataset,
@@ -522,6 +557,8 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             val_batch_size=val_batch_size,
         )
         logger.info(f"val dataset len:{len(val_loader) * int(args.gpus)}")
+    elif config.val_source is not None:
+        logger.info("training-time validation disabled by the frozen run contract")
     else:
         logger.info("no training-time validation source configured; sealed test remains unread")
     if (engine.distributed and (engine.local_rank == 0)) or (not engine.distributed):
@@ -617,6 +654,22 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             "MMFR-A2 configuration mismatch: cfg.mmfr_a2['reliability_head'] and cfg.mmfr_a2['corruption'] "
             "must enable the reliability head together"
         )
+    weights_only_source = None
+    if e1_batch1_enabled:
+        allowed_missing_prefixes = ("feature_adapter.",) if candidate == "F-lite" else ()
+        weights_only_source = load_weights_only_model_state(
+            e1_batch1_config["source_checkpoint"],
+            model=model,
+            expected_sha256=e1_batch1_config["source_checkpoint_sha256"],
+            expected_model_key_count=int(e1_batch1_config["source_model_key_count"]),
+            allowed_missing_prefixes=allowed_missing_prefixes,
+        )
+        logger.info(
+            "loaded E1 weights-only source: path=%s sha256=%s missing=%s",
+            weights_only_source["path"],
+            weights_only_source["sha256"],
+            weights_only_source["missing_keys"],
+        )
     # weight=torch.load('checkpoints/NYUv2_DFormer_Large.pth')['model']
     # w_list=list(weight.keys())
     # # for k in w_list:
@@ -627,7 +680,18 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     if engine.distributed:
         base_lr = config.lr
     params_list = []
-    params_list = group_weight(params_list, model, BatchNorm2d, base_lr)
+    if e1_batch1_enabled:
+        params_list = build_e1_optimizer_param_groups(
+            model,
+            BatchNorm2d,
+            base_lr=float(e1_batch1_config["base_lr"]),
+            new_lr=float(e1_batch1_config["new_module_lr"]),
+            weight_decay=float(config.weight_decay),
+            new_parameter_prefixes=("feature_adapter.",),
+            expected_geo_weight_count=29,
+        )
+    else:
+        params_list = group_weight(params_list, model, BatchNorm2d, base_lr)
     # params_list = configure_optimizers(model, base_lr, config.weight_decay)
     if config.optimizer == "AdamW":
         optimizer = torch.optim.AdamW(
@@ -666,7 +730,16 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
     if args.amp:
-        scaler = torch.cuda.amp.GradScaler()
+        if e1_batch1_enabled:
+            scaler_config = dict(e1_batch1_config["grad_scaler"])
+            scaler = torch.cuda.amp.GradScaler(
+                init_scale=float(scaler_config["initial_scale"]),
+                growth_factor=float(scaler_config["growth_factor"]),
+                backoff_factor=float(scaler_config["backoff_factor"]),
+                growth_interval=int(scaler_config["growth_interval"]),
+            )
+        else:
+            scaler = torch.cuda.amp.GradScaler()
     else:
         scaler = None
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -816,7 +889,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             global_step = current_idx + 1
             lr = lr_policy.get_lr(current_idx)
             for param_group in optimizer.param_groups:
-                param_group["lr"] = lr
+                param_group["lr"] = lr * float(param_group.get("lr_scale", 1.0))
             attempted_steps += 1
             should_log = attempted_steps == 1 or attempted_steps % log_interval == 0
             is_epoch_last_attempt = idx + 1 == config.niters_per_epoch
@@ -836,21 +909,29 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 # Corruption happens here: the DataLoader geometry is already final and the
                 # batch is still on the CPU, so the reliability target shares the batch
                 # geometry and stays independent of worker count and worker scheduling.
+                mmfr_batch_kwargs = {
+                    "epoch": epoch,
+                    "iteration": idx,
+                    "niters_per_epoch": config.niters_per_epoch,
+                    "nepochs": config.nepochs,
+                    "rgb_mean": config.norm_mean,
+                    "rgb_std": config.norm_std,
+                    "corruption_seed": int(mmfr_a2_corruption.get("seed", MMFR_CORRUPTION_SEED)),
+                    "global_rank": mmfr_a2_global_rank,
+                    "p_clean": mmfr_a2_p_clean,
+                    "max_specs": int(mmfr_a2_corruption.get("max_specs", MMFR_MAX_SPECS)),
+                    "sample_id_root": getattr(config, "dataset_path", None),
+                }
+                if e1_batch1_enabled:
+                    # Continue the frozen A2 v3 virtual curriculum at source epoch 420
+                    # instead of resetting the 20-epoch screening run to progress zero.
+                    mmfr_batch_kwargs["epoch"] = 420 + epoch
+                    mmfr_batch_kwargs["nepochs"] = 500
                 mmfr_batch = mmfr_a2_batch_builder(
                     imgs,
                     modal_xs,
                     minibatch.get("fn"),
-                    epoch=epoch,
-                    iteration=idx,
-                    niters_per_epoch=config.niters_per_epoch,
-                    nepochs=config.nepochs,
-                    rgb_mean=config.norm_mean,
-                    rgb_std=config.norm_std,
-                    corruption_seed=int(mmfr_a2_corruption.get("seed", MMFR_CORRUPTION_SEED)),
-                    global_rank=mmfr_a2_global_rank,
-                    p_clean=mmfr_a2_p_clean,
-                    max_specs=int(mmfr_a2_corruption.get("max_specs", MMFR_MAX_SPECS)),
-                    sample_id_root=getattr(config, "dataset_path", None),
+                    **mmfr_batch_kwargs,
                 )
                 imgs = mmfr_batch["rgb"]
                 modal_xs = mmfr_batch["depth"]
@@ -956,6 +1037,13 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                     logger.warning(
                         f"AMP optimizer update skipped at epoch {epoch}, iteration {idx + 1}; "
                         f"attempted_steps={attempted_steps}, skipped_optimizer_steps={skipped_optimizer_steps}"
+                    )
+                if e1_batch1_enabled and bool(
+                    e1_batch1_config.get("reject_skipped_optimizer_step", False)
+                ):
+                    raise RuntimeError(
+                        "E1 Batch 1A requires every one of the 2560 optimizer slots to update; "
+                        f"GradScaler skipped epoch={epoch} iteration={idx + 1}"
                     )
             if not args.amp:
                 if epoch == 1:
@@ -1345,6 +1433,20 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             ):
                 engine.save_checkpoint(
                     os.path.join(config.checkpoint_dir, f"epoch-{epoch}.pth")
+                )
+            if e1_batch1_enabled and epoch == config.nepochs:
+                required_updates = int(e1_batch1_config["required_successful_updates"])
+                if train_steps_completed != required_updates or skipped_optimizer_steps != 0:
+                    raise RuntimeError(
+                        "E1 Batch 1A final checkpoint requires exactly "
+                        f"{required_updates} successful updates and zero skips; got "
+                        f"successful={train_steps_completed}, skipped={skipped_optimizer_steps}"
+                    )
+                engine.save_checkpoint(
+                    os.path.join(
+                        config.checkpoint_dir,
+                        str(e1_batch1_config["fixed_final_checkpoint"]),
+                    )
                 )
         if args.stop_after_completed_epoch is not None and epoch >= args.stop_after_completed_epoch:
             controlled_stop_epoch = epoch

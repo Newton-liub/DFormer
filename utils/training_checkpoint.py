@@ -380,6 +380,73 @@ def file_sha256(path: str | os.PathLike[str]) -> str:
     return digest.hexdigest()
 
 
+def load_weights_only_model_state(
+    checkpoint_path: str | os.PathLike[str],
+    *,
+    model: torch.nn.Module,
+    expected_sha256: str | None = None,
+    expected_model_key_count: int | None = None,
+    allowed_missing_prefixes: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    """Load only model tensors from a versioned checkpoint with strict key guards.
+
+    Optimizer, scheduler, GradScaler and RNG state are deliberately ignored. Missing
+    keys are permitted only under explicit new-module prefixes; unexpected source keys
+    are never permitted.
+    """
+
+    resolved = Path(checkpoint_path).resolve()
+    if not resolved.is_file():
+        raise FileNotFoundError(f"weights-only source checkpoint does not exist: {resolved}")
+    actual_sha256 = file_sha256(resolved)
+    if expected_sha256 is not None and actual_sha256.lower() != str(expected_sha256).lower():
+        raise CheckpointCompatibilityError(
+            f"weights-only checkpoint SHA-256 mismatch: expected {expected_sha256}, got {actual_sha256}"
+        )
+    # The project checkpoint stores NumPy RNG state in addition to tensors. Its SHA-256
+    # is verified above, so this trusted local artifact must be decoded with the complete
+    # legacy schema rather than PyTorch 2.6's tensor-only default.
+    checkpoint = torch.load(resolved, map_location="cpu", weights_only=False)
+    if not isinstance(checkpoint, Mapping) or "model" not in checkpoint:
+        raise CheckpointCorruptionError("weights-only checkpoint must contain a model state mapping")
+    if checkpoint.get("schema_version") != CHECKPOINT_SCHEMA_VERSION:
+        raise CheckpointCompatibilityError(
+            f"weights-only checkpoint schema must be {CHECKPOINT_SCHEMA_VERSION!r}, "
+            f"got {checkpoint.get('schema_version')!r}"
+        )
+    state = checkpoint["model"]
+    if not isinstance(state, Mapping):
+        raise CheckpointCorruptionError("weights-only checkpoint model entry is not a mapping")
+    if expected_model_key_count is not None and len(state) != int(expected_model_key_count):
+        raise CheckpointCompatibilityError(
+            f"weights-only checkpoint model key count must be {expected_model_key_count}, got {len(state)}"
+        )
+    target = model.module if hasattr(model, "module") else model
+    incompatible = target.load_state_dict(dict(state), strict=False)
+    unexpected = sorted(incompatible.unexpected_keys)
+    missing = sorted(incompatible.missing_keys)
+    illegal_missing = [
+        name for name in missing if not any(name.startswith(prefix) for prefix in allowed_missing_prefixes)
+    ]
+    if unexpected or illegal_missing:
+        raise CheckpointCompatibilityError(
+            "weights-only model key mismatch: "
+            f"unexpected={unexpected}, illegal_missing={illegal_missing}, all_missing={missing}"
+        )
+    return {
+        "path": str(resolved),
+        "sha256": actual_sha256,
+        "schema_version": checkpoint.get("schema_version"),
+        "model_key_count": len(state),
+        "missing_keys": missing,
+        "unexpected_keys": unexpected,
+        "completed_epoch": checkpoint.get("completed_epoch"),
+        "next_epoch": checkpoint.get("next_epoch"),
+        "global_optimizer_step": checkpoint.get("global_optimizer_step"),
+        "embedded_source_commit": dict(checkpoint.get("protocol") or {}).get("git_commit"),
+    }
+
+
 def count_source_samples(path: str | os.PathLike[str]) -> int:
     with open(path, encoding="utf-8") as source:
         return sum(1 for line in source if line.strip())

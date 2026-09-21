@@ -102,6 +102,37 @@ def _mmfr_supervised_channels(reliability_cfg):
     return channels
 
 
+def _e1_feature_adapter_config(cfg):
+    """Return the frozen E1 F-lite adapter block, or ``None`` for C0/non-E1 models."""
+
+    block = cfg.get("e1_batch1") if hasattr(cfg, "get") else getattr(cfg, "e1_batch1", None)
+    if not block or not bool(block.get("enabled", False)):
+        return None
+    candidate = str(block.get("candidate", ""))
+    if candidate == "C0":
+        return None
+    if candidate != "F-lite":
+        raise ValueError(f"unsupported E1 Batch 1A candidate {candidate!r}")
+    adapter = dict(block.get("feature_adapter") or {})
+    expected = {
+        "stages": [1, 2, 3],
+        "bottleneck_ratio": 4,
+        "normalization": "none",
+        "activation": "GELU",
+        "down_init": "trunc_normal_std_0.02",
+        "up_init": "zeros",
+    }
+    for key, value in expected.items():
+        if adapter.get(key) != value:
+            raise ValueError(
+                f"E1 F-lite feature_adapter.{key} must be {value!r}, got {adapter.get(key)!r}"
+            )
+    forbidden = ("reliability", "condition", "severity", "oracle")
+    if any(bool(adapter.get(f"uses_{name}", False)) for name in forbidden):
+        raise ValueError("E1 F-lite must not consume reliability, condition, severity or oracle inputs")
+    return adapter
+
+
 
 class EncoderDecoder(nn.Module):
     def __init__(
@@ -265,6 +296,34 @@ class EncoderDecoder(nn.Module):
                 ",".join(self.reliability_supervised_channels),
             )
 
+        self.feature_adapter = None
+        feature_adapter_cfg = _e1_feature_adapter_config(cfg)
+        if feature_adapter_cfg is not None:
+            from .feature_adapter import FeatureLiteAdapter
+
+            self.feature_adapter = FeatureLiteAdapter(
+                self.channels,
+                bottleneck_ratio=int(feature_adapter_cfg["bottleneck_ratio"]),
+            )
+            actual_trainable_parameters = sum(
+                int(parameter.numel())
+                for parameter in self.feature_adapter.parameters()
+                if parameter.requires_grad
+            )
+            expected_trainable_parameters = int(
+                feature_adapter_cfg["expected_trainable_parameters"]
+            )
+            if actual_trainable_parameters != expected_trainable_parameters:
+                raise ValueError(
+                    "E1 F-lite feature adapter parameter count mismatch: "
+                    f"expected {expected_trainable_parameters}, got {actual_trainable_parameters}"
+                )
+            logger.info(
+                "MMFR E1 F-lite feature adapter enabled: stages=1,2,3 ratio=%d parameters=%d",
+                int(feature_adapter_cfg["bottleneck_ratio"]),
+                actual_trainable_parameters,
+            )
+
     def init_weights(self, cfg, pretrained=None):
         if pretrained:
             logger.info("Loading pretrained model: {}".format(pretrained))
@@ -303,6 +362,8 @@ class EncoderDecoder(nn.Module):
         )
         if len(x) == 2:  # if output is (rgb,depth) only use rgb
             x = x[0]
+        if self.feature_adapter is not None:
+            x = self.feature_adapter(x)
         out = self.decode_head.forward(x)
         out = F.interpolate(out, size=orisize[-2:], mode="bilinear", align_corners=False)
         if self.aux_head:

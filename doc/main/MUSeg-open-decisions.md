@@ -1,9 +1,9 @@
 # MUSeg 实验口径与处置状态
 
-> **状态时间：** 2026-09-15（MMFR A2 v3 裁决与本地资格收口）。
+> **状态时间：** 2026-09-21（MMFR v4.1 E1 Batch 1A C0/F-lite Gate-B PASS；R-EM 退休；R-OE 设计冻结）。
 > **文档角色：** 研究选择与边界记录，不承担实时状态或执行授权。
 > **实时入口：** [`MUSeg-current-status.md`](MUSeg-current-status.md)。稳定基准与分支规则见 [`research-branch-governance.md`](../guides/project/research-branch-governance.md)。
-> **候选计划：** A2/B2 与方向1均已延期、未执行、未授权；索引见 [`doc/plans/deferred/2026-09-MUSeg-unexecuted/README.md`](../plans/deferred/2026-09-MUSeg-unexecuted/README.md)。
+> **候选计划：** 历史 A2/B2 与方向1计划的执行状态以实时入口为准；MMFR v4.1 E1 的当前处置记录于第 14 节：Batch 1A C0/F-lite 已通过 Gate-B 但正式训练未授权，R-OE-lite 仅完成设计冻结。
 > 本文件保留问题缘由，并区分“仍待决定”“本轮已处置”和“仅保留历史解释”。已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
 ## 1. 新 DFormerv2-MUSeg baseline 方向
@@ -209,4 +209,28 @@
 - **v2 证据完整性问题待核验：** v1 模板被记录的 `b5b5c979352cca451cfbca35abc77232a9ae82c3f22ec0f33fcdb964ae03e519` 与 v1 manifest 被记录的 `e9825c4a4818cf2860a529b6c0fa542f5412a7153a1e8b9b8c8d000de6ca7f07` 无法从当前工作区字节复现（已测试原始字节、LF 归一化与六种 JSON 规范序列化）。历史值未被改写，该差异标为待核验，不得据此断言文件被篡改，也不得忽略。
 - **证据入口：** 当前 v3 协议与全部源码/工具/报告双哈希索引为 `protocols/mmfr-a2-train-integration-v3.template.json`；高级审计原文与执行回填为 `liu-test-exp/方案1/改动说明.md`。v1/v2 历史模板分别为 `protocols/mmfr-a2-train-integration-v1.template.json` 与 `protocols/mmfr-a2-train-integration-v2.template.json`，不得回写；三个补充模板为 `protocols/mmfr-r1-reliability-supplemental-v1.template.json`、`protocols/mmfr-s1-severity-sweep-v1.template.json`、`protocols/mmfr-c1-paper-confirmation-v1.template.json`。详细方向计划仍位于 `doc/plans/2026-09-MUSeg-多形式模态失效可靠性学习/`。
 
-**大白话说明：** v2 的数据有效性问题已经按高级审计选择的 A + MID-A 在独立 v3 中修复，五项本地资格也全部通过。现在没有待高级模型继续判断的有效性语义；紧邻的实际决定只有是否授权云端单卡 batch size 10 短 probe。即使 probe 获批并通过，两个 500 epoch 公平对照训练仍要另行授权。
+**大白话说明：** v2 的数据有效性问题已经按高级审计选择的 A + MID-A 在独立 v3 中修复，五项本地资格也全部通过。现在没有待高级模型继续判断的有效性语义；该历史阶段的 probe、one-arm 训练、Main-Val 与 Oracle-A 后续进展以实时状态文件为准。
+
+## 14. MMFR v4.1 E1 Batch 1A Gate-B PASS 与 R 路线分拆
+
+**大白话问题：** 原 Batch 1 把 C0、轻量特征适配和“识别整模态缺失后恢复”绑在一起。审计证明，全零 Depth 的隐藏原因不可从当前输入区分，但这不应继续阻塞与原因识别无关的 C0/F-lite；R 路线需要改成只处理可观测状态的新候选。
+
+**当前状态：分阶段处置已完成。** `Gate-A-common=PASS`、`Gate-A-F=PASS`，Batch 1A 的 C0/F-lite 已实现并通过 Gate-B；状态为 `batch1a-gateb-passed-training-not-authorized`。`R-EM-lite` 已正式 `retired-by-observability`。后继 `R-OE-lite` 已完成 observable-empty 设计冻结，但尚未实现，Batch 1B protocol 与 Gate-B 仍 pending。详细证据见 `liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/01_research/e1_screening_plan.md`、`liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/01_research/e1_batch1_protocol.md`、`liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/02_evidence/report_e1_batch1a_gateb.md`、`liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/01_research/r_oe_lite_design.md`、`liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/02_evidence/audit_optimizer_coverage.md` 与 `liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/02_evidence/audit_depth_input_contract.md`。
+
+- **Gate 分拆已处置：** Batch 1A 只比较 C0 与 F-lite；Batch 1B 才比较 R-OE-lite 与 matched C0。R 路线的 protocol pending 不再阻塞 Batch 1A。Gate-B 只证明实现资格，不等于训练授权或效果结论。
+- **R-EM-lite 已退休：** 当前 observable Depth 无法区分 synthetic `entire_missing`、natural-empty crop 与 dropout-emptied input。禁止用 corruption type、severity、synthetic mask、clean Depth、`depth_valid_pre/post`、reliability target、generator RNG 或 manifest cause 恢复该 hidden-cause 路由。
+- **R-OE-lite 语义已冻结：** trigger 只读取当前 raw Depth 与 $V_{\mathrm{geom}}$，语义只能是“当前 crop 的真实图像支持域中没有非零 Depth observation”。它故意共同覆盖上述三类全零输入；非触发样本必须对原 corrupted Depth exact bypass。
+- **R-OE-lite substitute 已冻结但未实现：** RGB 生成单通道 Depth-like `[0,255]` 浮点输出，使用 straight-through clamp，padding 为 exact zero，三通道复制后复用现有 Depth normalization。唯一结构为无 skip、无 normalization 的直接 RGB CNN，trainable parameters 精确为 `3,302,785`。segmentation 使用 substitute；A2 reliability auxiliary 仍使用原 corrupted raw Depth 与原 target。只使用共同 $L_{\mathrm{base}}^{A2}$，不增加 Depth GT reconstruction、reliability、condition、severity 或 oracle 接口。定位只能写成 `GeomPrompt-inspired task-driven observable-empty substitute`，不得声称 AI023 忠实复现。
+- **共同 optimizer 处置已实测关闭：** 固定 `base_decay / base_no_decay / new_decay / new_no_decay` 四组；所有 `requires_grad=True` 参数 membership 恰好为 1。29 个 `Geo.weight` 全部进入 `base_decay`，14 个 SyncBN 参数保持 `base_no_decay`；weights-only restart 不恢复旧 optimizer、scheduler、GradScaler 或 RNG。
+- **C0 Gate-B 已通过：** step 前 812 个 source state key、logits、prediction 与 total loss 全部 exact equal；初始 segmentation/reliability/total loss 分别为 `0.10337051749229431 / 0.021056054159998894 / 0.10547612607479095`。step loss 为 `0.7711184620857239`，optimizer step 已应用。
+- **F-lite identity 已通过：** stage 1/2/3 独立 `1×1 down → GELU → zero-init 1×1 up`，新增参数精确 `173152`；初始 residual、decoder inputs、logits、prediction 与 loss 全部 exact equal。C0/F 参数量分别为 `26677579 / 26850731`。
+- **F-lite 梯度路径已通过：** step 1 loss `0.7711184620857239`，6/6 up weight/bias gradient finite nonzero 且 6/6 更新，6 个 down gradient 按 zero-init 预期为 0；step 2 loss `0.3015517592430115`，6/6 down weight/bias gradient finite nonzero 且 6/6 更新。
+- **Geo 覆盖与更新已通过：** C0/F 均有 29/29 Geo gradient tensor 存在且 finite，19/29 在该 batch 上 nonzero，29/29 在 AdamW step 后发生合法参数变化；零数据梯度项可由 weight decay 合法变化。
+- **F-lite 成本已通过：** allocated/reserved 峰值增量为 `224095232 / 159383552` bytes，即 `213.7138671875 / 152 MiB`；inference median 为 C0 `131.17436981201172 ms`、F `132.20088958740234 ms`，增量 `+1.026519775390625 ms / +0.7825612403259408%`；forward-loss median 增量 `+0.9180450439453125 ms / +0.5561633978759639%`。
+- **Gate-B canonical evidence：** `outputs/mmfr-e1-batch1a-gateb/e1-batch1a-gateb.json`，SHA-256 `5d5f0526e95ed81b6da8fbcd3cc395911f2266132a9148826b5ad261042e4e89`；`C0: PASS`、`F-lite: PASS`、`failed_checks=[]`。运行使用本地 NVIDIA GeForce RTX 5060 Laptop GPU、batch size 1、样本 `RGB/06-01-01-0035-230920140169-12-99.jpg`，corruption 为 `gaussian_noise + blur`，curriculum progress `0.8400131252050813`，未包含 official test。
+- **共同正式训练合同保持冻结但未执行：** single GPU、batch 10、workers 8、SyncBN on、DDP off、AMP on、TF32 off、seed `772961337`；20 nominal epochs、2560 successful updates、fixed `update-2560.pth`，任何 GradScaler skip 均 blocked；后续四条件 Quick-Val 只使用 fixed final checkpoint。
+- **F-lite promotion 保持独立：** hard 三条件平均要求 $\Delta_F\ge +0.50$ pp，clean 不低于 `-0.25 pp`，每个 hard condition 不低于 `-0.50 pp`；stop/inconclusive 边界继续以 `liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/01_research/e1_batch1_protocol.md` 为准。R-OE 不自动继承原 R-EM 的 cause-specific numeric gate，Batch 1B 必须单独确认。
+- **Batch 1B control 复用条件：** 只有 checkpoint、optimizer、base loss、training budget、corruption manifest、seed 与 evaluation protocol 和 Batch 1A 完全一致时，才可复用 Batch 1A C0；任一共同合同变化均要求重跑 matched C0。
+- **授权边界：** 当前未授权 Batch 1A 正式训练、20 epoch/2560 updates、Quick-Val、318 样本评价、Main-Val、云端正式任务、R-OE 实现、Batch 1B、Batch 2、checkpoint 效果选择或 official test。official test 继续 `sealed_unread`。
+
+**下一恢复点：** 当前停止于 `Batch 1A C0/F Gate-B PASS`。下一步等待用户对 C0/F-lite 正式 20-epoch / 2560-update 训练作单独授权；R-OE-lite 继续停在 `design-frozen, implementation-not-authorized`。

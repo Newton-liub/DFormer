@@ -69,6 +69,128 @@ def group_weight(weight_group, module, norm_layer, lr):
     return weight_group
 
 
+def build_e1_optimizer_param_groups(
+    module,
+    norm_layer,
+    *,
+    base_lr,
+    new_lr,
+    weight_decay,
+    new_parameter_prefixes=("feature_adapter.",),
+    expected_geo_weight_count=29,
+):
+    """Build the frozen four-group optimizer identity for MMFR E1 Batch 1A.
+
+    Existing Conv/Linear and normalization classification follows ``group_weight``.
+    The only permitted previously-unmanaged base parameters are the audited
+    ``*.Geo.weight`` tensors, which are added to ``base_decay``. Every trainable
+    parameter must appear in exactly one named group.
+    """
+
+    trainable = {name: parameter for name, parameter in module.named_parameters() if parameter.requires_grad}
+    decay_ids = set()
+    no_decay_ids = set()
+    conv_types = (nn.Conv1d, nn.Conv2d, nn.Conv3d, nn.ConvTranspose2d, nn.ConvTranspose3d)
+    norm_types = (
+        nn.BatchNorm1d,
+        nn.BatchNorm2d,
+        nn.BatchNorm3d,
+        nn.SyncBatchNorm,
+        nn.GroupNorm,
+        nn.LayerNorm,
+    )
+
+    for submodule in module.modules():
+        if isinstance(submodule, nn.Linear) or isinstance(submodule, conv_types):
+            if submodule.weight is not None and submodule.weight.requires_grad:
+                decay_ids.add(id(submodule.weight))
+            if submodule.bias is not None and submodule.bias.requires_grad:
+                no_decay_ids.add(id(submodule.bias))
+        elif isinstance(submodule, norm_types) or isinstance(submodule, norm_layer):
+            if getattr(submodule, "weight", None) is not None and submodule.weight.requires_grad:
+                no_decay_ids.add(id(submodule.weight))
+            if getattr(submodule, "bias", None) is not None and submodule.bias.requires_grad:
+                no_decay_ids.add(id(submodule.bias))
+
+    overlap = decay_ids & no_decay_ids
+    if overlap:
+        raise ValueError(f"E1 optimizer classification overlap for {len(overlap)} parameters")
+
+    classified = decay_ids | no_decay_ids
+    unmanaged = [name for name, parameter in trainable.items() if id(parameter) not in classified]
+    geo_names = sorted(name for name in unmanaged if name.endswith(".Geo.weight"))
+    unexpected = sorted(set(unmanaged) - set(geo_names))
+    if unexpected:
+        raise ValueError(f"E1 optimizer found unexpected unmanaged parameters: {unexpected}")
+    if len(geo_names) != int(expected_geo_weight_count):
+        raise ValueError(
+            f"E1 optimizer expected {expected_geo_weight_count} Geo.weight tensors, got {len(geo_names)}"
+        )
+    for name in geo_names:
+        decay_ids.add(id(trainable[name]))
+
+    prefix_tuple = tuple(str(prefix) for prefix in new_parameter_prefixes)
+    buckets = {
+        "base_decay": [],
+        "base_no_decay": [],
+        "new_decay": [],
+        "new_no_decay": [],
+    }
+    names_by_group = {name: [] for name in buckets}
+    membership = {name: 0 for name in trainable}
+    for name, parameter in trainable.items():
+        is_new = name.startswith(prefix_tuple)
+        parameter_id = id(parameter)
+        if parameter_id in decay_ids:
+            group_name = "new_decay" if is_new else "base_decay"
+        elif parameter_id in no_decay_ids:
+            group_name = "new_no_decay" if is_new else "base_no_decay"
+        else:
+            raise ValueError(f"E1 optimizer failed to classify trainable parameter {name}")
+        buckets[group_name].append(parameter)
+        names_by_group[group_name].append(name)
+        membership[name] += 1
+
+    invalid_membership = {name: count for name, count in membership.items() if count != 1}
+    if invalid_membership:
+        raise ValueError(f"E1 optimizer membership must equal one: {invalid_membership}")
+
+    lr_scale = float(new_lr) / float(base_lr)
+    groups = [
+        {
+            "group_name": "base_decay",
+            "params": buckets["base_decay"],
+            "lr": float(base_lr),
+            "lr_scale": 1.0,
+            "weight_decay": float(weight_decay),
+        },
+        {
+            "group_name": "base_no_decay",
+            "params": buckets["base_no_decay"],
+            "lr": float(base_lr),
+            "lr_scale": 1.0,
+            "weight_decay": 0.0,
+        },
+        {
+            "group_name": "new_decay",
+            "params": buckets["new_decay"],
+            "lr": float(new_lr),
+            "lr_scale": lr_scale,
+            "weight_decay": float(weight_decay),
+        },
+        {
+            "group_name": "new_no_decay",
+            "params": buckets["new_no_decay"],
+            "lr": float(new_lr),
+            "lr_scale": lr_scale,
+            "weight_decay": 0.0,
+        },
+    ]
+    for group in groups:
+        group["parameter_names"] = tuple(sorted(names_by_group[group["group_name"]]))
+    return groups
+
+
 def configure_optimizers(model, lr, weight_decay):
     """
     This long function is unfortunately doing something very simple and is being very defensive:
