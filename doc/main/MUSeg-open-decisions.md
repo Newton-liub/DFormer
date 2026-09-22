@@ -1,9 +1,9 @@
 # MUSeg 实验口径与处置状态
 
-> **状态时间：** 2026-09-21（MMFR v4.1 E1 Batch 1A C0/F-lite Gate-B PASS；R-EM 退休；R-OE 设计冻结）。
+> **状态时间：** 2026-09-22（MMFR v4.1 E1 Batch 1A C0/F-lite training PASS；Quick-Val 完成且 F-lite `promote`；Main-Val 尚未运行，等待本地 10-condition Main-Val）。
 > **文档角色：** 研究选择与边界记录，不承担实时状态或执行授权。
 > **实时入口：** [`MUSeg-current-status.md`](MUSeg-current-status.md)。稳定基准与分支规则见 [`research-branch-governance.md`](../guides/project/research-branch-governance.md)。
-> **候选计划：** 历史 A2/B2 与方向1计划的执行状态以实时入口为准；MMFR v4.1 E1 的当前处置记录于第 14 节：Batch 1A C0/F-lite 已通过 Gate-B 但正式训练未授权，R-OE-lite 仅完成设计冻结。
+> **候选计划：** 历史 A2/B2 与方向1计划的执行状态以实时入口为准；MMFR v4.1 E1 当前处置为：Batch 1A C0/F-lite 已通过 Gate-B，正式训练均 PASS，Quick-Val 判定 F-lite `promote`，Main-Val 尚未运行并等待迁回本地；R-OE-lite 仅完成设计冻结。
 > 本文件保留问题缘由，并区分“仍待决定”“本轮已处置”和“仅保留历史解释”。已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
 
 ## 1. 新 DFormerv2-MUSeg baseline 方向
