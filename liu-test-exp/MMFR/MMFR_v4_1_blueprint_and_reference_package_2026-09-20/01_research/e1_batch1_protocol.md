@@ -1,9 +1,9 @@
 # MMFR E1 Batch 1A/1B Protocol Freeze
 
 > **Protocol identity：** `MMFR-E1-Batch1A-C0-F-v1`  
-> **状态：** `batch1a-gateb-passed-training-not-authorized`  
-> **日期：** 2026-09-21  
-> **性质：** Batch 1A implementation protocol 与 Batch 1B 边界；不是训练授权。  
+> **状态：** `Batch 1A Quick-Val complete, F-lite promote, awaiting local 10-condition Main-Val`  
+> **日期：** 2026-09-22  
+> **性质：** Batch 1A implementation protocol、正式训练与 Quick-Val 结果与 Batch 1B 边界；Main-Val 尚未运行，计划按冻结命令迁回本地执行；不涉及 checkpoint 重选、R-OE、T 或 official test。  
 > **official test：** `sealed_unread`
 
 ## 1. 协议裁决
@@ -11,11 +11,12 @@
 - `Gate-A-common = PASS`；
 - `Gate-A-F = PASS`；
 - `R-EM-lite = retired-by-observability`；
-- `Batch 1A C0/F = implementation-authorized, Gate-B-passed, training-not-authorized`；
+- `Batch 1A C0/F = implementation-authorized, Gate-B-passed, training-complete-PASS`；
+- `Quick-Val = authorized, completed, F-lite promote`；
 - `R-OE-lite = design-frozen, implementation-not-authorized`；
 - `Batch 1B R-OE = protocol-pending`。
 
-`implementation-authorized` 与 Gate-B PASS 都不等于 `training-authorized`。
+Batch 1A 正式训练已完成且 C0/F-lite 均 PASS；Quick-Val 已完成并判定 F-lite `promote`。Main-Val 尚未运行，因此本协议当前不包含十条件效果结论；Batch 1B 与 official test 仍在边界之外。
 
 ## 2. Batch 结构
 
@@ -189,14 +190,15 @@ Canonical：`outputs/mmfr-e1-batch1a-gateb/e1-batch1a-gateb.json`，SHA-256 `5d5
 
 详细数值见 `../02_evidence/report_e1_batch1a_gateb.md`。
 
-## 10. 正式训练合同（未授权、未运行）
+## 10. 正式训练结果（已完成，C0/F-lite 均 PASS）
 
 - single GPU；batch 10；workers 8；accumulation 1；
-- SyncBN on；DDP off；AMP on；TF32 off；
+- SyncBN on；DDP off；AMP on；
+- **TF32 勘误：** 原字段 `TF32 off` 与实际训练入口不一致。两次正式训练均保留 `utils/train.py` 中既有的 `torch.set_float32_matmul_precision("high")` 行为，实际允许 CUDA matmul TF32，cuDNN TF32 也保持 PyTorch 2.1.2 默认开启；本轮接受该既有行为，不重跑；
 - seed `772961337`；
 - 20 nominal epochs × 128 attempts = 2560 slots；
-- 必须 2560 successful updates；
-- 任一 GradScaler skip 直接 blocked；
+- C0 与 F-lite 均完成 `2560/2560 successful updates`；
+- 两者均为 `skipped=0`，正式训练判定均为 `PASS`；
 - base LR `1e-5`；new LR `3e-5`；
 - weight decay `0.01`，bias/norm no-decay；
 - 128 successful-update linear warmup；
@@ -205,14 +207,33 @@ Canonical：`outputs/mmfr-e1-batch1a-gateb/e1-batch1a-gateb.json`，SHA-256 `5d5
 - A2 v3 virtual curriculum 约 `0.84 → 0.88`；
 - `p_clean=0.25`，`max_specs=2`，六类 Depth corruption；
 - recovery 每 640 successful updates；
-- fixed final checkpoint `update-2560.pth`；
-- selector/top-k/best/latest selection 关闭。
+- C0 final checkpoint：`cloud/mmfr-e1-batch1a-v1/C0/development/seed-772961337/checkpoint/update-2560.pth`，SHA-256 `ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`；
+- F-lite final checkpoint：`cloud/mmfr-e1-batch1a-v1/FLite/development/seed-772961337/checkpoint/update-2560.pth`，SHA-256 `ea9319e5abe55b996470ee0a75bd63b887241ef834a3b50f145b5b7d4aabd98d`；
+- selector/top-k/best/latest selection 关闭；
+- **DataLoader shuffle 记录：** 两个 run 的样本 shuffle 顺序存在轻微差异，原因是 F-lite adapter 初始化额外消耗全局 torch RNG；本轮接受为 screening-level 随机性差异，不修改采样器、不重跑训练。
 
-## 11. Quick-Val（未授权、未运行）
+## 11. Quick-Val（已授权、已执行，F-lite 判定 `promote`）
 
-Batch 1A 若获正式训练授权，评价固定为：318 条完整 `val-dev`、original-full、scale 1.0、no flip、FP32、TF32 off、原始 Label grid、fixed final checkpoint only。
+评价固定为：318 条完整 `val-dev`、original-full、scale 1.0、no flip、FP32、TF32 off、原始 Label grid、fixed final checkpoint only。
 
 条件：clean、`entire_missing@1.0`、`spatial_dropout@0.75`、`misalignment@0.75`。
+
+**执行入口（新增，需记录为偏离）：** 上述“单视图 `original-full` + 四个 condition 计分”在既有冻结工具中没有对应 runner —— `tools/evaluate_museg_checkpoint.py` 提供 `original-full` 几何但没有 condition 计分入口，`tools/evaluate_museg_10condition.py` 能计分但视图硬编码为十视图 `msflip-whole-original-grid-v1`（其 scale 与 view 常量不从 `--protocol` 读取）。经用户单独裁决，采用“严格按文本新写最小单视图条件计分入口”的方案：新增 `tools/mmfr/e1_quickval.py`，SHA-256 `928c4229d937552e00128e9291b915204291f58c1e80b4b5a005efa9365e4073`。该入口是薄复用层：模型构建与 strict 载入、FP32/TF32-off、`original-full` 输入契约、logits 回原网格、confusion 与指标均调用冻结的 `tools.evaluate_museg_checkpoint`；condition 定义、corruption 应用与样本读取均调用冻结的 `tools.evaluate_museg_10condition`（冻结 evaluation seed `2026091401`、冻结 condition index）；RNG 沿用冻结 `load_eval_model` 约定（构建后用 evaluation seed 播种 torch，并 `reset-per-unit` 回放同一 base RNG 状态）。**该入口没有既有冻结资格检查**，其 `original-full` 输入契约已用 `--self-check` 证明与冻结 `MUSegPostEvalDataset` 在 `318/318` 样本上 `rgb`/`depth`/`label` 逐位相等。
+
+**结果（mIoU %，单视图，318 样本）：**
+
+| condition | C0 | F-lite | delta (F-lite − C0) |
+| --- | --- | --- | --- |
+| clean | 53.46 | 54.15 | +0.69 pp |
+| `spatial_dropout@0.75` | 51.40 | 52.39 | +0.99 pp |
+| `misalignment@0.75` | 52.15 | 52.63 | +0.48 pp |
+| `entire_missing@1.0` | 48.76 | 50.17 | +1.41 pp |
+
+$$
+M_{3,\mathrm{hard}}: 50.77 \rightarrow 51.73,\quad \Delta_F=+0.96\ \text{pp}
+$$
+
+**判定 `promote`：** 满足 $\Delta_F\ge+0.50$ pp、clean $\ge-0.25$ pp、每个 hard condition $\ge-0.50$ pp；stop 条件（$\Delta_F\le0$、clean $<-0.50$ pp、任一 hard $<-1.00$ pp）均未触发。checkpoint 身份：C0 `ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`、F-lite `ea9319e5abe55b996470ee0a75bd63b887241ef834a3b50f145b5b7d4aabd98d`。证据：`cloud/mmfr-e1-batch1a-v1/quickval-comparison.json`（SHA-256 `1f00d4face8587183c2e235eac689cb6c77556dc0b6c8636d95a8c5471176f7f`）与两侧 `quickval-original-full/`（含逐条件 `metrics.json` 与 `summary.json`）。**最小验证：** 输入契约逐位等价；同 checkpoint 两进程重复运行给出相同 clean mIoU 与相同 confusion matrix；C0/F-lite 的逐样本顺序、corrupted Depth SHA-256 与像素支持在四个条件上完全相同。**边界：** 该结果是单视图口径的 screening 证据，不得与十视图数字直接比较，也不构成 Main-Val、10-condition、Batch 1B 或 official test 授权。
 
 F-lite：
 
@@ -228,6 +249,6 @@ R-OE 不自动继承原 R-EM cause-specific gate；Batch 1B 数值 gate 必须�
 
 ## 12. 授权边界与恢复点
 
-本轮没有运行 20 epoch、2560 updates、Quick-Val、318 样本评价、Main-Val、云端正式训练或 official test，也没有实现 R-OE。
+Batch 1A C0/F-lite 正式训练均已完成并 PASS，各完成 `2560/2560 successful updates` 且 `skipped=0`；4-condition Quick-Val 已在 318 条 `val-dev` 上完成并判定 F-lite `promote`。本轮没有运行 Main-Val 或 10-condition 评价，因此没有 Main-Val 指标、比较结论或 checkpoint 效果选择；也没有实现 R-OE、运行 T 或读取 official test。
 
-**恢复点：** 当前停止于 `Batch 1A C0/F Gate-B PASS`，等待上级审计和用户对正式 20-epoch / 2560-update 训练的单独授权。
+**恢复点：** `awaiting local 10-condition Main-Val`。下一步只按冻结命令将 Main-Val 迁回本地执行；不修改 evaluator、不重选 checkpoint、不增加研究设计。

@@ -1,14 +1,14 @@
 # MMFR E1 候选筛选计划：Batch 1A/1B 分阶段冻结
 
 > **文档角色：** E1 Batch 1 的研究合同、授权边界与恢复入口。  
-> **状态：** `batch1a-gateb-passed-awaiting-training-authorization`  
-> **日期：** 2026-09-21  
+> **状态：** `Batch 1A Quick-Val complete, F-lite promote, awaiting local 10-condition Main-Val`  
+> **日期：** 2026-09-22  
 > **实时入口：** [`MUSeg-current-status.md`](../../../../doc/main/MUSeg-current-status.md)  
 > **配套协议：** [`e1_batch1_protocol.md`](e1_batch1_protocol.md)  
 > **Gate-B 报告：** [`../02_evidence/report_e1_batch1a_gateb.md`](../02_evidence/report_e1_batch1a_gateb.md)  
 > **R-OE 设计：** [`r_oe_lite_design.md`](r_oe_lite_design.md)
 
-**大白话说明：** 原 `R-EM-lite` 想识别“为什么 Depth 为空”，但当前输入只能看见“Depth 已经为空”，无法恢复隐藏原因。该路线因此正式退休，不再阻塞与它无关的 C0/F-lite。C0 与 F-lite 已完成最小实现资格检查，但还没有获准开始 20 epoch、2560 update 正式训练。
+**大白话说明：** 原 `R-EM-lite` 想识别“为什么 Depth 为空”，但当前输入只能看见“Depth 已经为空”，无法恢复隐藏原因。该路线因此正式退休，不再阻塞与它无关的 C0/F-lite。C0 与 F-lite 正式训练均已 PASS，各完成 `2560/2560 successful updates` 且 `skipped=0`；4-condition Quick-Val 已完成，F-lite 相对 C0 的 $\Delta_F=+0.96$ pp 满足冻结 promote 门槛。
 
 ---
 
@@ -78,9 +78,9 @@ $$
 
 - implementation：已完成；
 - Gate-B：已通过；
-- formal training：未授权；
-- Quick-Val：未授权；
-- Main-Val：未授权。
+- formal training：C0/F-lite 均已完成并 PASS；
+- Quick-Val：已授权、已完成，F-lite `promote`；
+- Main-Val：尚未运行，计划迁回本地执行。
 
 ### 2.2 Batch 1B：R-OE-lite vs C0
 
@@ -220,13 +220,14 @@ R-OE 本轮只完成设计冻结，不实现 substitute，不进入 Gate-B 或�
 
 ---
 
-## 7. 正式训练合同（保留但未运行）
+## 7. 正式训练结果（已完成，C0/F-lite 均 PASS）
 
-- single GPU、SyncBN on、DDP off、AMP on、TF32 off；
+- single GPU、SyncBN on、DDP off、AMP on；
+- **TF32 勘误：** 原合同字段 `TF32 off` 与实际训练入口不一致。两次正式训练均保留 `utils/train.py` 中既有的 `torch.set_float32_matmul_precision("high")` 行为，实际允许 CUDA matmul TF32，cuDNN TF32 也保持 PyTorch 2.1.2 默认开启；本轮接受该既有行为，不重跑；
 - batch size 10、workers 8、accumulation 1；
 - seed `772961337`；
 - 20 nominal epochs × 128 attempts = 2560 slots；
-- 必须 2560 successful updates，任何 GradScaler skip 直接阻塞；
+- C0 与 F-lite 均完成 `2560/2560 successful updates`，`skipped=0`，正式训练判定均为 `PASS`；
 - base LR `1e-5`，new LR `3e-5`；
 - warmup 128 successful updates；
 - poly power `0.9`，update 2560 到 0；
@@ -234,16 +235,20 @@ R-OE 本轮只完成设计冻结，不实现 substitute，不进入 Gate-B 或�
 - A2 v3 curriculum virtual progress 约 `0.84 → 0.88`；
 - `p_clean=0.25`、`max_specs=2`、六类 Depth corruption；
 - recovery 每 640 successful updates；
-- fixed final checkpoint：`update-2560.pth`；
-- 不使用 selector/top-k/best/latest 选择效果。
-
-本轮没有开始该训练。
+- C0 final checkpoint：`cloud/mmfr-e1-batch1a-v1/C0/development/seed-772961337/checkpoint/update-2560.pth`，SHA-256 `ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`；
+- F-lite final checkpoint：`cloud/mmfr-e1-batch1a-v1/FLite/development/seed-772961337/checkpoint/update-2560.pth`，SHA-256 `ea9319e5abe55b996470ee0a75bd63b887241ef834a3b50f145b5b7d4aabd98d`；
+- 不使用 selector/top-k/best/latest 选择效果；
+- **DataLoader shuffle 记录：** 两个 run 的样本 shuffle 顺序存在轻微差异，原因是 F-lite adapter 初始化额外消耗全局 torch RNG；本轮接受为 screening-level 随机性差异，不修改采样器、不重跑训练。
 
 ---
 
 ## 8. Quick-Val 与 promotion
 
-Batch 1A 若未来获准训练，Quick-Val 仍固定为：完整 318 条 `val-dev`、original-full、scale 1.0、no flip、FP32、TF32 off、原始 Label grid、fixed final checkpoint；条件为 clean、`entire_missing@1.0`、`spatial_dropout@0.75`、`misalignment@0.75`。
+Batch 1A Quick-Val 已执行完毕，评价口径固定为：完整 318 条 `val-dev`、original-full、scale 1.0、no flip、FP32、TF32 off、原始 Label grid、fixed final checkpoint；条件为 clean、`entire_missing@1.0`、`spatial_dropout@0.75`、`misalignment@0.75`。
+
+**执行入口（新增，需记录为偏离）：** 既有冻结工具中没有“单视图 `original-full` + four-condition 计分”的 runner（`tools/evaluate_museg_checkpoint.py` 无 condition 计分，`tools/evaluate_museg_10condition.py` 硬编码十视图）。经用户单独裁决新增 `tools/mmfr/e1_quickval.py`（SHA-256 `928c4229d937552e00128e9291b915204291f58c1e80b4b5a005efa9365e4073`），为薄复用层：前向与指标调用冻结 evaluator，condition/corruption/样本读取调用冻结 ten-view evaluator，RNG 沿用冻结 `load_eval_model` 约定。输入契约已用 `--self-check` 证明与冻结 `MUSegPostEvalDataset` 在 `318/318` 样本上逐位相等。
+
+**结果（mIoU %，单视图）：** C0 clean `53.46` / SD@0.75 `51.40` / Mis@0.75 `52.15` / EM@1.0 `48.76`；F-lite clean `54.15` / SD@0.75 `52.39` / Mis@0.75 `52.63` / EM@1.0 `50.17`；delta `+0.69 / +0.99 / +0.48 / +1.41` pp；$M_{3,\mathrm{hard}}$ `50.77 → 51.73`，$\Delta_F=+0.96$ pp；判定 `promote`。证据见 `cloud/mmfr-e1-batch1a-v1/quickval-comparison.json`（SHA-256 `1f00d4face8587183c2e235eac689cb6c77556dc0b6c8636d95a8c5471176f7f`）与两侧 `quickval-original-full/`。该结果是单视图口径 screening 证据，不得与十视图数字直接比较。
 
 F-lite gate 保持：
 
@@ -268,15 +273,16 @@ R-OE 的 Quick-Val 解释见设计文档；Batch 1B 在单独协议审核前不�
 - `R-EM-lite` retired-by-observability；
 - Batch 1A C0/F 实现；
 - Batch 1A Gate-B PASS；
+- Batch 1A C0/F-lite 正式训练均 PASS，各完成 `2560/2560 successful updates` 且 `skipped=0`；
+- 4-condition Quick-Val 完成，F-lite 相对 C0 判定 `promote`（$\Delta_F=+0.96$ pp）；
+- 两个 fixed final checkpoint 及 SHA-256 已记录；
 - R-OE-lite 设计冻结。
 
-未执行且未授权：
+未执行或尚未形成结果：
 
-- 20 epoch / 2560 update 正式训练；
-- Quick-Val、318 样本评价或 Main-Val；
-- 云端正式任务；
+- 10-condition Main-Val；计划按冻结命令迁回本地运行；
 - Batch 1B R-OE 实现；
 - Batch 2；
 - official test。
 
-**准确恢复点：** 当前停止于 `Batch 1A C0/F Gate-B PASS`，等待上级审计和用户对 20-epoch / 2560-update 正式训练的单独授权。
+**准确恢复点：** `awaiting local 10-condition Main-Val`。Main-Val 尚未运行，不重选 checkpoint、不修改 evaluator、不增加研究设计。
