@@ -1,13 +1,14 @@
 # MUSeg 当前状态与唯一实时入口
 
 > **状态时间：** 2026-09-15（MMFR A2 v3 本地资格、云端 probe 与恢复门禁历史批次）；2026-09-17（A2 v3 one-arm 训练与 10-condition Main-Val 历史批次）；2026-09-20（`MMFR-Oracle-A` 12/12 单元完成并裁决 `NO-GO`；MMFR v4.1 文献全文门禁）；2026-09-21（E1 Batch 1A C0/F-lite 实现与 Gate-B PASS，R-EM 退休，R-OE 设计冻结）；2026-09-22（本批次 Git 提交与远端同步）；2026-09-21（E1 Batch 1A 正式训练前核验 PASS、耗时估算，以及三项待用户裁决的差异项）；2026-09-22（E1 Batch 1A C0 与 F-lite 正式训练均 PASS，各完成 2560 successful updates、零 GradScaler skip）；2026-09-22（Quick-Val 四条件在 318 条 `val-dev` 上跑完，$\Delta_F=+0.96$ pp，判定 `promote`）
-> **当前阶段：** `Batch 1A Quick-Val complete, F-lite promote, awaiting local 10-condition Main-Val`。C0 与 F-lite 正式训练均已完成并通过冻结停止点（各 `2560/2560 successful updates`、`skipped=0`、`exit_code=0`）。用户授权的 4-condition Quick-Val 已完成：C0 `clean 53.46 / SD@0.75 51.40 / Mis@0.75 52.15 / EM@1.0 48.76`，F-lite `clean 54.15 / SD@0.75 52.39 / Mis@0.75 52.63 / EM@1.0 50.17`（单视图 `original-full`，318 样本）；$M_{3,\mathrm{hard}}$ `50.77 → 51.73`，$\Delta_F=+0.96$ pp，三个 hard 条件 `+0.99 / +0.48 / +1.41` pp，按冻结 promotion/stop gate 判定 **`promote`**。
+> **当前阶段：** `ready-for-local-mainval`。C0/F-lite 正式训练均 PASS，Quick-Val 已完成且 F-lite=`promote`；Main-Val 尚未运行，下一步按冻结命令迁回本地执行。
 > **授权边界：** Batch 1A C0/F-lite 正式训练与 4-condition Quick-Val 均已授权并执行完毕；Main-Val 尚未运行，计划迁回本地执行。R-OE 实现、Batch 1B、Batch 2 与 official test 仍未授权、未运行；official test 继续为 `sealed_unread`。Quick-Val 使用了用户单独授权新写的单视图条件计分入口 `tools/mmfr/e1_quickval.py`（新入口、无既有冻结资格，其 `original-full` 输入契约已证明与冻结数据集逐位相等），因此该结果属于 screening 级证据，不得与十视图口径数字直接比较。
 > **大白话说明：** 两个正式训练跑完后，按冻结的四个条件做了筛查评价：F-lite 在四个条件上都优于 C0（clean `+0.69`、整模态缺失 `+1.41`、局部删空 `+0.99`、几何错位 `+0.48` 个百分点），三个困难条件的平均领先 `0.96` 个百分点，按事先冻结的门槛属于“值得继续”的 `promote`，这不是正式结论。C0 与 F-lite 的 DataLoader shuffle 顺序存在轻微差异，本轮接受为 screening-level 随机性差异，不修改采样器、不重跑；训练实际保留既有 TF32 行为，原文档字段 `TF32 off` 已按勘误记录。原 R-EM 已因不可观测而退休；R-OE 目前只完成设计，没有写代码。
 > **2026-09-22 Main-Val 状态：** 本轮没有运行 Main-Val；此前误启动的云端 C0 进程已中止且没有写出任何条件结果、`summary.json` 或 `run_manifest.json`。当前恢复点是 `awaiting local 10-condition Main-Val`，按冻结命令迁回本地运行；不涉及 checkpoint 重选、R-OE、T 或 official test。**大白话说明：** 训练和 Quick-Val 已收尾，但十条件正式比较还没有开始。
+> **本地迁移包：** `/root/rivermind-data/cloud/MMFR_E1_Batch1A_local_transfer_20260922.tar.gz`，仅包含 C0/F-lite fixed final checkpoint、训练/Quick-Val必要证据和迁移说明；Main-Val运行产物不在包内，因为本轮未运行 Main-Val。
 > 本文件是 MUSeg 当前事实、授权边界、证据入口和恢复规则的唯一实时入口；计划、报告、审计和 Canvas 只承担各自形成时点的历史或详细证据职责。
 > **证据包维护：** MMFR v4.1 第二次目录简化已完成；canonical 材料现集中在 `00_control/`、`01_research/`、`02_evidence/`、`03_reference/`，当前上级模型审核入口为 `liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/99_review_packet_current/REVIEW_BRIEF.md`。六文件审核包 generation ID 为 `8d5657e0f1de834c1a6becc911ea6fb03922c88d88a7b70edac015a13fa0f6bf`，连续重建的 SHA-256 与字节数一致；`liu-test-exp/MMFR/附件/` 作为本机论文全文与提取产物层由 Git 忽略，可携带的审计结论与来源身份保留在 package 的 `03_reference/`。本次只改变证据组织和审核接口，不改变 Gate-B、训练授权或 official-test 状态。大白话说，给上级模型看的材料已经缩成一个可直接上传的六文件目录，论文全文仍可由本机 AI 按明确路径读取，但不会随 Git 仓库分发，研究结论没有因此变化。
-> **版本控制状态：** 本轮待同步内容包括 `tools/mmfr/e1_quickval.py`、Batch 1A 状态/协议文档；checkpoint、运行输出和数据不进入 Git。当前恢复点为 `awaiting local 10-condition Main-Val`。
+> **版本控制状态：** 本轮 Batch 1A Quick-Val runner 与必要状态/协议文档已提交并推送到当前分支；checkpoint、运行输出和数据不进入 Git。当前工作区应保持干净，恢复点为 `ready-for-local-mainval`。
 
 ## 1. 稳定基线
 
