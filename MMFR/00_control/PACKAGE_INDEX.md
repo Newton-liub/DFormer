@@ -58,7 +58,7 @@ The script reads `00_control/review_profile.json`, generates a flat packet, reco
 **Packet state for the 2026-09-23 Batch 1B review**
 
 1. The active L1 profile is `e1-batch1b-roe-gateb`; it points to the Batch 1B protocol, Gate-B report, and implementation-diff audit.
-2. The current packet was rebuilt successfully with generation ID `86a92d119a8a1e0b2c33a2ad6fba8876aef0e2c26c1233f8fb7a28c9d2272691`. It contains the six expected files, and the generator reported zero broken canonical, packet, or copied-packet links.
+2. The current packet was rebuilt successfully with generation ID `8213dfb94396d4c65f4200c94029308573332f210665c578ccf323577e6a0415`. It contains the six expected files, and the generator reported zero broken canonical, packet, or copied-packet links.
 3. `99_review_packet_current/` is generated output and is the sole upload-ready entry. Its manifest records source and packet hashes; do not edit generated files by hand. `official_test` remains `sealed_unread`.
 
 

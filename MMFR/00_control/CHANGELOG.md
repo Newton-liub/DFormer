@@ -1,5 +1,11 @@
 # MMFR v4.1 package change log
 
+## 2026-09-23 — refreshed Batch 1B L1 packet for senior review
+
+- Rebuilt the active `e1-batch1b-roe-gateb` packet at HEAD `2c3176e375562cd62be31bb10cb9363537edb4f3`; generation ID `8213dfb94396d4c65f4200c94029308573332f210665c578ccf323577e6a0415`.
+- Confirmed the six expected flat packet files, zero broken canonical/packet/copied-packet links, and `official_test=sealed_unread`.
+- Refreshed reproducibility metadata for the current commit and clean-at-start worktree; no training, evaluation, cloud task, commit, or push was performed.
+
 ## 2026-09-23 — E1 Batch 1B R-OE-lite Gate-B review packet
 
 - Recorded the completed R-OE-lite implementation and Gate-B PASS in the protocol, screening plan, design record, Gate-B report, and implementation-diff audit. The canonical Gate-B JSON SHA-256 is `35297b490c3e3eb54b5e66d3f06784688fca65038e7d09874c30c60cde820231`.

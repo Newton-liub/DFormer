@@ -1,6 +1,6 @@
 ﻿{
   "schema_version": "mmfr-package-reproducibility-v2",
-  "recorded_at_utc": "2026-09-23T07:31:29+00:00",
+  "recorded_at_utc": "2026-09-23T08:45:06+00:00",
   "package_name": "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
   "package_layout": "in-repository-restored-package",
   "active_review_profile": "e1-batch1b-roe-gateb",
@@ -10,9 +10,9 @@
   "authoritative_open_decisions": "../../../doc/main/MUSeg-open-decisions.md",
   "git": {
     "branch": "perf/mmfr-a2-v3-pipeline-opt1",
-    "commit": "97de9f02aa543085f3085fbc59c231cf8b4867e2",
+    "commit": "2c3176e375562cd62be31bb10cb9363537edb4f3",
     "tracking_ref": "origin/perf/mmfr-a2-v3-pipeline-opt1",
-    "ahead_of_local_tracking_ref": 5,
+    "ahead_of_local_tracking_ref": 6,
     "behind_local_tracking_ref": 0,
     "workspace_dirty": true,
     "package_tracking_state": "tracked-with-uncommitted-changes"

@@ -1,7 +1,7 @@
 ﻿# Evidence summary
 
 - Profile: `e1-batch1b-roe-gateb`
-- Generation identity: `86a92d119a8a1e0b2c33a2ad6fba8876aef0e2c26c1233f8fb7a28c9d2272691`
+- Generation identity: `8213dfb94396d4c65f4200c94029308573332f210665c578ccf323577e6a0415`
 - Scope: review-relevant conclusions extracted from canonical sources; canonical files remain authoritative.
 
 ## Observable-empty substitute route
@@ -34,7 +34,7 @@
 - Status: Canonical Gate-B artifact identity recorded; report and digest are in the review packet
 - Current relevance: The canonical artifact binds the PASS result, implementation identity, and authorization boundary.
 - Canonical sources:
-  - `02_evidence/reproducibility_current.json` - SHA-256 `d0035a9bffac8341715cef658b30fa7884eca8077a3392d8f88f671d4871033e`
+  - `02_evidence/reproducibility_current.json` - SHA-256 `0b84f21b6210c5e2163b9daaed676bd0b72c999600d3eb2f90eacd070f94864a`
   - `02_evidence/report_e1_batch1b_roe_gateb.md` - SHA-256 `fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97`
 - Key conclusions:
   - The Gate-B artifact SHA-256 is 35297b490c3e3eb54b5e66d3f06784688fca65038e7d09874c30c60cde820231.
@@ -42,7 +42,7 @@
   - The official-test state remains sealed_unread.
 - Review identity fields:
   - Git branch: `perf/mmfr-a2-v3-pipeline-opt1`
-  - Git commit: `97de9f02aa543085f3085fbc59c231cf8b4867e2`
+  - Git commit: `2c3176e375562cd62be31bb10cb9363537edb4f3`
   - Tracked workspace dirty: `true`
   - Evaluator: `N/A - Gate-B engineering qualification`
   - Checkpoint effect selection: `N/A - not performed`
