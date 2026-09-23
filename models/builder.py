@@ -190,18 +190,7 @@ class EncoderDecoder(nn.Module):
 
         self.aux_head = None
 
-        if cfg.decoder == "MLPDecoder":
-            logger.info("Using MLP Decoder")
-            from .decoders.MLPDecoder import DecoderHead
-
-            self.decode_head = DecoderHead(
-                in_channels=self.channels,
-                num_classes=cfg.num_classes,
-                norm_layer=norm_layer,
-                embed_dim=cfg.decoder_embed_dim,
-            )
-
-        elif cfg.decoder == "ham":
+        if cfg.decoder == "ham":
             logger.info("Using Ham Decoder")
             print(cfg.num_classes)
             from .decoders.ham_head import LightHamHead as DecoderHead
@@ -221,46 +210,6 @@ class EncoderDecoder(nn.Module):
                 self.aux_rate = cfg.aux_rate
                 print("aux rate is set to", str(self.aux_rate))
                 self.aux_head = FCNHead(self.channels[2], cfg.num_classes, norm_layer=norm_layer)
-
-        elif cfg.decoder == "UPernet":
-            logger.info("Using Upernet Decoder")
-            from .decoders.UPernet import UPerHead
-
-            self.decode_head = UPerHead(
-                in_channels=self.channels, num_classes=cfg.num_classes, norm_layer=norm_layer, channels=512
-            )
-            from .decoders.fcnhead import FCNHead
-
-            self.aux_index = 2
-            self.aux_rate = 0.4
-            self.aux_head = FCNHead(self.channels[2], cfg.num_classes, norm_layer=norm_layer)
-
-        elif cfg.decoder == "deeplabv3+":
-            logger.info("Using Decoder: DeepLabV3+")
-            from .decoders.deeplabv3plus import DeepLabV3Plus as Head
-
-            self.decode_head = Head(in_channels=self.channels, num_classes=cfg.num_classes, norm_layer=norm_layer)
-            from .decoders.fcnhead import FCNHead
-
-            self.aux_index = 2
-            self.aux_rate = 0.4
-            self.aux_head = FCNHead(self.channels[2], cfg.num_classes, norm_layer=norm_layer)
-        elif cfg.decoder == "nl":
-            logger.info("Using Decoder: nl+")
-            from .decoders.nl_head import NLHead as Head
-
-            self.decode_head = Head(
-                in_channels=self.channels[1:],
-                in_index=[1, 2, 3],
-                num_classes=cfg.num_classes,
-                norm_cfg=norm_cfg,
-                channels=512,
-            )
-            from .decoders.fcnhead import FCNHead
-
-            self.aux_index = 2
-            self.aux_rate = 0.4
-            self.aux_head = FCNHead(self.channels[2], cfg.num_classes, norm_layer=norm_layer)
 
         else:
             logger.info("No decoder(FCN-32s)")
@@ -349,17 +298,12 @@ class EncoderDecoder(nn.Module):
                 nonlinearity="relu",
             )
 
-    def encode_decode(self, rgb, modal_x, oracle_corruption_mask=None, geometry_oracle=None):
+    def encode_decode(self, rgb, modal_x):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
         orisize = rgb.shape
         # print('builder',rgb.shape,modal_x.shape)
-        x = self.backbone(
-            rgb,
-            modal_x,
-            oracle_corruption_mask=oracle_corruption_mask,
-            geometry_oracle=geometry_oracle,
-        )
+        x = self.backbone(rgb, modal_x)
         if len(x) == 2:  # if output is (rgb,depth) only use rgb
             x = x[0]
         if self.feature_adapter is not None:
@@ -377,8 +321,6 @@ class EncoderDecoder(nn.Module):
         rgb,
         modal_x=None,
         label=None,
-        oracle_corruption_mask=None,
-        geometry_oracle=None,
         raw_rgb=None,
         raw_depth=None,
         reliability_target=None,
@@ -411,19 +353,9 @@ class EncoderDecoder(nn.Module):
                 )
 
         if self.aux_head:
-            out, aux_fm = self.encode_decode(
-                rgb,
-                modal_x,
-                oracle_corruption_mask=oracle_corruption_mask,
-                geometry_oracle=geometry_oracle,
-            )
+            out, aux_fm = self.encode_decode(rgb, modal_x)
         else:
-            out = self.encode_decode(
-                rgb,
-                modal_x,
-                oracle_corruption_mask=oracle_corruption_mask,
-                geometry_oracle=geometry_oracle,
-            )
+            out = self.encode_decode(rgb, modal_x)
         if label is not None:
             target = label.long()
             valid_mask = target != self.cfg.background

@@ -1,14 +1,23 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.14",
+  "nextCanvasVersion": "0.0.15",
   "latestFormalReport": {
-    "path": "doc/reports/2026-09-21-mmfr-v4-external-reference-audit.md",
-    "periodStart": "2026-09-21",
-    "periodEnd": "2026-09-21",
-    "baseCommit": "e8abbe2d0b87ea5b2e29069037fcf4bc8d7e57eb",
-    "status": "formal-mmfr-v4-external-reference-audit"
+    "path": "doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md",
+    "periodStart": "2026-09-22",
+    "periodEnd": "2026-09-23",
+    "baseCommit": "87c0760b6ecd36b77dea36995aa334e4c6dc41ed",
+    "status": "formal-mmfr-e1-batch1a-c0-flite-mainval-descriptive-no-preregistered-gate"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md",
+      "topic": "mmfr-e1-batch1a-c0-flite-mainval",
+      "periodStart": "2026-09-22",
+      "periodEnd": "2026-09-23",
+      "baseCommit": "87c0760b6ecd36b77dea36995aa334e4c6dc41ed",
+      "verification": "two-arm-ten-condition-mainval-completeness-identity-and-pairing-assertions-zero-failures-plus-primary-score-recomputation",
+      "status": "formal-mainval-descriptive-no-preregistered-gate"
+    },
     {
       "path": "doc/reports/2026-09-21-mmfr-v4-external-reference-audit.md",
       "topic": "mmfr-v4-external-reference-audit",
@@ -230,7 +239,7 @@
     {
       "version": "0.0.1",
       "name": "report-workflow-decision",
-      "source": "doc/canvases/old/0.0.1-report-workflow-decision.canvas.tsx",
+      "source": "D:/0Project/DFormer-archive-20260922/doc/canvases/old/0.0.1-report-workflow-decision.canvas.tsx",
       "publishedFilename": "0.0.1-report-workflow-decision.canvas.tsx",
       "relatedReport": null,
       "createdAt": "2026-08-17",
@@ -239,7 +248,7 @@
     {
       "version": "0.0.2",
       "name": "museg-dformer-data-review",
-      "source": "doc/canvases/old/0.0.2-museg-dformer-data-review.canvas.tsx",
+      "source": "D:/0Project/DFormer-archive-20260922/doc/canvases/old/0.0.2-museg-dformer-data-review.canvas.tsx",
       "publishedFilename": "0.0.2-museg-dformer-data-review.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-19-museg-dformer-data-processing-review.md",
       "createdAt": "2026-08-17",
@@ -248,7 +257,7 @@
     {
       "version": "0.0.3",
       "name": "museg-data-reproduction-update",
-      "source": "doc/canvases/old/0.0.3-museg-data-reproduction-update.canvas.tsx",
+      "source": "D:/0Project/DFormer-archive-20260922/doc/canvases/old/0.0.3-museg-data-reproduction-update.canvas.tsx",
       "publishedFilename": "0.0.3-museg-data-reproduction-update.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-19-museg-data-reproduction-update.md",
       "createdAt": "2026-08-19",
@@ -257,7 +266,7 @@
     {
       "version": "0.0.4",
       "name": "museg-minimum-validation-paths",
-      "source": "doc/canvases/old/0.0.4-museg-minimum-validation-paths.canvas.tsx",
+      "source": "D:/0Project/DFormer-archive-20260922/doc/canvases/old/0.0.4-museg-minimum-validation-paths.canvas.tsx",
       "publishedFilename": "0.0.4-museg-minimum-validation-paths.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-19-museg-minimum-validation-paths.md",
       "createdAt": "2026-08-19",
@@ -266,7 +275,7 @@
     {
       "version": "0.0.5",
       "name": "museg-mve-outcome-and-disposition",
-      "source": "doc/canvases/old/0.0.5-museg-mve-outcome-and-disposition.canvas.tsx",
+      "source": "D:/0Project/DFormer-archive-20260922/doc/canvases/old/0.0.5-museg-mve-outcome-and-disposition.canvas.tsx",
       "publishedFilename": "0.0.5-museg-mve-outcome-and-disposition.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-21-museg-mve-cleanup-and-disposition.md",
       "createdAt": "2026-08-21",
@@ -275,7 +284,7 @@
     {
       "version": "0.0.6",
       "name": "museg-stage-2-dev-split-freeze",
-      "source": "doc/canvases/old/0.0.6-museg-stage-2-dev-split-freeze.canvas.tsx",
+      "source": "D:/0Project/DFormer-archive-20260922/doc/canvases/old/0.0.6-museg-stage-2-dev-split-freeze.canvas.tsx",
       "publishedFilename": "0.0.6-museg-stage-2-dev-split-freeze.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-25-museg-stage-2-dev-split-freeze.md",
       "createdAt": "2026-08-25",
@@ -284,7 +293,7 @@
     {
       "version": "0.0.7",
       "name": "museg-gate-b-auditable-training-pipeline",
-      "source": "doc/canvases/old/0.0.7-museg-gate-b-auditable-training-pipeline.canvas.tsx",
+      "source": "D:/0Project/DFormer-archive-20260922/doc/canvases/old/0.0.7-museg-gate-b-auditable-training-pipeline.canvas.tsx",
       "publishedFilename": "0.0.7-museg-gate-b-auditable-training-pipeline.canvas.tsx",
       "relatedReport": "doc/reports/2026-08-25-museg-stage-2-gate-b-auditable-training-pipeline.md",
       "createdAt": "2026-08-25",
@@ -343,6 +352,15 @@
       "relatedReport": "doc/reports/2026-09-10-museg-dformerv2-to-mve-group-meeting.md",
       "createdAt": "2026-09-10",
       "status": "formal-dformerv2-to-mve-group-meeting"
+    },
+    {
+      "version": "0.0.14",
+      "name": "mmfr-e1-batch1a-c0-flite-mainval",
+      "source": "doc/canvases/0.0.14-mmfr-e1-batch1a-c0-flite-mainval.canvas.tsx",
+      "publishedFilename": "0.0.14-mmfr-e1-batch1a-c0-flite-mainval.canvas.tsx",
+      "relatedReport": "doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md",
+      "createdAt": "2026-09-23",
+      "status": "formal-mainval-descriptive-no-preregistered-gate"
     }
   ]
 }

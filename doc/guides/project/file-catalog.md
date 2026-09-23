@@ -1,9 +1,9 @@
 # DFormer 当前文件职责索引
 
 > **文档角色：** 当前职责导航，不承担 MUSeg 实时状态或完整文件清单职责。
-> **核验时点：** 2026-09-05。
+> **核验时点：** 2026-09-23（含 2026-09-23 第二轮源码瘦身后的职责状态）。
 > **实时入口：** `doc/main/MUSeg-current-status.md`；研究选择见 `doc/main/MUSeg-open-decisions.md`。
-> **后继关系：** 2026-08-27 的完整逐文件历史快照见 [`file-catalog-2026-08-27.md`](file-catalog-2026-08-27.md)；当前结构变化以本索引和 Git 为准。
+> **历史快照：** 2026-08-27 的逐文件快照已外移到 `D:/0Project/DFormer-archive-20260922/doc/guides/project/file-catalog-2026-08-27.md`；当前结构以本索引和 Git 为准。
 
 本索引按职责提供最小阅读入口。需要逐文件覆盖、历史计数或旧时点说明时，再读取完整快照；它不是实时实验状态来源。
 
@@ -20,16 +20,15 @@
 - `data/splits/MUSeg/dev-v1/`：冻结 development split、manifest 和审计结果；official-test 文件只作为封存身份锚点。
 - `doc/main/`：唯一当前状态和开放研究决策。
 - `doc/guides/`：稳定项目/云操作指南。
-- `doc/plans/deferred/2026-09-MUSeg-unexecuted/`：A2/B2 与方向1等未执行、未授权候选计划。
-- `doc/plans/archive/`：已完成阶段和历史计划；不构成新运行授权。
+- `doc/plans/`：当前或延期计划；已完成阶段和历史计划位于 `D:/0Project/DFormer-archive-20260922/doc/plans/archive/`，不构成新运行授权。
 - `doc/reports/`：日期化报告、交接材料和 `report-index.json`。
-- `doc/canvases/`：当前可视化汇报源；`doc/canvases/old/` 为只读历史版本。
+- `doc/canvases/`：当前可视化汇报源；历史版本位于 `D:/0Project/DFormer-archive-20260922/doc/canvases/old/`。
 - `local_configs/`：模型、数据、训练和评估配置；新方向需新 config 身份。
 - `protocols/`：可提交的 protocol 模板；物化 manifest 位于被忽略路径。
 - `models/`：DFormer/DFormerv2 模型、解码器和损失实现。
 - `tools/`：数据、split、protocol、preflight、训练编排、后评估、裁决和 Canvas 工具。
 - `utils/`：dataloader、训练、评估、checkpoint、指标和通用运行代码。
-- `tests/`：协议、split、checkpoint、训练操作和 MVE 的定点测试。
+- `tests/`：协议、split、checkpoint、训练操作和损失回归测试。
 - `mmseg/`：内嵌 MMSegmentation 兼容/上游代码，不等同于本地 MUSeg 主入口。
 
 ## MUSeg 稳定基线入口

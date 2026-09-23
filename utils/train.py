@@ -19,20 +19,11 @@ from val_mm import evaluate, evaluate_msf
 from models.builder import EncoderDecoder as segmodel
 from tools.museg_protocol import write_json
 from utils.dataloader.dataloader import get_train_loader, get_val_loader
-from utils.dataloader.mmfr_training import (
+from utils.dataloader.mmfr_training_v3 import (
     CLEAN_PROBABILITY as MMFR_CLEAN_PROBABILITY,
     CORRUPTION_SEED as MMFR_CORRUPTION_SEED,
     CURRICULUM_KINDS as MMFR_CURRICULUM_KINDS,
     MAX_SPECS as MMFR_MAX_SPECS,
-    build_mmfr_training_batch,
-)
-from utils.dataloader.mmfr_training_v2 import (
-    PROTOCOL_ID as MMFR_A2_V2_PROTOCOL,
-    SUPERVISED_CHANNELS as MMFR_A2_V2_SUPERVISED_CHANNELS,
-    TARGET_COMPOSITION as MMFR_A2_V2_TARGET_COMPOSITION,
-    build_mmfr_training_batch_v2,
-)
-from utils.dataloader.mmfr_training_v3 import (
     PROTOCOL_ID as MMFR_A2_V3_PROTOCOL,
     SUPERVISED_CHANNELS as MMFR_A2_V3_SUPERVISED_CHANNELS,
     TARGET_COMPOSITION as MMFR_A2_V3_TARGET_COMPOSITION,
@@ -379,27 +370,21 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
     if (not args.pad_SUNRGBD) and config.backbone.startswith("DFormerv2") and config.dataset_name == "SUNRGBD":
         raise ValueError("DFormerv2 is not recommended without pad_SUNRGBD")
     config.pad = args.pad_SUNRGBD
-    # MMFR-A2 train integration. When the config leaves ``mmfr_a2.corruption`` empty the
+    # MMFR-A2 v3 train integration. When the config leaves ``mmfr_a2.corruption`` empty the
     # whole block below is inert and the pre-A2 training path is byte-for-byte the same.
-    # The v1 and v2 protocols are separate freeze identities, so the guard below validates
-    # the protocol-specific frozen fields instead of accepting either shape implicitly:
-    # feeding a v2 config through the v1 helper (or the reverse) is a hard error.
-    MMFR_A2_V1_PROTOCOL = "MMFR-A2-train-integration-v1"
-    MMFR_A2_V2_BASIS = "MMFR-A1-corruption-basis-v2"
+    # v3 is the only live corruption protocol: the v1 and v2 identities were retired together
+    # with their configs and helpers, so a config that still declares one of them is a hard
+    # error instead of a silently accepted legacy shape.
     mmfr_a2_config = dict(getattr(config, "mmfr_a2", None) or {})
     mmfr_a2_corruption = dict(mmfr_a2_config.get("corruption") or {})
     mmfr_a2_reliability_head = dict(mmfr_a2_config.get("reliability_head") or {})
-    mmfr_a2_protocol = str(mmfr_a2_config.get("protocol") or MMFR_A2_V1_PROTOCOL)
-    if mmfr_a2_protocol not in (MMFR_A2_V1_PROTOCOL, MMFR_A2_V2_PROTOCOL, MMFR_A2_V3_PROTOCOL):
-        parser.error(f"unknown mmfr_a2 protocol identity {mmfr_a2_protocol!r}")
-    mmfr_a2_is_v2 = mmfr_a2_protocol == MMFR_A2_V2_PROTOCOL
-    mmfr_a2_is_v3 = mmfr_a2_protocol == MMFR_A2_V3_PROTOCOL
-    if mmfr_a2_is_v3:
-        mmfr_a2_batch_builder = build_mmfr_training_batch_v3
-    elif mmfr_a2_is_v2:
-        mmfr_a2_batch_builder = build_mmfr_training_batch_v2
-    else:
-        mmfr_a2_batch_builder = build_mmfr_training_batch
+    mmfr_a2_protocol = str(mmfr_a2_config.get("protocol") or MMFR_A2_V3_PROTOCOL)
+    if mmfr_a2_protocol != MMFR_A2_V3_PROTOCOL:
+        parser.error(
+            f"unsupported mmfr_a2 protocol identity {mmfr_a2_protocol!r}; "
+            f"only {MMFR_A2_V3_PROTOCOL} is supported"
+        )
+    mmfr_a2_batch_builder = build_mmfr_training_batch_v3
     if bool(mmfr_a2_corruption) != bool(mmfr_a2_reliability_head):
         parser.error("mmfr_a2 corruption and reliability_head must be enabled together")
     if mmfr_a2_corruption:
@@ -425,40 +410,24 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             parser.error("mmfr_a2 reliability must not feed the backbone or the geometry prior")
         if bool(mmfr_a2_reliability_head.get("geometry_adapter_enabled", False)):
             parser.error("mmfr_a2 must not enable the geometry adapter")
-        if mmfr_a2_is_v2:
-            if str(mmfr_a2_corruption.get("basis") or "") != MMFR_A2_V2_BASIS:
-                parser.error(f"mmfr_a2 v2 corruption basis must be {MMFR_A2_V2_BASIS}")
-            if str(mmfr_a2_corruption.get("severity_encoding") or "") != "single":
-                parser.error("mmfr_a2 v2 requires single severity encoding")
-            if str(mmfr_a2_corruption.get("target_composition") or "") != MMFR_A2_V2_TARGET_COMPOSITION:
-                parser.error("mmfr_a2 v2 supervised Depth target must be depth_valid_pre * R_depth_synthetic")
-            if tuple(mmfr_a2_reliability_head.get("supervised_channels") or ()) != tuple(
-                MMFR_A2_V2_SUPERVISED_CHANNELS
-            ):
-                parser.error(
-                    f"mmfr_a2 v2 reliability supervision must be Depth-only: {list(MMFR_A2_V2_SUPERVISED_CHANNELS)}"
-                )
-            if bool(mmfr_a2_corruption.get("relative_scale_spatial_corruptions", False)) is not True:
-                parser.error("mmfr_a2 v2 requires relative-scale blur and misalignment severity")
-        elif mmfr_a2_is_v3:
-            if str(mmfr_a2_corruption.get("basis") or "") != MMFR_A2_V3_BASIS:
-                parser.error(f"mmfr_a2 v3 corruption basis must be {MMFR_A2_V3_BASIS}")
-            if str(mmfr_a2_corruption.get("severity_encoding") or "") != "single":
-                parser.error("mmfr_a2 v3 requires single severity encoding")
-            if str(mmfr_a2_corruption.get("target_composition") or "") != MMFR_A2_V3_TARGET_COMPOSITION:
-                parser.error("mmfr_a2 v3 target must be V_state_final * R_depth_synthetic")
-            if tuple(mmfr_a2_reliability_head.get("supervised_channels") or ()) != tuple(
-                MMFR_A2_V3_SUPERVISED_CHANNELS
-            ):
-                parser.error(
-                    f"mmfr_a2 v3 reliability supervision must be Depth-only: {list(MMFR_A2_V3_SUPERVISED_CHANNELS)}"
-                )
-            if bool(mmfr_a2_corruption.get("relative_scale_spatial_corruptions", False)) is not True:
-                parser.error("mmfr_a2 v3 requires relative-scale blur and misalignment severity")
-            if str(mmfr_a2_corruption.get("misalignment_validity_transport") or "") != "MID-A":
-                parser.error("mmfr_a2 v3 requires MID-A validity transport")
-            if str(mmfr_a2_corruption.get("final_validity_contract") or "") != "depth_valid_post == V_state_final == (raw_depth_uint8 > 0) & valid_mask":
-                parser.error("mmfr_a2 v3 final validity contract is missing or changed")
+        if str(mmfr_a2_corruption.get("basis") or "") != MMFR_A2_V3_BASIS:
+            parser.error(f"mmfr_a2 v3 corruption basis must be {MMFR_A2_V3_BASIS}")
+        if str(mmfr_a2_corruption.get("severity_encoding") or "") != "single":
+            parser.error("mmfr_a2 v3 requires single severity encoding")
+        if str(mmfr_a2_corruption.get("target_composition") or "") != MMFR_A2_V3_TARGET_COMPOSITION:
+            parser.error("mmfr_a2 v3 target must be V_state_final * R_depth_synthetic")
+        if tuple(mmfr_a2_reliability_head.get("supervised_channels") or ()) != tuple(
+            MMFR_A2_V3_SUPERVISED_CHANNELS
+        ):
+            parser.error(
+                f"mmfr_a2 v3 reliability supervision must be Depth-only: {list(MMFR_A2_V3_SUPERVISED_CHANNELS)}"
+            )
+        if bool(mmfr_a2_corruption.get("relative_scale_spatial_corruptions", False)) is not True:
+            parser.error("mmfr_a2 v3 requires relative-scale blur and misalignment severity")
+        if str(mmfr_a2_corruption.get("misalignment_validity_transport") or "") != "MID-A":
+            parser.error("mmfr_a2 v3 requires MID-A validity transport")
+        if str(mmfr_a2_corruption.get("final_validity_contract") or "") != "depth_valid_post == V_state_final == (raw_depth_uint8 > 0) & valid_mask":
+            parser.error("mmfr_a2 v3 final validity contract is missing or changed")
         mmfr_a2_global_rank = int(torch.distributed.get_rank()) if torch.distributed.is_initialized() else 0
         logger.info(
             "MMFR-A2 Depth corruption enabled: protocol=%s mode=%s seed=%d p_clean=%.2f max_specs=%d "
@@ -858,14 +827,6 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         mmfr_clean_samples = 0
         mmfr_corrupt_samples = 0
         mmfr_reliability_sum = 0.0
-        mmfr_invalidity_totals = {
-            "valid_pixels": 0,
-            "natural_invalid_pixels": 0,
-            "synthetic_missing_pixels": 0,
-            "post_corruption_invalid_pixels": 0,
-            "newly_valid_pixels": 0,
-            "implicit_quality_pixels": 0,
-        }
         mmfr_v3_telemetry_totals = {
             "valid_pixels": 0,
             "natural_invalid_pixels": 0,
@@ -940,39 +901,27 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                         mmfr_clean_samples += 1
                     else:
                         mmfr_corrupt_samples += 1
-                    if mmfr_a2_is_v2:
-                        mmfr_reliability_sum += record["depth_target_mean"]
-                        for key in mmfr_invalidity_totals:
-                            mmfr_invalidity_totals[key] += int(record[key])
-                    elif mmfr_a2_is_v3:
-                        mmfr_reliability_sum += record["depth_target_mean"]
-                        for key in mmfr_v3_telemetry_totals:
-                            mmfr_v3_telemetry_totals[key] += int(record[key])
-                    else:
-                        mmfr_reliability_sum += record["depth_reliability_mean"]
+                    mmfr_reliability_sum += record["depth_target_mean"]
+                    for key in mmfr_v3_telemetry_totals:
+                        mmfr_v3_telemetry_totals[key] += int(record[key])
             imgs = imgs.cuda(non_blocking=True)
             gts = gts.cuda(non_blocking=True)
             modal_xs = modal_xs.cuda(non_blocking=True)
             if mmfr_a2_corruption:
                 # Only tensors cross to the GPU; the audit metadata stays on the CPU and
-                # never reaches the model. v2 and v3 hand the head the post-corruption
-                # Depth validity used by the input seen by the model.
-                mmfr_depth_validity = (
-                    mmfr_batch["depth_valid_post"]
-                    if (mmfr_a2_is_v2 or mmfr_a2_is_v3)
-                    else mmfr_batch["depth_valid"]
-                )
+                # never reaches the model. v3 hands the head the post-corruption Depth
+                # validity of the input the model actually sees.
+                mmfr_depth_validity = mmfr_batch["depth_valid_post"]
                 mmfr_auxiliary_kwargs = {
                     "raw_rgb": mmfr_batch["raw_rgb"].cuda(non_blocking=True),
                     "raw_depth": mmfr_batch["raw_depth"].cuda(non_blocking=True),
                     "reliability_target": mmfr_batch["reliability_target"].cuda(non_blocking=True),
                     "reliability_valid_mask": mmfr_batch["valid_mask"].cuda(non_blocking=True),
                     "depth_valid": mmfr_depth_validity.cuda(non_blocking=True),
+                    "reliability_telemetry_masks": mmfr_batch["telemetry_masks"].cuda(
+                        non_blocking=True
+                    ),
                 }
-                if mmfr_a2_is_v3:
-                    mmfr_auxiliary_kwargs["reliability_telemetry_masks"] = mmfr_batch[
-                        "telemetry_masks"
-                    ].cuda(non_blocking=True)
             if args.amp:
                 with torch.autocast(device_type="cuda", dtype=torch.float16):
                     loss = model(imgs, modal_xs, gts, **mmfr_auxiliary_kwargs)
@@ -980,7 +929,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 loss = model(imgs, modal_xs, gts, **mmfr_auxiliary_kwargs)
             if measure_step and not bool(torch.isfinite(loss.detach()).all().item()):
                 raise FloatingPointError(f"non-finite loss at epoch {epoch}, iteration {idx + 1}")
-            if mmfr_a2_corruption and mmfr_a2_is_v3:
+            if mmfr_a2_corruption:
                 telemetry_owner = model.module if hasattr(model, "module") else model
                 telemetry_owner = (
                     telemetry_owner._orig_mod
@@ -1174,76 +1123,59 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
                 f"corrupt_samples={mmfr_corrupt_samples}, "
                 f"mean_supervised_depth_target={mmfr_reliability_sum / max(1, mmfr_samples_seen):.4f}"
             )
-            if mmfr_a2_is_v2:
-                mmfr_valid_pixels = max(1, mmfr_invalidity_totals["valid_pixels"])
-                logger.info(
-                    f"Epoch {epoch} MMFR-A2 v2 invalidity telemetry: "
-                    f"valid_pixels={mmfr_invalidity_totals['valid_pixels']}, "
-                    f"natural_invalid_pixels={mmfr_invalidity_totals['natural_invalid_pixels']} "
-                    f"({mmfr_invalidity_totals['natural_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"synthetic_missing_pixels={mmfr_invalidity_totals['synthetic_missing_pixels']} "
-                    f"({mmfr_invalidity_totals['synthetic_missing_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"post_corruption_invalid_pixels={mmfr_invalidity_totals['post_corruption_invalid_pixels']} "
-                    f"({mmfr_invalidity_totals['post_corruption_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"newly_valid_pixels={mmfr_invalidity_totals['newly_valid_pixels']} "
-                    f"({mmfr_invalidity_totals['newly_valid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"implicit_quality_pixels={mmfr_invalidity_totals['implicit_quality_pixels']} "
-                    f"({mmfr_invalidity_totals['implicit_quality_pixels'] / mmfr_valid_pixels:.6f} of valid)"
+            mmfr_valid_pixels = max(1, mmfr_v3_telemetry_totals["valid_pixels"])
+            logger.info(
+                f"Epoch {epoch} MMFR-A2 v3 validity telemetry: "
+                f"valid_pixels={mmfr_v3_telemetry_totals['valid_pixels']}, "
+                f"natural-invalid={mmfr_v3_telemetry_totals['natural_invalid_pixels']} "
+                f"({mmfr_v3_telemetry_totals['natural_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                f"synthetic-invalid={mmfr_v3_telemetry_totals['synthetic_invalid_pixels']} "
+                f"({mmfr_v3_telemetry_totals['synthetic_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                f"implicit-quality={mmfr_v3_telemetry_totals['implicit_quality_pixels']} "
+                f"({mmfr_v3_telemetry_totals['implicit_quality_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                f"valid-clean={mmfr_v3_telemetry_totals['valid_clean_pixels']} "
+                f"({mmfr_v3_telemetry_totals['valid_clean_pixels'] / mmfr_valid_pixels:.6f} of valid), "
+                f"newly_valid_pixels={mmfr_v3_telemetry_totals['newly_valid_pixels']} "
+                f"({mmfr_v3_telemetry_totals['newly_valid_pixels'] / mmfr_valid_pixels:.6f} of valid)"
+            )
+            category_loss_parts = []
+            category_tracker = {}
+            category_pixel_keys = {
+                "natural-invalid": "natural_invalid_pixels",
+                "synthetic-invalid": "synthetic_invalid_pixels",
+                "implicit-quality": "implicit_quality_pixels",
+                "valid-clean": "valid_clean_pixels",
+            }
+            for category_name in mmfr_v3_category_order:
+                pixel_count = mmfr_v3_category_loss_pixels[category_name]
+                category_loss = (
+                    mmfr_v3_category_loss_sums[category_name] / pixel_count
+                    if pixel_count > 0
+                    else None
                 )
-            elif mmfr_a2_is_v3:
-                mmfr_valid_pixels = max(1, mmfr_v3_telemetry_totals["valid_pixels"])
-                logger.info(
-                    f"Epoch {epoch} MMFR-A2 v3 validity telemetry: "
-                    f"valid_pixels={mmfr_v3_telemetry_totals['valid_pixels']}, "
-                    f"natural-invalid={mmfr_v3_telemetry_totals['natural_invalid_pixels']} "
-                    f"({mmfr_v3_telemetry_totals['natural_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"synthetic-invalid={mmfr_v3_telemetry_totals['synthetic_invalid_pixels']} "
-                    f"({mmfr_v3_telemetry_totals['synthetic_invalid_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"implicit-quality={mmfr_v3_telemetry_totals['implicit_quality_pixels']} "
-                    f"({mmfr_v3_telemetry_totals['implicit_quality_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"valid-clean={mmfr_v3_telemetry_totals['valid_clean_pixels']} "
-                    f"({mmfr_v3_telemetry_totals['valid_clean_pixels'] / mmfr_valid_pixels:.6f} of valid), "
-                    f"newly_valid_pixels={mmfr_v3_telemetry_totals['newly_valid_pixels']} "
-                    f"({mmfr_v3_telemetry_totals['newly_valid_pixels'] / mmfr_valid_pixels:.6f} of valid)"
+                rendered_loss = "undefined" if category_loss is None else f"{category_loss:.6f}"
+                category_loss_parts.append(
+                    f"{category_name}={rendered_loss} (pixels={pixel_count})"
                 )
-                category_loss_parts = []
-                category_tracker = {}
-                category_pixel_keys = {
-                    "natural-invalid": "natural_invalid_pixels",
-                    "synthetic-invalid": "synthetic_invalid_pixels",
-                    "implicit-quality": "implicit_quality_pixels",
-                    "valid-clean": "valid_clean_pixels",
-                }
-                for category_name in mmfr_v3_category_order:
-                    pixel_count = mmfr_v3_category_loss_pixels[category_name]
-                    category_loss = (
-                        mmfr_v3_category_loss_sums[category_name] / pixel_count
-                        if pixel_count > 0
-                        else None
-                    )
-                    rendered_loss = "undefined" if category_loss is None else f"{category_loss:.6f}"
-                    category_loss_parts.append(
-                        f"{category_name}={rendered_loss} (pixels={pixel_count})"
-                    )
-                    telemetry_pixel_count = mmfr_v3_telemetry_totals[
-                        category_pixel_keys[category_name]
-                    ]
+                telemetry_pixel_count = mmfr_v3_telemetry_totals[
+                    category_pixel_keys[category_name]
+                ]
+                category_tracker[
+                    f"train/mmfr_v3_pixels/{category_name}"
+                ] = telemetry_pixel_count
+                category_tracker[
+                    f"train/mmfr_v3_pixel_fraction/{category_name}"
+                ] = telemetry_pixel_count / mmfr_valid_pixels
+                if category_loss is not None:
                     category_tracker[
-                        f"train/mmfr_v3_pixels/{category_name}"
-                    ] = telemetry_pixel_count
-                    category_tracker[
-                        f"train/mmfr_v3_pixel_fraction/{category_name}"
-                    ] = telemetry_pixel_count / mmfr_valid_pixels
-                    if category_loss is not None:
-                        category_tracker[
-                            f"train/mmfr_v3_reliability_loss/{category_name}"
-                        ] = category_loss
-                logger.info(
-                    f"Epoch {epoch} MMFR-A2 v3 reliability-loss telemetry: "
-                    + ", ".join(category_loss_parts)
-                )
-                if is_primary and category_tracker:
-                    tracker.log(category_tracker, step=global_step)
+                        f"train/mmfr_v3_reliability_loss/{category_name}"
+                    ] = category_loss
+            logger.info(
+                f"Epoch {epoch} MMFR-A2 v3 reliability-loss telemetry: "
+                + ", ".join(category_loss_parts)
+            )
+            if is_primary and category_tracker:
+                tracker.log(category_tracker, step=global_step)
         train_epoch_seconds = train_timer.stop()
         epoch_loss = sum_loss / (idx + 1)
         if is_primary:

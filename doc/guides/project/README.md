@@ -16,7 +16,7 @@
 
 DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DFormerv2 由深度和空间位置生成 geometry prior（几何先验），再通过 Geometry Self-Attention 增强视觉特征。模型入口由 `models/builder.py::EncoderDecoder` 根据配置选择编码器和解码器。
 
-根目录 `train.sh`、`eval.sh`、`infer.sh` 是固定 NYUv2、多 GPU 和示例 checkpoint 的**上游示例**，不是 MUSeg 当前审计入口。MUSeg 运行从物化 protocol 开始，经过 `tools/preflight_train.py` 后由 `tools/train_museg_4090.sh`、`tools/run_museg_3seed.py` 和 `tools/run_museg_seed.py` 调用 `utils/train.py`。历史 `tools/mve/run_museg_20epoch_screen.sh` 和 `local_configs/MUSeg/DFormerv2_S_20Epoch.py` 不属于当前 development 协议。
+根目录 `train.sh`、`eval.sh`、`infer.sh` 是固定 NYUv2、多 GPU 和示例 checkpoint 的**上游示例**，不是 MUSeg 当前审计入口。MUSeg 运行从物化 protocol 开始，经过 `tools/preflight_train.py` 后由 `tools/train_museg_4090.sh`、`tools/run_museg_3seed.py` 和 `tools/run_museg_seed.py` 调用 `utils/train.py`。已退出的 20-epoch MVE 筛查入口和旧配置已从当前工程删除，历史副本仍可由 Git 历史恢复。
 
 ## 2. 推荐阅读顺序
 
@@ -36,16 +36,16 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 - `.cursor/`：强制规则和研究进度报告 Skill。规则决定 MUSeg 状态维护及低风险委派边界。
 - `.serena/`：代码符号分析工具的项目配置。
 - `data/`：Git 跟踪的冻结 split 与审计产物；不是本地完整数据集。
-- `doc/`：当前状态、开放决策、稳定指南、历史计划、报告、审计、论文和 Canvas。
+- `doc/`：当前状态、开放决策、稳定指南、当前计划、报告、审计和当前 Canvas；论文、旧计划与旧 Canvas 已外移到 `D:/0Project/DFormer-archive-20260922/`。
+- `D:/0Project/DFormer-archive-20260922/`：本机外部研究资料归档，保存原 `liu-test-exp/`、`doc/paper/`、旧计划、旧 Canvas 和历史目录快照；不属于当前 Git 工作区。
 - `figs/`：上游 README 图片和新数据集应用示例资源。
-- `liu-test-exp/`：用户思路设计与历史实验草案；不是当前状态来源，本项目维护任务不得改写。
 - `local_configs/`：Python 配置模块，定义数据路径、模型、优化器、训练与评估参数。
 - `mmseg/`：内嵌的 MMSegmentation 兼容/上游实现和 `.mim` 配置工具集；本地解码器主要直接使用 `mmseg.ops.resize`。
 - `models/`：本仓库主要的 DFormer/DFormerv2 编码器、解码器、损失和模型装配。
 - `protocols/`：可移植审计协议模板；机器路径物化后的 manifest 放在被忽略的 `protocols/generated/` 或仓库外运行位置。
-- `tests/`：MUSeg 门禁、协议、split、checkpoint、裁决、训练操作和损失回归测试。
-- `tools/`：数据准备、split、protocol、preflight、训练编排、后评估、裁决、MVE 工具和 Canvas 发布工具。
-- `utils/`：通用训练、评估、推理、dataloader、checkpoint、engine、指标、变换、跟踪和性能工具。
+- `tests/`：协议、split、checkpoint、训练操作和损失回归测试。
+- `tools/`：数据准备、split、protocol、preflight、训练编排、后评估、裁决和 Canvas 工具。
+- `utils/`：通用训练、评估、推理、dataloader、checkpoint、engine、指标、变换和跟踪工具。
 - 根 `README.md`：项目总入口和上游说明；`LICENSE` 规定非商业使用；`requirements-monitoring.txt` 固定 SwanLab；`.gitignore` 和 `.gitattributes` 管理本地产物、split 例外和行尾。
 
 ## 4. MUSeg 数据流
@@ -79,7 +79,7 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 
 ### 5.1 装配入口
 
-`models/builder.py::EncoderDecoder` 根据 `C.backbone` 选择 DFormer 或 DFormerv2 变体，并记录各阶段通道；根据 `C.decoder` 选择 MLP、HAM、UPerNet、DeepLabV3+、NL 或 FCN 头。HAM、UPerNet、DeepLabV3+ 和 NL 可配置 auxiliary head；训练时主损失与辅助损失都通过 `models/losses/safe_masked_loss.py::safe_masked_mean` 排除背景/ignore 像素。
+`models/builder.py::EncoderDecoder` 根据 `C.backbone` 选择 DFormer 或 DFormerv2 变体，并记录各阶段通道；根据 `C.decoder` 选择 HAM 或 FCN-32s 头。所有保留配置都使用 `ham`，`C.aux_rate != 0` 时可配置 auxiliary head；训练时主损失与辅助损失都通过 `models/losses/safe_masked_loss.py::safe_masked_mean` 排除背景/ignore 像素。已退出项目线的 MLP/UPerNet/DeepLabV3+/NL 解码器分支在 2026-09-23 的源码瘦身中删除，历史副本仍可由 Git 历史恢复。
 
 `EncoderDecoder.encode_decode` 将 RGB 与 depth 送入 backbone，解码多尺度特征，并将 logits 双线性插值回输入空间。构造器在 criterion 非空时加载 `C.pretrained_model` 并初始化头；完整 checkpoint 后评估以 `criterion=None` 跳过单独预训练初始化，再严格加载完整 state dict。
 
@@ -90,11 +90,11 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 
 ### 5.3 解码器与损失
 
-`models/decoders/` 提供通用 decode head、MLP/LMLP、HAM、UPerNet、DeepLabV3+、non-local 和 FCN auxiliary head。部分头通过 `mmseg.ops.resize` 复用兼容实现。`models/losses/` 提供交叉熵、Dice、Focal、Lovász、Tversky、accuracy 与安全 masked reduction；实际使用哪一种由模型构造和配置决定，文件存在不表示当前 MUSeg 已使用全部损失。
+`models/decoders/` 提供通用 decode head、HAM 主头和 FCN auxiliary/FCN-32s 头。部分头通过 `mmseg.ops.resize` 复用兼容实现。`models/losses/` 提供交叉熵、Dice、Focal、Lovász、Tversky、accuracy 与安全 masked reduction；实际使用哪一种由模型构造和配置决定，文件存在不表示当前 MUSeg 已使用全部损失。
 
 ## 6. 配置与 protocol
 
-**配置**是可 import 的 Python 模块，决定运行时对象参数：数据根、split 路径、图像格式、模型、loss 相关字段、优化器、epoch、batch、worker、评估和输出目录。`local_configs/MUSeg/DFormerv2_S_MVE.py` 提供 MUSeg 模型/数据基础，`DFormerv2_S_4090.py` 将其绑定到冻结 development split 和可由环境变量覆盖的机器路径。`DFormerv2_S_20Epoch.py` 是旧云路径/official split 入口，不是当前 development 协议。
+**配置**是可 import 的 Python 模块，决定运行时对象参数：数据根、split 路径、图像格式、模型、loss 相关字段、优化器、epoch、batch、worker、评估和输出目录。`local_configs/MUSeg/DFormerv2_S_MVE.py` 提供 MUSeg 模型/数据基础，`DFormerv2_S_4090.py` 将其绑定到冻结 development split 和可由环境变量覆盖的机器路径。已退出的 A2 v1/v2 与 20-epoch 专用配置、v1/v2 dataloader helper 模块，以及 `utils/train.py` 中的 v1/v2 协议分支均已删除；当前 E1、A2 v3 与 Quick-B0 配置保持不变。配置继承层（`DFormerv2_S_MVE.py` → `DFormerv2_S_4090.py`）本轮未重构，其历史字段清单见当前状态文件。
 
 **protocol**是运行身份与审计合同，不替代配置。模板声明 protocol ID、schedule、phase、模型、配置模块、seed、必需 Git commit、split authority、预训练文件身份、输出根、训练参数和 SwanLab 模式。`tools/materialize_museg_protocol.py` 把模板占位符替换为机器绝对路径和实际哈希；物化 manifest 不提交到 Git。`tools/museg_protocol.py::load_protocol` 严格检查字段、schema、冻结 manifest/audit、split 身份和 phase 允许消费的角色。
 
@@ -128,7 +128,6 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 - Stage-03/04 preflight、probe、qualification 与训练编排；
 - checkpoint schema、保存、恢复和严格后评估加载；
 - optimizer/AMP step 与安全 masked loss；
-- A2 mask 与敏感性工具；
 - seed acceptance 独立裁决。
 
 测试可证明纯函数、schema、CLI 约束、synthetic 输入、mock 调用和回归行为符合预期。测试通过不能单独证明真实数据正确、GPU 显存足够、完整训练成功、SwanLab 可用、checkpoint 指标可信或云端生命周期正确；这些需要运行证据、结构化输出和独立核验。
