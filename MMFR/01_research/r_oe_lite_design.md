@@ -1,7 +1,7 @@
 # R-OE-lite 设计冻结
 
 > **名称：** R-OE-lite（Observable-Empty Geometry Substitute）  
-> **文档状态：** `design-frozen, implementation-not-authorized`；已由主代理复核，不授予实现、训练或 Quick-Val 运行授权。  
+> **文档状态：** `design-frozen, implementation-complete, Gate-B-PASS, formal-training-not-authorized`；架构冻结文本保持不变，当前实现身份与资格证据见文末 17 节。
 > **候选语义：** observable-empty（可观测为空），不是 `entire_missing` 原因识别。  
 > **适用边界：** 本文把原先被阻塞的 R-EM-lite 改写为一个明确承认输入不可辨因的候选；它不把既有 `R-EM-lite` 协议追溯标记为已批准。
 
@@ -324,16 +324,12 @@ R-OE-lite 的每个条件必须同时报告：
 
 因此 Quick-Val 的 R-OE-lite delta 是“固定条件下 observable-empty 路由的 task effect”，不是 `entire_missing` cause 的纯因果效果。不得把触发比例写成 synthetic entire-missing 比例。
 
-### 12.2 数值 gate 的使用边界
+### 12.2 Quick-Val 与 Main-Val 的裁决边界
 
-E1 原有 R-EM 数值 gate 只有在合法 detector protocol 下才可使用。若主代理批准以 R-OE-lite 作为该候选的新 protocol identity，可暂按同一数值边界对 **R-OE 条件结果** 做筛选：
-
-- promote：整体空输入压力条件 delta `>= +0.50 pp`，且 clean、spatial dropout、misalignment 各 `>= -0.25 pp`；
-- stop：整体空输入压力条件 delta `<= 0`，或 clean `< -0.50 pp`，或 spatial dropout/misalignment 任一 `< -0.50 pp`；
-- 其他合法完成：`inconclusive`。
-
-这里的“整体空输入压力条件”指固定的 `entire_missing@1.0` evaluator condition，不指可观测到的 trigger 能证明 cause=`entire_missing`。阈值复用必须由主代理在协议层明确确认；本文不以阈值复用替代 Gate-A、Gate-B 或运行授权。
-
+- Quick-Val 只用于 screening，不产生最终 `promote/stop` 判定；它不能替代 Batch 1B 的十条件 Main-Val。
+- Batch 1B 的冻结 Main-Val gate 见 `e1_batch1_protocol.md` §13.5：比较 matched C0 与 R-OE-lite，按 `entire_missing@1.0`、$M_6$、clean 与六个单故障的指定阈值作 `promote`、`stop` 或 `inconclusive` 判定。
+- `entire_missing@1.0` 是压力条件，不是原因标签。R-OE-lite 的 trigger coverage 只能说明 observable-empty 路由覆盖，不能作为 synthetic entire-missing 的比例或原因识别准确率。
+- 该设计说明不授权 Quick-Val、Main-Val、正式训练或云端运行；每个运行阶段仍须取得相应单独授权。
 ## 13. 与 AI023 / GeomPrompt 的来源关系
 
 R-OE-lite 只能描述为：
@@ -349,7 +345,7 @@ R-OE-lite 只能描述为：
 
 ## 14. 实现与验证边界
 
-本文只冻结设计，不实现代码。获得主代理和上级协议授权后，Gate-B 才可做最小定点检查：
+原始设计冻结阶段（2026-09-21）的 Gate-B 准入清单如下。该段保留其设计时范围；当前实现及已执行的资格检查见第 17 节。
 
 1. detector 只读取当前 `raw_depth` 与 `V_geom`；
 2. trigger 覆盖三类 observable-empty 输入，且不读取 privileged information；
@@ -360,7 +356,7 @@ R-OE-lite 只能描述为：
 7. optimizer membership 恰好为 1，29 个 Geo weight 和 14 个 SyncBN 参数归组正确；
 8. logits、loss、gradient、parameter finite。
 
-本轮不运行测试、模型 forward、GPU、训练、Quick-Val、Main-Val、云任务或 official test，也不创建临时测试文件。
+原始设计冻结时未运行测试、模型 forward、GPU、训练、Quick-Val、Main-Val、云任务或 official test，也未创建临时测试文件。2026-09-23 的最小 Gate-B 执行范围、结果与授权边界见第 17 节。
 
 ## 15. 已复核的冻结边界
 
@@ -368,11 +364,11 @@ R-OE-lite 只能描述为：
 
 - 本文件建立 `R-OE-lite` 的设计身份，原 `R-EM-lite` 保持 `retired-by-observability`；
 - substitute architecture 固定为无 skip、无 normalization、通道 `122/398/256` 的直接 RGB CNN，trainable parameters 精确为 `3,302,785`；
-- 本轮仅冻结设计，不关闭 Batch 1B 的完整 protocol gate，不授权实现或运行；
-- R-OE 不自动继承原 R-EM 的 cause-specific numeric gate，数值 gate 必须在 Batch 1B 独立协议中确认；
-- 未来 Gate-B 至少检查第 14 节八项；是否增加 latency 与 peak-memory 阈值由 Batch 1B 协议在实现授权前冻结。
+- 2026-09-23 已按第 14 节检查项完成最小 Gate-B，canonical 结果见第 17 节；该资格不等于正式训练或效果评价授权；
+- R-OE-lite 不继承 R-EM 的 cause-specific numeric gate；Batch 1B Main-Val 数值门槛已在 `e1_batch1_protocol.md` §13.5 单独冻结，Quick-Val 仅用于 screening；
+- 第 17 节记录当前实现身份、Gate-B evidence 与成本边界，不改变本设计冻结架构。
 
-因此当前状态为 `design-frozen, implementation-not-authorized`，不得声称 Batch 1B Gate-A/Gate-B 已通过，也不得实现、训练或运行 Quick-Val。
+因此当前状态为 `design-frozen, implementation-complete, Gate-B-PASS, formal-training-not-authorized`。不得将 Gate-B 写成训练授权或效果结论；未经单独授权不得启动正式训练、Quick-Val、Main-Val、云任务或 official test。
 
 ## 16. 读取依据
 
@@ -383,3 +379,14 @@ R-OE-lite 只能描述为：
 - `../02_evidence/audit_depth_input_contract.md`；
 - `models/encoders/DFormerv2.py`；
 - `utils/dataloader/mmfr_training_v3.py`。
+
+## 17. 当前实现身份与 Gate-B 记录（2026-09-23）
+
+- config：`local_configs/MUSeg/DFormerv2_S_MMFR_E1_Batch1B_R_OE.py`；substitute class：`ObservableEmptyGeometrySubstitute` in `models/roe_substitute.py`；model routing：`models/builder.py` `_route_roe_modal_x`；training integration：`utils/train.py`；Gate-B runner：`tools/mmfr/e1_batch1b_gateb.py`。
+- R-OE-lite trainable parameters：`3,302,785`，由 7 个 Conv weight 与 7 个 bias 构成；weight/bias 分别归入 `new_decay`/`new_no_decay`。
+- Canonical Gate-B JSON：`outputs/mmfr-e1-batch1b-gateb/e1-batch1b-gateb.json`；SHA-256 `35297b490c3e3eb54b5e66d3f06784688fca65038e7d09874c30c60cde820231`；`status=PASS`、`failed_checks=[]`、`official_test_included=false`、`formal_training_started=false`。
+- C0 common-config comparison、post-build CPU/CUDA RNG 与 1280 项第一 epoch permutation 均 exact equal；已有 Batch 1A C0 final checkpoint SHA-256 为 `ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`，Gate-B 确认其可复用。
+- Gate-B 单步 AMP loss `0.7119939327` finite，optimizer step 已应用；R-OE 新参数梯度 finite/nonzero。该资格仅覆盖最小更新路径，不代表完整训练稳定性或分割收益。
+- batch-size-1 成本记录：non-trigger/trigger latency median `130.693645/263.437180 ms`；allocated memory 增量 `1,517.046875 MiB`，reserved memory 增量 `3,608 MiB`。这不是 batch-size-10 训练可行性结论。
+- 复核报告：`../02_evidence/report_e1_batch1b_roe_gateb.md`；实现差异摘要：`../02_evidence/audit_implementation_diff_e1_batch1b_roe.md`。
+- 停止点：`ready-for-R-OE-formal-training-authorization`。正式训练、Quick-Val、Main-Val、云任务、Batch 2、T 与 official test 均未授权；Batch 1A Main-Val 的上级处置独立保留。

@@ -7,7 +7,7 @@
 - In-repository root: `D:\0Project\DFormer\MMFR`（2026-09-23 从外部归档恢复到项目内并纳入 Git）
 - Current blueprint: [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)
 - Active review profile source: [`review_profile.json`](review_profile.json)
-- Current active profile: `e1-batch1a-gateb`
+- Current active profile: `e1-batch1b-roe-gateb`
 - Review level: `L1`
 
 ## Authoritative research state
@@ -25,7 +25,7 @@ This package is a maintained evidence library and review-packet source. It is no
 | --- | --- |
 | 当前 MMFR 做到哪里 | [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)（唯一实时入口）；本包目录与变更历史见本文件与 [`CHANGELOG.md`](CHANGELOG.md) |
 | 最新研究蓝图 | [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md) |
-| 当前实验结论 | [`02_evidence/`](../02_evidence/) 的 Gate-B 审计与报告；Main-Val 分析的详细报告在包外 `D:\0Project\DFormer\doc\reports\2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
+| 当前实验结论 | Batch 1B R-OE-lite Gate-B 报告与实现差异审计见 [`02_evidence/`](../02_evidence/)；Batch 1A Main-Val 的描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
 | 下一阶段计划 | [`01_research/e1_screening_plan.md`](../01_research/e1_screening_plan.md)、[`01_research/e1_batch1_protocol.md`](../01_research/e1_batch1_protocol.md)、[`01_research/r_oe_lite_design.md`](../01_research/r_oe_lite_design.md) |
 | 相关论文在哪里 | [`03_reference/paper-index.md`](../03_reference/paper-index.md)；本地全文在仓库外 `D:\0Project\origin\论文\` |
 | 相关代码在哪里 | [`03_reference/code-index.md`](../03_reference/code-index.md)；本地 clone 在仓库外 `D:\0Project\origin\` |
@@ -55,11 +55,12 @@ The script reads `00_control/review_profile.json`, generates a flat packet, reco
 
 `99_review_packet_current/` is generated output. Do not edit files there; edit canonical sources and rebuild.
 
-**Packet state after the 2026-09-23 relocation（必须知道的三点）**
+**Packet state for the 2026-09-23 Batch 1B review**
 
-1. 当前目录内是最后一次生成的结果，profile 为 `e1-batch1a-gateb`，generation ID 为 `8d5657e0f1de834c1a6becc911ea6fb03922c88d88a7b70edac015a13fa0f6bf`，对应 E1 Batch 1A C0/F-lite 的 Gate-B 工程资格审核，不是最新阶段。
-2. 本轮只做路径修复（包内相对链接与本地资料位置随目录迁移更新），没有重建该 packet；因此 `packet_manifest.json` 里记录的部分 canonical 源文件 SHA-256 早于本轮修复，**下一次真正提交给上级审核前必须重新生成**。
-3. 重新生成当前被一个已知缺件阻塞：`01_research/e1_screening_plan.md` 链接到 `02_evidence/report_e1_batch1b_roe_gateb.md`，该报告尚未写入本包，而 `98_tools/rebuild_review_packet.ps1` 遇到坏链会直接失败。补齐该报告（或把该链接改成纯文本指针）后才能重建。
+1. The active L1 profile is `e1-batch1b-roe-gateb`; it points to the Batch 1B protocol, Gate-B report, and implementation-diff audit.
+2. The current packet was rebuilt successfully with generation ID `86a92d119a8a1e0b2c33a2ad6fba8876aef0e2c26c1233f8fb7a28c9d2272691`. It contains the six expected files, and the generator reported zero broken canonical, packet, or copied-packet links.
+3. `99_review_packet_current/` is generated output and is the sole upload-ready entry. Its manifest records source and packet hashes; do not edit generated files by hand. `official_test` remains `sealed_unread`.
+
 
 ## External code boundary
 

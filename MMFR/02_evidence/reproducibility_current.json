@@ -1,18 +1,21 @@
 ﻿{
   "schema_version": "mmfr-package-reproducibility-v2",
-  "recorded_at_utc": "2026-09-21T09:34:17.828053+00:00",
+  "recorded_at_utc": "2026-09-23T07:31:29+00:00",
   "package_name": "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
-  "package_layout": "second-directory-simplification",
-  "active_review_profile": "e1-batch1a-gateb",
+  "package_layout": "in-repository-restored-package",
+  "active_review_profile": "e1-batch1b-roe-gateb",
   "review_level": "L1",
   "official_test": "sealed_unread",
   "authoritative_research_status": "../../../doc/main/MUSeg-current-status.md",
   "authoritative_open_decisions": "../../../doc/main/MUSeg-open-decisions.md",
   "git": {
     "branch": "perf/mmfr-a2-v3-pipeline-opt1",
-    "commit": "e8abbe2d0b87ea5b2e29069037fcf4bc8d7e57eb",
+    "commit": "97de9f02aa543085f3085fbc59c231cf8b4867e2",
+    "tracking_ref": "origin/perf/mmfr-a2-v3-pipeline-opt1",
+    "ahead_of_local_tracking_ref": 5,
+    "behind_local_tracking_ref": 0,
     "workspace_dirty": true,
-    "package_tracking_state": "untracked"
+    "package_tracking_state": "tracked-with-uncommitted-changes"
   },
   "external_code": {
     "root": "D:\\0Project\\origin",
@@ -27,11 +30,19 @@
   },
   "canonical_review_sources": {
     "protocol": "01_research/e1_batch1_protocol.md",
-    "report": "02_evidence/report_e1_batch1a_gateb.md",
-    "implementation_diff": "02_evidence/audit_implementation_diff.md",
+    "report": "02_evidence/report_e1_batch1b_roe_gateb.md",
+    "implementation_diff": "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
     "depth_audit": "02_evidence/audit_depth_input_contract.md",
     "optimizer_audit": "02_evidence/audit_optimizer_coverage.md",
     "validation": "02_evidence/validation_report.json"
+  },
+  "current_gateb_evidence": {
+    "artifact": "outputs/mmfr-e1-batch1b-gateb/e1-batch1b-gateb.json",
+    "sha256": "35297b490c3e3eb54b5e66d3f06784688fca65038e7d09874c30c60cde820231",
+    "status": "PASS",
+    "failed_checks": [],
+    "official_test_included": false,
+    "formal_training_started": false
   },
   "migration_evidence": {
     "pre_migration_manifest": "90_archive/2026-09-21_directory_simplification/pre_migration_manifest.json",
@@ -40,9 +51,14 @@
   },
   "review_packet": {
     "path": "99_review_packet_current/",
+    "profile": "e1-batch1b-roe-gateb",
     "generated_only": true,
     "expected_file_count": 6,
     "human_entry": "REVIEW_BRIEF.md",
-    "machine_entry": "packet_manifest.json"
+    "machine_entry": "packet_manifest.json",
+    "last_rebuild": "success",
+    "broken_canonical_links": 0,
+    "broken_packet_links": 0,
+    "broken_copied_packet_links": 0
   }
 }

@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.15",
   "latestFormalReport": {
-    "path": "doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md",
-    "periodStart": "2026-09-22",
+    "path": "MMFR/02_evidence/report_e1_batch1b_roe_gateb.md",
+    "periodStart": "2026-09-23",
     "periodEnd": "2026-09-23",
-    "baseCommit": "87c0760b6ecd36b77dea36995aa334e4c6dc41ed",
-    "status": "formal-mmfr-e1-batch1a-c0-flite-mainval-descriptive-no-preregistered-gate"
+    "baseCommit": "97de9f02aa543085f3085fbc59c231cf8b4867e2",
+    "status": "formal-engineering-gateb-pass-awaiting-separate-formal-training-authorization"
   },
   "reports": [
+    {
+      "path": "MMFR/02_evidence/report_e1_batch1b_roe_gateb.md",
+      "topic": "mmfr-e1-batch1b-roe-gateb",
+      "periodStart": "2026-09-23",
+      "periodEnd": "2026-09-23",
+      "baseCommit": "97de9f02aa543085f3085fbc59c231cf8b4867e2",
+      "verification": "canonical-gateb-artifact-pass-hash-and-implementation-diff-review",
+      "status": "formal-engineering-gateb-pass-awaiting-separate-formal-training-authorization"
+    },
     {
       "path": "doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md",
       "topic": "mmfr-e1-batch1a-c0-flite-mainval",

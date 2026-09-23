@@ -1,9 +1,9 @@
 # MMFR E1 Batch 1A/1B Protocol Freeze
 
-> **当前 protocol identity：** `MMFR-E1-Batch1B-R-OE-lite-v1`；历史 Batch 1A identity：`MMFR-E1-Batch1A-C0-F-v1`  
-> **状态：** `Batch 1B R-OE-lite implementation complete; Gate-B PASS; formal training not authorized`  
-> **日期：** 2026-09-23  
-> **性质：** Batch 1A implementation、正式训练、Quick-Val 与十条件 Main-Val 历史记录，以及 Batch 1B R-OE-lite 的冻结协议、实现与最小 Gate-B 结果；Batch 1B 尚未正式训练，不涉及 Quick-Val、Main-Val、T 或 official test。  
+> **当前 protocol identity：** `MMFR-E1-Batch1B-R-OE-lite-v1`；历史 Batch 1A identity：`MMFR-E1-Batch1A-C0-F-v1`
+> **状态：** `Batch 1B R-OE-lite implementation complete; Gate-B PASS; formal training not authorized`
+> **日期：** 2026-09-23
+> **性质：** Batch 1A implementation、正式训练、Quick-Val 与十条件 Main-Val 历史记录，以及 Batch 1B R-OE-lite 的冻结协议、实现与最小 Gate-B 结果；Batch 1B 尚未正式训练，不涉及 Quick-Val、Main-Val、T 或 official test。
 > **official test：** `sealed_unread`
 
 ## 1. 协议裁决
@@ -245,7 +245,7 @@ $$
 - stop：$\Delta_F\le 0$，或 clean `< -0.50 pp`，或任一 hard condition `< -1.00 pp`；
 - 其他合法完成：inconclusive。
 
-R-OE 不自动继承原 R-EM cause-specific gate；Batch 1B 数值 gate 必须在其独立协议审核时确认。
+R-OE-lite 不继承 R-EM 的 cause-specific gate。Batch 1B 的冻结 Main-Val gate、Quick-Val screening-only 边界与压力条件解释已在 §13.5 独立确认。
 
 ## 12. 授权边界与恢复点
 
@@ -281,7 +281,7 @@ Batch 1B 与 Batch 1A C0 共享同一 source、数据、seed、训练预算、co
 - 共同损失仍为 $L_{\mathrm{base}}^{A2}=L_{\mathrm{seg}}+0.1L_{\mathrm{reliability,depth}}$，不增加 substitute reconstruction、consistency、condition、severity 或 oracle loss；
 - 四组 optimizer 保持 `base_decay / base_no_decay / new_decay / new_no_decay`，base/new LR 分别为 `1e-5 / 3e-5`；checkpoint 机会和 fixed final checkpoint 规则保持不变；
 - 从 source 做 weights-only restart，不恢复 epoch-420 optimizer、scheduler、GradScaler 或 RNG state；
-- TF32 沿用 Batch 1A 的实际运行行为，记录为 `batch-1a-actual-preserved`，不重新解释为旧文档中的 `TF32 off`。
+- TF32 沿用 Batch 1A 已核验的实际训练行为，记为 `batch-1a-actual-preserved`：训练入口保留 `torch.set_float32_matmul_precision("high")`，该设置允许 CUDA matmul 使用 TF32；PyTorch 2.1.2 下 cuDNN TF32 也保持默认开启。不得把旧文本中的 `TF32 off` 当作实际训练设置。
 
 共同合同逐字段比较结果为 `exact_equal=true`、`mismatches={}`。因此现有 Batch 1A C0 fixed final checkpoint 可复用为 matched control；Gate-B 记录的 C0 路径为 `cloud/MMFR_E1_Batch1A_local_transfer_20260922/MMFR_E1_Batch1A_local_transfer_20260922/C0/checkpoint/update-2560.pth`，`existing_c0_checkpoint=true`。
 
@@ -322,3 +322,14 @@ Gate-B 直接通过的最小检查包括：
 在本地 NVIDIA GeForce RTX 5060 Laptop GPU、batch size 1、warmup `1`、repeats `2` 下：non-trigger median latency `130.693645 ms`，trigger median latency `263.437180 ms`。training peak allocated memory 为 C0 `2,284,511,744` bytes、R-OE `3,875,250,688` bytes，allocated delta `1,517.046875 MiB`；reserved peak 为 C0 `2,428,502,016` bytes、R-OE `6,211,764,224` bytes，reserved delta `3,608 MiB`。这些是 Gate-B 成本记录，不是完整训练成本估计，也不是正式训练可行性的最终保证。
 
 Gate-B PASS 只关闭实现资格，不授权正式训练。当前状态为 `ready-for-R-OE-formal-training-authorization`；正式训练、Quick-Val、Main-Val、T、Batch 2、云任务与 official test 均保持未启动，official test 继续 `sealed_unread`。
+
+### 13.5 冻结的 10-condition Main-Val 门槛
+
+正式 Main-Val 必须在另行授权后，使用 matched C0 与 R-OE-lite fixed final checkpoint，在完整 `val-dev`、冻结 `msflip-whole-original-grid-v1` 与十个条件上完成。所有差值定义为 R-OE-lite 减 C0，单位为百分点（pp）。$M_6$ 是六个单故障 mIoU 的未加权宏平均。Quick-Val 只作 screening，不承担最终 `promote/stop` 判定；本条冻结门槛本身不授权任何评价。
+
+- **Promote：** `entire_missing@1.0` delta `>= +0.50 pp`；$M_6$ delta `>= 0`；clean delta `>= -0.25 pp`；六个单故障中没有任何 delta `< -0.50 pp`。
+- **Stop：** 满足任一项即 stop：`entire_missing@1.0` delta `<= 0`；$M_6$ delta `<= -0.50 pp`；clean delta `< -0.50 pp`；六个单故障中任一 delta `< -1.00 pp`。
+- **Inconclusive：** 身份与完整性均合格的完整评价既不满足 promote，也未触发 stop。
+- **Blocked：** 评价未完整完成，或冻结身份/配对性断言失败；不得将 blocked 改称 inconclusive。
+
+另外三个混合条件仍须报告，但不设置单独 promote/stop 门槛。`entire_missing@1.0` 是压力条件，不是 cause label；任何分数都不能支持 detector 识别了 hidden cause。该单 seed、单 checkpoint、单次门槛不构成统计显著性或现实部署可靠性结论。

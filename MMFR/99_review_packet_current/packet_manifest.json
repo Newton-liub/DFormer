@@ -1,14 +1,14 @@
 ﻿{
     "schema_version":  "mmfr-review-packet-v2",
     "profile_schema_version":  1,
-    "profile":  "e1-batch1a-gateb",
+    "profile":  "e1-batch1b-roe-gateb",
     "review_level":  "L1",
-    "generation_id":  "8d5657e0f1de834c1a6becc911ea6fb03922c88d88a7b70edac015a13fa0f6bf",
+    "generation_id":  "86a92d119a8a1e0b2c33a2ad6fba8876aef0e2c26c1233f8fb7a28c9d2272691",
     "deterministic_identity":  "sha256(profile identity + canonical input hashes + git commit); no wall-clock timestamp",
     "source_package":  "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
     "git":  {
                 "branch":  "perf/mmfr-a2-v3-pipeline-opt1",
-                "commit":  "99e36794b54cc4aafea2804973ea8b7d7628b8cd",
+                "commit":  "97de9f02aa543085f3085fbc59c231cf8b4867e2",
                 "workspace_dirty":  true
             },
     "authoritative_status":  {
@@ -23,8 +23,8 @@
                       "role":  "generated_review_entry",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "835307a43fb6eb4272d6dee7125246a71d2b79000aed5b699206ea78ac3d6055",
-                      "bytes":  2853,
+                      "packet_sha256":  "e132b823f98beede994d1030b0ea37b72d559e4b90bb2cc1f2bc224e5feb002b",
+                      "bytes":  3774,
                       "transform":  "generated_from_profile",
                       "input_sources":  [
                                             "00_control/review_profile.json",
@@ -35,27 +35,27 @@
                       "packet_file":  "CURRENT_PROTOCOL.md",
                       "role":  "current_protocol",
                       "source":  "01_research/e1_batch1_protocol.md",
-                      "source_sha256":  "f08d5a2df4a2a3db95c2c621d9194f5ca24d09eb885dc2e2e6e554f14507b5fb",
-                      "packet_sha256":  "f08d5a2df4a2a3db95c2c621d9194f5ca24d09eb885dc2e2e6e554f14507b5fb",
-                      "bytes":  8166,
+                      "source_sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8",
+                      "packet_sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8",
+                      "bytes":  22671,
                       "transform":  "exact_copy"
                   },
                   {
                       "packet_file":  "CURRENT_REPORT.md",
                       "role":  "current_report",
-                      "source":  "02_evidence/report_e1_batch1a_gateb.md",
-                      "source_sha256":  "e2eefa6e11e1c9808244075dfc0980d48e2121bff5de4e6096a18da0922c03ed",
-                      "packet_sha256":  "e2eefa6e11e1c9808244075dfc0980d48e2121bff5de4e6096a18da0922c03ed",
-                      "bytes":  9756,
+                      "source":  "02_evidence/report_e1_batch1b_roe_gateb.md",
+                      "source_sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97",
+                      "packet_sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97",
+                      "bytes":  8187,
                       "transform":  "exact_copy"
                   },
                   {
                       "packet_file":  "IMPLEMENTATION_DIFF.md",
                       "role":  "implementation_diff",
-                      "source":  "02_evidence/audit_implementation_diff.md",
-                      "source_sha256":  "afc024dd3f65745674a3ab83fdbcbe5dcb4178d180c993ee2398311ed6f15943",
-                      "packet_sha256":  "afc024dd3f65745674a3ab83fdbcbe5dcb4178d180c993ee2398311ed6f15943",
-                      "bytes":  6631,
+                      "source":  "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
+                      "source_sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce",
+                      "packet_sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce",
+                      "bytes":  3090,
                       "transform":  "exact_copy"
                   },
                   {
@@ -63,49 +63,33 @@
                       "role":  "generated_evidence_summary",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "c7453f094faba833e0451b72716599db983ea34fc652bb12cb4db5fc8228917c",
-                      "bytes":  4221,
+                      "packet_sha256":  "b6937fad6ff92960916e129fee37a298ea619bc4db060b4eb674e276004f33e6",
+                      "bytes":  3312,
                       "transform":  "generated_from_canonical_sources",
                       "input_sources":  [
                                             {
                                                 "path":  "00_control/review_profile.json",
-                                                "sha256":  "48c8c1f08c81440b6f939152e5e9e0ce673cbddfbdc7c12aa64e936b60dcbe91"
+                                                "sha256":  "214683098d97362a7a771ea056d97515dd575ebe54c10d4c6426bf5617006eb7"
                                             },
                                             {
                                                 "path":  "01_research/e1_batch1_protocol.md",
-                                                "sha256":  "f08d5a2df4a2a3db95c2c621d9194f5ca24d09eb885dc2e2e6e554f14507b5fb"
+                                                "sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8"
                                             },
                                             {
-                                                "path":  "02_evidence/audit_depth_input_contract.md",
-                                                "sha256":  "8305f5bb0790455afa5da695dd7b9cddfa7e56727832a7bffc5e4cbfdbd05929"
+                                                "path":  "01_research/r_oe_lite_design.md",
+                                                "sha256":  "8a2ce33222c52ff530e1213105a1e8ec1b2d3b6c85d34236b672fa40e2e8966a"
                                             },
                                             {
-                                                "path":  "02_evidence/audit_implementation_diff.md",
-                                                "sha256":  "afc024dd3f65745674a3ab83fdbcbe5dcb4178d180c993ee2398311ed6f15943"
+                                                "path":  "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
+                                                "sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce"
                                             },
                                             {
-                                                "path":  "02_evidence/audit_optimizer_coverage.md",
-                                                "sha256":  "3fd026bd0cdd0c92783fe09e1462b308a2f0df777712346b0bbd17bdd573d93f"
-                                            },
-                                            {
-                                                "path":  "02_evidence/report_e1_batch1a_gateb.md",
-                                                "sha256":  "e2eefa6e11e1c9808244075dfc0980d48e2121bff5de4e6096a18da0922c03ed"
+                                                "path":  "02_evidence/report_e1_batch1b_roe_gateb.md",
+                                                "sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97"
                                             },
                                             {
                                                 "path":  "02_evidence/reproducibility_current.json",
-                                                "sha256":  "080b05f399f90cb27819717a0c9fdb2262d17b852c44b92d473aca87aebe349f"
-                                            },
-                                            {
-                                                "path":  "02_evidence/validation_report.json",
-                                                "sha256":  "179342151245b108c6c00b1eca1062778525a85fda8ca54436f94bf8c22dee18"
-                                            },
-                                            {
-                                                "path":  "03_reference/external_reference_provenance_2026-09-21.md",
-                                                "sha256":  "8fc7a24000c0ecf3373feabc01cc6e351f87927c7c1b7dc36bdf304e1b8aedfb"
-                                            },
-                                            {
-                                                "path":  "03_reference/literature_fulltext_audit.md",
-                                                "sha256":  "ab7a65b015216a012c0ce409d5059ba2edda930abd042982add281dfafa2158b"
+                                                "sha256":  "d0035a9bffac8341715cef658b30fa7884eca8077a3392d8f88f671d4871033e"
                                             }
                                         ]
                   },
@@ -123,53 +107,33 @@
     "canonical_inputs":  [
                              {
                                  "path":  "00_control/review_profile.json",
-                                 "sha256":  "48c8c1f08c81440b6f939152e5e9e0ce673cbddfbdc7c12aa64e936b60dcbe91",
-                                 "bytes":  7386
+                                 "sha256":  "214683098d97362a7a771ea056d97515dd575ebe54c10d4c6426bf5617006eb7",
+                                 "bytes":  7322
                              },
                              {
                                  "path":  "01_research/e1_batch1_protocol.md",
-                                 "sha256":  "f08d5a2df4a2a3db95c2c621d9194f5ca24d09eb885dc2e2e6e554f14507b5fb",
-                                 "bytes":  8166
+                                 "sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8",
+                                 "bytes":  22671
                              },
                              {
-                                 "path":  "02_evidence/audit_depth_input_contract.md",
-                                 "sha256":  "8305f5bb0790455afa5da695dd7b9cddfa7e56727832a7bffc5e4cbfdbd05929",
-                                 "bytes":  5908
+                                 "path":  "01_research/r_oe_lite_design.md",
+                                 "sha256":  "8a2ce33222c52ff530e1213105a1e8ec1b2d3b6c85d34236b672fa40e2e8966a",
+                                 "bytes":  21371
                              },
                              {
-                                 "path":  "02_evidence/audit_implementation_diff.md",
-                                 "sha256":  "afc024dd3f65745674a3ab83fdbcbe5dcb4178d180c993ee2398311ed6f15943",
-                                 "bytes":  6631
+                                 "path":  "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
+                                 "sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce",
+                                 "bytes":  3090
                              },
                              {
-                                 "path":  "02_evidence/audit_optimizer_coverage.md",
-                                 "sha256":  "3fd026bd0cdd0c92783fe09e1462b308a2f0df777712346b0bbd17bdd573d93f",
-                                 "bytes":  6012
-                             },
-                             {
-                                 "path":  "02_evidence/report_e1_batch1a_gateb.md",
-                                 "sha256":  "e2eefa6e11e1c9808244075dfc0980d48e2121bff5de4e6096a18da0922c03ed",
-                                 "bytes":  9756
+                                 "path":  "02_evidence/report_e1_batch1b_roe_gateb.md",
+                                 "sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97",
+                                 "bytes":  8187
                              },
                              {
                                  "path":  "02_evidence/reproducibility_current.json",
-                                 "sha256":  "080b05f399f90cb27819717a0c9fdb2262d17b852c44b92d473aca87aebe349f",
-                                 "bytes":  2007
-                             },
-                             {
-                                 "path":  "02_evidence/validation_report.json",
-                                 "sha256":  "179342151245b108c6c00b1eca1062778525a85fda8ca54436f94bf8c22dee18",
-                                 "bytes":  689
-                             },
-                             {
-                                 "path":  "03_reference/external_reference_provenance_2026-09-21.md",
-                                 "sha256":  "8fc7a24000c0ecf3373feabc01cc6e351f87927c7c1b7dc36bdf304e1b8aedfb",
-                                 "bytes":  13651
-                             },
-                             {
-                                 "path":  "03_reference/literature_fulltext_audit.md",
-                                 "sha256":  "ab7a65b015216a012c0ce409d5059ba2edda930abd042982add281dfafa2158b",
-                                 "bytes":  63821
+                                 "sha256":  "d0035a9bffac8341715cef658b30fa7884eca8077a3392d8f88f671d4871033e",
+                                 "bytes":  2674
                              }
                          ],
     "hard_exclusions":  [

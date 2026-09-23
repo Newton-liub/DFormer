@@ -447,36 +447,59 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
 
     e1_batch1_config = dict(getattr(config, "e1_batch1", None) or {})
     e1_batch1_enabled = bool(e1_batch1_config.get("enabled", False))
+    e1_protocol = str(e1_batch1_config.get("protocol", ""))
+    e1_new_parameter_prefixes = ()
+    e1_allowed_missing_prefixes = ()
+    candidate = None
     if e1_batch1_enabled:
         candidate = str(e1_batch1_config.get("candidate", ""))
-        if candidate not in ("C0", "F-lite"):
-            parser.error(f"unsupported E1 Batch 1A candidate {candidate!r}")
+        if e1_protocol == "MMFR-E1-Batch1A-C0-F-v1":
+            allowed_candidates = ("C0", "F-lite")
+            if candidate == "F-lite":
+                e1_new_parameter_prefixes = ("feature_adapter.",)
+        elif e1_protocol == "MMFR-E1-Batch1B-R-OE-lite-v1":
+            allowed_candidates = ("R-OE-lite",)
+            if candidate == "R-OE-lite":
+                e1_new_parameter_prefixes = ("roe_substitute.",)
+        else:
+            parser.error(f"unsupported E1 Batch 1 protocol identity {e1_protocol!r}")
+        if candidate not in allowed_candidates:
+            parser.error(
+                f"unsupported candidate {candidate!r} for E1 protocol {e1_protocol!r}"
+            )
+        if e1_new_parameter_prefixes:
+            e1_allowed_missing_prefixes = e1_new_parameter_prefixes
         if not bool(e1_batch1_config.get("weights_only_restart", False)):
-            parser.error("E1 Batch 1A requires a weights-only restart")
+            parser.error("E1 Batch 1 requires a weights-only restart")
         if any(
             bool(e1_batch1_config.get(field, False))
             for field in ("restore_optimizer", "restore_scheduler", "restore_grad_scaler", "restore_rng")
         ):
-            parser.error("E1 Batch 1A must not restore optimizer, scheduler, GradScaler or RNG state")
+            parser.error("E1 Batch 1 must not restore optimizer, scheduler, GradScaler or RNG state")
         if int(e1_batch1_config.get("required_successful_updates", -1)) != 2560:
-            parser.error("E1 Batch 1A requires exactly 2560 successful updates")
+            parser.error("E1 Batch 1 requires exactly 2560 successful updates")
         if config.nepochs != 20 or config.niters_per_epoch != 128:
-            parser.error("E1 Batch 1A requires 20 epochs and 128 attempts per epoch")
+            parser.error("E1 Batch 1 requires 20 epochs and 128 attempts per epoch")
         if float(e1_batch1_config.get("base_lr", -1.0)) != 1e-5:
-            parser.error("E1 Batch 1A base LR must be 1e-5")
+            parser.error("E1 Batch 1 base LR must be 1e-5")
         if float(e1_batch1_config.get("new_module_lr", -1.0)) != 3e-5:
-            parser.error("E1 Batch 1A new-module LR must be 3e-5")
+            parser.error("E1 Batch 1 new-module LR must be 3e-5")
         if bool(getattr(config, "training_validation_enabled", True)):
-            parser.error("E1 Batch 1A training-time validation must remain disabled")
+            parser.error("E1 Batch 1 training-time validation must remain disabled")
         if not args.amp:
-            parser.error("E1 Batch 1A requires AMP; --no-amp is forbidden")
+            parser.error("E1 Batch 1 requires AMP; --no-amp is forbidden")
         if not args.syncbn:
-            parser.error("E1 Batch 1A requires SyncBN; --no-syncbn is forbidden")
+            parser.error("E1 Batch 1 requires SyncBN; --no-syncbn is forbidden")
         if engine.distributed:
-            parser.error("E1 Batch 1A requires DDP off and a single training process")
+            parser.error("E1 Batch 1 requires DDP off and a single training process")
         if int(args.gpus) != 1:
-            parser.error("E1 Batch 1A requires --gpus 1")
-        logger.info("MMFR E1 Batch 1A enabled: candidate=%s", candidate)
+            parser.error("E1 Batch 1 requires --gpus 1")
+        logger.info(
+            "MMFR E1 Batch enabled: protocol=%s candidate=%s new_prefixes=%s",
+            e1_protocol,
+            candidate,
+            e1_new_parameter_prefixes,
+        )
     if not args.use_seed and config.experiment_phase in {"development", "official"}:
         parser.error("development and official phases require deterministic --seed semantics")
     if args.use_seed:
@@ -625,7 +648,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
         )
     weights_only_source = None
     if e1_batch1_enabled:
-        allowed_missing_prefixes = ("feature_adapter.",) if candidate == "F-lite" else ()
+        allowed_missing_prefixes = e1_allowed_missing_prefixes
         weights_only_source = load_weights_only_model_state(
             e1_batch1_config["source_checkpoint"],
             model=model,
@@ -656,7 +679,7 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             base_lr=float(e1_batch1_config["base_lr"]),
             new_lr=float(e1_batch1_config["new_module_lr"]),
             weight_decay=float(config.weight_decay),
-            new_parameter_prefixes=("feature_adapter.",),
+            new_parameter_prefixes=e1_new_parameter_prefixes,
             expected_geo_weight_count=29,
         )
     else:

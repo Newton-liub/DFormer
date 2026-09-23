@@ -287,4 +287,23 @@ R-OE 的 Quick-Val 解释见设计文档；Batch 1B 在单独协议审核前不�
 - Batch 1B Quick-Val、Main-Val、Batch 2、T；
 - official test（保持 `sealed_unread`）。
 
-**准确恢复点：** `ready-for-R-OE-formal-training-authorization`。Batch 1B Gate-B 已通过，但 formal training authorization 尚未获得；在授权前不启动正式训练、Quick-Val、Main-Val、Batch 2、T、云任务或 official test。
+**准确恢复点：** `ready-for-R-OE-formal-training-authorization`。Batch 1B 实现与 Gate-B 已通过，但 R-OE-lite 正式训练仍需单独授权；训练授权不自动包含 Quick-Val、Main-Val、云任务、Batch 2、T 或 official test。Batch 1A 十条件 Main-Val 的上级处置独立待审。official test 继续 `sealed_unread`。
+
+## 10. Batch 1B Gate-B 与冻结 Main-Val 门槛
+
+### 10.1 Gate-B 身份与结论
+
+R-OE-lite 实现和最小 Gate-B 已于 2026-09-23 完成。canonical JSON 为 `outputs/mmfr-e1-batch1b-gateb/e1-batch1b-gateb.json`，SHA-256 `35297b490c3e3eb54b5e66d3f06784688fca65038e7d09874c30c60cde820231`，`status=PASS`、`failed_checks=[]`、`official_test_included=false`、`formal_training_started=false`。完整结果见 [`../02_evidence/report_e1_batch1b_roe_gateb.md`](../02_evidence/report_e1_batch1b_roe_gateb.md)。
+
+共同字段 exact equal；post-build CPU/CUDA RNG 与 C0 exact equal；1280 项第一 epoch permutation digest 为 `196564b61f9f5349dc6c4b77b7c993ccbf9c0660646bfde637fb5a87da1bc028`。Gate-B 确认 mixed-batch 路由、非触发 exact bypass、substitute 输出/padding/Depth normalization、reliability auxiliary 分流、optimizer membership 与一次 AMP 更新路径。substitute 可训练参数精确 `3,302,785`。这些证据只证明最小实现资格，不是训练、性能或 batch-size-10 容量结论。
+
+### 10.2 10-condition Main-Val gate
+
+正式 Main-Val 需要单独授权，评价完整 318 条 `val-dev` 的十个 condition，差值均为 R-OE-lite 减 matched C0，单位为 pp；$M_6$ 为六个单故障 mIoU 的未加权宏平均。Quick-Val 仅用于 screening，不作最终 `promote/stop` 判定；`entire_missing@1.0` 是 observable-empty stress condition，不能据此声称 detector 识别 hidden cause。
+
+- **Promote：** `entire_missing@1.0` delta `>= +0.50` pp；$M_6$ delta `>= 0`；clean delta `>= -0.25` pp；六个单故障中无一 delta `< -0.50` pp。
+- **Stop：** `entire_missing@1.0` delta `<= 0`，或 $M_6$ delta `<= -0.50` pp，或 clean delta `< -0.50` pp，或任一单故障 delta `< -1.00` pp。
+- **Inconclusive：** 合法完整评价不满足 promote，且没有触发 stop。
+- **Blocked：** 评价未完成或身份/配对性检查失败，不归入 inconclusive。
+
+三个混合条件照常报告但无独立门槛。该数值 gate 已冻结，不代表任何正式训练或评价已获授权。

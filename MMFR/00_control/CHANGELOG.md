@@ -1,5 +1,13 @@
 # MMFR v4.1 package change log
 
+## 2026-09-23 — E1 Batch 1B R-OE-lite Gate-B review packet
+
+- Recorded the completed R-OE-lite implementation and Gate-B PASS in the protocol, screening plan, design record, Gate-B report, and implementation-diff audit. The canonical Gate-B JSON SHA-256 is `35297b490c3e3eb54b5e66d3f06784688fca65038e7d09874c30c60cde820231`.
+- Froze the ten-condition Main-Val promote/stop/inconclusive/blocked rules and clarified that Quick-Val is screening only, `entire_missing@1.0` is a stress condition rather than hidden-cause detection, and Gate-B does not authorize training or evaluation.
+- Changed the active L1 review profile to `e1-batch1b-roe-gateb`, with the Batch 1B report and implementation-diff audit as exact-copy attachments; rebuilt the six-file packet with generation ID `86a92d119a8a1e0b2c33a2ad6fba8876aef0e2c26c1233f8fb7a28c9d2272691` and zero broken links.
+- Updated the authoritative MUSeg status and open-decision pointers, package navigation, reproducibility metadata, and report index to distinguish the pending Batch 1B training authorization from the independent Batch 1A Main-Val review.
+- Formal training, Quick-Val, Main-Val, cloud execution, Batch 2/T, and official-test access remain unauthorized; `official_test` remains `sealed_unread`.
+
 ## 2026-09-23 — restored into the project repository, external-reference indexes added
 
 - Moved the package from `D:\0Project\DFormer-archive-20260922\liu-test-exp\MMFR\MMFR_v4_1_blueprint_and_reference_package_2026-09-20\` back to the project root as `D:\0Project\DFormer\MMFR\` and brought it under Git.

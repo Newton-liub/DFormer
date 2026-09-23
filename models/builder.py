@@ -109,10 +109,10 @@ def _e1_feature_adapter_config(cfg):
     if not block or not bool(block.get("enabled", False)):
         return None
     candidate = str(block.get("candidate", ""))
-    if candidate == "C0":
+    if candidate in ("C0", "R-OE-lite"):
         return None
     if candidate != "F-lite":
-        raise ValueError(f"unsupported E1 Batch 1A candidate {candidate!r}")
+        raise ValueError(f"unsupported E1 Batch 1 candidate {candidate!r}")
     adapter = dict(block.get("feature_adapter") or {})
     expected = {
         "stages": [1, 2, 3],
@@ -132,6 +132,41 @@ def _e1_feature_adapter_config(cfg):
         raise ValueError("E1 F-lite must not consume reliability, condition, severity or oracle inputs")
     return adapter
 
+
+
+def _e1_roe_config(cfg):
+    """Return and validate the frozen Batch 1B R-OE-lite block."""
+
+    block = cfg.get("e1_batch1") if hasattr(cfg, "get") else getattr(cfg, "e1_batch1", None)
+    if not block or not bool(block.get("enabled", False)):
+        return None
+    if str(block.get("candidate", "")) != "R-OE-lite":
+        return None
+    substitute = dict(block.get("roe_substitute") or {})
+    expected = {
+        "architecture": "observable-empty-geometry-substitute",
+        "channels": [122, 398, 256, 256, 398, 122, 1],
+        "pool": "avgpool2d-kernel2-stride2-ceil-mode-true",
+        "activation": "GELU",
+        "resize": "bilinear-align-corners-false",
+        "normalization": "none",
+        "skip_connections": False,
+        "output": "straight-through-clamp-0-255",
+        "head_bias": 127.5,
+        "uses_depth": False,
+        "uses_reliability": False,
+        "uses_condition": False,
+        "uses_severity": False,
+        "uses_oracle": False,
+        "expected_trainable_parameters": 3302785,
+    }
+    for key, value in expected.items():
+        if substitute.get(key) != value:
+            raise ValueError(
+                f"E1 R-OE-lite roe_substitute.{key} must be {value!r}, "
+                f"got {substitute.get(key)!r}"
+            )
+    return substitute
 
 
 class EncoderDecoder(nn.Module):
@@ -245,6 +280,39 @@ class EncoderDecoder(nn.Module):
                 ",".join(self.reliability_supervised_channels),
             )
 
+        # R-OE-lite is initialized in an isolated torch RNG scope. Its construction
+        # must not consume the global state used later by DataLoader shuffling, so a
+        # matched C0 can be reused without changing the first-epoch permutation.
+        self.roe_substitute = None
+        self.last_roe_route = None
+        roe_cfg = _e1_roe_config(cfg)
+        if roe_cfg is not None:
+            from .roe_substitute import ObservableEmptyGeometrySubstitute
+
+            cpu_rng_state = torch.get_rng_state()
+            cuda_rng_states = torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None
+            try:
+                self.roe_substitute = ObservableEmptyGeometrySubstitute()
+            finally:
+                torch.set_rng_state(cpu_rng_state)
+                if cuda_rng_states is not None:
+                    torch.cuda.set_rng_state_all(cuda_rng_states)
+            actual_trainable_parameters = sum(
+                int(parameter.numel())
+                for parameter in self.roe_substitute.parameters()
+                if parameter.requires_grad
+            )
+            expected_trainable_parameters = int(roe_cfg["expected_trainable_parameters"])
+            if actual_trainable_parameters != expected_trainable_parameters:
+                raise ValueError(
+                    "E1 R-OE-lite substitute parameter count mismatch: "
+                    f"expected {expected_trainable_parameters}, got {actual_trainable_parameters}"
+                )
+            logger.info(
+                "MMFR E1 R-OE-lite substitute enabled: parameters=%d",
+                actual_trainable_parameters,
+            )
+
         self.feature_adapter = None
         feature_adapter_cfg = _e1_feature_adapter_config(cfg)
         if feature_adapter_cfg is not None:
@@ -316,6 +384,61 @@ class EncoderDecoder(nn.Module):
             return out, aux_fm
         return out
 
+    def _route_roe_modal_x(self, rgb, modal_x, raw_depth=None, geometry_mask=None):
+        """Route only observable-empty samples through the frozen R-OE substitute."""
+
+        if self.roe_substitute is None:
+            return modal_x
+        if raw_depth is None or geometry_mask is None:
+            raise ValueError(
+                "R-OE-lite requires current raw_depth and V_geom for observable-empty routing"
+            )
+        if raw_depth.ndim != 4 or raw_depth.shape[1] != 1:
+            raise ValueError(
+                f"R-OE-lite detector expects raw_depth [B,1,H,W], got {tuple(raw_depth.shape)}"
+            )
+        if geometry_mask.ndim != 4 or geometry_mask.shape[1] != 1:
+            raise ValueError(
+                f"R-OE-lite detector expects V_geom [B,1,H,W], got {tuple(geometry_mask.shape)}"
+            )
+        if raw_depth.shape[0] != rgb.shape[0] or raw_depth.shape[-2:] != rgb.shape[-2:]:
+            raise ValueError("R-OE-lite raw_depth must match the RGB batch and spatial shape")
+        if geometry_mask.shape != raw_depth.shape:
+            raise ValueError("R-OE-lite V_geom must match raw_depth exactly")
+        if modal_x.ndim != 4 or modal_x.shape[1] != 3:
+            raise ValueError(
+                f"R-OE-lite requires the existing three-channel Depth path, got {tuple(modal_x.shape)}"
+            )
+        if not torch.isfinite(raw_depth).all():
+            raise ValueError("R-OE-lite raw_depth contains non-finite values")
+        if bool((raw_depth < 0.0).any().item()) or bool((raw_depth > 1.0).any().item()):
+            raise ValueError("R-OE-lite raw_depth must lie in [0, 1]")
+
+        v_geom = geometry_mask.to(dtype=torch.bool)
+        raw_u8 = torch.round(raw_depth.to(torch.float32) * 255.0).to(torch.int64)
+        geometry_pixels = v_geom.flatten(1).sum(dim=1)
+        nonzero_pixels = (raw_u8 > 0).logical_and(v_geom).flatten(1).sum(dim=1)
+        trigger = (geometry_pixels > 0) & (nonzero_pixels == 0)
+        self.last_roe_route = {
+            "oe_semantics": "observable-empty",
+            "trigger": trigger.detach(),
+            "geometry_pixels": geometry_pixels.detach(),
+            "raw_depth_nonzero_pixels": nonzero_pixels.detach(),
+            "substitute_forward": int(trigger.sum().item()),
+        }
+        if not bool(trigger.any().item()):
+            return modal_x
+
+        trigger_indices = torch.nonzero(trigger, as_tuple=False).flatten()
+        substitute_raw = self.roe_substitute(
+            rgb.index_select(0, trigger_indices),
+            v_geom.index_select(0, trigger_indices),
+        )
+        substitute_depth = substitute_raw.repeat(1, 3, 1, 1)
+        substitute_depth = (substitute_depth / 255.0 - 0.48) / 0.28
+        substitute_depth = substitute_depth.to(dtype=modal_x.dtype)
+        return torch.index_copy(modal_x, 0, trigger_indices, substitute_depth)
+
     def forward(
         self,
         rgb,
@@ -351,6 +474,14 @@ class EncoderDecoder(nn.Module):
                     "MMFR-A2 training requires the complete reliability supervision batch; missing: "
                     + ", ".join(missing_reliability)
                 )
+
+        if self.roe_substitute is not None:
+            modal_x = self._route_roe_modal_x(
+                rgb,
+                modal_x,
+                raw_depth=raw_depth,
+                geometry_mask=reliability_valid_mask,
+            )
 
         if self.aux_head:
             out, aux_fm = self.encode_decode(rgb, modal_x)
