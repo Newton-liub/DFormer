@@ -26,9 +26,22 @@ from typing import Any, Sequence, Tuple
 
 import numpy as np
 
-from utils.dataloader.multimodal_failure import (
-    FAILURE_KINDS,
+#: Frozen A1 six-kind tuple. It lived in the retired ``multimodal_failure.py`` (A1 v1) and is
+#: kept here because it is the only place the A2 v3 helper and this shared module both consume.
+FAILURE_KINDS: Tuple[str, ...] = (
+    "entire_missing",
+    "spatial_dropout",
+    "gaussian_noise",
+    "blur",
+    "quantization",
+    "misalignment",
 )
+#: Frozen A1 curriculum severities: severity floor, light/moderate caps and the
+#: ``entire_missing`` heavy severity. Values are unchanged from A1 v1.
+CURRICULUM_SEVERITY_FLOOR = 0.05
+CURRICULUM_LIGHT_MAX_SEVERITY = 0.3
+CURRICULUM_MODERATE_MAX_SEVERITY = 0.6
+ENTIRE_MISSING_HEAVY_SEVERITY = 1.0
 
 #: Training corruption seed, deliberately independent of the model seed.
 CORRUPTION_SEED = 2026091402
@@ -51,6 +64,11 @@ if len(set(DEPTH_NORMALIZATION_MEAN)) != 1 or len(set(DEPTH_NORMALIZATION_STD)) 
     raise RuntimeError("Depth normalization must be uniform across channels")
 
 __all__ = [
+    "FAILURE_KINDS",
+    "CURRICULUM_SEVERITY_FLOOR",
+    "CURRICULUM_LIGHT_MAX_SEVERITY",
+    "CURRICULUM_MODERATE_MAX_SEVERITY",
+    "ENTIRE_MISSING_HEAVY_SEVERITY",
     "CORRUPTION_SEED",
     "CLEAN_PROBABILITY",
     "MAX_SPECS",

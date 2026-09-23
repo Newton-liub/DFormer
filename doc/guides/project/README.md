@@ -94,7 +94,7 @@ DFormer 用统一 RGB-D 编码器逐阶段融合彩色图像与深度特征；DF
 
 ## 6. 配置与 protocol
 
-**配置**是可 import 的 Python 模块，决定运行时对象参数：数据根、split 路径、图像格式、模型、loss 相关字段、优化器、epoch、batch、worker、评估和输出目录。`local_configs/MUSeg/DFormerv2_S_MVE.py` 提供 MUSeg 模型/数据基础，`DFormerv2_S_4090.py` 将其绑定到冻结 development split 和可由环境变量覆盖的机器路径。已退出的 A2 v1/v2 与 20-epoch 专用配置、v1/v2 dataloader helper 模块，以及 `utils/train.py` 中的 v1/v2 协议分支均已删除；当前 E1、A2 v3 与 Quick-B0 配置保持不变。配置继承层（`DFormerv2_S_MVE.py` → `DFormerv2_S_4090.py`）本轮未重构，其历史字段清单见当前状态文件。
+**配置**是可 import 的 Python 模块，决定运行时对象参数：数据根、split 路径、图像格式、模型、loss 相关字段、优化器、epoch、batch、worker、评估和输出目录。`local_configs/MUSeg/DFormerv2_S_MVE.py` 提供 MUSeg 模型/数据基础，`DFormerv2_S_4090.py` 将其绑定到冻结 development split 和可由环境变量覆盖的机器路径。已退出的 A2 v1/v2 与 20-epoch 专用配置、v1/v2 dataloader helper 模块、A1 v1 corruption 实现模块 `utils/dataloader/multimodal_failure.py`（其仍被消费的 6 个冻结常量已迁入 `utils/dataloader/mmfr_training.py`），以及 `utils/train.py` 中的 v1/v2 协议分支均已删除；当前 E1、A2 v3 与 Quick-B0 配置保持不变。配置继承层（`DFormerv2_S_MVE.py` → `DFormerv2_S_4090.py`）本轮未重构，其历史字段清单见当前状态文件。
 
 **protocol**是运行身份与审计合同，不替代配置。模板声明 protocol ID、schedule、phase、模型、配置模块、seed、必需 Git commit、split authority、预训练文件身份、输出根、训练参数和 SwanLab 模式。`tools/materialize_museg_protocol.py` 把模板占位符替换为机器绝对路径和实际哈希；物化 manifest 不提交到 Git。`tools/museg_protocol.py::load_protocol` 严格检查字段、schema、冻结 manifest/audit、split 身份和 phase 允许消费的角色。
 

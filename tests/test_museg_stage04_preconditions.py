@@ -65,6 +65,9 @@ def test_auxiliary_head_consumes_selected_backbone_feature_not_batch_axis() -> N
     model.decode_head = DecodeHead()
     model.aux_head = AuxHead()
     model.aux_index = 2
+    # ``EncoderDecoder.__init__`` always assigns ``feature_adapter`` (``None`` unless the
+    # E1 F-lite block is enabled); ``__new__`` bypasses that, so the fixture must state it.
+    model.feature_adapter = None
     rgb = torch.zeros(2, 3, 8, 8)
     modal_x = torch.zeros(2, 3, 8, 8)
 
