@@ -1,0 +1,43 @@
+---
+description: Keep the in-repository MMFR research package current after major research events
+alwaysApply: true
+---
+
+# MMFR 研究包自动维护规则
+
+`D:\0Project\DFormer\MMFR\` 是项目内受 Git 管理的 MMFR 研究控制与证据目录。研究事实、授权边界和恢复点仍只以 `doc/main/MUSeg-current-status.md` 与 `doc/main/MUSeg-open-decisions.md` 为准；MMFR 只承担证据库、索引和上级审核材料入口。
+
+## 触发条件
+
+出现下列任一重大研究事件时，必须检查 MMFR 并按需更新，不能只把结果留在聊天记录里：
+
+- 主要实验阶段完成（训练、资格运行、评价批次结束）；
+- Main-Val / Test 得到用于研究决策的结果；
+- A2 / E1 / B1 / B2 等阶段发生切换或授权状态变化；
+- 新模块方案形成或方案实质调整；
+- 研究蓝图发生实质变化；
+- PR / RE / 防撞车结论发生重大更新；
+- 新增重要论文或参考代码；
+- 用户要求生成重大上级审核材料。
+
+## 按需更新的位置
+
+- `MMFR/00_control/`：入口导航、放置规则、变更历史、审核 profile。
+- `MMFR/01_research/`：最新蓝图、当前阶段方案与协议。
+- `MMFR/02_evidence/`：当前实验依据（审计、报告、验证、复现身份）。
+- `MMFR/03_reference/`：`paper-index.md`、`code-index.md`、文献审计与外部代码 provenance。
+- `MMFR/99_review_packet_current/`：当前唯一上级审核入口。
+
+可以自动更新的内容：当前状态指针、最新蓝图、当前计划、当前实验依据、`paper-index.md`、`code-index.md`、当前审核包。
+
+## 禁止自动覆盖
+
+历史报告正文、历史实验结果、历史审核结论、已归档蓝图、原始论文、外部 clone 代码一律不得改写。被替换的重要历史正式版本进入 `MMFR/90_archive/` 的按事件命名子目录，并保持原有字节与结论。
+
+## 边界
+
+- 论文全文、supplementary 原文件、外部代码仓库副本、checkpoint、dataset、大体积日志与 eval cache 不得放回 `MMFR/`；论文全文统一放在仓库外 `D:\0Project\origin\论文\`，clone 代码统一放在仓库外 `D:\0Project\origin\`。
+- MMFR 内只保留 `.md`、`.txt`、小型 `.json`、索引、文献分析、PR/RE/防撞车报告与必要小脚本。
+- `99_review_packet_current/` 是生成产物，不得手工编辑；用 `MMFR/98_tools/rebuild_review_packet.ps1` 按 `00_control/review_profile.json` 重建，重建前先确认包内 canonical Markdown 没有坏链。
+- 不新建额外的 manifest、hash 数据库、profile 类型或复杂审计系统；沿用现有 `review_profile.json`、`packet_manifest.json` 与注册表。
+- 只写直接核验过的事实；未核验内容标记为“待核验”，不依据计划或预计时间补造结论。

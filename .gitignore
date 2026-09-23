@@ -13,8 +13,12 @@ archive-export/
 #paper
 doc/paper/
 
-# Local MMFR paper full texts and extraction artifacts
-/liu-test-exp/MMFR/附件/
+# MMFR keeps research text and small structured evidence; large binaries stay outside Git.
+# Paper full texts live at D:\0Project\origin\论文 and external clones at D:\0Project\origin.
+/MMFR/**/*.pdf
+/MMFR/**/*.pth
+/MMFR/**/*.pt
+/MMFR/**/*.ckpt
 
 # dataset
 MUseg/
