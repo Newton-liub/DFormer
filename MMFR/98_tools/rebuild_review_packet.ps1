@@ -8,7 +8,9 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $packageRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$repoRoot = (Resolve-Path (Join-Path $packageRoot '..\..\..')).Path
+# The package sits directly under the project repository root at D:\0Project\DFormer\MMFR,
+# so the Git work tree is always one level above the package root.
+$repoRoot = (Resolve-Path (Join-Path $packageRoot '..')).Path
 $profilePath = Join-Path $packageRoot '00_control\review_profile.json'
 $reproPath = Join-Path $packageRoot '02_evidence\reproducibility_current.json'
 $validationPath = Join-Path $packageRoot '02_evidence\validation_report.json'

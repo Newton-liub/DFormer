@@ -9,6 +9,7 @@
 - `PACKAGE_INDEX.md` gained a quick-navigation table and an explicit packet-state note; `FILE_RULES.md` now places paper full texts outside the repository.
 - Research content, Gate-B evidence, authorization boundary, and the official-test seal were not changed. The review packet was **not** regenerated: the packet in `99_review_packet_current/` still belongs to profile `e1-batch1a-gateb`, and its recorded canonical source hashes predate these link repairs.
 - Known blocker for the next packet rebuild: `01_research/e1_screening_plan.md` links to `02_evidence/report_e1_batch1b_roe_gateb.md`, which is not yet present in the package, and `98_tools/rebuild_review_packet.ps1` fails hard on a broken canonical link.
+- Repaired `98_tools/rebuild_review_packet.ps1`'s `$repoRoot`, which still assumed the old three-level-deep package location; it now resolves the Git work tree one level above the package root, so the generator can read the repository identity again.
 
 ## 2026-09-21 — second directory simplification
 
