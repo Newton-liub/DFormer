@@ -12,7 +12,7 @@ import os.path as osp
 
 import numpy as np
 
-from .DFormerv2_S_MVE import C
+from .DFormerv2_S_Base import C
 
 _PROJECT_ROOT = osp.abspath(osp.join(osp.dirname(__file__), "..", ".."))
 _DEFAULT_DATA_ROOT = osp.join(osp.dirname(_PROJECT_ROOT), "dataset")

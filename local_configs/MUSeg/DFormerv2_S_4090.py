@@ -3,7 +3,7 @@
 import os
 import os.path as osp
 
-from .DFormerv2_S_MVE import C
+from .DFormerv2_S_Base import C
 
 
 _PROJECT_ROOT = osp.abspath(osp.join(osp.dirname(__file__), "..", ".."))
@@ -54,7 +54,6 @@ C.warm_up_epoch = 2
 C.eval_start_epoch = 5
 C.eval_interval = 5
 C.save_interval = 5
-C.checkpoint_start_epoch = C.nepochs  # legacy-only compatibility
 C.checkpoint_step = C.save_interval  # legacy-only compatibility
 C.save_epoch_checkpoints = True
 C.save_latest_checkpoint = True
