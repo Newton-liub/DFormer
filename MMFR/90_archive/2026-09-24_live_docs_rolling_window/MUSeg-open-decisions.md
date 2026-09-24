@@ -1,0 +1,244 @@
+# MUSeg 实验口径与处置状态
+
+> **状态时间：** 2026-09-24（MMFR v4.1 E1 Batch 1A C0/F-lite training PASS；Quick-Val 完成且 F-lite `promote`；十条件 Main-Val 已在本地完成，十视图口径下 F-lite 未复现 Quick-Val 优势、Batch 1A Main-Val 等待上级处置裁决；Batch 1B R-OE-lite Gate-B PASS；正式训练曾于 01:40:43 UTC 启动，并于 01:45:30 UTC 遇 CUDA OOM 退出，至少完成 168 次成功 updates，未生成 fixed-final checkpoint，Quick-Val 未运行；云实例控制面状态待核验）。
+> **文档角色：** 研究选择与边界记录，不承担实时状态或执行授权。
+> **实时入口：** [`MUSeg-current-status.md`](MUSeg-current-status.md)。稳定基准与分支规则见 [`research-branch-governance.md`](../guides/project/research-branch-governance.md)。
+> **历史路径说明：** 本文件保留的 `liu-test-exp/...`、`doc/paper/...`、`doc/plans/archive/...` 与 `doc/canvases/old/...` 均是形成时点的相对路径；2026-09-22 以后应在 `D:/0Project/DFormer-archive-20260922/` 下按原相对路径读取。
+> **候选计划：** 历史 A2/B2 与方向1计划的执行状态以实时入口为准；MMFR v4.1 E1 当前处置为：Batch 1A C0/F-lite 已通过 Gate-B，正式训练均 PASS，Quick-Val 判定 F-lite `promote`，十条件 Main-Val 已在本地完成（两侧各 10/10 条件、身份与配对性断言 0 失败），但十视图口径下 F-lite 未复现 Quick-Val 优势；R-OE-lite implementation 与 Gate-B 已 PASS。Batch 1B 正式训练获授权后于 2026-09-24 01:40:43 UTC 启动，01:45:30 UTC 因 CUDA OOM 退出，至少 168 次成功 updates、精确最终计数未落盘，未生成 fixed-final checkpoint，Quick-Val 未运行；Batch 1A C0 checkpoint 的真实路径仍待核验。OOM 后不自动重试，后续是否调整方案或停止该批次等待用户决定；Batch 1A Main-Val 上级处置独立待审。
+> 本文件保留问题缘由，并区分“仍待决定”“本轮已处置”和“仅保留历史解释”。已完成的 seed 1 不回写 protocol 或原始证据；影响后续运行的变更必须使用新 protocol 身份并重新 qualification。
+
+## 1. 新 DFormerv2-MUSeg baseline 方向
+
+**大白话结论：** 新计划使用 DFormerv2-S 和其公开训练/测试方法建立内部 B0，作为后续模块消融的共同起点；目标是结果量级合理、链路可信和比较口径一致，不是三 seed 完整复现论文。
+
+**当前状态：方向、RGB、single-seed B0 角色、训练参数、主 evaluator、历史运行所用的 top 3 + latest 和 protocol v3 均已冻结并执行完成。唯一 Quick-B0 已完成 500 epoch 和 4 个候选的五尺度翻转主评估，最终 B0 为 epoch 420，主 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；official test 继续保持 `sealed_unread`。后续训练的独立 v2 top 8 + latest 设置已提交，但不改变本次 v1 结论。**
+
+- 训练方向：采用官方公开的随机尺度训练增强，尺度候选为 `0.5、0.75、1.0、1.25、1.5、1.75`，之后裁剪到 `480×640`，并保持 RGB/Depth/Label 同步变换。
+- 测试方向：采用官方论文公开的 multi-scale flip 推理，尺度为 `0.5、0.75、1.0、1.25、1.5`，暂不把滑动窗口静默混入主基线。
+- 输出方向：每个尺度的预测恢复到 MUSeg 原始 Label 网格后融合和计分；`480×640` 是训练或明确命名的模型输入尺寸，不自动等于最终 metric geometry。
+- 这是公开 DFormerv2 方法在 MUSeg 上的适配，用于建立后续模块的内部对照；不声称复现 MUSeg 作者未公开的测试代码，也不以论文数值完全相等或三 seed 统计作为当前 B0 门槛。具体 evaluator、预算、checkpoint 规则和运行位置由当前执行方案冻结。
+- 旧 `Stage-01` 至 `Stage-05` 计划和其未完成的 Protocol Gate 已封存；历史 seed 1 的单尺度结果只作为 reference，不与新 baseline 混合统计。
+
+## 2. Validation 空间尺寸
+
+**当前边界：** Quick-B0 的主 evaluator 已固定为 `msflip-whole-original-grid-v1`；本节其余关于 seed 1 的 validation geometry 和后评估只保留为历史诊断，不构成当前 Quick-B0 的待决选择。
+
+**当前状态：历史 seed 1 的五项后评估已完成；新 baseline 的 `msflip-whole-original-grid-v1` 已按冻结契约完成 4 个候选的正式主评估。最终 epoch 420 在 318 个 `val-dev` 样本的原始 Label 网格上取得 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；FP32、TF32 disabled、RGB 输入和 `official_test_included=false` 身份均已核验。**
+
+- 技术检查样本为 `06-01-01-0352-230920140646-10-99`，原始 `932×1082`，尺度 1.5 后 `1398×1623`，padding 后 `1408×1632`；两个 view 用时 `2.095559`/`1.079008` 秒，峰值 allocated/reserved 为 `4,977,021,952`/`6,511,656,960` bytes，未 OOM。证据见 `cloud/DFormer-stage05-evidence/posteval/quick-b0-scale1.5-max-sample-fp32-technical-check.json`，其中 `metrics_computed=false`。按最大样本保守外推最多 4 个候选约 `2.8` 小时，低于 8 小时硬上限。大白话说，本次只确认本机能承载冻结 evaluator，不产生任何模型好坏结论。
+
+- 历史 seed 1 的训练与在线 validation 事实保持为：训练裁剪 480×640，validation 原分辨率整图，`sliding=false`。
+- post-evaluator 已改为所有 geometry 保留原始 Label：resize 只改变模型输入，logits 恢复到原图计分；sliding 保持全图覆盖。报告显式记录 input/metric geometry、插值、stride、padding 和输出尺寸。
+- 历史后评估链的 production `ValPre`/original-full、resize 原图计分、sliding 覆盖、strict checkpoint load 和 official-test 拒绝的聚焦 CPU 测试已通过；这些检查覆盖历史后评估链路，不再作为当前 Quick-B0 的未闭合事项。
+- 五项后评估已完成：best 的 original-full/resize/sliding mIoU 为 `52.98`/`56.31`/`51.89`，epoch-500 的 resize/sliding 为 `56.73`/`52.08`；五项都在原始 Label grid 计分，均为 318 样本且 official test 未参与。结果只能用于 geometry 诊断，不改写 seed 1 原始曲线或 best 身份。
+- 历史五项后评估的几何排序只用于诊断，不作为新 baseline 的冻结依据。新计划优先实现 DFormerv2 论文的 multi-scale flip；单尺度 original-full、固定 resize 和 sliding 保留为命名清晰的对照或资源备选。
+
+当前口径是：`480×640`只表示训练裁剪或明确命名的模型输入，不概括为统一 validation 尺寸；Quick-B0 的当前计分口径由 `msflip-whole-original-grid-v1` 固定。历史后评估只作为 geometry 诊断，不改写 seed 1 原始曲线或 best 身份。
+
+## 3. MUSeg 颜色通道顺序
+
+**大白话问题：** 历史 MUSeg loader 使用 OpenCV BGR，但官方预训练模型看到的是 RGB。项目刚起步时，是先做两种颜色的配对训练，还是先选择与预训练一致的输入？
+
+**当前状态：本轮已处置。用户于 2026-08-30 确认 quick B0 直接使用 RGB，取消 RGB/BGR 双臂；这是输入一致性选择，不是颜色性能胜负结论。**
+
+- seed 1 的历史事实保持为 OpenCV BGR 数组，并按位置应用 `[0.485,0.456,0.406]` / `[0.229,0.224,0.225]`；不回写其 protocol 或结果。
+- 当前权重已闭合为官方上游资产：Hugging Face `bbynku/DFormerv2` 中 `DFormerv2/pretrained/DFormerv2_Small_pretrained.pth` 的大小为 110,203,103 bytes，LFS SHA-256 为 `19116988fc86dc9f3e879282237941e11b9b1b5c480edb51e92807311dbc11a6`，与本项目权重完全一致。官方 README 将其列为 ImageNet-1K RGB-D pretrained；官方 `VCIP-RGBD/RGBD-Pretrain` 数据代码默认以 PIL `RGB` 读取彩色图并使用 RGB 顺序 ImageNet mean/std，因此 pretrained 上游通道语义判定为 RGB。
+- 新 quick B0 明确执行 OpenCV BGR→RGB，再使用 RGB 顺序 ImageNet mean/std。大白话说，这让下游输入保持官方预训练模型已经学习过的通道含义，是当前变量最少、依据最直接的起点。
+- 固定历史 best checkpoint 的三臂 original-full 诊断结果仍保留：legacy BGR、RGB+RGB mean/std、BGR+反向 mean/std 的 mIoU 分别为 `52.98`、`33.85`、`49.53`。它只证明旧 checkpoint 对输入契约强敏感，不能用于判断重新训练后的 RGB/BGR 胜负。
+- 本轮不做 `color-geometry-screening-B0`、短程颜色训练或第二 seed，也不把“选择 RGB”表述为“RGB 在 MUSeg 上统计显著优于 BGR”。如果未来研究问题明确变成颜色谱系比较，才需要另立 paired calibration protocol 并从相同 pretrained 成对重训。
+- 历史 BGR seed 1 继续保留 `development-reference-B0` 身份；新 RGB quick B0 使用独立 protocol identity，两者不混入同一 mean±std 或当作配对实验。
+
+## 4. A2 自然无效深度分层是否为 B2 硬门槛
+
+**大白话问题：** 人工 corruption 可以证明模型对深度破坏敏感，但当前自然缺失深度证据可能不足以证明现实世界中存在同样机制。若把两者都设为硬门槛，会让“能否做 B2”和“能否声称现实机制”混在一起。
+
+**当前状态：已处置。人工 corruption 可作为进入 B2 的工程门槛，自然证据限制结论强度。**
+
+- A2 人工 corruption 达标后可以进入 B2 开发，不要求自然无效深度分层先成为硬前提。
+- 若自然缺失/无效深度分层证据不足，只能声明“在人工 corruption 条件下观察到敏感性或改进”，不得扩展为真实缺失机制、现实鲁棒性或部署收益。
+- 正式 A2/B2 开发筛查只使用 `val-dev`；official test 等最终模型和协议冻结后再通过独立门禁一次性解封。
+
+## 5. Qualification 与长程训练的 step 计数
+
+**大白话问题：** Stage-04 计划为 3×128=384 次 loop 尝试，报告记录 376 次成功 optimizer update；Stage-05 理论网格为 64,000 次，最终记录 63,973 次有效更新。AMP 可能跳过少量更新，但旧遥测把“尝试”和“成功”混写，导致验收误判。
+
+**当前状态：历史差异不再阻塞，未来遥测已修正，旧 run 不追溯改写。**
+
+- Stage-04 的 8 次差异缺少完整 trace，无法事后证明每次具体原因；该缺口保留为历史限制，不推翻 Gate D 的连续/恢复等价证据。
+- Stage-05 的 27 次差异按少量 AMP 跳过更新处理，不作为训练失败条件；500 个 epoch、50 个 validation 点、checkpoint 身份和最终结果已由 v2 裁决独立核验。
+- 未来非 probe 运行分别记录实际 loop attempts、completed optimizer updates 和 skipped optimizer steps，并写入遥测 schema 版本。
+- 学习率与调度语义必须在新运行中由结构化计数验证，不用修改原始 `acceptance.json` 或 `training_result.json` 来补齐旧证据。
+
+## 6. `run_kind=qualification` 的历史字段名
+
+**大白话问题：** seed 1 明明是 development 长程训练，命令却记录 `run_kind=qualification`。这是旧代码把“所有非 probe 运行”都叫 qualification，不代表研究 phase 真的是 qualification。
+
+**当前状态：已处置。未来使用 `standard`，历史身份保持不变。**
+
+- 启动器和训练入口已允许未来 `run_kind=standard`，并继续兼容旧的 `qualification`。
+- seed 1 的原始命令、manifest 和结果仍保留 `run_kind=qualification`，不得改写；其真实研究阶段继续由 `experiment_phase=development` 和 protocol role 决定。
+- 新的 development 长程运行应使用 `standard`；`qualification` 只为历史兼容或真正 qualification 保留。
+
+## 7. 云端终态与关机
+
+**大白话问题：** 本次 SwanLab 已显示完成，但自动流程没有及时关机，人工等待约 23 分钟后仍需手动处理，验收失败路径还曾明确记录 `automatic_shutdown=false`。如果让验收结果决定是否关机，失败时会持续计费。
+
+**当前状态：策略与实现均已验证。无卡 lifecycle-test、正式 B0 训练、证据取回、普通 stop 和 `Stopped` 复查均已完成；本次主评估仅使用本地 RTX 5060 Laptop，没有执行云端或生命周期操作。**
+
+- 生产生命周期由本地控制器处理共同终态：workload 成功、失败或人工中止后，都先取回必要证据并核验哈希，再调用 CompShare 控制面 stop；验收 pass/fail 只决定研究结论，不决定是否停止计费。
+- 实例内 `shutdown -h` 不能单独证明平台进入 `Stopped`。自动关机验收必须使用控制面 stop，并等待和复查实例状态为 `Stopped`。
+- 正式 RTX 4090 前，用 `run_kind=lifecycle-test`、`simulation=true` 的无卡任务模拟成功 workload、测试报告、证据 manifest 和 SHA-256；测试产物不得进入 B0 指标或被训练裁决器接受。
+- 无卡实测通过条件为报告与哈希匹配、自动 stop 成功、实例在 timeout 内进入 `Stopped`，且不需要人工补发普通停止命令；失败则阻塞正式 B0。
+- 每次无卡测试和正式训练启动前都使用 `instance schedule set --at` 设置控制面最晚停止兜底，并用 `instance schedule show` 复核；脚本或本地控制器自动 stop 是第一道保障，schedule 是断联兜底。
+- 2026-08-30 无卡门禁使用实例 `cpod-1tyvjsiu6ahe`：`GPU=0`，durable job `job-20260830T101210Z-8c5b24ea` 退出码 0，证据 manifest SHA-256 为 `f9f00d7bdee84cfa8c5cab5ab47b3388fb2ad709ec03ff404c1b8207d5d37742`；自动 stop 后实例于 `2026-08-30T10:13:25Z` 达到 `Stopped`，无需人工补发普通停止命令。证据见 `cloud/museg-lifecycle-gates/museg-lifecycle-cpod-1tyvjsiu6ahe-20260830T1012Z/`。
+- 每次未来正式训练启动前仍需用户对训练实例、最长时间和预计费用单独授权，并重新设置与复核该次运行的最晚停止 schedule。当前 v1 已完成该次启动授权，不构成后续训练的持续授权。
+
+## 8. Single-seed B0 与后续模块消融
+
+**大白话问题：** 当前需要的是模块设计的可信共同起点，而不是先花三倍成本形成论文级随机方差统计。怎样既节省资源，又避免后续比较失去公平性？
+
+**当前状态：已处置并完成。single-seed RGB B0 已冻结为 epoch 420，主 mIoU `58.79`、mAcc `69.91`、mF1 `72.73`；它是后续模块消融的固定内部基线，不是三 seed 完整论文复现。**
+
+- B0 的验收重点是训练与评估链可信、指标量级合理、没有明显类别或数值异常，并完整绑定 pretrained、split、seed、config、checkpoint 和 evaluator 身份；不要求与论文数字完全相等。
+- 后续模块可以复用这一个 B0 结果作为对照，但模块版本必须从同一 pretrained 独立训练，并保持相同 `train-dev`/`val-dev`、seed、数据顺序、epoch、优化器、增强、checkpoint 规则和主 evaluator。不能从 B0 最终 checkpoint 接着训练模块后再称为公平消融。
+- 若后续改变训练预算、优化器、增强、数据或 evaluator，现有 B0 不再是严格配对对照；需要限定结论，或在新协议下重训匹配的 B0。
+- 单 seed 足够用于模块探索、淘汰和初步消融，但不能估计随机方差。若模块增益很小、接近训练波动或要支撑重要结论，应对 B0 和该模块增加成对重复或额外 seed；当前不预先要求三 seed，也不因此阻塞模块设计。
+- 主 evaluator 已在本地 RTX 5060 Laptop 上完成：4 个候选全部绑定 checkpoint/split 哈希、冻结代码与协议、RGB 输入契约、FP32、环境和 `official_test_included=false`；内部计时合计 `94.044` 分钟，低于 8 小时硬上限。
+- official test 在 B0 和模块开发期间继续 `sealed_unread`；是否以及何时解封由未来独立门禁决定，当前 single-seed 方向不构成解封授权。
+
+## 9. 几何可信 RGB-D 双路径 MVE 的统计来源处置
+
+**大白话问题：** 原草案把 `RE447` 当作 paired/cluster bootstrap 的依据，但全文实际是深海采矿车辆路径规划论文，只使用 AHP-FCE 专家判断矩阵和一致性检验，不能说明怎样对 MUSeg 的相关样本做置信区间。
+
+**当前状态：已处置。处置 1 已全文核对并判定不适用；用户于 2026-09-08 同意，对通用且相对简单的分析操作不再强制补参考文献，因此采用项目预注册统计设计，不继续扩大文献检索。**
+
+- **已排除的处置 1：** `RE447`（Lu et al., *Ocean Engineering*, 2024，DOI `10.1016/j.oceaneng.2024.119500`）没有 paired bootstrap、cluster bootstrap、95% confidence interval、scene/location 重采样或扩样后重复裁决规则。详细证据见 [`00-待补充论文内容清单.md`](../plans/2026-09-MUSeg-几何可信RGBD双路径MVE/参考资料/00-待补充论文内容清单.md) 的 P0-6。
+- **采用的处置：** 同一图像各条件保持配对，以冻结的 location group 为相关性边界，对 group 有放回重采样并保留组内全部样本；重采样次数、seed、效应量、95% percentile interval 和联合裁决在查看结果前写入 `DVC-A1-valdev-boundary-zero-v1` protocol。该做法明确标为本项目预注册统计流程，不归因于 `RE447`，也不声称是唯一统计选择。
+- **数据职责边界：** `val-dev` 已参与 checkpoint 选择，因此不再把其中一部分命名为独立评价集 `E`。首轮 DVC 没有拟合自由度，直接在全 `val-dev` 上形成 paired development evidence；不改称 independent test。
+- **Boundary IoU 处置：** Cheng et al., *Boundary IoU: Improving Object-Centric Image Segmentation Evaluation*, CVPR 2021，DOI `10.1109/CVPR46437.2021.01508` 及作者官方 API 已核对。后继 protocol 固定 one-vs-rest、ignore、空类和 macro aggregation，历史 corruption-band mIoU 不复用为 Boundary IoU。
+- **共同边界：** official test 继续 `sealed_unread`；不为获得显著结果而追加剂量、seed、样本或阈值。若未来引入复杂层级模型、BCa 区间、序贯检验或多重比较，再单独补直接统计依据并建立新 protocol identity。
+
+## 10. 后续 checkpoint 数量与数据盘清理
+
+
+
+**大白话问题：** 训练期使用的是低成本单尺度 validation，最终选择使用五尺度翻转主 evaluator；如果只保留少量单尺度高分点，可能漏掉主 evaluator 更好的 checkpoint。增加候选又会增加磁盘和本地评估时间，怎样取得可控平衡？
+
+**当前状态：已处置。当前冻结 v1 的 top 3 + latest 已完成主评估，并实际观察到 selector 排名与主 evaluator 排名不同：selector 第一的 epoch 480 只排主评估第三，最终胜者为 epoch 420。后续独立 v2 使用 top 8 + latest、最多 9 个去重候选；v2 与只读清理门禁已提交，不回写本次 v1。**
+
+- protocol v3 继续兼容历史 top 3，并允许正整数 `top_k`，上限固定为 8；后续配置和模板使用独立 `museg-dformerv2-s-rgb-quick-b0-v2-top8` 身份，不回写当前运行的 config、protocol 或候选清单。
+- top 8 仍按同一 original-full、尺度 1.0、无 flip 的 mIoU 排序，同分优先更早 epoch；`latest.pth` 持续覆盖，最终清单按 checkpoint SHA-256 去重。因此候选最多是 9 个，而不是每 10 epoch 的全部 50 个 checkpoint。
+- 增加候选只能降低 selector 与主 evaluator 排序不一致导致的漏选概率，不能声称完全消除风险。最终 checkpoint 仍由冻结的五尺度翻转主 evaluator 决定。
+- 本机保守外推从当前 v1 的最多 4 个约 `2.8` 小时扩展到后续最多 9 个约 `6.3` 小时，仍低于 8 小时硬上限；继续串行评估，不并发复制模型争抢显存。
+- `tools/audit_museg_cloud_storage.py` 只生成候选占用、剩余空间和 checkpoint 纯文件预算，不提供删除参数。候选必须是数据盘下的显式现存路径，且不能与仓库、当前输出、共享数据、official-test/split authority、预训练权重或其他保护路径重叠。
+- 删除前必须先把归档取回本地并重新核验 SHA-256；OpenList 个人云盘副本是额外备份，不以任务页面的“成功”单独替代哈希证据。实际删除必须由用户确认每个规范化绝对路径后人工逐项执行，禁止通配符或模糊名称清理。
+- v2 与清理门禁已随提交 `773c508e68d21491ad71d53f5967c3f76dc69ae6` 推送到 `origin/main`。后续使用 v2 仍需从干净 commit 物化新 protocol、通过正式 preflight，并分别取得训练和云生命周期授权。
+
+## 11. DVC-A1 边界候选覆盖不足的后继协议
+
+**大白话问题：** 当前规则只把相邻有效深度的相对跳变不低于 `0.05` 视为边界。全量扫描后，约三成位置组完全没有能形成非空 q75 的样本；继续沿用 v1 会让这些组无法接受预定干预，直接放宽规则又会改变原来预注册的问题。
+
+**当前状态：本轮已处置为条件性开发验证方案，并完成 v3 定义修正门禁。** `DVC-A1-valdev-boundary-zero-v1` 与 `DVC-A1-valdev-boundary-zero-v2` 保持各自的 `protocol-blocked` 历史终态；独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext` 保留 v2 数据和 corruption 不变量，仅分离有效 background 与 true ignore 的 Boundary IoU 标签契约。
+
+- 直接核验事实：318 条 `val-dev` 的 mask 扫描全部完成；58/196 个 location group 的 `boundary-q75` 不可构造，占 `29.5918%`，高于 v1 预注册 `5%` 上限；非边界 q50 同面积候选不足为 0 条。
+- v2 固定范围：138 个纳入组包含全部 218 张图；其中 31 张图的 q75 实际置零数仍为 0，123 个组内每张图均可构造 q75，另有 15 个组为部分可构造。主分析保留 138 组全部图像，并预注册 123 组敏感性分析，不在模型结果后择优。
+- 研究对象：只估计“具有至少一个可执行深度边界干预的 `val-dev` 位置组中，冻结 Quick-B0 对人工边界失效的开发期敏感性”。58 个未纳入组只能解释为当前 `0.05` 操作定义无法施加 q75，不能解释为模型没有问题。
+- v1 合法终点：保持 `protocol-blocked`，不生成五条件 mIoU、Boundary IoU、bootstrap 或问题假设裁决；不得改写成 `not-supported`。
+- v2 不变量：不降低 `0.05`，不重新划分 `train-dev`/`val-dev`，不重新训练或选择 checkpoint，不读取 official test；继续保留 `clean`、`boundary-q25/q50/q75` 和 `nonboundary-q50` 五个条件，以 location group 为 bootstrap 单位。
+- 当前禁止：不得覆盖或回写 v1，不得把 31 张 q75 空图伪装成实际受干预样本，不得根据模型结果删除组、修改阈值、追加条件或改成功门槛。
+- 当前执行状态：v2 protocol 与 138 组/218 样本 evaluation allowlist 已物化，两样本本地 GPU preflight 已通过；218 张图的完整五条件本地 GPU 评价已结束，五个 condition 均写出 218 样本/138 组，但 `dose_effect` 只有 137/138 个有效配对组，状态为 `protocol-blocked`。定义层只读诊断已确认无效组 `06-01-01-0346` 包含 4 张图；四张图虽有 `cable`、`tube`、`rescue equipment` 前景，但在 29 像素 ignore 安全距离下计分安全区均为空，故 15 个类别全部双空 `None`，图像级和组级 Boundary IoU 均未定义。详细证据见 `doc/reports/2026-09-09-museg-dvc-a1-v2-group-definition-diagnosis.md`；123 组敏感性范围的两个 effect 均为 123/123。
+- **v3 定义修正与处置：** v2 的唯一无效组 `06-01-01-0346` 的根因已确认是标签域混用：训练输入需要 raw background `0 -> evaluator ignore 255`，但 Boundary IoU 几何计算需要把 raw background 保留为有效 one-vs-rest 上下文。已建立独立 `DVC-A1-valdev-boundary-zero-v3-bgcontext`，不改变 v2 的 0.05 阈值、218 张图/138 组 allowlist、五个 condition、checkpoint、evaluator、bootstrap 和裁决门槛。v3 的 metric target 使用 raw foreground `1..15 -> 0..14`、background `0 -> 15`、true ignore `255`；15 个前景类继续报告，背景不作为报告类别。218 张图 CPU 标签域审计通过，`06-01-01-0346` 四张图的有效安全域均为 `1,008,424` 像素，定义层不再为空；两样本本地 GPU preflight 也明确覆盖该组并通过。大白话说，这次修正让真实背景参与边界几何计算，但没有把背景变成待报告类别，也没有修改原 v2 的数据范围或退化强度。
+- **v3 当前边界：** v3 protocol SHA-256 为 `f9960904f51cec11797ada6952c2102da4b2b6832d0bf7b529898bfae9c0f216`，allowlist SHA-256 为 `5589eb3378ed2e23180f6205e2d88cea39702ad4bfd5d4e1b739cf2f920a8d89`，allowlist summary SHA-256 为 `6fa94de96f1b5b4e94c1feecdc4d821e05db1828be05b011f3b48f43ce408dfd`；CPU 标签域审计 SHA-256 为 `17a4ec36ba231c3be6ea1ed1f4f6e3b9f8380d8d0a619cc3530a6bfd903ad1db`，GPU preflight SHA-256 为 `829b580b6ed4ace977cf578e8391bcc759fc6d135fad72c2bd0dba958712dedd`。完整 218 张图 × 5 condition GPU 评价、bootstrap 和科学裁决均已完成，主裁决为 `not-supported`；训练、云资源、official test 和可学习门控仍未授权。用户明确要求在 A 未支持的情况下先推进 B；DVG-B1 的最新 A/B/C 选择与授权边界见第 12 节。
+- 证据：v1 门禁报告为 `doc/reports/2026-09-08-museg-dvc-a1-protocol-gate.md`，仓库外权威运行证据位于 `cloud/DVC-A1-valdev-boundary-zero-v1/attempt-2/`，其中 mask manifest SHA-256 为 `60b988b3f9ffaabc5f6540cfccda48ddb5efd4d44ce360691bfaeea047e63f29`；v2 物化与 preflight 报告为 `doc/reports/2026-09-08-museg-dvc-a1-v2-materialization-preflight.md`，仓库外证据位于 `cloud/DVC-A1-valdev-boundary-zero-v2/`。
+
+## 12. DVG-B1 Oracle mask 到 GSA depth contribution 的冻结门禁
+
+**大白话问题：** 门控位置、A/B 公式和科学成功门槛 C 都已在查看 DVG-B1 模型结果前固定，P0–P4 现已全部完成。完整配对评价要回答的是：即使直接知道真实坏区，这个最小 GSA 深度门控动作本身是否值得继续投入。
+
+**当前状态：A/B/C 与 P0–P4 已关闭，最终裁决为 `oracle-not-supported`。** C 保持原预注册规则：`boundary-q75` 下 Oracle 相对 corrupted baseline 的 Boundary IoU 点估计至少 `+0.10` 个百分点、双侧 95% percentile interval 下界严格大于 `0`，且 mIoU 点估计不得为负。P4 实际结果的 Boundary IoU 为 `-0.1508352015` 个百分点，95% interval `[-0.2676580460,-0.0462325573]`；mIoU 为 `-0.2316731726` 个百分点，95% interval `[-0.3914881430,-0.0919002976]`，两个 effect 均为 `138/138` 配对组。点估计和 mIoU 均未达到门槛，因此关闭当前 Oracle GSA 门控方案。训练、云资源和 official test 仍未授权。
+
+- **已闭合的实现：** `oracle_corruption_mask` 参数链曾贯通 `EncoderDecoder.forward/encode_decode` → `dformerv2.forward` → `BasicLayer.forward` → `RGBD_Block.forward` → `GeoPriorGen.forward`；只门控 `self.weight[1] * mask_d*`，不改 spatial contribution、`sin/cos`、Q/K/V、Depth 输入、decoder 或 logits 后处理。P0–P4 历史证据与 `oracle-not-supported` 裁决不受影响。**2026-09-23 更新（当前代码状态）：** 因 DVG-B1 与 Oracle-A 均已关闭、其 protocol/工具/测试已删除，该可选参数链及其 helper（`normalize_dvg_b1_corruption_mask`、`build_dvg_b1_stage_reliability`、`build_dvg_b1_pairwise_gates`、`normalize_geometry_oracle`、`build_oracle_stage_reliability`、`build_oracle_pairwise_gates`、`ORACLE_GEOMETRY_MODES`）已从 `models/encoders/DFormerv2.py` 与 `models/builder.py` 删除；正常 RGB-D 主干路径的数值输出已验证与删除前逐位相同。若将来重启同类门控研究，必须重建接口并重新资格化，不得引用本条历史实现作为当前代码事实。
+- **A 的实现与守卫：** 原始 mask 定义 `m=1` 为受损、`r=1-m` 为可信；view 级 `INTER_LINEAR` 后 flip、右/下 padding `r=1`，四级用真实 OpenCV `INTER_AREA` 聚合。padded view 双轴必须整除 32，stage 必须精确为同倍率 4/8/16/32 倍缩小，否则 fail-closed。
+- **B 的实现：** Full `[B,1,L,L]`、H `[B,1,W,H,H]`、W `[B,1,H,W,W]` 使用 query/key 两端 continuous product，只在 head 轴广播并只乘 depth contribution。
+- **选择的证据边界：** 11 篇全文与常见官方代码能支撑连续 confidence、可靠性乘 affinity、query/key 单边 gate、Full affinity 等机制边界，但没有唯一给出上述 A/B 组合。A/B 是用户接受的项目设计，不是 [1]–[11] 的唯一结论，也不得根据未来结果改为 nearest、min、单边 gate、hard threshold 或 stage 子集。
+- **P1 结果：** 首次 CPU qualification 合法暴露 PyTorch area 与冻结 OpenCV `INTER_AREA` 的细小差异、W expected shape 错误和 flip/padding 审计假设错误；修正后最新 `qualification.json` SHA-256 为 `e101c972a25ada6749e7d8408172938d104ecfb4eee9266f1fbab7fc632b3dc3`，execution 为 `20260913T035625995821+0000-qualification.json`。160 个 view-stage、几何守卫和 Full/H/W gate 检查通过，未加载 checkpoint、未执行模型 forward、未使用 GPU。
+- **P2 no-op 处置：** Quick-B0 的 Ham decoder 在 eval 中仍用随机 NMF bases。未配对 RNG 的结构化尝试中，四级 backbone 已全部 `torch.equal`，但最终 logits 因 decoder 重采样而不同；失败产物已按 SHA `e916e463d64456f2e971b638ff1dc4385dbd13e4b19232b8bb1939558cd18ec0` 归档。最终比较在每个 forward 前回放相同 CPU/CUDA RNG state，仅隔离 mask 接口变量，不修改模型且不放宽 `torch.equal`。
+- **P2 结果：** `noop-equivalence.json` SHA-256 为 `a9cdbe8ca3b0ef210184499a06702103e71855e8b3529472403aae00fe31df24`，execution 为 `20260913T035646371110+0000-noop-equivalence.json`。epoch 420 checkpoint `strict=True`，四类 no-op 输入的四级输出和最终 FP32 logits 全部严格相等；使用本地 RTX 5060 Laptop GPU，`official_test_included=false`。
+- **P3 结果：** 强化后的 `gate-preflight.json` SHA-256 为 `bd2ec0f677b89a5a3129c1823c876b5b510262f28d8d96499d023af826c1360c`，execution 为 `20260913T085636085128+0000-gate-preflight.json`。确定性选中的 v3 allowlist 样本 `02-01-01-0283-240524103235-08-99` 覆盖 clean、非空 `boundary-q75` 和 `nonboundary-q50` 各 10 view；两类受损 mask 分别为 `22,368`/`14,912` 像素且 hash 与冻结 manifest 相同，q=0 Depth8 与生产数组相同。20 个受损 view 的 Depth delta 均非空且完全包含在各自变换后的 mask support 内；80 个 baseline 与 80 个 gated 四级首块 GSA 审计分别确认生产 geometry prior 精确等于 spatial+raw-depth 与 spatial+gated-depth，stage/topology、同一 corrupted Depth、reliability、有限贡献和抽样重建均通过，重建误差为 `0`，gated gate effect 非零。paired forward 显式回放同一 CPU/CUDA RNG state；全部输出有限并回到 `932×1082` 原图网格，clean 10/10 view 及融合 logits 严格相等，两个受损条件的融合 logits 均与 baseline 不同。该结果只关闭实现 preflight，不是科学效果裁决。
+- **P4 结果：** `full-evaluation.json` SHA-256 为 `f5cadf93ace37868b27ecef2f5a96c18702ba821b8eda242f3c7921982a42f12`，mask manifest SHA-256 为 `23675b08f8d17fd5d528d7afe181330f39578dd08958a1447cc2761af5c68656`，execution 为 `20260913T150505939412+0000-full.json`。218 张图、138 个 location group、五个 condition、每图 10 view 共形成 `10,900` 个 baseline/gated 配对 forward pair；五个 condition 全部完成。clean `2,180/2,180` view 与 `218/218` 融合输出严格相等，四个受损 condition 的 Depth delta 全部位于 mask 内，mask/source hash、q=0 Depth8、finite、原图网格、配对 RNG 和 138 组统计门禁均通过。主条件 Boundary IoU 为 `-0.1508352015` 个百分点、95% interval `[-0.2676580460,-0.0462325573]`；mIoU 为 `-0.2316731726` 个百分点、95% interval `[-0.3914881430,-0.0919002976]`。位置特异性 Boundary IoU/mIoU 分别为 `-0.0926464932`/`-0.1344022510` 个百分点，与两个 q50 gain 的直接差一致，不存在 100× 缩放错误。运行使用本地 RTX 5060 Laptop GPU，artifact 计时 `15,827.803` 秒，峰值 CUDA memory `5,703,501,824` bytes，`official_test_included=false`。
+- **C 的项目预注册选择：** Boundary IoU 最小实际净增益为 `+0.10` 个百分点；`oracle-supported` 同时要求 Boundary IoU 点估计达到该门槛、95% percentile interval 下界严格大于 `0`，以及 mIoU 点估计不为负。mIoU 是辅助否决项，不要求其区间下界也大于 `0`。规则冻结于 2026-09-12 17:03 UTC，明确不是文献标准。
+- **P0 物化：** protocol SHA-256 保持为 `e7b9ed0a3c84053736f70a7807bdd4f270ee5bf84a6b85ca5cfd053f9cc47e46`；它是冻结的预注册历史产物，不因 P1/P2/P3/P4 runtime identity 更新而覆盖。
+- **下一恢复点：** 当前 Oracle GSA 门控方向以 `oracle-not-supported` 收口；若继续 MUSeg 研究，先回到方向级计划选择新的独立问题或方案，不得结果后修改 A/B/C 或在本 protocol 下追加 condition、stage、阈值、样本或 seed。
+- **执行顺序：** P0/P1/P2/P3/P4 均已完成；本 protocol 不再安排后继模型评价。
+- **授权边界：** 已完成用户授权的 P1–P4。训练、云资源和 official test 未授权；P4 完成不自动授权任何可学习质量预测、恢复网络或新模型训练。
+- **证据入口：** 详细规则与分阶段证据见 `doc/plans/2026-09-MUSeg-几何可信RGBD双路径MVE/04-DVG-B1条件式Oracle门控.md`；实时恢复入口见同目录 `01-新对话最小上下文与当前任务.md`。
+
+**大白话说明：** 分阶段实现、严格等价和完整配对评价都已完成。即使直接提供真实 corruption mask，冻结的最小 GSA 深度门控仍使主条件 Boundary IoU 和 mIoU 下降，因此该方案按预注册规则停止；训练和 official test 仍不在当前授权内。
+
+## 13. MMFR 多形式模态失效与可学习可靠性
+
+**大白话问题：** DVG-B1 只研究“已知 Depth 坏区后关闭一个固定贡献”，既没有让模型见过多种故障，也没有让模型学习坏区对应的融合动作。新方向需要先回答 MUSeg 能支持什么结论、失效应怎样分型、可靠性由哪些信号估计，以及哪些权重应该学习。
+
+**当前状态：高级审计选择 A + MID-A，v3 五项本地资格全部通过；云端 batch size 10 容量/吞吐 probe（两个身份各 `60` 个有效更新步）与 checkpoint save → 进程销毁 → strict reload → 继续 step 工程门禁均已完成并通过；用户随后把执行流程修订为"两阶段省钱策略"，新增阶段 `MMFR-A2-v3-exploratory-one-arm-screening`。** `MMFR-A2-train-integration-v2` 已在正式训练前标记为 `superseded-before-formal-training-after-validity-semantic-review`，其 commit `3c8ebddeb76e63a5be37e261381117abfba117ca`、annotated tag `MMFR-A2-v2-pretrain-freeze` 与历史证据完整保留。当前身份为 `MMFR-A2-train-integration-v3`，分析身份为 `MMFR-A2-clean-control-v3` 与 `MMFR-A2-depth-corruption-train-v3`。协议模板状态已更新为 `cloud-probe-and-checkpoint-gate-passed-awaiting-one-arm-screening-authorization`（更新后原始字节 SHA-256 `b26d1e933ecb3c587de3313bd1a463a4d95044d0efa62ffb168f164324d52d6a`），并新增 `execution_plan_revision` 块记录该执行计划修订；科学身份、生产代码、corruption、loss、target、selector 与 evaluator 均未改。**该状态只允许申请一个 500 epoch（corruption-v3）的 one-arm screening 授权；不授权任何正式 paired 训练、完整 evaluator、checkpoint 效果评价或 official test。**
+
+- **A + MID-A 已正式处置：** natural-invalid 监督保留，`lambda_rel=0.1` 不变，不做类别重加权或 natural-invalid masking，不删除 `train-dev` 中 8 个训练几何下全无有效 Depth 的 crop；`gaussian_noise`、`blur`、`quantization` 只能在当前 validity state 内作用，不能复活 invalid Depth；blur 使用 mask-normalized blur；misalignment 对 Depth 和 validity 使用同一整数平移；最终 target 为 `V_state_final * R_syn`，并硬断言 final state、`depth_valid_post` 与实际非零 Depth 输入逐位一致。大白话说，是否有测量、测量质量和最终监督现在各自有明确含义，原生空洞不会再被普通噪声或模糊变成假测量。
+- **43 个 optimizer-missing 参数已正式处置：** v3 维持 Quick-B0、clean control 与上游 DFormerv2 相同的 optimizer 语义，不在本轮修复 29 个 `Geo.weight`、8 个 `patch_embed.proj.*` 和 6 个 `downsample.norm.*`。未来若研究 optimizer completeness，必须另建身份并同时重训 clean 与 MMFR；该项不再阻塞 v3。
+- **v3 五项资格已处置：** severity/burden 为 `PASS`（2 个分辨率 fixture、6 类、9 档、108 条记录）；CPU qualification 为 `121/121 PASS`；validity transport 为 `48/48 PASS`，三类 intensity corruption 的 `newly_valid_pixels=0`；initial-state equivalence 为 `38/38 PASS`，6 次独立构建的 `714/714` 共有参数和 `88/88` 共有 buffer 逐位一致；AMP update-path isolation 为 `PASS`，batch size 10 下 `17` 次尝试获得 `10` 次成功更新和 `17` 个 corrupt step，两条轨迹的 batch、step/skip、GradScaler scale、共享参数与共享 optimizer state 均逐位一致。五份 canonical 报告及完整 raw/LF 双哈希见 `protocols/mmfr-a2-train-integration-v3.template.json`；全部 `official_test_included=false`。
+- **当前唯一紧邻开放决定：** 用户是否授权云端单 GPU、batch size 10 的容量/吞吐短 probe。若授权并通过，随后仍需用户另行决定是否启动 `MMFR-A2-clean-control-v3` 与 `MMFR-A2-depth-corruption-train-v3` 两个公平对照 500 epoch 训练；probe 授权不自动等于训练授权。2026-09-15 18:39（UTC+8）更新：用户已单独授权创建云实例，`cpod-1vbh7faqcauq`（名称 `mmfr-a2-4090-probe`，`cn-bj2`/`cn-bj2-03`，RTX 4090 一张、14 vCPU、32 GiB、50 GiB 启动盘、平台镜像 `pytorch_2.1.2_Py3.10`，`InstancePrice` `1.88 元/小时`）已按“创建后立即停机”完成，状态经双重核验为 `Stopped`，未登录、未跑 probe；probe 执行本身仍未授权，当前恢复点是等用户确认实例配置正确。另有一台此前已存在的同规格停机实例 `cpod-1vbgq9k8beqa`（名称 `host`，镜像 `cuda132_torch2130_py312`，`InstancePrice` 同为 `1.88 元/小时`），其去留待用户确认。
+- **后续独立开放项：** C1、R1、S1 与 `MMFR-B1-learned-geometry-adapter-v1` 仍各自需要独立 protocol/授权；它们不影响当前 A2 v3 的恢复点。
+- **云端轮次已处置（2026-09-15）：** 用户单独授权创建实例 `cpod-1vbh7faqcauq` 并在开启有卡模式后指示推进，已在该实例完成：数据集 `MUSeg_DFormer` 落地并与冻结 manifest 的 `RGB`/`Label`/`Depth16` inventory 哈希逐位一致；官方 pretrained 落地并与冻结身份逐位一致（`110,203,103` bytes、SHA-256 `19116988…`，改用用户自传副本，HuggingFace 直连中断）；环境补齐（含 `mmcv 2.1.0` 与 `libgl1`，首次 probe 因缺 `mmcv` 失败并已归档）；两份 probe 清单与一份门禁清单通过完整 GPU preflight；`batch size 10` 容量/吞吐 probe 对两个身份各完成一次（clean `16.43` 张/秒、最小剩余 `3,068.6 MiB`；corruption `4.94` 张/秒、最小剩余 `2,330.6 MiB`；各 `60` 个有效更新步、`68` 次尝试、`8` 次跳过、loss 全有限、`official_test_included=false`）；checkpoint save → 进程销毁 → strict reload → 继续 step 门禁 `pass=true`、`mismatches=[]`（续跑与不中断两条轨迹的 model / optimizer / amp_scaler / rng_state 哈希逐位相同）。**两条新实测事实：** corruption 单步成本约为 clean 的 `3.3` 倍，所以"省钱策略"的第一段（corruption）约 `36–40` 小时 / `68–75` 元，反而贵于第二段（clean 约 `10.8–14` 小时 / `20–27` 元）；validation 之后 batch size `10` 只剩 `1.73 GiB` 自由显存（非 OOM），且在续跑与不中断两条轨迹上同样复现。**尚未完成或待用户决定：** 控制面停机流程验证（本实例无 `compshare` CLI 与凭据）、SwanLab `online` 凭据（`/root/.config/dformer/swanlab.env` 缺失，本轮全部使用 `offline`）、batch size `10` 显存余量处置、是否授权 one-arm screening 的一个 500 epoch。证据与失败归档见 `liu-test-exp/方案1/改动细节3-云服务器.md` 与仓库外 `/root/rivermind-data/cloud/mmfr-a2-v3-probe/`。大白话说，容量、速度、存档恢复三件事都量完并留证了；但先跑的那一段（深度损坏）实测更贵、余量更紧，这两点要你确认后才能开训。
+- **one-arm screening 执行计划已处置（2026-09-15）：** 用户要求把正式流程改成"两阶段省钱策略"，新增 `MMFR-A2-v3-exploratory-one-arm-screening`（probe 之后、正式 paired 训练之前），只回答问题"corruption-v3 是否值得继续投入第二个 500 epoch clean control"，只改执行顺序、授权状态和结果解释，不新建科学 protocol v4、不改任何 v3 科学变量。第一阶段允许结论只有 `screening-promising` / `screening-unpromising` / `screening-inconclusive`；禁止 `A2 supported`、`MMFR improves robustness`、`causal gain`、`正式成功`。Quick-B0 只能写成 `historical RGB development reference`，禁止写成 `clean control`，也禁止把 `Depth-corruption-v3 − Quick-B0` 写成 MMFR robustness gain。第一阶段后必须产出 one-arm-screening-report、把状态置为 `awaiting-senior-review-of-one-arm-screening` 并停下，不得自动启动第二个 500 epoch。记录位置：`protocols/mmfr-a2-train-integration-v3.template.json` 的 `execution_plan_revision` 块、`liu-test-exp/方案1/改动细节3-云服务器.md`、总规划第 7 与 14.4 节，以及 `doc/main/MUSeg-current-status.md`。
+
+- **数据适用性已处置：** MUSeg 的 3,171 对精确对齐 RGB/Depth、六矿区、15 类语义标注适合矿井域受控合成失效训练与开发比较；它没有自然失效标签、故障发生率、重复采集或标定漂移真值，因此不能单独支持真实矿井传感器可靠性结论。当前 `train-dev=1277`、`val-dev=318` 职责不变，official test 保持 `sealed_unread`。
+- **失效定义已处置：** A1 通用基函数保持 whole-modality missing、spatial dropout、Gaussian noise、Gaussian blur、Depth quantization、Depth translation misalignment 及 curriculum 混合；A2 当前训练身份只采样 Depth，RGB complete-missing 不进入该 config。
+- **A2 数据流已处置：** corruption 固定在 DataLoader 完成 mirror/scale/crop/pad 后、GPU 前由主训练进程逐样本执行。target 直接位于最终 crop 几何；worker 内旧几何增强保持原语义，A2 不宣称任意中途 resume 后几何增强逐像素相同。
+- **A2 RNG 已处置：** 基础 seed 为 `2026091402`；每样本 seed words 固定为 epoch、iteration、global rank、sample slot 和 sample-id SHA-256 前四个 uint32，使用独立 NumPy `PCG64(SeedSequence)`，不读写全局 RNG。
+- **raw/normalized 与 pad 已处置：** backbone 继续消费 normalized tensor，reliability head 消费严格恢复的 raw `[0,1]`；clean sample 直接复用原 normalized tensor。RGB/Depth 同时逐通道 exact-zero 定义 crop pad；pad 在 corruption 前置为 uint8 0，corruption 后 normalized/raw 仍为 0，target 为中性 1 且由 valid mask 排除。
+- **loss 已处置：** `p_clean=0.25`、Depth-only `max_specs=2`，每样本单次 segmentation forward；总损失固定为 input segmentation loss 加 `0.1` 倍连续 reliability BCE，`lambda_cons=0`。A2 reliability 预测不进入 backbone、decoder 或 geometry prior，四级 adapter 留给后续 B1。
+- **公平对照已处置：** 当前 `MMFR-A2-clean-control-v3` 与 `MMFR-A2-depth-corruption-train-v3` 将从同一官方 pretrained、seed `772961337`、AdamW、500 epoch、尺度增强和 clean selector 独立训练，不从 Quick-B0 或 v1/v2 checkpoint 续训。失效条件不参与 checkpoint 选择。
+- **评价与成功门槛已处置：** 冻结 checkpoint 后使用 `msflip-whole-original-grid-v1`；六个 Depth 单失效、三个固定混合条件、318 张 `val-dev` 和 196 个 location-group paired bootstrap 已预注册。主成功要求单失效宏平均 mIoU 至少 `+1.00` 个百分点且 95% interval 下界严格大于 0，clean mIoU 下降不超过 `0.50`，至少五个单条件非负且任一不得低于 `-1.00`。达到也只能写 single-seed development-supported。
+- **A1/A2 实现事实：** A1 新增 `utils/dataloader/multimodal_failure.py` 与 `models/modal_reliability.py`；A2 新增 `utils/dataloader/mmfr_training.py`、三个独立 config 和 `protocols/mmfr-a2-train-integration-v1.template.json`，并在 `models/builder.py`、`utils/train.py` 增加配置关闭时保持旧路径的可选接口。主代理已直接复核并修正 Depth 通道一致性、Depth-only 抽样顺序、pad 伪 Depth `122` 经 misalignment 移入有效区和 supervision 静默缺失风险。**2026-09-23 更新（当前代码状态）：** v1/v2 已退出当前实验线，`utils/dataloader/mmfr_training_v2.py`、`utils/dataloader/multimodal_failure_v2.py` 及 v1 batch builder（`build_mmfr_training_batch` 与其 helper）已删除；A1 v1 的 corruption 实现模块 `utils/dataloader/multimodal_failure.py` 也已删除，它仍被消费的 6 个冻结常量（六类 `FAILURE_KINDS` 与 curriculum severity `0.05`/`0.3`/`0.6`/`1.0`）已按原字面值迁入 `utils/dataloader/mmfr_training.py`，v3 的漂移断言改为与该共享模块比对（数值零变化）。`utils/dataloader/mmfr_training.py` 现在只保留被 v3 helper 与冻结 evaluator 复用的共享 primitive 和冻结常量，`utils/train.py` 只接受 `MMFR-A2-train-integration-v3` 并拒绝其他 protocol 身份。v1/v2 的历史语义、哈希与资格证据仍以历史记录和 Git 历史为准，未被改写。
+- **训练硬件职责已处置：** 正式训练只在云端单 GPU 执行，本机只做推理、想法验证和小规模 preflight。按用户提供的价格快照，RTX 4090 为 `1.88 元/小时`，RTX 5090 为 `2.78 元/小时`，5090 价格是 4090 的 `1.4787` 倍；因此只有 5090 实测吞吐超过 4090 的 `1.4787` 倍时，单位样本计算费才更低。当前已有 RTX 4090、batch size 10 的成功历史，故默认选 RTX 4090；RTX 5090 仅在 4090 缺货、24 GiB 显存不足，或同口径短 probe 证明单位样本成本更低时备用。5090 的营销 AI TOPS 不直接作为 FP16 训练速度证据。无论使用哪张卡，batch size 10、学习率 `6e-5`、500 epoch、seed 和 selector 均保持不变，不因显存更大而改科学超参数。
+- **当前 v3 qualification 边界：** 五项结构化本地资格均已通过；其中 AMP update-path isolation 使用本地 RTX 5060 Laptop、batch size `10`、真实 `train-dev` batch、AMP + GradScaler，确认 `17` 次 attempted step 中有 `10` 次成功更新，且两条轨迹的共享参数与共享 optimizer state 每次更新后逐位一致。该资格不等于云端容量/吞吐验证，也不覆盖完整 epoch、checkpoint save/load、完整 evaluator、DDP、云资源或 official test。
+- **历史开放项的 v3 处置：** v2 validity transport 审计提出的 A/B 与 MID-A/MID-B 已由高级审计裁决为 **A + MID-A**；`train-dev` 中 8 个全无有效 Depth crop 保留，natural-invalid 继续参与原权重 BCE；43 个 optimizer-missing 参数保持上游语义。本条替代此前“等待高级模型判断”的状态，但不改写 v2 原始审计报告。
+- **第二轮本地门禁结果（已处置）：** `MMFR-A2-v2-initial-state-equivalence` 通过——六个独立进程构建，两个 v2 身份的 `714` 个共有参数与 `88` 个共有 buffer 逐位相同、`max_abs_difference=0.0`，差异只有 corruption 侧 reliability head 的 `4,386` 个元素；`extra_norms.{0,1,2}.{weight,bias}` 六张量在三次重建中哈希唯一（weight 恒 `1.0`、bias 恒 `0.0`，官方 pretrained 提供 `0/6`），因此该项由“待核验”转为“已核验”。`MMFR-A2-v2-amp-update-path-isolation` 通过——batch size `10`、真实 `train-dev` 批次、真实 AMP + GradScaler 下，`lambda_rel=0` 与 `0.1` 两条轨迹在 `16` 次尝试中获得 `10` 次成功更新，step/skip 序列与 scale 轨迹完全相同，共享参数与共享 optimizer state 逐位相同（`max_abs_difference=0.0`），reliability head 自身哈希变化。可复跑 CPU qualification 由原 47 项扩展到 `74` 项断言并全部通过。三项证据分别位于 `outputs/mmfr-a2-v2-initial-state-equivalence/`、`outputs/mmfr-a2-v2-amp-update-path-isolation/`、`outputs/mmfr-a2-v2-cpu-qualification/`。
+- **`train-dev` Depth 有效性分布已处置（事实，改变历史印象）：** 全部 `1277` 条样本的原始网格 `depth_valid_pre` 比例 mean `0.6833`、median `0.7413`、min `0.0125`、max `0.9999`；有效率 `<1%`/`<5%`/`<10%`/`<25%`/`<50%` 的样本分别为 `0`/`13`/`26`/`91`/`309` 条，**没有任何样本全为 0**；训练几何（crop/pad）下 mean `0.6978`、median `0.8177`，另有 `8` 条样本在 `valid_mask` 内无有效 Depth。监督像素构成（early/mid/late）：target 恰为 `0` 的监督像素占 `28.33%`/`28.41%`/`43.84%`，其中约 `25.82` 个百分点始终来自原生无效 Depth。结论：**此前那个“约 98.5% 像素为 0”的单样本观测不能外推**；高级审计已据此裁决监督分布可接受，v3 不改 `lambda_rel`、不重加权、不删除 8 个 crop。
+- **R1/S1/C1 阈值问题已处置：** 按第二轮指令第 7 条，三个模板已删除起草期自拟且无文献或前置假设支持的数值（R1 的 Spearman `-0.10`、AURC/Brier `5%` 相对改进、Holm-Bonferroni 家族 `12` 与 α `0.05`；S1 的 `0.25` 个百分点容忍度与允许违反次数 `0`），现在只预注册指标、分组、估计量与置信区间，并显式声明不设置新的成功/失败 gate；`bootstrap=10000` 与 95% 区间仅作计算精度设置。
+- **v2 gradient-path isolation 门禁已处置（实测通过）：** 2026-09-15 01:32 在用户单独授权下于本地 NVIDIA GeForce RTX 5060 Laptop GPU 实际运行 `python tools/mmfr/gradient_path_isolation.py`，退出码 `0`、墙钟 `15.3` 秒、结论 `gradient-path-isolation: PASS`，`failures` 与 `warnings` 均为空。`714` 个共享参数（backbone `672`、decoder `13`、geometry prior `29`）在 `lambda_rel=0` 与 `lambda_rel=0.1` 两次 backward 下梯度**逐位相同**，`over_tolerance_count=0`、`absent_in_both_runs_count=0`；reliability head 的 `6` 个参数在 `lambda_rel=0` 时梯度存在且恒为零、在 `lambda_rel=0.1` 时范数为 `0.05855773380379924`；两次 segmentation loss 与 head 开/关的 logits 逐位相同。输入为真实 `train-dev` 的 `sample_index=0`、`iteration=0`、corrupted 抽样（`quantization`，severity 约 `0.24`），分割有效像素 `11932`。证据为 `outputs/mmfr-a2-gradient-path-isolation/gradient-path-isolation.json`，SHA-256 `dd0e351b418f0228650830c70cf0750c21a446502d3a9c11ebc047581aedb763`。**边界：** batch size `1`、FP32（关闭 autocast 与 TF32）、单进程、单样本、一次 corrupted 抽样；不覆盖冻结 batch size `10`、AMP、DDP、完整 epoch、checkpoint save/load、evaluator、云资源或 official test。**处置结论：** A2 分割性能变化的直接原因是 corruption exposure，reliability head 只承担 estimator qualification，因此不需要再额外跑一次 500 epoch 的 corruption-only 对照；该门禁不再阻塞正式训练，但正式训练本身仍未授权。
+- **v2 协议修订已处置（结果前修订）：** 四条经审计的缺陷已修复：severity 只编码一次（graded 三类的连续 burden 就是 realized normalized damage，`DAMAGE_REFERENCE=0.25`）；`blur` 与 `misalignment` 改为相对图像尺度的 severity（`BLUR_SIGMA_FRACTION=1/80`、`MISALIGN_MAX_SHIFT_FRACTION=1/30`）；Depth 监督目标改为 $R_D^{sup}(p)=V_D^{pre}(p)\cdot R_D^{syn}(p)$ 且新增 `depth_valid_pre`/`depth_valid_post`；reliability 辅助损失只监督 Depth 通道（RGB 通道为未计分的 all-ones scaffold，禁止报告为已训练的 RGB reliability estimator）。失效统一定性为 model-input/representation-level synthetic corruptions，不是 Kinect 真实物理噪声模型。修订发生在正式 500 epoch 之前，因此 v1 的历史结论、负结果与 preflight 事实均未被改写；v1 模板只追加了状态块。
+- **A2 v2 记账缺陷已处置：** 原 v2 invalidity 记账断言 `post_corruption_invalid_pixels == natural_invalid_pixels + synthetic_missing_pixels`，但 `gaussian_noise` 与 `misalignment` 会把原生无效像素变成非零，该等式必然失败并中止首个真实 corrupt 样本。现改为分开记录 `newly_valid_pixels` 并断言闭合平衡 `post + newly_valid == natural + synthetic`，保持 fail-closed；v1 无此记账，未受影响。
+- **v2 证据完整性问题待核验：** v1 模板被记录的 `b5b5c979352cca451cfbca35abc77232a9ae82c3f22ec0f33fcdb964ae03e519` 与 v1 manifest 被记录的 `e9825c4a4818cf2860a529b6c0fa542f5412a7153a1e8b9b8c8d000de6ca7f07` 无法从当前工作区字节复现（已测试原始字节、LF 归一化与六种 JSON 规范序列化）。历史值未被改写，该差异标为待核验，不得据此断言文件被篡改，也不得忽略。
+- **证据入口：** 当前 v3 协议与全部源码/工具/报告双哈希索引为 `protocols/mmfr-a2-train-integration-v3.template.json`；高级审计原文与执行回填为 `liu-test-exp/方案1/改动说明.md`。v1/v2 历史模板分别为 `protocols/mmfr-a2-train-integration-v1.template.json` 与 `protocols/mmfr-a2-train-integration-v2.template.json`，不得回写；三个补充模板为 `protocols/mmfr-r1-reliability-supplemental-v1.template.json`、`protocols/mmfr-s1-severity-sweep-v1.template.json`、`protocols/mmfr-c1-paper-confirmation-v1.template.json`。详细方向计划仍位于 `doc/plans/2026-09-MUSeg-多形式模态失效可靠性学习/`。
+
+**大白话说明：** v2 的数据有效性问题已经按高级审计选择的 A + MID-A 在独立 v3 中修复，五项本地资格也全部通过。现在没有待高级模型继续判断的有效性语义；该历史阶段的 probe、one-arm 训练、Main-Val 与 Oracle-A 后续进展以实时状态文件为准。
+
+## 14. MMFR v4.1 E1 Batch 1A/1B 状态与 R-OE-lite Gate-B
+
+**大白话问题：** 原 Batch 1 把 C0、轻量特征适配和“识别整模态缺失后恢复”绑在一起。审计证明，全零 Depth 的隐藏原因不可从当前输入区分，但这不应继续阻塞与原因识别无关的 C0/F-lite；R 路线需要改成只处理可观测状态的新候选。
+
+**当前状态：Batch 1A 与 Batch 1B 的工程/评价状态分别登记。** Batch 1A C0/F-lite 的十条件 Main-Val 已完成，两侧各 10/10 条件，身份与配对性断言 0 失败；主指标 $M_6$ 为 C0 `55.2883`、F-lite `54.8917`（$\Delta_F=-0.3966$ pp），clean 为 `56.69` / `56.02`。该批没有 Main-Val 数值门槛，仍待上级独立裁决。Batch 1B R-OE-lite 已完成实现与 Gate-B（`PASS`、`failed_checks=[]`）；正式训练及训练成功后四条件 Quick-Val 曾获用户授权；修正 `LOCAL_RANK=0` 并移除不完整的 CLI metadata 参数组后，训练于 01:40:43 UTC 启动、01:45:30 UTC 因 `F.interpolate` CUDA OOM 退出。最后日志确认至少 168 次成功 updates，OOM 后的精确最终计数未落盘；未生成 `update-2560.pth`，Quick-Val 未运行，后续不自动重试，恢复路线待用户决定。R-EM-lite 保持 `retired-by-observability`。Batch 1B 报告：`MMFR/02_evidence/report_e1_batch1b_roe_gateb.md`。
+
+- **Gate 分拆已处置：** Batch 1A 只比较 C0 与 F-lite；Batch 1B 才比较 R-OE-lite 与 matched C0。R 路线的 protocol pending 不再阻塞 Batch 1A。Gate-B 只证明实现资格，不等于训练授权或效果结论。
+- **R-EM-lite 已退休：** 当前 observable Depth 无法区分 synthetic `entire_missing`、natural-empty crop 与 dropout-emptied input。禁止用 corruption type、severity、synthetic mask、clean Depth、`depth_valid_pre/post`、reliability target、generator RNG 或 manifest cause 恢复该 hidden-cause 路由。
+- **R-OE-lite 语义已冻结：** trigger 只读取当前 raw Depth 与 $V_{\mathrm{geom}}$，语义只能是“当前 crop 的真实图像支持域中没有非零 Depth observation”。它故意共同覆盖上述三类全零输入；非触发样本必须对原 corrupted Depth exact bypass。
+- **R-OE-lite substitute 已冻结并完成实现与 Gate-B：** RGB 生成单通道 Depth-like `[0,255]` 浮点输出，使用 straight-through clamp，padding 为 exact zero，三通道复制后复用现有 Depth normalization。唯一结构为无 skip、无 normalization 的直接 RGB CNN，trainable parameters 精确为 `3,302,785`。segmentation 使用 substitute；A2 reliability auxiliary 仍使用原 corrupted raw Depth 与原 target。只使用共同 $L_{\mathrm{base}}^{A2}$，不增加 Depth GT reconstruction、reliability、condition、severity 或 oracle 接口。定位只能写成 `GeomPrompt-inspired task-driven observable-empty substitute`，不得声称 AI023 忠实复现。
+- **共同 optimizer 处置已实测关闭：** 固定 `base_decay / base_no_decay / new_decay / new_no_decay` 四组；所有 `requires_grad=True` 参数 membership 恰好为 1。29 个 `Geo.weight` 全部进入 `base_decay`，14 个 SyncBN 参数保持 `base_no_decay`；weights-only restart 不恢复旧 optimizer、scheduler、GradScaler 或 RNG。
+- **C0 Gate-B 已通过：** step 前 812 个 source state key、logits、prediction 与 total loss 全部 exact equal；初始 segmentation/reliability/total loss 分别为 `0.10337051749229431 / 0.021056054159998894 / 0.10547612607479095`。step loss 为 `0.7711184620857239`，optimizer step 已应用。
+- **F-lite identity 已通过：** stage 1/2/3 独立 `1×1 down → GELU → zero-init 1×1 up`，新增参数精确 `173152`；初始 residual、decoder inputs、logits、prediction 与 loss 全部 exact equal。C0/F 参数量分别为 `26677579 / 26850731`。
+- **F-lite 梯度路径已通过：** step 1 loss `0.7711184620857239`，6/6 up weight/bias gradient finite nonzero 且 6/6 更新，6 个 down gradient 按 zero-init 预期为 0；step 2 loss `0.3015517592430115`，6/6 down weight/bias gradient finite nonzero 且 6/6 更新。
+- **Geo 覆盖与更新已通过：** C0/F 均有 29/29 Geo gradient tensor 存在且 finite，19/29 在该 batch 上 nonzero，29/29 在 AdamW step 后发生合法参数变化；零数据梯度项可由 weight decay 合法变化。
+- **F-lite 成本已通过：** allocated/reserved 峰值增量为 `224095232 / 159383552` bytes，即 `213.7138671875 / 152 MiB`；inference median 为 C0 `131.17436981201172 ms`、F `132.20088958740234 ms`，增量 `+1.026519775390625 ms / +0.7825612403259408%`；forward-loss median 增量 `+0.9180450439453125 ms / +0.5561633978759639%`。
+- **Gate-B canonical evidence：** `outputs/mmfr-e1-batch1a-gateb/e1-batch1a-gateb.json`，SHA-256 `5d5f0526e95ed81b6da8fbcd3cc395911f2266132a9148826b5ad261042e4e89`；`C0: PASS`、`F-lite: PASS`、`failed_checks=[]`。运行使用本地 NVIDIA GeForce RTX 5060 Laptop GPU、batch size 1、样本 `RGB/06-01-01-0035-230920140169-12-99.jpg`，corruption 为 `gaussian_noise + blur`，curriculum progress `0.8400131252050813`，未包含 official test。
+- **共同正式训练合同已执行并 PASS：** single GPU、batch 10、workers 8、SyncBN on、DDP off、AMP on、TF32 实际行为按训练前勘误保留、seed `772961337`；20 nominal epochs、2560 successful updates、fixed `update-2560.pth`，两侧均 `skipped=0`；后续 Quick-Val 只使用 fixed final checkpoint。
+- **F-lite promotion 保持独立：** hard 三条件平均要求 $\Delta_F\ge +0.50$ pp，clean 不低于 `-0.25 pp`，每个 hard condition 不低于 `-0.50 pp`；stop/inconclusive 边界继续以 `liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/01_research/e1_batch1_protocol.md` 为准。R-OE-lite 不继承原 R-EM 的 cause-specific gate；Batch 1B Main-Val 数值门槛已在 `MMFR/01_research/e1_batch1_protocol.md` §13.5 冻结，Quick-Val 仅作 screening。
+- **Batch 1B 冻结 Main-Val gate：** Promote 需 `entire_missing@1.0 Δ >= +0.50 pp`、$M_6$ `Δ >= 0`、clean `Δ >= -0.25 pp` 且六个单故障均不低于 `-0.50 pp`；stop 条件为 entire-missing `Δ <= 0`、$M_6$ `Δ <= -0.50 pp`、clean `< -0.50 pp` 或任一单故障 `< -1.00 pp`；其他合规完整结果为 inconclusive，完整性/身份失败为 blocked。Quick-Val 仅筛查；`entire_missing@1.0` 是压力条件，不证明 detector 识别 hidden cause。门槛不构成训练或评价授权。
+- **Batch 1B control 复用条件：** 只有 checkpoint、optimizer、base loss、training budget、corruption manifest、seed 与 evaluation protocol 和 Batch 1A 完全一致时，才可复用 Batch 1A C0；任一共同合同变化均要求重跑 matched C0。
+- **Batch 1A 正式训练与三项训练前勘误已由用户裁决并执行完毕（2026-09-22）：** 用户单独授权正式训练，并对训练前发现的三项差异作裁决——A 保持现有实际 TF32 行为（`utils/train.py:151` 上游 `torch.set_float32_matmul_precision("high")` 未修改，作为对原文档字段 “TF32 off” 的**训练前勘误**记录，不重新 Gate-B）；B 接受现有 checkpoint/save 行为（`save_interval=5` epoch = `640` updates 已满足恢复需求，不新增独立 recovery 文件或代码）；C 保持冻结合同 skip 规则（任何 optimizer-step skip 即该 run `BLOCKED`，不调 GradScaler/LR/AMP/训练循环，不自动重跑）。C0 与 F-lite 均已按合同完成 `2560/2560` successful updates、`skipped=0`、`exit_code=0`，并各自生成 fixed final checkpoint `update-2560.pth`（C0 SHA-256 `ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`；F-lite `ea9319e5abe55b996470ee0a75bd63b887241ef834a3b50f145b5b7d4aabd98d`）。
+- **训练内 DataLoader shuffle 差异已由用户处置为 screening-level 随机性（2026-09-22）：** C0 与 F-lite 的逐 epoch `clean/corrupt` 计数在 `20/20` 个 epoch 上都不相同（C0 合计 clean `6359/25600`、F-lite `6369/25600`）。原因是 `get_train_loader` 使用 `shuffle=True` 且不传独立 `generator`，采样置换取自全局 torch RNG，而 F-lite 的 adapter `trunc_normal` 初始化多消耗了 RNG，故“同 seed + 不同结构”下样本-槽位排列不同。用户裁决：接受该事实，记录为 screening-level 随机性差异，**不重跑训练、不修改采样器**。冻结合同明文列出的条件（source、数据、seed、预算、curriculum 与 corruption 规则、base loss、optimizer 分组、checkpoint 机会）均未被改变；该差异只影响 $\Delta_F$ 的解读粒度，不构成合同违例。
+- **Quick-Val 已执行完毕，F-lite 判定 `promote`（2026-09-22）：** 用户授权对 C0 与 F-lite 的 fixed final checkpoint 运行冻结的 4-condition Quick-Val（仅 `clean`、`entire_missing@1.0`、`spatial_dropout@0.75`、`misalignment@0.75`），并接受训练期 DataLoader shuffle 顺序差异为 screening-level 随机性（不重跑、不改采样器）。冻结文本要求的“单视图 `original-full` + 四条件计分”在既有冻结工具中没有 runner（`tools/evaluate_museg_checkpoint.py` 无 condition 计分入口；`tools/evaluate_museg_10condition.py` 硬编码十视图），经用户在两条候选路径中裁决采用“严格按文本新写最小单视图条件计分入口”。新增 `tools/mmfr/e1_quickval.py`（SHA-256 `928c4229d937552e00128e9291b915204291f58c1e80b4b5a005efa9365e4073`）：模型构建/strict 载入、FP32 与 TF32-off、`original-full` 输入契约、logits 回原网格、confusion 与指标全部调用冻结 `tools.evaluate_museg_checkpoint`；condition 定义、corruption 与应用、样本读取全部调用冻结 `tools.evaluate_museg_10condition`（冻结 evaluation seed `2026091401`）；RNG 沿用冻结 `load_eval_model` 约定（构建后用 evaluation seed 播种 torch + `reset-per-unit` 每单元回放同一 base RNG），使两个候选使用相同 Ham decoder NMF 抽样。**输入契约等价性：** `--self-check` 在 `318/318` 个 `val-dev` 样本上证明 `rgb`/`depth`/`label` 与冻结 `MUSegPostEvalDataset(geometry="original-full")` 逐位相等；**可复现性：** 同一 checkpoint 两个独立进程给出相同 clean mIoU `53.46`、相同 confusion matrix 与相同逐样本摘要；**配对性：** C0 与 F-lite 的逐样本顺序、corrupted Depth SHA-256 与像素支持（`155829149`）在四个条件上完全相同。**结果（mIoU %，318 样本，单视图）：** C0 clean `53.46` / SD@0.75 `51.40` / Mis@0.75 `52.15` / EM@1.0 `48.76`；F-lite `54.15 / 52.39 / 52.63 / 50.17`；delta `+0.69 / +0.99 / +0.48 / +1.41` pp；$M_{3,\mathrm{hard}}$ `50.77 → 51.73`，$\Delta_F=+0.96$ pp，满足 promote（$\Delta_F\ge+0.50$、clean $\ge-0.25$、每个 hard $\ge-0.50$），stop 条件未触发。**曾被弃用的一遍（如实记录）：** 首版入口未按冻结约定播种 torch，两候选继承了不同的 post-construction RNG 状态（同 checkpoint 两次 clean `53.34` vs `53.36`），该批数字已作废并被 seeded 重跑覆盖。**边界：** 单视图口径 screening 结果，不构成 Main-Val/10-condition/Batch 1B/official test 授权，也不得与十视图数字直接比较。证据：`cloud/mmfr-e1-batch1a-v1/quickval-comparison.json`（SHA-256 `1f00d4face8587183c2e235eac689cb6c77556dc0b6c8636d95a8c5471176f7f`）与两侧 `quickval-original-full/`（各 4 份 `metrics.json` + `summary.json`）。
+
+- **授权边界与恢复点：** Batch 1A C0/F-lite 正式训练、4-condition Quick-Val 与 10-condition Main-Val 均已执行完毕，Quick-Val 判定 F-lite `promote`，十视图 Main-Val 给出描述性对照结果（$\Delta_F=-0.3966$ pp）且无预注册门禁。R-OE-lite implementation 与 Gate-B 已完成并 PASS；正式训练及成功后四条件 Quick-Val 曾获 2026-09-24 用户授权。正式训练于 01:40:43 UTC 启动，01:45:30 UTC 在 `models/roe_substitute.py:85` 因 CUDA OOM 退出；日志最后确认 Epoch 2/20 Iter 40/128、至少 168 次成功 updates，attempted/completed 精确最终计数未落盘，最后记录 batch loss `0.2024`、running total loss `0.2365`。固定最终 checkpoint 未生成，Quick-Val 未运行。十条件 Main-Val、Batch 2、T 与 official test 仍未授权，official test 保持 `sealed_unread`；Batch 1A Main-Val 结果的处置继续独立待上级裁决。
+
+**大白话说明：** 这次训练没有跑到终点；RTX 4090 显存不足导致进程中止，最终权重没有生成，因此既不能运行 Quick-Val，也不能据此判断 R-OE-lite 的效果。
+
+**当前恢复点：** `R-OE-formal-training-blocked-oom`。第三次正式训练已退出，screen `14333.mmfr-e1-batch1b-roe` 与训练 PID `14335` 均已结束；主机 `cpod-1vbh7faqcauq` 的 RTX 4090 当前显存占用 `1 MiB / 24564 MiB`、利用率 `0%`。当前没有 `compshare-cli` 包或控制面凭据，实例是否停机待核验，不能把 GPU 空闲当作实例已停止。至少 168 次成功 updates，精确最终计数未落盘，没有 `update-2560.pth`，Quick-Val 未运行。Batch 1A C0 fixed-final checkpoint 仍未在此前核对路径中找到，真实路径待核验；不能启动 Quick-Val。OOM 后不自动重新训练，是否改变方案、建立新身份后重新资格化，或停止 Batch 1B，等待用户另行决定。十条件 Main-Val、Batch 2、T 与 official test 仍未授权；official test 保持 `sealed_unread`。Batch 1A 十条件 Main-Val 的上级处置仍独立待审。详细中止证据为 `MMFR/02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md`；冻结协议和 Gate-B 报告位于 `MMFR/01_research/e1_batch1_protocol.md` 与 `MMFR/02_evidence/report_e1_batch1b_roe_gateb.md`。
