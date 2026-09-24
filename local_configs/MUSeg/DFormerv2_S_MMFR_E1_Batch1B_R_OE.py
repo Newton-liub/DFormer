@@ -7,7 +7,7 @@ from .DFormerv2_S_MMFR_E1_Batch1A_Common import (
     E1_SOURCE_MODEL_KEY_COUNT,
 )
 
-E1_BATCH1B_PROTOCOL = "MMFR-E1-Batch1B-R-OE-lite-v1"
+E1_BATCH1B_PROTOCOL = "MMFR-E1-Batch1B-R-OE-lite-v2"
 E1_ROE_SUBSTITUTE = {
     "architecture": "observable-empty-geometry-substitute",
     "channels": [122, 398, 256, 256, 398, 122, 1],
@@ -26,7 +26,7 @@ E1_ROE_SUBSTITUTE = {
     "expected_trainable_parameters": 3302785,
 }
 
-C.run_id = "MMFR-E1-Batch1B-R-OE-lite"
+C.run_id = "MMFR-E1-Batch1B-R-OE-lite-v2"
 C.e1_batch1 = {
     "enabled": True,
     "protocol": E1_BATCH1B_PROTOCOL,

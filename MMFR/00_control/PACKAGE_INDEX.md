@@ -7,7 +7,7 @@
 - In-repository root: `D:\0Project\DFormer\MMFR`（2026-09-23 从外部归档恢复到项目内并纳入 Git）
 - Current blueprint: [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)
 - Active review profile source: [`review_profile.json`](review_profile.json)
-- Current active profile: `e1-batch1b-roe-gateb`
+- Current active profile: `e1-batch1b-roe-gateb`（历史 v1 审核包；不代表 v2 资格或授权）
 - Review level: `L1`
 
 ## Authoritative research state
@@ -25,7 +25,7 @@ This package is a maintained evidence library and review-packet source. It is no
 | --- | --- |
 | 当前 MMFR 做到哪里 | [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)（唯一实时入口）；本包目录与变更历史见本文件与 [`CHANGELOG.md`](CHANGELOG.md) |
 | 最新研究蓝图 | [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md) |
-| 当前实验结论 | Batch 1B R-OE-lite 正式训练因 CUDA OOM 中止的报告见 [`02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md`](../02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md)；实现与 Gate-B PASS 证据见 [`02_evidence/report_e1_batch1b_roe_gateb.md`](../02_evidence/report_e1_batch1b_roe_gateb.md) 和实现差异审计；Batch 1A Main-Val 描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
+| 当前实验结论 | Batch 1B v2 仅完成本地结构调整，GPU 结果待核验，执行边界见 [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)；v1 正式训练 CUDA OOM 历史报告见 [`02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md`](../02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md)；v1 Gate-B PASS 历史证据见 [`02_evidence/report_e1_batch1b_roe_gateb.md`](../02_evidence/report_e1_batch1b_roe_gateb.md)；Batch 1A Main-Val 描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
 | 下一阶段计划 | [`01_research/e1_screening_plan.md`](../01_research/e1_screening_plan.md)、[`01_research/e1_batch1_protocol.md`](../01_research/e1_batch1_protocol.md)、[`01_research/r_oe_lite_design.md`](../01_research/r_oe_lite_design.md) |
 | 相关论文在哪里 | [`03_reference/paper-index.md`](../03_reference/paper-index.md)；本地全文在仓库外 `D:\0Project\origin\论文\` |
 | 相关代码在哪里 | [`03_reference/code-index.md`](../03_reference/code-index.md)；本地 clone 在仓库外 `D:\0Project\origin\` |

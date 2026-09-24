@@ -1,5 +1,11 @@
 # MMFR v4.1 package change log
 
+## 2026-09-24 — R-OE-lite v2 单通道上采样调整与条件训练授权
+
+- 将 `d2 → GELU → head` 移到最终全分辨率双线性插值之前；不增删可训练层，参数仍为 `3,302,785`。原 v1 逐像素函数改变，v2 使用新 protocol/run identity，严禁继承 v1 中止训练的更新状态。
+- 本地仅核查 v2 config/substitute import、CPU 输入输出尺寸、单通道、掩码覆盖区严格为零及参数量；路由与 reliability auxiliary 代码未改。RTX 4090 三步及正式训练结果尚未取得。
+- 用户授权：保留 batch size 10 和其余 Batch 1B 训练设置，先连续 3 次成功更新并记录显存/损失/触发数/插值输入；满足无 OOM、loss finite 和显存余量条件后，从 A2 epoch-420 source 干净开始 2560 次更新，再进入已授权四条件 Quick-Val。OOM 则立即停止。v1 报告与旧审核包保持历史身份，未重跑 Gate-B、未重建审核包。
+
 ## 2026-09-24 — E1 Batch 1B R-OE-lite formal training stopped by CUDA OOM
 
 - Added `02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md` recording the cloud run identity, OOM evidence, update-count boundary, absent fixed-final checkpoint, unrun Quick-Val, and unresolved C0 checkpoint path.

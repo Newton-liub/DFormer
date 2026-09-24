@@ -82,14 +82,14 @@ class ObservableEmptyGeometrySubstitute(nn.Module):
             align_corners=False,
         )
         features = self.activation(self.d1(features))
-        features = F.interpolate(
-            features,
+        features = self.activation(self.d2(features))
+        logits = self.head(features)
+        logits = F.interpolate(
+            logits,
             size=(input_height, input_width),
             mode="bilinear",
             align_corners=False,
         )
-        features = self.activation(self.d2(features))
-        logits = self.head(features)
 
         clipped = logits.clamp(self.OUTPUT_MIN, self.OUTPUT_MAX)
         straight_through = logits + (clipped - logits).detach()

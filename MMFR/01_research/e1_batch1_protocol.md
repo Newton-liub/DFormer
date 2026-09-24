@@ -1,5 +1,7 @@
 # MMFR E1 Batch 1A/1B Protocol Freeze
 
+> **2026-09-24 v2 执行补充（以下 §1–§13 的 v1 冻结结果均为历史记录，不代表 v2 Gate-B）：** RTX 4090 上 v1 R-OE-lite 正式训练在至少 168 次 optimizer update 后因 398 通道全分辨率插值 OOM 中止；未生成 fixed-final checkpoint。用户批准 R-OE-lite v2 新实现身份 `MMFR-E1-Batch1B-R-OE-lite-v2`：将原 `d2 → GELU → head` 移至最终双线性插值之前，使完整分辨率插值只接收 1-channel logits；其余七层参数定义、`3,302,785` 参数、observable-empty 路由、padding 和 reliability auxiliary 不变。逐像素函数已改变，不继承 v1 训练状态或 v1 Gate-B 结论。新训练从 A2 epoch-420 source checkpoint 干净启动，保留 batch size 10、workers 8、AMP/SyncBN on、DDP off、原 seed `772961337` 与其余 Batch 1B 训练设置。先在 RTX 4090 上做 3 次连续成功 update 并记录 loss/显存/触发数/最终插值输入 shape 和 dtype；无 OOM、loss finite、显存余量合理即按用户条件授权启动全新 2560-update 正式 run，训练成功后执行现有四条件 Quick-Val。若 OOM 则停止。当前实际执行与授权状态只以 [`MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md) 为准；v1 原始中止证据见 [`中止报告`](../02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md)，不得改写。
+
 > **当前 protocol identity：** `MMFR-E1-Batch1B-R-OE-lite-v1`；历史 Batch 1A identity：`MMFR-E1-Batch1A-C0-F-v1`
 > **状态：** `Batch 1B R-OE-lite implementation complete; Gate-B PASS; formal training not authorized`
 > **日期：** 2026-09-23
