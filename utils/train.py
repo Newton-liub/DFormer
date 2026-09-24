@@ -457,7 +457,10 @@ with Engine(custom_parser=parser) as engine, ExperimentTracker() as tracker:
             allowed_candidates = ("C0", "F-lite")
             if candidate == "F-lite":
                 e1_new_parameter_prefixes = ("feature_adapter.",)
-        elif e1_protocol == "MMFR-E1-Batch1B-R-OE-lite-v1":
+        elif e1_protocol in (
+            "MMFR-E1-Batch1B-R-OE-lite-v1",
+            "MMFR-E1-Batch1B-R-OE-lite-v2",
+        ):
             allowed_candidates = ("R-OE-lite",)
             if candidate == "R-OE-lite":
                 e1_new_parameter_prefixes = ("roe_substitute.",)

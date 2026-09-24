@@ -1,5 +1,13 @@
 # MMFR v4.1 package change log
 
+## 2026-09-24 — R-OE-lite v2 formal training PASS and four-condition Quick-Val result
+
+- Added `02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md` recording the entry-point blocker and its one-line non-committed fix, the 3-update GPU memory check, the 2560/2560 formal run identity, the fixed-final checkpoint SHA-256, the substitute-training evidence, the new R-OE-aware Quick-Val entry, the four-condition numbers, and the routing telemetry.
+- Recorded that commit `255780f` alone cannot run: `utils/train.py` only accepted the `...-v1` protocol identity, so the approved v2 identity required a whitelist addition. The fix is uncommitted and un-pushed; its diff is archived as `cloud/mmfr-e1-batch1b-roe-v2/roe-v2-entry-fix.patch`.
+- Recorded that the frozen `tools/mmfr/e1_quickval.py` cannot score an R-OE-lite checkpoint (the model forward requires `raw_depth` and the geometry mask), so a thin new entry `tools/mmfr/e1_quickval_roe.py` was added following `r_oe_lite_design.md` §11–§12; it has no prior frozen qualification and its `V_geom` unit-mask choice for the non-padded `original-full` view is recorded in every artefact.
+- Result: Quick-Val clean `53.46` vs C0 `53.46` (delta `0.00`), `entire_missing@1.0` `48.77` vs `48.76` (`+0.01`), `spatial_dropout@0.75` `51.41` vs `51.40` (`+0.01`), `misalignment@0.75` `52.16` vs `52.15` (`+0.01`); $M_{3,\mathrm{hard}}$ `50.77 -> 50.78`; frozen screening verdict `inconclusive`.
+- Updated the authoritative current-status and open-decisions documents: v2 is no longer pending execution, and the remaining live question is the disposition of the R-OE route given a screening delta far below the Main-Val promote threshold. Batch 1B ten-condition Main-Val, Batch 2, T and official test were not run; `official_test` remains `sealed_unread`. No Gate-B rerun, no review-packet rebuild, no C0 retraining, and no commit or push.
+
 ## 2026-09-24 — R-OE-lite v2 单通道上采样调整与条件训练授权
 
 - 将 `d2 → GELU → head` 移到最终全分辨率双线性插值之前；不增删可训练层，参数仍为 `3,302,785`。原 v1 逐像素函数改变，v2 使用新 protocol/run identity，严禁继承 v1 中止训练的更新状态。
