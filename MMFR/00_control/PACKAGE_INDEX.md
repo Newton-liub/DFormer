@@ -25,7 +25,7 @@ This package is a maintained evidence library and review-packet source. It is no
 | --- | --- |
 | 当前 MMFR 做到哪里 | [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)（唯一实时入口）；本包目录与变更历史见本文件与 [`CHANGELOG.md`](CHANGELOG.md) |
 | 最新研究蓝图 | [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md) |
-| 当前实验结论 | Batch 1B R-OE-lite Gate-B 报告与实现差异审计见 [`02_evidence/`](../02_evidence/)；Batch 1A Main-Val 的描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
+| 当前实验结论 | Batch 1B R-OE-lite 正式训练因 CUDA OOM 中止的报告见 [`02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md`](../02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md)；实现与 Gate-B PASS 证据见 [`02_evidence/report_e1_batch1b_roe_gateb.md`](../02_evidence/report_e1_batch1b_roe_gateb.md) 和实现差异审计；Batch 1A Main-Val 描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
 | 下一阶段计划 | [`01_research/e1_screening_plan.md`](../01_research/e1_screening_plan.md)、[`01_research/e1_batch1_protocol.md`](../01_research/e1_batch1_protocol.md)、[`01_research/r_oe_lite_design.md`](../01_research/r_oe_lite_design.md) |
 | 相关论文在哪里 | [`03_reference/paper-index.md`](../03_reference/paper-index.md)；本地全文在仓库外 `D:\0Project\origin\论文\` |
 | 相关代码在哪里 | [`03_reference/code-index.md`](../03_reference/code-index.md)；本地 clone 在仓库外 `D:\0Project\origin\` |

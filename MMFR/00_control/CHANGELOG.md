@@ -1,5 +1,11 @@
 # MMFR v4.1 package change log
 
+## 2026-09-24 — E1 Batch 1B R-OE-lite formal training stopped by CUDA OOM
+
+- Added `02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md` recording the cloud run identity, OOM evidence, update-count boundary, absent fixed-final checkpoint, unrun Quick-Val, and unresolved C0 checkpoint path.
+- Updated the authoritative current-status and open-decisions documents: the run ended at 01:45:30 UTC after at least 168 successful updates; the exact final count was not persisted; no automatic retry is authorized by this recovery point.
+- Updated `PACKAGE_INDEX.md` to point to the new attempt report. The frozen R-OE-lite protocol, Gate-B evidence, prior review packet, and official-test seal were not rewritten; no review packet rebuild was requested or performed.
+
 ## 2026-09-23 — refreshed Batch 1B L1 packet for senior review
 
 - Rebuilt the active `e1-batch1b-roe-gateb` packet at HEAD `2c3176e375562cd62be31bb10cb9363537edb4f3`; generation ID `8213dfb94396d4c65f4200c94029308573332f210665c578ccf323577e6a0415`.
