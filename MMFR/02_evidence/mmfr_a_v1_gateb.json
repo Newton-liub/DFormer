@@ -1,0 +1,401 @@
+{
+  "identity": "MMFR-A-v1-action-utility-v1",
+  "checks": {
+    "source_identity": {
+      "status": "PASS",
+      "path": "D:\\0Project\\DFormer\\cloud\\MMFR_E1_Batch1A_local_transfer_20260922\\MMFR_E1_Batch1A_local_transfer_20260922\\C0\\checkpoint\\update-2560.pth",
+      "sha256": "ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a"
+    },
+    "strict_off": {
+      "status": "PASS",
+      "bitwise_equal": true,
+      "max_abs_error": 0.0,
+      "proposal_calls": 0,
+      "gate_calls": 0
+    },
+    "zero_init": {
+      "status": "PASS",
+      "bitwise_equal": true,
+      "max_abs_error": 0.0
+    },
+    "proposal_optimizer_membership": {
+      "status": "PASS",
+      "membership": {
+        "proposal": [
+          1
+        ],
+        "gate": [
+          0
+        ],
+        "base": [
+          0
+        ]
+      },
+      "updated_parameters": [
+        "av1.proposal.0.weight",
+        "av1.proposal.2.weight",
+        "av1.proposal.4.weight",
+        "av1.proposal.4.bias"
+      ],
+      "frozen_branch_unchanged": true,
+      "base_parameters_and_buffers_unchanged": true,
+      "loss": 9.137900352478027,
+      "gradients_finite": true,
+      "frozen_gradients_absent": true
+    },
+    "gate_optimizer_membership": {
+      "status": "PASS",
+      "membership": {
+        "proposal": [
+          0
+        ],
+        "gate": [
+          1
+        ],
+        "base": [
+          0
+        ]
+      },
+      "updated_parameters": [
+        "av1.gate.0.weight",
+        "av1.gate.0.bias",
+        "av1.gate.2.weight",
+        "av1.gate.2.bias"
+      ],
+      "frozen_branch_unchanged": true,
+      "base_parameters_and_buffers_unchanged": true,
+      "loss": 10.285725593566895,
+      "gradients_finite": true,
+      "frozen_gradients_absent": true
+    },
+    "utility_three_branches": {
+      "status": "PASS",
+      "evidence": {
+        "utility": [
+          0.20000004768371582,
+          -0.19999998807907104,
+          0.0,
+          0.125,
+          -0.125
+        ],
+        "mask": [
+          true,
+          true,
+          false,
+          false,
+          false
+        ],
+        "targets": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "bce": 0.2231435477733612,
+        "all_ambiguous_bce": 0.0,
+        "all_ambiguous_ce": 0.31326165795326233,
+        "endpoint_gradients_absent": true
+      }
+    },
+    "all_ambiguous": {
+      "status": "PASS",
+      "bce": 0.0,
+      "ce": 0.31326165795326233
+    },
+    "frozen_base": {
+      "status": "PASS",
+      "parameters_and_all_buffers_exact": true,
+      "base_eval_in_both_phases": true
+    },
+    "rng_ham_alignment": {
+      "status": "PASS",
+      "forwards": [
+        {
+          "mode": "off",
+          "rng": {
+            "cpu": "c41666b3195a043f7f5286685af0c42badde450e1ff969f25e190dd0d34d63ff",
+            "cuda": [
+              "fcdde43359386fccef02730900b3e8c238195cd19ecebc7370f6659f6ddaacac"
+            ]
+          },
+          "rgb": "7c58597400669f6f72e32460d13e3912eb8f8c3eaa5102d63532246d5c42c906",
+          "depth": "d5826b7e29adfe4a42ec79346995cc6866dbf163dddbaca148b2be79398b4c5f",
+          "observed": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+          "observed_ptr": 30153101824
+        },
+        {
+          "mode": "full",
+          "rng": {
+            "cpu": "c41666b3195a043f7f5286685af0c42badde450e1ff969f25e190dd0d34d63ff",
+            "cuda": [
+              "fcdde43359386fccef02730900b3e8c238195cd19ecebc7370f6659f6ddaacac"
+            ]
+          },
+          "rgb": "7c58597400669f6f72e32460d13e3912eb8f8c3eaa5102d63532246d5c42c906",
+          "depth": "d5826b7e29adfe4a42ec79346995cc6866dbf163dddbaca148b2be79398b4c5f",
+          "observed": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+          "observed_ptr": 30153101824
+        },
+        {
+          "mode": "learned",
+          "rng": {
+            "cpu": "c41666b3195a043f7f5286685af0c42badde450e1ff969f25e190dd0d34d63ff",
+            "cuda": [
+              "fcdde43359386fccef02730900b3e8c238195cd19ecebc7370f6659f6ddaacac"
+            ]
+          },
+          "rgb": "7c58597400669f6f72e32460d13e3912eb8f8c3eaa5102d63532246d5c42c906",
+          "depth": "d5826b7e29adfe4a42ec79346995cc6866dbf163dddbaca148b2be79398b4c5f",
+          "observed": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+          "observed_ptr": 30153101824
+        }
+      ],
+      "nmf": [
+        {
+          "rng": {
+            "cpu": "c41666b3195a043f7f5286685af0c42badde450e1ff969f25e190dd0d34d63ff",
+            "cuda": [
+              "fcdde43359386fccef02730900b3e8c238195cd19ecebc7370f6659f6ddaacac"
+            ]
+          },
+          "initial_bases": "c9b34093622c33badccf0ced8dceaf0cebec425e1689f5fd520a6e28b972dbbd"
+        },
+        {
+          "rng": {
+            "cpu": "c41666b3195a043f7f5286685af0c42badde450e1ff969f25e190dd0d34d63ff",
+            "cuda": [
+              "fcdde43359386fccef02730900b3e8c238195cd19ecebc7370f6659f6ddaacac"
+            ]
+          },
+          "initial_bases": "c9b34093622c33badccf0ced8dceaf0cebec425e1689f5fd520a6e28b972dbbd"
+        },
+        {
+          "rng": {
+            "cpu": "c41666b3195a043f7f5286685af0c42badde450e1ff969f25e190dd0d34d63ff",
+            "cuda": [
+              "fcdde43359386fccef02730900b3e8c238195cd19ecebc7370f6659f6ddaacac"
+            ]
+          },
+          "initial_bases": "c9b34093622c33badccf0ced8dceaf0cebec425e1689f5fd520a6e28b972dbbd"
+        }
+      ],
+      "labels": [
+        {
+          "hash": "48510f259d1e70ea6b041d0a936ac5b671022bc6bb967112535471b265450e30",
+          "ptr": 30152851456
+        },
+        {
+          "hash": "48510f259d1e70ea6b041d0a936ac5b671022bc6bb967112535471b265450e30",
+          "ptr": 30152851456
+        },
+        {
+          "hash": "48510f259d1e70ea6b041d0a936ac5b671022bc6bb967112535471b265450e30",
+          "ptr": 30152851456
+        }
+      ],
+      "off_detached": true,
+      "full_detached": true
+    },
+    "gate_input_safety": {
+      "status": "PASS",
+      "gate_value_signature": "(feature: 'Tensor', observed_depth: 'Tensor', geometry_mask: 'Tensor | None' = None) -> 'Tensor'",
+      "input_dim": 260,
+      "features": [
+        "pooled stage2 feature 256",
+        "observed zero ratio",
+        "observed nonzero mean",
+        "observed nonzero std",
+        "observed valid nonzero neighbor absolute difference"
+      ],
+      "all_zero_depth_statistics": [
+        [
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "empty_support_statistics": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "static_review_required": true
+    },
+    "finite_loss": {
+      "status": "PASS"
+    },
+    "phase_corruption_isolation": {
+      "status": "PASS",
+      "phase_seed_words": {
+        "proposal": [
+          2026093001,
+          421,
+          0,
+          0,
+          0,
+          3511475133,
+          1673549427,
+          802800182,
+          421769980
+        ],
+        "gate": [
+          2026093002,
+          421,
+          0,
+          0,
+          0,
+          3511475133,
+          1673549427,
+          802800182,
+          421769980
+        ]
+      },
+      "cache_reused": false,
+      "synthetic_probe_p_clean": {
+        "proposal": 1.0,
+        "gate": 0.0
+      },
+      "gate_specs": [
+        {
+          "modality": "depth",
+          "kind": "entire_missing",
+          "severity": 1.0,
+          "severity_encoding": "single",
+          "validity_state_before_pixels": 4032,
+          "validity_state_after_pixels": 0,
+          "validity_invalidated_pixels": 4032,
+          "validity_newly_valid_pixels": 0,
+          "corruption_parameter": {
+            "missing_fraction": 1.0
+          },
+          "missing_fraction": 1.0,
+          "graded": false,
+          "validity_transition": "state=0",
+          "burden_min": 10000.0,
+          "burden_max": 10000.0,
+          "burden_mean": 10000.0,
+          "reliability_min": 0.0,
+          "reliability_mean": 0.0
+        },
+        {
+          "modality": "depth",
+          "kind": "gaussian_noise",
+          "severity": 0.8398052355201566,
+          "severity_encoding": "single",
+          "validity_state_before_pixels": 0,
+          "validity_state_after_pixels": 0,
+          "validity_invalidated_pixels": 0,
+          "validity_newly_valid_pixels": 0,
+          "corruption_parameter": {
+            "sigma_uint8": 40.31065130496752
+          },
+          "sigma": 40.31065130496752,
+          "graded": true,
+          "validity_transition": "state unchanged",
+          "realized_damage_mean": 0.0,
+          "realized_damage_max": 0.0,
+          "realized_damage_nonzero_fraction": 0.0,
+          "burden_min": 0.0,
+          "burden_max": 0.0,
+          "burden_mean": 0.0,
+          "reliability_min": 0.0,
+          "reliability_mean": 0.0
+        }
+      ]
+    }
+  },
+  "formal_training_started": false,
+  "quickval_started": false,
+  "mainval_started": false,
+  "official_test_included": false,
+  "input": "synthetic normalized RGB/Depth and synthetic labels, B=1 H=W=64; no dataset reads",
+  "smoke_only_settings": {
+    "margin": 0.01,
+    "lambda_clean": 0.1,
+    "lr": 3e-05,
+    "weight_decay": 0.01,
+    "proposal_steps": 1,
+    "gate_steps": 1
+  },
+  "git_head": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
+  "environment": {
+    "python": "D:\\2Env\\anaconda\\envs\\df2\\python.exe",
+    "torch": "2.7.0+cu128",
+    "device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+    "precision": "FP32",
+    "tf32": false
+  },
+  "source_load": {
+    "path": "D:\\0Project\\DFormer\\cloud\\MMFR_E1_Batch1A_local_transfer_20260922\\MMFR_E1_Batch1A_local_transfer_20260922\\C0\\checkpoint\\update-2560.pth",
+    "sha256": "ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a",
+    "schema_version": "dformer-training-checkpoint-v2",
+    "model_key_count": 812,
+    "missing_keys": [],
+    "unexpected_keys": [],
+    "completed_epoch": 20,
+    "next_epoch": 21,
+    "global_optimizer_step": 2560,
+    "embedded_source_commit": "eff2f95505f4bc3b1433e59dcb7dea76e4c94fd6"
+  },
+  "av1_load": {
+    "path": "D:\\0Project\\DFormer\\cloud\\MMFR_E1_Batch1A_local_transfer_20260922\\MMFR_E1_Batch1A_local_transfer_20260922\\C0\\checkpoint\\update-2560.pth",
+    "sha256": "ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a",
+    "schema_version": "dformer-training-checkpoint-v2",
+    "model_key_count": 812,
+    "missing_keys": [
+      "av1.gate.0.bias",
+      "av1.gate.0.weight",
+      "av1.gate.2.bias",
+      "av1.gate.2.weight",
+      "av1.proposal.0.bias",
+      "av1.proposal.0.weight",
+      "av1.proposal.2.bias",
+      "av1.proposal.2.weight",
+      "av1.proposal.4.bias",
+      "av1.proposal.4.weight"
+    ],
+    "unexpected_keys": [],
+    "completed_epoch": 20,
+    "next_epoch": 21,
+    "global_optimizer_step": 2560,
+    "embedded_source_commit": "eff2f95505f4bc3b1433e59dcb7dea76e4c94fd6"
+  },
+  "parameters": {
+    "proposal": 16992,
+    "gate": 4193,
+    "total_added": 21185
+  },
+  "gate_step": {
+    "ce": 10.285725593566895,
+    "bce": 0.0,
+    "clean_consistency": -0.0,
+    "utility": [
+      0.0019989013671875
+    ],
+    "targets": [
+      0.0
+    ],
+    "mask": [
+      false
+    ],
+    "gate": [
+      0.6042011380195618
+    ],
+    "off_detached": true,
+    "full_detached": true
+  },
+  "source_unchanged_after_steps": true,
+  "status": "PASS",
+  "implementation_sha256": {
+    "models/builder.py": "7a36cd7038628e175578b596f28171b538de3ab64b316058adf31cbd5f440880",
+    "models/mmfr_av1.py": "de7b4ebf3807d6c681c8b3f91a5cf99783f874129b24cf131a0f2c4572d1032f",
+    "utils/mmfr_av1_training.py": "d7d8570f65baa318421d78e4cbcc45fc3fa32451d6b233560aa17e73ac46a4db",
+    "local_configs/MUSeg/DFormerv2_S_MMFR_AV1.py": "1a9c9cb05981c823dde04dec78df23ba91b7f4c2814a8d21cd628121c8883aec",
+    "tools/mmfr/av1_gateb.py": "e5dc560e66ab1410ecf3162928679cd84f031fda5da316ff6e7d40095ced14a9"
+  }
+}

@@ -1,14 +1,14 @@
 ﻿{
     "schema_version":  "mmfr-review-packet-v2",
     "profile_schema_version":  1,
-    "profile":  "e1-batch1b-roe-gateb",
+    "profile":  "mmfr-a-v1-action-utility-gateb",
     "review_level":  "L1",
-    "generation_id":  "8213dfb94396d4c65f4200c94029308573332f210665c578ccf323577e6a0415",
+    "generation_id":  "52fdaa881070430927f50d05a14e19171dd95c11866a2033b7dde314436c3e22",
     "deterministic_identity":  "sha256(profile identity + canonical input hashes + git commit); no wall-clock timestamp",
     "source_package":  "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
     "git":  {
                 "branch":  "perf/mmfr-a2-v3-pipeline-opt1",
-                "commit":  "2c3176e375562cd62be31bb10cb9363537edb4f3",
+                "commit":  "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
                 "workspace_dirty":  true
             },
     "authoritative_status":  {
@@ -23,8 +23,8 @@
                       "role":  "generated_review_entry",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "6ef8969dc0bdb591d0653f6ee94acbe800c52383f8263ae2fd5927aa98917ad5",
-                      "bytes":  3774,
+                      "packet_sha256":  "4a1bd3958b8d82f0e62ba64c3bce12c62ffbc10e2668064191da54a56ee308d3",
+                      "bytes":  4788,
                       "transform":  "generated_from_profile",
                       "input_sources":  [
                                             "00_control/review_profile.json",
@@ -34,28 +34,28 @@
                   {
                       "packet_file":  "CURRENT_PROTOCOL.md",
                       "role":  "current_protocol",
-                      "source":  "01_research/e1_batch1_protocol.md",
-                      "source_sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8",
-                      "packet_sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8",
-                      "bytes":  22671,
+                      "source":  "01_research/mmfr_a_v1_action_utility_protocol.md",
+                      "source_sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472",
+                      "packet_sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472",
+                      "bytes":  15993,
                       "transform":  "exact_copy"
                   },
                   {
                       "packet_file":  "CURRENT_REPORT.md",
                       "role":  "current_report",
-                      "source":  "02_evidence/report_e1_batch1b_roe_gateb.md",
-                      "source_sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97",
-                      "packet_sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97",
-                      "bytes":  8187,
+                      "source":  "02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
+                      "source_sha256":  "746890bc35815ca358bf6015cc796406ee3a7e8c5264d5f1fdaada629dc2789a",
+                      "packet_sha256":  "746890bc35815ca358bf6015cc796406ee3a7e8c5264d5f1fdaada629dc2789a",
+                      "bytes":  16062,
                       "transform":  "exact_copy"
                   },
                   {
                       "packet_file":  "IMPLEMENTATION_DIFF.md",
                       "role":  "implementation_diff",
-                      "source":  "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
-                      "source_sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce",
-                      "packet_sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce",
-                      "bytes":  3090,
+                      "source":  "02_evidence/audit_mmfr_a_v1_implementation_20260930.md",
+                      "source_sha256":  "f259c8797d9961d6de4d544020c5be86ef54d1e62b69ab292b4e9fa7a657a364",
+                      "packet_sha256":  "f259c8797d9961d6de4d544020c5be86ef54d1e62b69ab292b4e9fa7a657a364",
+                      "bytes":  3310,
                       "transform":  "exact_copy"
                   },
                   {
@@ -63,33 +63,33 @@
                       "role":  "generated_evidence_summary",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "00bc06645436362467b964d30a55ebce73a2c66c5881cf9b001713938dfc8f8f",
-                      "bytes":  3312,
+                      "packet_sha256":  "7a451f983fb36c1ea011556543781bfa9bc25b621ac6cb179d37f5a4bcf78037",
+                      "bytes":  2807,
                       "transform":  "generated_from_canonical_sources",
                       "input_sources":  [
                                             {
                                                 "path":  "00_control/review_profile.json",
-                                                "sha256":  "214683098d97362a7a771ea056d97515dd575ebe54c10d4c6426bf5617006eb7"
+                                                "sha256":  "50a26ce68cea0b0ebd20382aec71a90433c6299794f3ad52e32cc66f24f43655"
                                             },
                                             {
-                                                "path":  "01_research/e1_batch1_protocol.md",
-                                                "sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8"
+                                                "path":  "01_research/mmfr_a_v1_action_utility_protocol.md",
+                                                "sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472"
                                             },
                                             {
-                                                "path":  "01_research/r_oe_lite_design.md",
-                                                "sha256":  "8a2ce33222c52ff530e1213105a1e8ec1b2d3b6c85d34236b672fa40e2e8966a"
+                                                "path":  "02_evidence/audit_mmfr_a_v1_implementation_20260930.md",
+                                                "sha256":  "f259c8797d9961d6de4d544020c5be86ef54d1e62b69ab292b4e9fa7a657a364"
                                             },
                                             {
-                                                "path":  "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
-                                                "sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce"
+                                                "path":  "02_evidence/mmfr_a_v1_gateb.json",
+                                                "sha256":  "bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf"
                                             },
                                             {
-                                                "path":  "02_evidence/report_e1_batch1b_roe_gateb.md",
-                                                "sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97"
+                                                "path":  "02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
+                                                "sha256":  "746890bc35815ca358bf6015cc796406ee3a7e8c5264d5f1fdaada629dc2789a"
                                             },
                                             {
                                                 "path":  "02_evidence/reproducibility_current.json",
-                                                "sha256":  "0b84f21b6210c5e2163b9daaed676bd0b72c999600d3eb2f90eacd070f94864a"
+                                                "sha256":  "93e99d4091baf296f50997bd96a97277c4b52c336eca5b9b29fc8b043abec615"
                                             }
                                         ]
                   },
@@ -107,39 +107,37 @@
     "canonical_inputs":  [
                              {
                                  "path":  "00_control/review_profile.json",
-                                 "sha256":  "214683098d97362a7a771ea056d97515dd575ebe54c10d4c6426bf5617006eb7",
-                                 "bytes":  7322
+                                 "sha256":  "50a26ce68cea0b0ebd20382aec71a90433c6299794f3ad52e32cc66f24f43655",
+                                 "bytes":  7687
                              },
                              {
-                                 "path":  "01_research/e1_batch1_protocol.md",
-                                 "sha256":  "6ea5d9dc143102cdb3cfc56170606ad2907bd86daa530e0ea94b10c33fcb17b8",
-                                 "bytes":  22671
+                                 "path":  "01_research/mmfr_a_v1_action_utility_protocol.md",
+                                 "sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472",
+                                 "bytes":  15993
                              },
                              {
-                                 "path":  "01_research/r_oe_lite_design.md",
-                                 "sha256":  "8a2ce33222c52ff530e1213105a1e8ec1b2d3b6c85d34236b672fa40e2e8966a",
-                                 "bytes":  21371
+                                 "path":  "02_evidence/audit_mmfr_a_v1_implementation_20260930.md",
+                                 "sha256":  "f259c8797d9961d6de4d544020c5be86ef54d1e62b69ab292b4e9fa7a657a364",
+                                 "bytes":  3310
                              },
                              {
-                                 "path":  "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
-                                 "sha256":  "39881d7ada1905a2a739e4f77ba7645b2d88a83964010235aef0644855a55fce",
-                                 "bytes":  3090
+                                 "path":  "02_evidence/mmfr_a_v1_gateb.json",
+                                 "sha256":  "bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf",
+                                 "bytes":  12448
                              },
                              {
-                                 "path":  "02_evidence/report_e1_batch1b_roe_gateb.md",
-                                 "sha256":  "fa550e995aa07546935e6c5b05e79c475d07f445f7163388092d1db7d67d7a97",
-                                 "bytes":  8187
+                                 "path":  "02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
+                                 "sha256":  "746890bc35815ca358bf6015cc796406ee3a7e8c5264d5f1fdaada629dc2789a",
+                                 "bytes":  16062
                              },
                              {
                                  "path":  "02_evidence/reproducibility_current.json",
-                                 "sha256":  "0b84f21b6210c5e2163b9daaed676bd0b72c999600d3eb2f90eacd070f94864a",
-                                 "bytes":  2674
+                                 "sha256":  "93e99d4091baf296f50997bd96a97277c4b52c336eca5b9b29fc8b043abec615",
+                                 "bytes":  5253
                              }
                          ],
     "hard_exclusions":  [
                             "03_reference/source_materials/",
-                            "03_reference/MMFR_reference_index_v4_1_2026-09-20.md",
-                            "03_reference/MMFR_reference_registry_v4_1_2026-09-20.json",
                             "90_archive/",
                             "D:\\0Project\\origin external repositories",
                             "datasets",

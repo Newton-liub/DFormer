@@ -1,5 +1,38 @@
 # MMFR v4.1 package change log
 
+## 2026-09-30 — A-v1 正式训练前本地收口：合同冻结，等待4090短预检
+
+- 用户冻结第一轮Proposal/Gate=1920/640 successful updates、margin0.01、lambda_clean0.1、AdamW新branch LR3e-5/WD0.01；batch10、480×640、AMP/TF32 on、workers8、accumulation1与原phase seeds不变。config补最少正式合同字段，不修改结构/forward/loss/RNG或旧evaluator/corruption。
+- 固定transition=`proposal-update-1920.pth`、fixed-final=`update-2560.pth`、recovery每640成功更新；无val selector、自动追加epoch或utility early-stop。Quick-Val唯一三项继续线与selector-not-supported/stop/inconclusive归类已预冻结，仅合同、未执行。
+- 开始时五个关键文件hash与Gate-B完全一致；source C0和原Gate-B证据hash再次匹配。正式config独立新hash记入既有reproducibility JSON，config import/合同字段断言PASS；不重跑GPU Gate-B。
+- 4090交接限定Proposal最多3-update，正常后Gate最多3-update，各阶段停止并回报显存/速度/loss/utility/稳定性，禁止自动接正式训练。当前尚无全尺寸runner，本轮只写调用合同，不编造可执行命令。
+- 更新滚动实时入口、开放决策、当前设计补充与既有审核profile；按现有generator重建审核包。精确暂存A-v1文件形成一个本地commit，完整SHA提交后回填为元数据回执；既存无关dirty保留，不push、不训练、不运行Val、不访问official test、不操作云端。
+
+## 2026-09-30 — A-v1 最小实现与 Gate-B PASS，等待正式训练授权
+
+- 实现独立 `MMFR-A-v1-action-utility-v1`：stage2 单点 zero-init proposal、260→16→1 每图 gate、off/full/learned；新增 21,185 参数，内部 geometry/HAM 算法与旧 E1 protocols/evaluator 不改。
+- source C0 SHA-256 实现前/加载/工程更新后均为 `ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`；strict off 和 zero-init full 与 C0 bitwise equal、max abs error=0。
+- 限定本地 RTX 5060、synthetic B1 64×64、真实 C0/HAM；8 forwards、2 backward/step（每阶段一次），全部必要 Gate-B PASS。base 参数/buffers/BN 不变，phase optimizer isolation、detached utility branches/all-ambiguous、同 observed input/label/RNG/NMF bases 已直接核验。
+- 增加 SpotTune/DCRM-ViT 两篇近邻补丁，结构 routing/gating 不作为创新；DCRM PDF 正文未核验，不声称论文创新性。补完即停止搜索。
+- 新增 protocol、Gate-B JSON、审核报告/差异说明，更新实时入口、报告索引与当前审核 profile；由既有 generator 重建当前审核包，旧证据与源论文保持不变。Gate-B JSON SHA-256 `bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf`。
+- 正式 margin/lambda_clean 未选；Gate-B 后停止，无正式训练/Quick-Val/Main-Val/official test/云端，未 commit/push。未来训练须上级审核及独立授权。
+
+## 2026-09-30 — A-v1 定向修订，design-ready，等待复核与工程授权
+
+- 按上级“候选 A 有条件通过”修订既有研究设计报告；不重新设计 B/C，不改历史 F-lite/R-OE/Oracle 结果与裁决。
+- F-lite 明确为输入相关 R(F)、缺少独立监督的 intervention selector；A-v1 删除额外残差幅度控制及连续收益映射，采用固定正 margin 的 off/full utility 正负分类，ambiguous 排除 BCE，保留 gated CE 与必要 clean consistency。
+- Gate 阶段冻结 C0/proposal、重新采样合法 Depth corruption realization；首版每图一个连续 g，只解释动作选择。保留同 checkpoint off/full/learned 与四条件 gate mean/median，strict off 不匹配 C0 即 BLOCKED。
+- 六组窄查询、三项关键原文/官方摘要核验，当前未发现高度相同机制；SkipNet 全文监督与 MoSA 矛盾仍有限制，创新风险中高，不宣称首创。
+- 修订前报告已在 `90_archive/2026-09-30_mmfr_a_v1_design_revision/` 字节一致归档，Git blob `7ce51c3d93b08a0943d2e9eed6271c8803f41e7d`；初版 0.0.15 展示保留历史，不代表 A-v1。同步实时入口、必要导航与报告索引。
+- 状态为 A-v1 design-ready，等待上级复核 m、clean consistency 权重、阶段预算/停止线与最小实现/Gate-B 单独授权。本轮纯文档内容/diff 检查，未实现、未运行 Gate-B/测试/GPU/训练/Val，未改 evaluator/protocol，未重建旧审核包、提交或推送；official test 仍 sealed_unread。
+
+## 2026-09-30 — 下一代 MMFR 研究设计，等待上级审核
+
+- 新增 `doc/reports/2026-09-30-mmfr-next-generation-research-design.md`，复核 F-lite / R-OE-lite v2、九篇 canonical 论文及 DFormerv2 实际接口，比较任务效用控制残差、输入深度校准、轻量自教三个候选。
+- 主推荐为同输入/同权重动作收益监督的单点残差与样本级连续控制；它是待审核研究假设，不是可靠性融合已胜出或全领域创新裁决。输入校准淘汰为主创新，自教保留性能备选；MoSA/DCF 重合与原文监督定义矛盾已显式记录。
+- 第一阶段仅提出一条新训练与四条件单视图筛选，以及同 checkpoint off/full/learned 诊断。没有实现、训练、评价或修改旧 protocol/evaluator；Oracle-A 已关闭的 geometry suppression 不复活。
+- 更新唯一实时入口、开放研究决策及本包导航；旧 blueprint、历史实验/文献编号、原始论文、review profile 与生成审核包保持不动。设计交付后停止等待上级审核；official test 保持 sealed_unread，没有提交/推送。
+
 ## 2026-09-24 — R-OE-lite v2 formal training PASS and four-condition Quick-Val result
 
 - Added `02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md` recording the entry-point blocker and its one-line non-committed fix, the 3-update GPU memory check, the 2560/2560 formal run identity, the fixed-final checkpoint SHA-256, the substitute-training evidence, the new R-OE-aware Quick-Val entry, the four-condition numbers, and the routing telemetry.

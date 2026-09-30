@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "active_profile": "e1-batch1b-roe-gateb",
+  "active_profile": "mmfr-a-v1-action-utility-gateb",
   "review_level": "L1",
   "official_test": "sealed_unread",
   "authoritative_status": {
@@ -9,132 +9,71 @@
   },
   "external_code_root": "D:\\0Project\\origin",
   "review": {
-    "title": "MMFR E1 Batch 1B R-OE-lite Gate-B",
-    "current_task": "Independent L1 engineering review of the R-OE-lite implementation and canonical Gate-B evidence under the frozen E1 Batch 1 protocol.",
+    "title": "MMFR A-v1 frozen formal contract and local cloud-preflight handoff",
+    "current_task": "Review the frozen first-round contract and exact local Git handoff. The next possible cloud action is only full-resolution RTX 4090 Proposal 3-update then Gate 3-update preflight followed by a mandatory stop; formal training remains unauthorized.",
     "state_summary": [
-      "R-OE-lite implementation and the bounded Gate-B completed on 2026-09-23; canonical status is PASS with failed_checks=[].",
-      "The candidate adds exactly 3,302,785 trainable parameters; shared config, post-build CPU/CUDA RNG, and the 1280-item first-epoch permutation match the C0 control exactly.",
-      "Gate-B checks the observable-empty routing, non-trigger exact bypass, substitute output and padding contract, reliability-auxiliary separation, optimizer membership, and one AMP update.",
-      "Gate-B is implementation qualification only; it does not establish training stability, segmentation benefit, or batch-size-10 memory feasibility.",
-      "Formal training, Quick-Val, Main-Val, cloud execution, Batch 2/T, and official-test access remain unauthorized; formal training requires a separate authorization.",
-      "Batch 1A ten-condition Main-Val senior disposition remains a separate open review item."
+      "A-v1 implementation complete; original Gate-B PASS; identity MMFR-A-v1-action-utility-v1 unchanged; first-round formal contract frozen.",
+      "Source C0 SHA-256 rechecked: ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a; source checkpoint bytes unchanged.",
+      "The four runtime/code files remain byte-identical to Gate-B; only formal config and documents changed in this closeout. Config import and bounded field assertions pass without model/data/GPU execution.",
+      "Proposal/Gate successful updates 1920/640; total 2560; margin 0.01 per-image mean CE difference; lambda_clean 0.1 in both phases; AdamW new LR 3e-5, WD 0.01 and existing bias/norm no-decay.",
+      "Target batch10, 480x640, workers8, accumulation1, AMP fp16 on and explicit matmul/cuDNN TF32 on; phase corruption seeds 2026093001/2026093002, p_clean 0.25. Full-resolution 4090 feasibility is not yet verified.",
+      "Proposal transition at 1920, fixed-final at global update2560, recovery every640 successful updates. No validation selector, utility early-stop, budget extension or val-dev parameter tuning.",
+      "One future four-condition off/full/learned Quick-Val: learned hard mean vs matched off >=+0.50pp, clean >=-0.20pp, learned hard mean strictly greater than full. This is a screening rule, not statistical significance or evaluation authorization.",
+      "Cloud preflight contract caps each phase at three successful updates; Proposal must pass before Gate; OOM/NaN/Inf/scaler skip/identity error stops immediately; no automatic continuation to formal training.",
+      "Only phase interfaces exist; full-resolution preflight/formal runner and A-v1 evaluation entry are not implemented. This round performs no cloud access, training, Val, official test or push. Commit receipt is filled after the single local commit."
     ],
     "review_questions": [
-      "Does the canonical Gate-B artifact support the stated PASS conclusion and implementation identity?",
-      "Does the route trigger only on observable-empty Depth within geometry-valid support, and preserve exact bypass for non-triggered samples?",
-      "Are the shared C0 initialization, RNG, sample order, loss, optimizer, and checkpoint contracts sufficiently matched for the stated control reuse?",
-      "Does the implementation keep the original corrupted Depth and target on the reliability auxiliary path while using substitute Depth only for segmentation?",
-      "Does the evidence justify readiness to request a separate formal-training authorization without itself granting that authorization?"
+      "Does the source and original Gate-B binding support unchanged A-v1 structure/forward/loss/RNG with config-only formal contract extension?",
+      "Are phase-local warmup/poly, corruption coordinates, phase seeds and full-state recovery unambiguous and independent of the old E1 identity?",
+      "Are all frozen Quick-Val conditions and the three numerical continuation requirements recorded without claiming significance?",
+      "Is the RTX 4090 preflight capped at three successful updates per phase with immediate engineering-error stop and no automatic formal continuation?",
+      "Does the exact local commit exclude unrelated dirty files, and are post-commit SHA receipts clearly distinguished from executable changes?"
     ],
     "do_not_infer_or_authorize": [
-      "Formal training or batch-size-10 training feasibility",
-      "Quick-Val or Main-Val execution",
-      "Segmentation improvement or a promote/stop effect conclusion",
-      "Recognition of the hidden cause behind an observable-empty input",
-      "Batch 2 or T execution",
-      "Cloud execution",
-      "Official test access"
+      "Segmentation benefit, trained selector ability or publication novelty",
+      "Full-resolution batch10 memory feasibility or stable training throughput",
+      "Formal Proposal/Gate training, Quick-Val/Main-Val, optimizer searches or budget extensions",
+      "Cloud login/sync/execute in this local-only round, official-test access, remote push, or extra structures/failure types/seeds"
     ],
-    "reading_order": [
-      "CURRENT_REPORT.md",
-      "IMPLEMENTATION_DIFF.md",
-      "CURRENT_PROTOCOL.md",
-      "EVIDENCE_SUMMARY.md"
-    ],
+    "reading_order": ["CURRENT_PROTOCOL.md", "CURRENT_REPORT.md", "IMPLEMENTATION_DIFF.md", "EVIDENCE_SUMMARY.md"],
     "changed_since_previous_review": [
-      "The active review advances from Batch 1A C0/F-lite Gate-B to Batch 1B R-OE-lite Gate-B.",
-      "R-OE-lite is now implemented and has passed its bounded Gate-B; it is no longer design-only.",
-      "A ten-condition Main-Val decision gate is frozen for a separately authorized future evaluation.",
-      "Formal training and every downstream evaluation remain unauthorized."
+      "The previously undecided margin/clean weight/budget/continuation line are now explicitly frozen by the user, not selected using val-dev.",
+      "Runtime implementation and original Gate-B evidence are unchanged; formal config records a new hash separately.",
+      "A-v1 local Git preparation is authorized; cloud operations and formal training remain outside this round.",
+      "Old R-OE/F-lite results and dispositions remain independent historical evidence/open decisions."
     ],
-    "background_not_included": [
-      "Full research blueprint and full screening plan",
-      "Full literature audit and external provenance ledger",
-      "Batch 1A training and Quick-Val details beyond the matched-control identity",
-      "Batch 1A Main-Val detailed result, which has a separate pending senior disposition",
-      "Full reference index, registry, and source-material files",
-      "Archives"
-    ]
+    "background_not_included": ["Full literature library", "Full old E1 experiment history", "Raw checkpoints/datasets/logs", "Archives"]
   },
   "attachments": [
-    {
-      "packet_file": "CURRENT_PROTOCOL.md",
-      "role": "current_protocol",
-      "source": "01_research/e1_batch1_protocol.md",
-      "transform": "exact_copy"
-    },
-    {
-      "packet_file": "CURRENT_REPORT.md",
-      "role": "current_report",
-      "source": "02_evidence/report_e1_batch1b_roe_gateb.md",
-      "transform": "exact_copy"
-    },
-    {
-      "packet_file": "IMPLEMENTATION_DIFF.md",
-      "role": "implementation_diff",
-      "source": "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
-      "transform": "exact_copy"
-    }
+    {"packet_file": "CURRENT_PROTOCOL.md", "role": "current_protocol", "source": "01_research/mmfr_a_v1_action_utility_protocol.md", "transform": "exact_copy"},
+    {"packet_file": "CURRENT_REPORT.md", "role": "current_report", "source": "02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md", "transform": "exact_copy"},
+    {"packet_file": "IMPLEMENTATION_DIFF.md", "role": "implementation_diff", "source": "02_evidence/audit_mmfr_a_v1_implementation_20260930.md", "transform": "exact_copy"}
   ],
   "summaries": [
     {
-      "id": "observable_empty_route",
-      "title": "Observable-empty substitute route",
-      "status": "Implementation complete; Gate-B PASS; formal training unauthorized",
-      "sources": [
-        "02_evidence/report_e1_batch1b_roe_gateb.md",
-        "02_evidence/audit_implementation_diff_e1_batch1b_roe.md",
-        "01_research/r_oe_lite_design.md"
-      ],
-      "current_relevance": "The review is limited to whether the implemented substitute follows the frozen observable-empty contract and passes the bounded engineering gate.",
-      "key_conclusions": [
-        "The detector observes only current raw Depth and geometry-valid support; it does not infer hidden failure causes.",
-        "Non-triggered samples preserve exact Depth bypass; triggered samples use the RGB-generated substitute for segmentation.",
-        "The reliability auxiliary path continues to use the original corrupted raw inputs and target."
-      ]
+      "id": "av1_engineering_qualification",
+      "title": "Original Gate-B evidence remains PASS",
+      "status": "Gate-B PASS; original JSON unchanged; no GPU rerun",
+      "sources": ["02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md", "02_evidence/mmfr_a_v1_gateb.json"],
+      "current_relevance": "Engineering qualification only; later closeout supplement freezes parameters without changing historical evidence.",
+      "key_conclusions": ["Strict off/zero-init are bitwise equal to C0.", "Both phases have exact optimizer membership and frozen C0 parameters/buffers.", "Observed input/label/RNG/NMF alignment and detached ambiguous-mask targets pass; this proves no trained benefit."]
     },
     {
-      "id": "matched_control_and_optimizer",
-      "title": "Matched C0 control and optimizer coverage",
-      "status": "Gate-B checks PASS",
-      "sources": [
-        "02_evidence/report_e1_batch1b_roe_gateb.md",
-        "01_research/e1_batch1_protocol.md"
-      ],
-      "current_relevance": "The Batch 1B candidate reuses the Batch 1A C0 checkpoint only because the shared training fields were verified equal for this Gate-B identity.",
-      "key_conclusions": [
-        "Shared config, post-build CPU/CUDA RNG, and first-epoch sample permutation match the C0 control.",
-        "Every trainable parameter has exactly one optimizer group membership; the substitute is split across new_decay and new_no_decay.",
-        "The one-step AMP result establishes only the minimum update path, not full training stability or capacity."
-      ]
+      "id": "av1_formal_contract",
+      "title": "Frozen first-round schedule and screening line",
+      "status": "Contract frozen; formal training and evaluation unauthorized",
+      "sources": ["01_research/mmfr_a_v1_action_utility_protocol.md", "02_evidence/reproducibility_current.json"],
+      "current_relevance": "Makes future updates, parameters, checkpoint identities and screening boundaries explicit before any cloud run.",
+      "key_conclusions": ["Proposal1920/Gate640; m0.01, lambda_clean0.1, LR3e-5, WD0.01.", "Target batch10/480x640/AMP+TF32 on; no 4090 capacity assertion.", "Three numerical Quick-Val continuation requirements are screening criteria only; fixed-final is update2560."]
     },
     {
-      "id": "reproducibility_identity",
-      "title": "Reproducibility identity",
-      "status": "Canonical Gate-B artifact identity recorded; report and digest are in the review packet",
-      "sources": [
-        "02_evidence/reproducibility_current.json",
-        "02_evidence/report_e1_batch1b_roe_gateb.md"
-      ],
-      "current_relevance": "The canonical artifact binds the PASS result, implementation identity, and authorization boundary.",
-      "key_conclusions": [
-        "The Gate-B artifact SHA-256 is 35297b490c3e3eb54b5e66d3f06784688fca65038e7d09874c30c60cde820231.",
-        "The artifact records official_test_included=false and formal_training_started=false.",
-        "The official-test state remains sealed_unread."
-      ]
+      "id": "av1_identity_boundary",
+      "title": "Local identity and capped cloud-preflight handoff",
+      "status": "Local identity checks PASS; exact Git receipt recorded in protocol after local commit",
+      "sources": ["02_evidence/reproducibility_current.json", "01_research/mmfr_a_v1_action_utility_protocol.md"],
+      "current_relevance": "Binds code/source/config and records a mandatory stop before any formal execution.",
+      "key_conclusions": ["Original Gate-B JSON SHA-256 bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf is unchanged.", "Formal config hash is separate from Gate-B config hash; four runtime/code hashes remain unchanged.", "Only future Proposal3 then Gate3 full-resolution preflight is prepared; each phase stops, and no runner or formal authorization is implied."]
     }
   ],
-  "hard_exclusions": [
-    "03_reference/source_materials/",
-    "03_reference/MMFR_reference_index_v4_1_2026-09-20.md",
-    "03_reference/MMFR_reference_registry_v4_1_2026-09-20.json",
-    "90_archive/",
-    "D:\\0Project\\origin external repositories",
-    "datasets",
-    "checkpoints",
-    "raw logs",
-    "telemetry",
-    "caches",
-    "official-test artifacts"
-  ]
+  "hard_exclusions": ["03_reference/source_materials/", "90_archive/", "D:\\0Project\\origin external repositories", "datasets", "checkpoints", "raw logs", "telemetry", "caches", "official-test artifacts"]
 }

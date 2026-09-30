@@ -1,3 +1,12 @@
 *.sh text eol=lf
 data/splits/MUSeg/dev-v1/official-test.txt -text
 liu-test-exp/MMFR/MMFR_v4_1_blueprint_and_reference_package_2026-09-20/** -text whitespace=-trailing-space
+# Preserve A-v1 evidence, hash-bound review sources/packet and historical snapshot bytes.
+MMFR/02_evidence/mmfr_a_v1_gateb.json -text
+MMFR/01_research/mmfr_a_v1_action_utility_protocol.md -text
+MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md -text
+MMFR/02_evidence/audit_mmfr_a_v1_implementation_20260930.md -text
+MMFR/02_evidence/reproducibility_current.json -text
+MMFR/00_control/review_profile.json -text
+MMFR/99_review_packet_current/* -text
+MMFR/90_archive/2026-09-30_mmfr_a_v1_design_revision/2026-09-30-mmfr-next-generation-research-design.pre-a-v1.md -text

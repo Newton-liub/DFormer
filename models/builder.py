@@ -341,6 +341,34 @@ class EncoderDecoder(nn.Module):
                 actual_trainable_parameters,
             )
 
+        # A-v1 has an independent identity and never changes internal geometry.
+        self.av1 = None
+        av1_cfg = getattr(cfg, "mmfr_av1", None)
+        if av1_cfg and av1_cfg.get("enabled", False):
+            if cfg.backbone != "DFormerv2_S" or self.channels[2] != 256:
+                raise ValueError("A-v1 requires DFormerv2_S stage index 2 with 256 channels")
+            if self.feature_adapter is not None or self.roe_substitute is not None or self.aux_head is not None:
+                raise ValueError("A-v1 cannot be combined with legacy adapters, substitute or auxiliary CE")
+            from .mmfr_av1 import ActionUtilityResidual
+
+            devices = list(range(torch.cuda.device_count())) if torch.cuda.is_available() else []
+            with torch.random.fork_rng(devices=devices):
+                torch.manual_seed(int(av1_cfg["initialization_seed"]))
+                self.av1 = ActionUtilityResidual()
+            self.requires_grad_(False)
+            self.eval()
+
+    def train(self, mode=True):
+        """Keep the complete C0 path in eval even when the A-v1 phase trains."""
+        if getattr(self, "av1", None) is None:
+            return super().train(mode)
+        super().train(False)
+        self.av1.train(mode)
+        for branch in (self.av1.proposal, self.av1.gate):
+            if not any(parameter.requires_grad for parameter in branch.parameters()):
+                branch.eval()
+        return self
+
     def init_weights(self, cfg, pretrained=None):
         if pretrained:
             logger.info("Loading pretrained model: {}".format(pretrained))
@@ -366,16 +394,22 @@ class EncoderDecoder(nn.Module):
                 nonlinearity="relu",
             )
 
-    def encode_decode(self, rgb, modal_x):
+    def encode_decode(self, rgb, modal_x, *, av1_mode="learned", observed_depth=None, geometry_mask=None):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
         orisize = rgb.shape
         # print('builder',rgb.shape,modal_x.shape)
-        x = self.backbone(rgb, modal_x)
+        if self.av1 is not None:
+            with torch.no_grad():
+                x = self.backbone(rgb, modal_x)
+        else:
+            x = self.backbone(rgb, modal_x)
         if len(x) == 2:  # if output is (rgb,depth) only use rgb
             x = x[0]
         if self.feature_adapter is not None:
             x = self.feature_adapter(x)
+        if self.av1 is not None:
+            x = self.av1(x, observed_depth, geometry_mask, mode=av1_mode)
         out = self.decode_head.forward(x)
         out = F.interpolate(out, size=orisize[-2:], mode="bilinear", align_corners=False)
         if self.aux_head:
@@ -450,7 +484,20 @@ class EncoderDecoder(nn.Module):
         reliability_valid_mask=None,
         depth_valid=None,
         reliability_telemetry_masks=None,
+        av1_mode="learned",
+        observed_depth=None,
+        geometry_mask=None,
     ):
+        if self.av1 is not None:
+            if label is not None or any(value is not None for value in (
+                raw_rgb, raw_depth, reliability_target, reliability_valid_mask,
+                depth_valid, reliability_telemetry_masks,
+            )):
+                raise ValueError("A-v1 forward is inference-only; use the isolated two-phase loss interface")
+            return self.encode_decode(
+                rgb, modal_x, av1_mode=av1_mode,
+                observed_depth=observed_depth, geometry_mask=geometry_mask,
+            )
         # Fail closed on partial or mismatched A2 supervision. Inference keeps the
         # historical path because reliability supervision is a training-only input.
         reliability_inputs = {

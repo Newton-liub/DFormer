@@ -2,13 +2,31 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.15",
   "latestFormalReport": {
-    "path": "MMFR/02_evidence/report_e1_batch1b_roe_gateb.md",
-    "periodStart": "2026-09-23",
-    "periodEnd": "2026-09-23",
-    "baseCommit": "97de9f02aa543085f3085fbc59c231cf8b4867e2",
-    "status": "formal-engineering-gateb-pass-awaiting-separate-formal-training-authorization"
+    "path": "MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
+    "periodStart": "2026-09-30",
+    "periodEnd": "2026-09-30",
+    "baseCommit": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
+    "status": "A-v1-formal-contract-frozen-local-handoff-prepared-awaiting-4090-three-update-preflight"
   },
   "reports": [
+    {
+      "path": "MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
+      "topic": "mmfr-a-v1-implementation-gateb",
+      "periodStart": "2026-09-30",
+      "periodEnd": "2026-09-30",
+      "baseCommit": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
+      "verification": "verified-source-and-code-hashes;bounded-B1-64x64-real-C0-HAM-GateB-pass;eight-forwards-two-one-step-updates;direct-code-evidence-diff-review;two-focused-literature-patches;formal-contract-frozen-config-import-pass-local-only-closeout;no-formal-training-or-evaluation",
+      "status": "A-v1-formal-contract-frozen-local-handoff-prepared-awaiting-4090-three-update-preflight"
+    },
+    {
+      "path": "doc/reports/2026-09-30-mmfr-next-generation-research-design.md",
+      "topic": "mmfr-next-generation-research-design",
+      "periodStart": "2026-09-30",
+      "periodEnd": "2026-09-30",
+      "baseCommit": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
+      "verification": "pre-revision-byte-identity-and-targeted-document-diff-review;nine-A-v1-content-criteria;six-focused-queries-three-primary-paper-or-official-abstract-reviews;no-code-tests-gateb-training-or-evaluation",
+      "status": "A-v1-design-ready-awaiting-revision-review-and-separate-implementation-gateb-authorization"
+    },
     {
       "path": "MMFR/02_evidence/report_e1_batch1b_roe_gateb.md",
       "topic": "mmfr-e1-batch1b-roe-gateb",

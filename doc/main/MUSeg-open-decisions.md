@@ -1,6 +1,18 @@
 # MUSeg 当前开放问题
 
-> **事实截至：** 2026-09-24；只记录会影响下一步行动且尚未裁决的选择，不承担运行状态或执行授权。R-OE-lite v2 已完成正式训练与四条件 Quick-Val，执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
+> **事实截至：** 2026-09-30 A-v1 正式合同已冻结、本地交接准备；只记录会影响下一步且仍未裁决的事项。参数、预算、停止逻辑与筛选线已决定，不再列为开放问题。执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
+
+## 0. A-v1 云端短预检与后续正式训练授权（待上级决定）
+
+[独立A-v1 protocol](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)已按本轮用户要求冻结Proposal/Gate1920/640、margin0.01、lambda_clean0.1、LR3e-5、checkpoint/recovery、停止逻辑和唯一四条件Quick-Val继续线。这些不再是待调参数。原[Gate-B报告及本地准备补充](../../MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)只支持实现资格与本地交接，不证明方法有效。**大白话：** 参数已经决定，现在只差运行权限和4090真实容量证据。
+
+真正仍需裁决：
+
+- 是否单独授予下一会话云端同步/执行权限，限定4090全尺寸Proposal最多3-update，正常后Gate最多3-update，完成后停止回报；当前尚无full-resolution runner，须先落实最薄限3-update接口调用器，不能自动开正式训练。
+- 两阶段预检均通过后，是否授予正式1920+640训练；若batch10显存不足，先停止交上级决定合同如何处理，本轮不降batch、不accumulation改约、不做sweep。
+- 正式训练成功后是否另授唯一四条件off/full/learned Quick-Val权限及A-v1评价入口资格；筛选线已冻结，但评价仍未授权、入口尚未实现。promote-for-next-review仅送审，不自动授权Main-Val。
+
+原文献创新性与全文缺口保留为论证局限，当前没有已核实必须重新设计模块的直接阻塞；本轮不以此重新搜文献或开放新结构。以下旧路线问题保持独立。
 
 ## 1. R-OE-lite 路线的去留（待用户裁决）
 
@@ -12,10 +24,9 @@ R-OE-lite v2 已在 RTX 4090 上完成 2560/2560 次成功更新并生成 fixed-
 
 证据：[`v2 训练与 Quick-Val 报告`](../../MMFR/02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md)、`cloud/mmfr-e1-batch1b-roe-v2/quickval-comparison.json`。
 
-## 2. 本轮两个未提交产物的处置（待用户裁决）
+## 2. R-OE-aware Quick-Val 入口的资格处置（待用户裁决）
 
-- `utils/train.py` 入口白名单的 v2 身份修复（未提交；补丁 `cloud/mmfr-e1-batch1b-roe-v2/roe-v2-entry-fix.patch`）：需要用户决定是在本地提交并推送，还是在云端补提交，或改用其他实现。**提交与推送未经用户确认不得执行。**
-- 新增的 R-OE-aware Quick-Val 入口 `tools/mmfr/e1_quickval_roe.py`（未提交、无既有冻结资格，`V_geom` 在无 crop/pad 的 `original-full` 视图下取全 1 单位掩码）：需要用户决定接受、改写或替换实现；在复核前其数值只作 screening 参考。
+旧 `utils/train.py` v2身份修复和 `tools/mmfr/e1_quickval_roe.py` 已在本地commit `1b061cbabaf76575b0812e1513d953b02cdb6254` 纳入Git，当前无内容差异，已不是未提交产物处置。仍真正开放的是 R-OE-aware Quick-Val入口**资格**：`original-full` 的 `V_geom` 全1定义及新薄入口未有既有冻结资格，需要上级决定接受、改写或替换；在此之前原数值只作screening参考。此问题不改变A-v1合同或自动授权重跑。
 
 ## 3. E1 Batch 1A F-lite 的 Main-Val 处置（待上级独立裁决）
 

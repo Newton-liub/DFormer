@@ -5,9 +5,11 @@
 - Package: `MMFR_v4_1_blueprint_and_reference_package_2026-09-20`
 - Research blueprint: MMFR v4.1
 - In-repository root: `D:\0Project\DFormer\MMFR`（2026-09-23 从外部归档恢复到项目内并纳入 Git）
-- Current blueprint: [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)
+- Current blueprint: [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)（历史冻结设计保持不变）
+- Latest design and implementation: [`A-v1 任务效用控制残差设计`](../../doc/reports/2026-09-30-mmfr-next-generation-research-design.md)；[`最小实现/Gate-B 审核报告`](../02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)（2026-09-30；implementation complete、Gate-B PASS；正式合同已冻结，等待4090全尺寸两阶段各3-update短预检，正式训练未授权）
+- Pre-revision snapshot: [`pre-A-v1 初版报告`](../90_archive/2026-09-30_mmfr_a_v1_design_revision/2026-09-30-mmfr-next-generation-research-design.pre-a-v1.md)（字节一致归档；初版 0.0.15 展示仅对应此历史设计）
 - Active review profile source: [`review_profile.json`](review_profile.json)
-- Current active profile: `e1-batch1b-roe-gateb`（历史 v1 审核包；不代表 v2 资格或授权）
+- Current active profile: `mmfr-a-v1-action-utility-gateb`（独立 A-v1 工程审核；不代表训练/评价授权）
 - Review level: `L1`
 
 ## Authoritative research state
@@ -25,11 +27,11 @@ This package is a maintained evidence library and review-packet source. It is no
 | --- | --- |
 | 当前 MMFR 做到哪里 | [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)（唯一实时入口）；本包目录与变更历史见本文件与 [`CHANGELOG.md`](CHANGELOG.md) |
 | 最新研究蓝图 | [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md) |
-| 当前实验结论 | R-OE-lite v2 正式训练已完成 2560/2560 次更新并生成 fixed-final checkpoint，四条件 Quick-Val（单视图 screening）相对 C0 为 `0.00 / +0.01 / +0.01 / +0.01` pp、判定 `inconclusive`，证据见 [`02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md`](../02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md)；执行边界见 [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)；v1 正式训练 CUDA OOM 历史报告见 [`02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md`](../02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md)；v1 Gate-B PASS 历史证据见 [`02_evidence/report_e1_batch1b_roe_gateb.md`](../02_evidence/report_e1_batch1b_roe_gateb.md)；Batch 1A Main-Val 描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
-| 下一阶段计划 | [`01_research/e1_screening_plan.md`](../01_research/e1_screening_plan.md)、[`01_research/e1_batch1_protocol.md`](../01_research/e1_batch1_protocol.md)、[`01_research/r_oe_lite_design.md`](../01_research/r_oe_lite_design.md) |
+| 当前工程与实验事实 | A-v1 implementation complete、Gate-B PASS（仅资格，无新性能实验），见 [`A-v1 审核报告`](../02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)；历史 R-OE-lite v2 正式训练已完成 2560/2560 次更新并生成 fixed-final checkpoint，四条件 Quick-Val（单视图 screening）相对 C0 为 `0.00 / +0.01 / +0.01 / +0.01` pp、判定 `inconclusive`，证据见 [`02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md`](../02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md)；执行边界见 [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)；v1 正式训练 CUDA OOM 历史报告见 [`02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md`](../02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md)；v1 Gate-B PASS 历史证据见 [`02_evidence/report_e1_batch1b_roe_gateb.md`](../02_evidence/report_e1_batch1b_roe_gateb.md)；Batch 1A Main-Val 描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
+| 下一阶段计划 | A-v1 采用独立 [`mmfr_a_v1_action_utility_protocol.md`](../01_research/mmfr_a_v1_action_utility_protocol.md)，正式合同冻结，下一步仅Proposal/Gate各3-update全尺寸预检（另需云端授权），之后停止；正式训练未授权；旧 E1 [`e1_screening_plan.md`](../01_research/e1_screening_plan.md)、[`e1_batch1_protocol.md`](../01_research/e1_batch1_protocol.md)、[`r_oe_lite_design.md`](../01_research/r_oe_lite_design.md)只作对应旧身份追溯 |
 | 相关论文在哪里 | 统一实体见 [`03_reference/PAPER_LIBRARY_INDEX.md`](../03_reference/PAPER_LIBRARY_INDEX.md)（机器索引 `03_reference/PAPER_LIBRARY_INDEX.json`）；既有 PR/RE/AI 编号与本地全文映射见 [`03_reference/paper-index.md`](../03_reference/paper-index.md)。实体在仓库外 `D:\0Project\origin\论文\`，新 bundle 由 `human/paper_library.cmd` 接入 |
 | 相关代码在哪里 | [`03_reference/code-index.md`](../03_reference/code-index.md)；本地 clone 在仓库外 `D:\0Project\origin\` |
-| 当前需要上级审核什么 | [`99_review_packet_current/REVIEW_BRIEF.md`](../99_review_packet_current/REVIEW_BRIEF.md)；实时阶段、授权边界与“待审核事项”始终以实时入口为准 |
+| 当前需要上级审核什么 | [`A-v1 实现/Gate-B 报告`](../02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)与独立 protocol；[`99_review_packet_current/REVIEW_BRIEF.md`](../99_review_packet_current/REVIEW_BRIEF.md)由当前 A-v1 profile 生成，不赋予训练或评价授权；实时阶段与边界以实时入口为准 |
 
 完整文献编号表（135 条）仍是 [`03_reference/MMFR_reference_index_v4_1_2026-09-20.md`](../03_reference/MMFR_reference_index_v4_1_2026-09-20.md) 与 [`03_reference/MMFR_reference_registry_v4_1_2026-09-20.json`](../03_reference/MMFR_reference_registry_v4_1_2026-09-20.json)；`paper-index.md` 只补“本地全文/代码实际在哪”这一层，不重编号、不替代编号总索引。
 
@@ -55,11 +57,11 @@ The script reads `00_control/review_profile.json`, generates a flat packet, reco
 
 `99_review_packet_current/` is generated output. Do not edit files there; edit canonical sources and rebuild.
 
-**Packet state for the 2026-09-23 Batch 1B review**
+**Packet state for the 2026-09-30 A-v1 review**
 
-1. The active L1 profile is `e1-batch1b-roe-gateb`; it points to the Batch 1B protocol, Gate-B report, and implementation-diff audit.
-2. The current packet was rebuilt successfully with generation ID `8213dfb94396d4c65f4200c94029308573332f210665c578ccf323577e6a0415`. It contains the six expected files, and the generator reported zero broken canonical, packet, or copied-packet links.
-3. `99_review_packet_current/` is generated output and is the sole upload-ready entry. Its manifest records source and packet hashes; do not edit generated files by hand. `official_test` remains `sealed_unread`.
+1. The active L1 profile is `mmfr-a-v1-action-utility-gateb`; it points to the independent A-v1 protocol, Gate-B report and implementation audit. Prior E1 reports/protocols remain unchanged.
+2. Rebuild the current frozen-contract handoff packet with `98_tools/rebuild_review_packet.ps1` after canonical link checks; the generation ID and Git identity are recorded in the existing `packet_manifest.json`, not duplicated as a stale value here.
+3. The six-file generated `99_review_packet_current/` is the sole upload-ready entry. It includes Gate-B evidence and the frozen formal/preflight contract; it does not authorize formal training/evaluation or cloud operations. `official_test` remains `sealed_unread`.
 
 
 ## External code boundary
