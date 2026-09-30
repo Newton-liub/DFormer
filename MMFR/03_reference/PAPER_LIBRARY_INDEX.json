@@ -1,0 +1,1913 @@
+{
+  "schema_version": 1,
+  "library_root": "D:\\0Project\\origin\\论文",
+  "next_lib_number": 33,
+  "bootstrap_complete": true,
+  "papers": [
+    {
+      "auto": {
+        "bundle_path": "MUSeg - A multimodal semantic segmentation dataset for complex underground mine scenes",
+        "previous_folder_names": [
+          "Li 等 - 2025 - 1-MUSeg A multimodal semantic segmentation dataset for complex underground mine scenes"
+        ],
+        "folder": "MUSeg - A multimodal semantic segmentation dataset for complex underground mine scenes",
+        "entry_md": "MUSeg - A multimodal semantic segmentation dataset for complex underground mine scenes/MUSeg - A multimodal semantic segmentation dataset for complex underground mine scenes.md",
+        "md_sha256": "91ee439264112c9989d77c5e0793d50a9695154effb3569772f85b631727cabc",
+        "bundle_signature": {
+          "md_sha256": "91ee439264112c9989d77c5e0793d50a9695154effb3569772f85b631727cabc",
+          "figures": 7,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 3,
+          "word_summary": 1,
+          "total": 22
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "MUSeg: A multimodal semantic segmentation dataset for complex underground mine scenes",
+        "title_source": "h1",
+        "normalized_title": "musegamultimodalsemanticsegmentationdatasetforcomplexundergroundminescenes",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "MUSeg - A multimodal semantic segmentation dataset for complex underground mine scenes.md",
+        "body_sha256": "91ee439264112c9989d77c5e0793d50a9695154effb3569772f85b631727cabc",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 3,
+          "word_summary": 1,
+          "total": 22
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000001"
+      },
+      "human": {
+        "manual_ids": [
+          "RE326"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "DFormerv2 - Geometry Self-Attention for RGBD Semantic Segmentation",
+        "previous_folder_names": [
+          "Yin 等 - DFormerv2 Geometry self-attention for RGBD semantic segmentation"
+        ],
+        "folder": "DFormerv2 - Geometry Self-Attention for RGBD Semantic Segmentation",
+        "entry_md": "DFormerv2 - Geometry Self-Attention for RGBD Semantic Segmentation/DFormerv2 - Geometry Self-Attention for RGBD Semantic Segmentation.md",
+        "md_sha256": "db61d76bef1b6d6a2e159f054a86503fc0551a8bc9f6780583bfe177bb12760b",
+        "bundle_signature": {
+          "md_sha256": "db61d76bef1b6d6a2e159f054a86503fc0551a8bc9f6780583bfe177bb12760b",
+          "figures": 8,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 7,
+          "word_summary": 1,
+          "total": 31
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "DFormerv2: Geometry Self-Attention for RGBD Semantic Segmentation",
+        "title_source": "h1",
+        "normalized_title": "dformerv2geometryselfattentionforrgbdsemanticsegmentation",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "DFormerv2 - Geometry Self-Attention for RGBD Semantic Segmentation.md",
+        "body_sha256": "db61d76bef1b6d6a2e159f054a86503fc0551a8bc9f6780583bfe177bb12760b",
+        "resource_counts": {
+          "figures": 8,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 7,
+          "word_summary": 1,
+          "total": 31
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000002"
+      },
+      "human": {
+        "manual_ids": [
+          "PR070"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": [
+        {
+          "auto": {
+            "bundle_path": "MMFR-附件/Yin 等 - DFormerv2 Geometry self-attention for RGBD semantic segmentation",
+            "previous_folder_names": [],
+            "folder": "MMFR-附件/Yin 等 - DFormerv2 Geometry self-attention for RGBD semantic segmentation",
+            "entry_md": "MMFR-附件/Yin 等 - DFormerv2 Geometry self-attention for RGBD semantic segmentation/Yin 等 - DFormerv2 Geometry self-attention for RGBD semantic segmentation.md",
+            "md_sha256": "da1d270263160792226ecd454d037fd0700d6c03e4d6952edcda203048f4b620",
+            "bundle_signature": {
+              "md_sha256": "da1d270263160792226ecd454d037fd0700d6c03e4d6952edcda203048f4b620",
+              "figures": 8,
+              "tables_structured": 7,
+              "tables_rendered": 7,
+              "formulas_latex": 1,
+              "formulas_image": 7,
+              "word_summary": 1,
+              "total": 31
+            },
+            "content_capabilities": {
+              "full_text": true,
+              "figures": true,
+              "tables_structured": true,
+              "tables_rendered": true,
+              "formulas_latex": true,
+              "formulas_image": true,
+              "word_summary": true
+            },
+            "year": null,
+            "authors": [],
+            "title": "DFormerv2: Geometry Self-Attention for RGBD Semantic Segmentation",
+            "title_source": "h1",
+            "normalized_title": "dformerv2geometryselfattentionforrgbdsemanticsegmentation",
+            "doi": null,
+            "arxiv": null,
+            "body_markdown": "Yin 等 - DFormerv2 Geometry self-attention for RGBD semantic segmentation.md",
+            "body_sha256": "da1d270263160792226ecd454d037fd0700d6c03e4d6952edcda203048f4b620",
+            "resource_counts": {
+              "figures": 8,
+              "tables_structured": 7,
+              "tables_rendered": 7,
+              "formulas_latex": 1,
+              "formulas_image": 7,
+              "word_summary": 1,
+              "total": 31
+            },
+            "ambiguous_body": false,
+            "library_id": "LIB000002"
+          },
+          "human": {
+            "manual_ids": [
+              "PR070"
+            ],
+            "unverified_manual_ids": []
+          }
+        }
+      ]
+    },
+    {
+      "auto": {
+        "bundle_path": "Image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sa",
+        "previous_folder_names": [
+          "1-s2.0-S0143816625004816-main"
+        ],
+        "folder": "Image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sa",
+        "entry_md": "Image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sa/Image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sa.md",
+        "md_sha256": "185ee7dbc25a3c33713ac6df2070e8c10b8bb9e39867f5578bcbdc5ec7e86b2a",
+        "bundle_signature": {
+          "md_sha256": "185ee7dbc25a3c33713ac6df2070e8c10b8bb9e39867f5578bcbdc5ec7e86b2a",
+          "figures": 10,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 13,
+          "word_summary": 1,
+          "total": 33
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sampling",
+        "title_source": "h1",
+        "normalized_title": "imageguideddensedepthcompletionnetworkbasedonhierarchicalfeaturereconstructionanddynamicweightsampling",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Image-guided dense depth completion network based on hierarchical feature reconstruction and dynamic weight sa.md",
+        "body_sha256": "185ee7dbc25a3c33713ac6df2070e8c10b8bb9e39867f5578bcbdc5ec7e86b2a",
+        "resource_counts": {
+          "figures": 10,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 13,
+          "word_summary": 1,
+          "total": 33
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000003"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "LightDepth - A resource efficient depth estimation approach for dealing with ground truth sparsity via curricu",
+        "previous_folder_names": [
+          "1-S2.0-S0921889024001684-MAIN"
+        ],
+        "folder": "LightDepth - A resource efficient depth estimation approach for dealing with ground truth sparsity via curricu",
+        "entry_md": "LightDepth - A resource efficient depth estimation approach for dealing with ground truth sparsity via curricu/LightDepth - A resource efficient depth estimation approach for dealing with ground truth sparsity via curricu.md",
+        "md_sha256": "cbd568f1a74499c6152e91de4305bd509e6f0e3c89fdf02d2ba020fbc9e8c35e",
+        "bundle_signature": {
+          "md_sha256": "cbd568f1a74499c6152e91de4305bd509e6f0e3c89fdf02d2ba020fbc9e8c35e",
+          "figures": 3,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 1,
+          "word_summary": 1,
+          "total": 14
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "LightDepth: A resource efficient depth estimation approach for dealing with ground truth sparsity via curriculum learning",
+        "title_source": "h1",
+        "normalized_title": "lightdeptharesourceefficientdepthestimationapproachfordealingwithgroundtruthsparsityviacurriculumlearning",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "LightDepth - A resource efficient depth estimation approach for dealing with ground truth sparsity via curricu.md",
+        "body_sha256": "cbd568f1a74499c6152e91de4305bd509e6f0e3c89fdf02d2ba020fbc9e8c35e",
+        "resource_counts": {
+          "figures": 3,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 1,
+          "word_summary": 1,
+          "total": 14
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000004"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Gaussian Splatting Confidence Supervision for SPN-based Depth Completion",
+        "previous_folder_names": [
+          "507024"
+        ],
+        "folder": "Gaussian Splatting Confidence Supervision for SPN-based Depth Completion",
+        "entry_md": "Gaussian Splatting Confidence Supervision for SPN-based Depth Completion/Gaussian Splatting Confidence Supervision for SPN-based Depth Completion.md",
+        "md_sha256": "4b15cf1524cf3db8bcd3a378011bde360aeec6483207a9c2ea2007cd72c14874",
+        "bundle_signature": {
+          "md_sha256": "4b15cf1524cf3db8bcd3a378011bde360aeec6483207a9c2ea2007cd72c14874",
+          "figures": 6,
+          "tables_structured": 11,
+          "tables_rendered": 11,
+          "formulas_latex": 1,
+          "formulas_image": 23,
+          "word_summary": 1,
+          "total": 53
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Gaussian Splatting Confidence Supervision for SPN-based Depth Completion",
+        "title_source": "h1",
+        "normalized_title": "gaussiansplattingconfidencesupervisionforspnbaseddepthcompletion",
+        "doi": "10.1016/j.patcog.2026.114460",
+        "arxiv": null,
+        "body_markdown": "Gaussian Splatting Confidence Supervision for SPN-based Depth Completion.md",
+        "body_sha256": "4b15cf1524cf3db8bcd3a378011bde360aeec6483207a9c2ea2007cd72c14874",
+        "resource_counts": {
+          "figures": 6,
+          "tables_structured": 11,
+          "tables_rendered": 11,
+          "formulas_latex": 1,
+          "formulas_image": 23,
+          "word_summary": 1,
+          "total": 53
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000005"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Confidence Propagation through CNNs for Guided Sparse Depth Regression",
+        "previous_folder_names": [
+          "Confidence_Propagation_through_CNNs_for_Guided_Sparse_Depth_Regression"
+        ],
+        "folder": "Confidence Propagation through CNNs for Guided Sparse Depth Regression",
+        "entry_md": "Confidence Propagation through CNNs for Guided Sparse Depth Regression/Confidence Propagation through CNNs for Guided Sparse Depth Regression.md",
+        "md_sha256": "f5802516eda94bba5dfb6caf34a6a600d9047f04bd1756547094f5ccab7be882",
+        "bundle_signature": {
+          "md_sha256": "f5802516eda94bba5dfb6caf34a6a600d9047f04bd1756547094f5ccab7be882",
+          "figures": 14,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 16,
+          "word_summary": 0,
+          "total": 45
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": false
+        },
+        "year": null,
+        "authors": [],
+        "title": "Confidence Propagation through CNNs for Guided Sparse Depth Regression",
+        "title_source": "h1",
+        "normalized_title": "confidencepropagationthroughcnnsforguidedsparsedepthregression",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Confidence Propagation through CNNs for Guided Sparse Depth Regression.md",
+        "body_sha256": "f5802516eda94bba5dfb6caf34a6a600d9047f04bd1756547094f5ccab7be882",
+        "resource_counts": {
+          "figures": 14,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 16,
+          "word_summary": 0,
+          "total": 45
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000006"
+      },
+      "human": {
+        "manual_ids": [
+          "AI029"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Deep Sparse Depth Completion Using Multi-Affinity Matrix",
+        "previous_folder_names": [
+          "Deep_Sparse_Depth_Completion_Using_Multi-Affinity_Matrix"
+        ],
+        "folder": "Deep Sparse Depth Completion Using Multi-Affinity Matrix",
+        "entry_md": "Deep Sparse Depth Completion Using Multi-Affinity Matrix/Deep Sparse Depth Completion Using Multi-Affinity Matrix.md",
+        "md_sha256": "a82deec59438f386bd028dafe0574a2cdbb3ff3b1d6a903f2689c35822121d18",
+        "bundle_signature": {
+          "md_sha256": "a82deec59438f386bd028dafe0574a2cdbb3ff3b1d6a903f2689c35822121d18",
+          "figures": 6,
+          "tables_structured": 3,
+          "tables_rendered": 3,
+          "formulas_latex": 1,
+          "formulas_image": 7,
+          "word_summary": 1,
+          "total": 21
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Deep Sparse Depth Completion Using Multi-Affinity Matrix",
+        "title_source": "h1",
+        "normalized_title": "deepsparsedepthcompletionusingmultiaffinitymatrix",
+        "doi": "10.1109/access.2023.3295133",
+        "arxiv": null,
+        "body_markdown": "Deep Sparse Depth Completion Using Multi-Affinity Matrix.md",
+        "body_sha256": "a82deec59438f386bd028dafe0574a2cdbb3ff3b1d6a903f2689c35822121d18",
+        "resource_counts": {
+          "figures": 6,
+          "tables_structured": 3,
+          "tables_rendered": 3,
+          "formulas_latex": 1,
+          "formulas_image": 7,
+          "word_summary": 1,
+          "total": 21
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000007"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Learning Selective Mutual Attention and Contrast for RGB-D Saliency Detection",
+        "previous_folder_names": [
+          "Learning_Selective_Mutual_Attention_and_Contrast_for_RGB-D_Saliency_Detection"
+        ],
+        "folder": "Learning Selective Mutual Attention and Contrast for RGB-D Saliency Detection",
+        "entry_md": "Learning Selective Mutual Attention and Contrast for RGB-D Saliency Detection/Learning Selective Mutual Attention and Contrast for RGB-D Saliency Detection.md",
+        "md_sha256": "68b22983b4b2fc0bc0e7d2517b4d900c93c0cb241077c6b7f2f43d24afd3cd33",
+        "bundle_signature": {
+          "md_sha256": "68b22983b4b2fc0bc0e7d2517b4d900c93c0cb241077c6b7f2f43d24afd3cd33",
+          "figures": 12,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 15,
+          "word_summary": 0,
+          "total": 36
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": false
+        },
+        "year": null,
+        "authors": [],
+        "title": "Learning Selective Mutual Attention and Contrast for RGB-D Saliency Detection",
+        "title_source": "h1",
+        "normalized_title": "learningselectivemutualattentionandcontrastforrgbdsaliencydetection",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Learning Selective Mutual Attention and Contrast for RGB-D Saliency Detection.md",
+        "body_sha256": "68b22983b4b2fc0bc0e7d2517b4d900c93c0cb241077c6b7f2f43d24afd3cd33",
+        "resource_counts": {
+          "figures": 12,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 15,
+          "word_summary": 0,
+          "total": 36
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000008"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "LFDA - A Framework for Light Field Depth Estimation With Depth Attention",
+        "previous_folder_names": [
+          "LFDA_A_Framework_for_Light_Field_Depth_Estimation_With_Depth_Attention"
+        ],
+        "folder": "LFDA - A Framework for Light Field Depth Estimation With Depth Attention",
+        "entry_md": "LFDA - A Framework for Light Field Depth Estimation With Depth Attention/LFDA - A Framework for Light Field Depth Estimation With Depth Attention.md",
+        "md_sha256": "5a3a058f9b860c0b6565ed9b202acd2e15d73a523ab78e18544254d071939f06",
+        "bundle_signature": {
+          "md_sha256": "5a3a058f9b860c0b6565ed9b202acd2e15d73a523ab78e18544254d071939f06",
+          "figures": 6,
+          "tables_structured": 3,
+          "tables_rendered": 3,
+          "formulas_latex": 1,
+          "formulas_image": 4,
+          "word_summary": 1,
+          "total": 18
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "LFDA: A Framework for Light Field Depth Estimation With Depth Attention",
+        "title_source": "h1",
+        "normalized_title": "lfdaaframeworkforlightfielddepthestimationwithdepthattention",
+        "doi": "10.1109/access.2024.3393576",
+        "arxiv": null,
+        "body_markdown": "LFDA - A Framework for Light Field Depth Estimation With Depth Attention.md",
+        "body_sha256": "5a3a058f9b860c0b6565ed9b202acd2e15d73a523ab78e18544254d071939f06",
+        "resource_counts": {
+          "figures": 6,
+          "tables_structured": 3,
+          "tables_rendered": 3,
+          "formulas_latex": 1,
+          "formulas_image": 4,
+          "word_summary": 1,
+          "total": 18
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000009"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "NR-MVSNet - Learning Multi-View Stereo Based on Normal Consistency and Depth Refinement",
+        "previous_folder_names": [
+          "NR-MVSNet_Learning_Multi-View_Stereo_Based_on_Normal_Consistency_and_Depth_Refinement"
+        ],
+        "folder": "NR-MVSNet - Learning Multi-View Stereo Based on Normal Consistency and Depth Refinement",
+        "entry_md": "NR-MVSNet - Learning Multi-View Stereo Based on Normal Consistency and Depth Refinement/NR-MVSNet - Learning Multi-View Stereo Based on Normal Consistency and Depth Refinement.md",
+        "md_sha256": "3980606a2985025693ad10bf97c62d2a659f00259e833f89a967db015aef7383",
+        "bundle_signature": {
+          "md_sha256": "3980606a2985025693ad10bf97c62d2a659f00259e833f89a967db015aef7383",
+          "figures": 9,
+          "tables_structured": 10,
+          "tables_rendered": 10,
+          "formulas_latex": 1,
+          "formulas_image": 12,
+          "word_summary": 1,
+          "total": 43
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "NR-MVSNet: Learning Multi-View Stereo Based on Normal Consistency and Depth Refinement",
+        "title_source": "h1",
+        "normalized_title": "nrmvsnetlearningmultiviewstereobasedonnormalconsistencyanddepthrefinement",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "NR-MVSNet - Learning Multi-View Stereo Based on Normal Consistency and Depth Refinement.md",
+        "body_sha256": "3980606a2985025693ad10bf97c62d2a659f00259e833f89a967db015aef7383",
+        "resource_counts": {
+          "figures": 9,
+          "tables_structured": 10,
+          "tables_rendered": 10,
+          "formulas_latex": 1,
+          "formulas_image": 12,
+          "word_summary": 1,
+          "total": 43
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000010"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Octagram Propagation Matching for Multi-Scale View Stereopsis (OPM-MVS)",
+        "previous_folder_names": [
+          "Octagram_Propagation_Matching_for_Multi-Scale_View_Stereopsis_OPM-MVS"
+        ],
+        "folder": "Octagram Propagation Matching for Multi-Scale View Stereopsis (OPM-MVS)",
+        "entry_md": "Octagram Propagation Matching for Multi-Scale View Stereopsis (OPM-MVS)/Octagram Propagation Matching for Multi-Scale View Stereopsis (OPM-MVS).md",
+        "md_sha256": "82a1acde15c9bc11b89ec87c9e5261dbe6540df8ef71dc63dda0ab2f7e48abf9",
+        "bundle_signature": {
+          "md_sha256": "82a1acde15c9bc11b89ec87c9e5261dbe6540df8ef71dc63dda0ab2f7e48abf9",
+          "figures": 4,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 1,
+          "formulas_image": 28,
+          "word_summary": 1,
+          "total": 46
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Octagram Propagation Matching for Multi-Scale View Stereopsis (OPM-MVS)",
+        "title_source": "h1",
+        "normalized_title": "octagrampropagationmatchingformultiscaleviewstereopsisopmmvs",
+        "doi": "10.1109/access.2025.3569913",
+        "arxiv": null,
+        "body_markdown": "Octagram Propagation Matching for Multi-Scale View Stereopsis (OPM-MVS).md",
+        "body_sha256": "82a1acde15c9bc11b89ec87c9e5261dbe6540df8ef71dc63dda0ab2f7e48abf9",
+        "resource_counts": {
+          "figures": 4,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 1,
+          "formulas_image": 28,
+          "word_summary": 1,
+          "total": 46
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000011"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Non-local affinity adaptive acceleration propagation network for generating dense depth maps from LiDAR",
+        "previous_folder_names": [
+          "oe-31-13-22012"
+        ],
+        "folder": "Non-local affinity adaptive acceleration propagation network for generating dense depth maps from LiDAR",
+        "entry_md": "Non-local affinity adaptive acceleration propagation network for generating dense depth maps from LiDAR/Non-local affinity adaptive acceleration propagation network for generating dense depth maps from LiDAR.md",
+        "md_sha256": "d7fbd4836fe0dc54ef7e37c7ac234cfd712377fa1f257b91ee3c6bfa151e8b7a",
+        "bundle_signature": {
+          "md_sha256": "d7fbd4836fe0dc54ef7e37c7ac234cfd712377fa1f257b91ee3c6bfa151e8b7a",
+          "figures": 7,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 1,
+          "formulas_image": 11,
+          "word_summary": 1,
+          "total": 32
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Non-local affinity adaptive acceleration propagation network for generating dense depth maps from LiDAR",
+        "title_source": "h1",
+        "normalized_title": "nonlocalaffinityadaptiveaccelerationpropagationnetworkforgeneratingdensedepthmapsfromlidar",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Non-local affinity adaptive acceleration propagation network for generating dense depth maps from LiDAR.md",
+        "body_sha256": "d7fbd4836fe0dc54ef7e37c7ac234cfd712377fa1f257b91ee3c6bfa151e8b7a",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 1,
+          "formulas_image": 11,
+          "word_summary": 1,
+          "total": 32
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000012"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Bcap-net - a bidirectional cross-fusion and adaptive depth propagation network for depth completion",
+        "previous_folder_names": [
+          "s13042-026-03156-8"
+        ],
+        "folder": "Bcap-net - a bidirectional cross-fusion and adaptive depth propagation network for depth completion",
+        "entry_md": "Bcap-net - a bidirectional cross-fusion and adaptive depth propagation network for depth completion/Bcap-net - a bidirectional cross-fusion and adaptive depth propagation network for depth completion.md",
+        "md_sha256": "52b27121ce70b9ff31292ec28117e7eaa737b87a7838cdaa2a258bb6ff2d36fd",
+        "bundle_signature": {
+          "md_sha256": "52b27121ce70b9ff31292ec28117e7eaa737b87a7838cdaa2a258bb6ff2d36fd",
+          "figures": 9,
+          "tables_structured": 11,
+          "tables_rendered": 11,
+          "formulas_latex": 1,
+          "formulas_image": 23,
+          "word_summary": 1,
+          "total": 56
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Bcap-net: a bidirectional cross-fusion and adaptive depth propagation network for depth completion",
+        "title_source": "h1",
+        "normalized_title": "bcapnetabidirectionalcrossfusionandadaptivedepthpropagationnetworkfordepthcompletion",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Bcap-net - a bidirectional cross-fusion and adaptive depth propagation network for depth completion.md",
+        "body_sha256": "52b27121ce70b9ff31292ec28117e7eaa737b87a7838cdaa2a258bb6ff2d36fd",
+        "resource_counts": {
+          "figures": 9,
+          "tables_structured": 11,
+          "tables_rendered": 11,
+          "formulas_latex": 1,
+          "formulas_image": 23,
+          "word_summary": 1,
+          "total": 56
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000013"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "SGMA - Semantic-Guided Modality-Aware Segmentation for Remote Sensing with Incomplete Multimodal Data",
+        "previous_folder_names": [
+          "2603.02505v1"
+        ],
+        "folder": "SGMA - Semantic-Guided Modality-Aware Segmentation for Remote Sensing with Incomplete Multimodal Data",
+        "entry_md": "SGMA - Semantic-Guided Modality-Aware Segmentation for Remote Sensing with Incomplete Multimodal Data/SGMA - Semantic-Guided Modality-Aware Segmentation for Remote Sensing with Incomplete Multimodal Data.md",
+        "md_sha256": "ffe264d780d8d43e2a5fe292177d857b9c1f0172aea9b47fd7c2c15c5a33efc0",
+        "bundle_signature": {
+          "md_sha256": "ffe264d780d8d43e2a5fe292177d857b9c1f0172aea9b47fd7c2c15c5a33efc0",
+          "figures": 9,
+          "tables_structured": 9,
+          "tables_rendered": 9,
+          "formulas_latex": 1,
+          "formulas_image": 14,
+          "word_summary": 1,
+          "total": 43
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "SGMA: Semantic-Guided Modality-Aware Segmentation for Remote Sensing with Incomplete Multimodal Data",
+        "title_source": "h1",
+        "normalized_title": "sgmasemanticguidedmodalityawaresegmentationforremotesensingwithincompletemultimodaldata",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "SGMA - Semantic-Guided Modality-Aware Segmentation for Remote Sensing with Incomplete Multimodal Data.md",
+        "body_sha256": "ffe264d780d8d43e2a5fe292177d857b9c1f0172aea9b47fd7c2c15c5a33efc0",
+        "resource_counts": {
+          "figures": 9,
+          "tables_structured": 9,
+          "tables_rendered": 9,
+          "formulas_latex": 1,
+          "formulas_image": 14,
+          "word_summary": 1,
+          "total": 43
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000014"
+      },
+      "human": {
+        "manual_ids": [
+          "PR089"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "High-Precision Dichotomous Image Segmentation via Depth Integrity-Prior and Fine-Grained Patch Strategy",
+        "previous_folder_names": [
+          "Liu_High-Precision_Dichotomous_Image_Segmentation_via_Depth_Integrity-Prior_and_Fine-Grained_Patch_CVPR_2026_paper"
+        ],
+        "folder": "High-Precision Dichotomous Image Segmentation via Depth Integrity-Prior and Fine-Grained Patch Strategy",
+        "entry_md": "High-Precision Dichotomous Image Segmentation via Depth Integrity-Prior and Fine-Grained Patch Strategy/High-Precision Dichotomous Image Segmentation via Depth Integrity-Prior and Fine-Grained Patch Strategy.md",
+        "md_sha256": "a4272a312fae1456de58313946b504405dfbdc7b6569979fbc42ffdd9cdd8e9f",
+        "bundle_signature": {
+          "md_sha256": "a4272a312fae1456de58313946b504405dfbdc7b6569979fbc42ffdd9cdd8e9f",
+          "figures": 6,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 22,
+          "word_summary": 1,
+          "total": 44
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "High-Precision Dichotomous Image Segmentation via Depth Integrity-Prior and Fine-Grained Patch Strategy",
+        "title_source": "h1",
+        "normalized_title": "highprecisiondichotomousimagesegmentationviadepthintegritypriorandfinegrainedpatchstrategy",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "High-Precision Dichotomous Image Segmentation via Depth Integrity-Prior and Fine-Grained Patch Strategy.md",
+        "body_sha256": "a4272a312fae1456de58313946b504405dfbdc7b6569979fbc42ffdd9cdd8e9f",
+        "resource_counts": {
+          "figures": 6,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 22,
+          "word_summary": 1,
+          "total": 44
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000015"
+      },
+      "human": {
+        "manual_ids": [
+          "PR117"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "VarSplat - Uncertainty-aware 3D Gaussian Splatting for Robust RGB-D SLAM",
+        "previous_folder_names": [
+          "PR053"
+        ],
+        "folder": "VarSplat - Uncertainty-aware 3D Gaussian Splatting for Robust RGB-D SLAM",
+        "entry_md": "VarSplat - Uncertainty-aware 3D Gaussian Splatting for Robust RGB-D SLAM/VarSplat - Uncertainty-aware 3D Gaussian Splatting for Robust RGB-D SLAM.md",
+        "md_sha256": "a2015a5d2b34313f0c9821e2990bea1735d849bb8b80485aff9b3b9eaf886cba",
+        "bundle_signature": {
+          "md_sha256": "a2015a5d2b34313f0c9821e2990bea1735d849bb8b80485aff9b3b9eaf886cba",
+          "figures": 4,
+          "tables_structured": 15,
+          "tables_rendered": 15,
+          "formulas_latex": 1,
+          "formulas_image": 19,
+          "word_summary": 1,
+          "total": 55
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "VarSplat: Uncertainty-aware 3D Gaussian Splatting for Robust RGB-D SLAM",
+        "title_source": "h1",
+        "normalized_title": "varsplatuncertaintyaware3dgaussiansplattingforrobustrgbdslam",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "VarSplat - Uncertainty-aware 3D Gaussian Splatting for Robust RGB-D SLAM.md",
+        "body_sha256": "a2015a5d2b34313f0c9821e2990bea1735d849bb8b80485aff9b3b9eaf886cba",
+        "resource_counts": {
+          "figures": 4,
+          "tables_structured": 15,
+          "tables_rendered": 15,
+          "formulas_latex": 1,
+          "formulas_image": 19,
+          "word_summary": 1,
+          "total": 55
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000016"
+      },
+      "human": {
+        "manual_ids": [
+          "PR053"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Image Enhancement and Three-Dimensional Reconstruction of Disaster Tunnel Environment for Underground Mine Res",
+        "previous_folder_names": [
+          "RE042"
+        ],
+        "folder": "Image Enhancement and Three-Dimensional Reconstruction of Disaster Tunnel Environment for Underground Mine Res",
+        "entry_md": "Image Enhancement and Three-Dimensional Reconstruction of Disaster Tunnel Environment for Underground Mine Res/Image Enhancement and Three-Dimensional Reconstruction of Disaster Tunnel Environment for Underground Mine Res.md",
+        "md_sha256": "5eece45811589c27c1fcf2d0398d48c3f1c85f3d2cad0a7e278b74e22966b873",
+        "bundle_signature": {
+          "md_sha256": "5eece45811589c27c1fcf2d0398d48c3f1c85f3d2cad0a7e278b74e22966b873",
+          "figures": 12,
+          "tables_structured": 14,
+          "tables_rendered": 14,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 51
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Image Enhancement and Three-Dimensional Reconstruction of Disaster Tunnel Environment for Underground Mine Rescue: A UAV-Borne RGB-D Approach",
+        "title_source": "h1",
+        "normalized_title": "imageenhancementandthreedimensionalreconstructionofdisastertunnelenvironmentforundergroundminerescueauavbornergbdapproach",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Image Enhancement and Three-Dimensional Reconstruction of Disaster Tunnel Environment for Underground Mine Res.md",
+        "body_sha256": "5eece45811589c27c1fcf2d0398d48c3f1c85f3d2cad0a7e278b74e22966b873",
+        "resource_counts": {
+          "figures": 12,
+          "tables_structured": 14,
+          "tables_rendered": 14,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 51
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000017"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": [
+          "RE042"
+        ]
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "M− SURE - Enhanced and reliable safety monitoring in low-light mines",
+        "previous_folder_names": [
+          "RE049"
+        ],
+        "folder": "M− SURE - Enhanced and reliable safety monitoring in low-light mines",
+        "entry_md": "M− SURE - Enhanced and reliable safety monitoring in low-light mines/M− SURE - Enhanced and reliable safety monitoring in low-light mines.md",
+        "md_sha256": "43c002b82067076f96b62393a1c6e38c3768b3c5d35b0baf4a5637d87ec04fc4",
+        "bundle_signature": {
+          "md_sha256": "43c002b82067076f96b62393a1c6e38c3768b3c5d35b0baf4a5637d87ec04fc4",
+          "figures": 20,
+          "tables_structured": 8,
+          "tables_rendered": 8,
+          "formulas_latex": 1,
+          "formulas_image": 22,
+          "word_summary": 1,
+          "total": 60
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "M− SURE: Enhanced and reliable safety monitoring in low-light mines",
+        "title_source": "h1",
+        "normalized_title": "msureenhancedandreliablesafetymonitoringinlowlightmines",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "M− SURE - Enhanced and reliable safety monitoring in low-light mines.md",
+        "body_sha256": "43c002b82067076f96b62393a1c6e38c3768b3c5d35b0baf4a5637d87ec04fc4",
+        "resource_counts": {
+          "figures": 20,
+          "tables_structured": 8,
+          "tables_rendered": 8,
+          "formulas_latex": 1,
+          "formulas_image": 22,
+          "word_summary": 1,
+          "total": 60
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000018"
+      },
+      "human": {
+        "manual_ids": [
+          "RE049"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "LiDAR-Guided 3D Gaussian Splatting with Differentiable UDF-Based Regularization for Mine Tunnel Reconstruction",
+        "previous_folder_names": [
+          "RE053"
+        ],
+        "folder": "LiDAR-Guided 3D Gaussian Splatting with Differentiable UDF-Based Regularization for Mine Tunnel Reconstruction",
+        "entry_md": "LiDAR-Guided 3D Gaussian Splatting with Differentiable UDF-Based Regularization for Mine Tunnel Reconstruction/LiDAR-Guided 3D Gaussian Splatting with Differentiable UDF-Based Regularization for Mine Tunnel Reconstruction.md",
+        "md_sha256": "e66f6a49da7fc7c27a6a500e18659018f2e89564b33a998dc4c791b506936c57",
+        "bundle_signature": {
+          "md_sha256": "e66f6a49da7fc7c27a6a500e18659018f2e89564b33a998dc4c791b506936c57",
+          "figures": 9,
+          "tables_structured": 9,
+          "tables_rendered": 9,
+          "formulas_latex": 1,
+          "formulas_image": 12,
+          "word_summary": 1,
+          "total": 41
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "LiDAR-Guided 3D Gaussian Splatting with Differentiable UDF-Based Regularization for Mine Tunnel Reconstruction",
+        "title_source": "h1",
+        "normalized_title": "lidarguided3dgaussiansplattingwithdifferentiableudfbasedregularizationforminetunnelreconstruction",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "LiDAR-Guided 3D Gaussian Splatting with Differentiable UDF-Based Regularization for Mine Tunnel Reconstruction.md",
+        "body_sha256": "e66f6a49da7fc7c27a6a500e18659018f2e89564b33a998dc4c791b506936c57",
+        "resource_counts": {
+          "figures": 9,
+          "tables_structured": 9,
+          "tables_rendered": 9,
+          "formulas_latex": 1,
+          "formulas_image": 12,
+          "word_summary": 1,
+          "total": 41
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000019"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": [
+          "RE053"
+        ]
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "RGB-D semantic mapping for underground robotic inspection using an attention-enhanced and boundary-refined Dee",
+        "previous_folder_names": [
+          "re131"
+        ],
+        "folder": "RGB-D semantic mapping for underground robotic inspection using an attention-enhanced and boundary-refined Dee",
+        "entry_md": "RGB-D semantic mapping for underground robotic inspection using an attention-enhanced and boundary-refined Dee/RGB-D semantic mapping for underground robotic inspection using an attention-enhanced and boundary-refined Dee.md",
+        "md_sha256": "6b123b14efcfa0d6f585bf144df6ffffffee56c1c02ccbc0c6b096c67b9fc767",
+        "bundle_signature": {
+          "md_sha256": "6b123b14efcfa0d6f585bf144df6ffffffee56c1c02ccbc0c6b096c67b9fc767",
+          "figures": 10,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 1,
+          "formulas_image": 11,
+          "word_summary": 1,
+          "total": 35
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "RGB-D semantic mapping for underground robotic inspection using an attention-enhanced and boundary-refined DeepLabv3+ network",
+        "title_source": "h1",
+        "normalized_title": "rgbdsemanticmappingforundergroundroboticinspectionusinganattentionenhancedandboundaryrefineddeeplabv3network",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "RGB-D semantic mapping for underground robotic inspection using an attention-enhanced and boundary-refined Dee.md",
+        "body_sha256": "6b123b14efcfa0d6f585bf144df6ffffffee56c1c02ccbc0c6b096c67b9fc767",
+        "resource_counts": {
+          "figures": 10,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 1,
+          "formulas_image": 11,
+          "word_summary": 1,
+          "total": 35
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000020"
+      },
+      "human": {
+        "manual_ids": [
+          "RE131"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "PF-Net++ - high-fidelity completion of roadway point cloud from LiDAR sensor via combined structure-aware poin",
+        "previous_folder_names": [
+          "RE188"
+        ],
+        "folder": "PF-Net++ - high-fidelity completion of roadway point cloud from LiDAR sensor via combined structure-aware poin",
+        "entry_md": "PF-Net++ - high-fidelity completion of roadway point cloud from LiDAR sensor via combined structure-aware poin/PF-Net++ - high-fidelity completion of roadway point cloud from LiDAR sensor via combined structure-aware poin.md",
+        "md_sha256": "31c6d89d96f59e31a03447a8d9811126249265a11846163a299a81c4360f852d",
+        "bundle_signature": {
+          "md_sha256": "31c6d89d96f59e31a03447a8d9811126249265a11846163a299a81c4360f852d",
+          "figures": 7,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 16,
+          "word_summary": 1,
+          "total": 35
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "PF-Net++: high-fidelity completion of roadway point cloud from LiDAR sensor via combined structure-aware point transformer and multiscale skip connections",
+        "title_source": "h1",
+        "normalized_title": "pfnethighfidelitycompletionofroadwaypointcloudfromlidarsensorviacombinedstructureawarepointtransformerandmultiscaleskipconnections",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "PF-Net++ - high-fidelity completion of roadway point cloud from LiDAR sensor via combined structure-aware poin.md",
+        "body_sha256": "31c6d89d96f59e31a03447a8d9811126249265a11846163a299a81c4360f852d",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 16,
+          "word_summary": 1,
+          "total": 35
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000021"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": [
+          "RE188"
+        ]
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "High-traversability and efficient path optimization for deep-sea mining vehicles considering complex seabed en",
+        "previous_folder_names": [
+          "RE447"
+        ],
+        "folder": "High-traversability and efficient path optimization for deep-sea mining vehicles considering complex seabed en",
+        "entry_md": "High-traversability and efficient path optimization for deep-sea mining vehicles considering complex seabed en/High-traversability and efficient path optimization for deep-sea mining vehicles considering complex seabed en.md",
+        "md_sha256": "b3e09776acc798f9d9273e549d97d3d606c37ddf5a012d9131a793484d74c559",
+        "bundle_signature": {
+          "md_sha256": "b3e09776acc798f9d9273e549d97d3d606c37ddf5a012d9131a793484d74c559",
+          "figures": 21,
+          "tables_structured": 16,
+          "tables_rendered": 16,
+          "formulas_latex": 1,
+          "formulas_image": 26,
+          "word_summary": 1,
+          "total": 81
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "High-traversability and efficient path optimization for deep-sea mining vehicles considering complex seabed environmental factors",
+        "title_source": "h1",
+        "normalized_title": "hightraversabilityandefficientpathoptimizationfordeepseaminingvehiclesconsideringcomplexseabedenvironmentalfactors",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "High-traversability and efficient path optimization for deep-sea mining vehicles considering complex seabed en.md",
+        "body_sha256": "b3e09776acc798f9d9273e549d97d3d606c37ddf5a012d9131a793484d74c559",
+        "resource_counts": {
+          "figures": 21,
+          "tables_structured": 16,
+          "tables_rendered": 16,
+          "formulas_latex": 1,
+          "formulas_image": 26,
+          "word_summary": 1,
+          "total": 81
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000022"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": [
+          "RE447"
+        ]
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillat",
+        "previous_folder_names": [
+          "Tan_Towards_Robust_Multi-Modal_Semantic_Segmentation_with_Teacher-Student_Framework_and_Hybrid_CVPR_2026_paper"
+        ],
+        "folder": "Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillat",
+        "entry_md": "Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillat/Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillat.md",
+        "md_sha256": "7a72f547f18ea82de0ef7b4ac562cb6632c5b66ccb96dbd1754bf17a7d8b783d",
+        "bundle_signature": {
+          "md_sha256": "7a72f547f18ea82de0ef7b4ac562cb6632c5b66ccb96dbd1754bf17a7d8b783d",
+          "figures": 8,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 27
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillation",
+        "title_source": "h1",
+        "normalized_title": "towardsrobustmultimodalsemanticsegmentationwithteacherstudentframeworkandhybridprototypedistillation",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillat.md",
+        "body_sha256": "7a72f547f18ea82de0ef7b4ac562cb6632c5b66ccb96dbd1754bf17a7d8b783d",
+        "resource_counts": {
+          "figures": 8,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 27
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000023"
+      },
+      "human": {
+        "manual_ids": [
+          "PR090"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Uncertainty-Aware Modality Fusion for Unaligned RGB-T Salient Object Detection",
+        "previous_folder_names": [
+          "Wang_Uncertainty-Aware_Modality_Fusion_for_Unaligned_RGB-T_Salient_Object_Detection_CVPR_2026_paper"
+        ],
+        "folder": "Uncertainty-Aware Modality Fusion for Unaligned RGB-T Salient Object Detection",
+        "entry_md": "Uncertainty-Aware Modality Fusion for Unaligned RGB-T Salient Object Detection/Uncertainty-Aware Modality Fusion for Unaligned RGB-T Salient Object Detection.md",
+        "md_sha256": "266396b0178e839cc3d2c376d18bbd5d54f6e82a653398a947bfec78e1dee84f",
+        "bundle_signature": {
+          "md_sha256": "266396b0178e839cc3d2c376d18bbd5d54f6e82a653398a947bfec78e1dee84f",
+          "figures": 4,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 25
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Uncertainty-Aware Modality Fusion for Unaligned RGB-T Salient Object Detection",
+        "title_source": "h1",
+        "normalized_title": "uncertaintyawaremodalityfusionforunalignedrgbtsalientobjectdetection",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Uncertainty-Aware Modality Fusion for Unaligned RGB-T Salient Object Detection.md",
+        "body_sha256": "266396b0178e839cc3d2c376d18bbd5d54f6e82a653398a947bfec78e1dee84f",
+        "resource_counts": {
+          "figures": 4,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 25
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000024"
+      },
+      "human": {
+        "manual_ids": [
+          "PR029"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "MV3DIS - Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation",
+        "previous_folder_names": [
+          "Zhao_MV3DIS_Multi-View_Mask_Matching_via_3D_Guides_for_Zero-Shot_3D_CVPR_2026_paper"
+        ],
+        "folder": "MV3DIS - Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation",
+        "entry_md": "MV3DIS - Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation/MV3DIS - Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation.md",
+        "md_sha256": "b7fa038980374d3a27577e60b39123df39230bf86c4a8924e0c2236c86b5a380",
+        "bundle_signature": {
+          "md_sha256": "b7fa038980374d3a27577e60b39123df39230bf86c4a8924e0c2236c86b5a380",
+          "figures": 5,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 30
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "MV3DIS: Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation",
+        "title_source": "h1",
+        "normalized_title": "mv3dismultiviewmaskmatchingvia3dguidesforzeroshot3dinstancesegmentation",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "MV3DIS - Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation.md",
+        "body_sha256": "b7fa038980374d3a27577e60b39123df39230bf86c4a8924e0c2236c86b5a380",
+        "resource_counts": {
+          "figures": 5,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 30
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000025"
+      },
+      "human": {
+        "manual_ids": [
+          "PR151"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "GeomPrompt - Geometric Prompt Learning for RGB-D Semantic Segmentation Under Missing and Degraded Depth",
+        "previous_folder_names": [
+          "Jaganathan和Vela - 2026 - GeomPrompt Geometric prompt learning for RGB-D semantic segmentation under missing and degraded dep"
+        ],
+        "folder": "GeomPrompt - Geometric Prompt Learning for RGB-D Semantic Segmentation Under Missing and Degraded Depth",
+        "entry_md": "GeomPrompt - Geometric Prompt Learning for RGB-D Semantic Segmentation Under Missing and Degraded Depth/GeomPrompt - Geometric Prompt Learning for RGB-D Semantic Segmentation Under Missing and Degraded Depth.md",
+        "md_sha256": "a9d4e3f33a03a27ec40b124b204be92a0351d1183cb899a9dc8009693b6e654b",
+        "bundle_signature": {
+          "md_sha256": "a9d4e3f33a03a27ec40b124b204be92a0351d1183cb899a9dc8009693b6e654b",
+          "figures": 7,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 3,
+          "word_summary": 1,
+          "total": 20
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "GeomPrompt: Geometric Prompt Learning for RGB-D Semantic Segmentation Under Missing and Degraded Depth",
+        "title_source": "h1",
+        "normalized_title": "geompromptgeometricpromptlearningforrgbdsemanticsegmentationundermissinganddegradeddepth",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "GeomPrompt - Geometric Prompt Learning for RGB-D Semantic Segmentation Under Missing and Degraded Depth.md",
+        "body_sha256": "a9d4e3f33a03a27ec40b124b204be92a0351d1183cb899a9dc8009693b6e654b",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 3,
+          "word_summary": 1,
+          "total": 20
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000026"
+      },
+      "human": {
+        "manual_ids": [
+          "AI023"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Calibrated RGB-D Salient Object Detection",
+        "previous_folder_names": [
+          "Ji 等 - Calibrated RGB-D salient object detection"
+        ],
+        "folder": "Calibrated RGB-D Salient Object Detection",
+        "entry_md": "Calibrated RGB-D Salient Object Detection/Calibrated RGB-D Salient Object Detection.md",
+        "md_sha256": "c623274f535148db0eefc41c31de29b8c58220c7f944ea0628774131c4cca9cf",
+        "bundle_signature": {
+          "md_sha256": "c623274f535148db0eefc41c31de29b8c58220c7f944ea0628774131c4cca9cf",
+          "figures": 7,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 26
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Calibrated RGB-D Salient Object Detection",
+        "title_source": "h1",
+        "normalized_title": "calibratedrgbdsalientobjectdetection",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Calibrated RGB-D Salient Object Detection.md",
+        "body_sha256": "c623274f535148db0eefc41c31de29b8c58220c7f944ea0628774131c4cca9cf",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 4,
+          "tables_rendered": 4,
+          "formulas_latex": 1,
+          "formulas_image": 9,
+          "word_summary": 1,
+          "total": 26
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000027"
+      },
+      "human": {
+        "manual_ids": [
+          "AI017"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "MoSA - Modality-Aware Spatially-Adaptive Adaptation for RGB-X Semantic Segmentation",
+        "previous_folder_names": [
+          "Zhang 等 - 2026 - MoSA Modality-aware spatially-adaptive adaptation for RGB-X semantic segmentation"
+        ],
+        "folder": "MoSA - Modality-Aware Spatially-Adaptive Adaptation for RGB-X Semantic Segmentation",
+        "entry_md": "MoSA - Modality-Aware Spatially-Adaptive Adaptation for RGB-X Semantic Segmentation/MoSA - Modality-Aware Spatially-Adaptive Adaptation for RGB-X Semantic Segmentation.md",
+        "md_sha256": "fb770abb3f94acb4a7dcc01af508d39a268a383a22d8d349a6ba26594c04f42f",
+        "bundle_signature": {
+          "md_sha256": "fb770abb3f94acb4a7dcc01af508d39a268a383a22d8d349a6ba26594c04f42f",
+          "figures": 8,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 22,
+          "word_summary": 1,
+          "total": 46
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "MoSA: Modality-Aware Spatially-Adaptive Adaptation for RGB-X Semantic Segmentation",
+        "title_source": "h1",
+        "normalized_title": "mosamodalityawarespatiallyadaptiveadaptationforrgbxsemanticsegmentation",
+        "doi": "10.1109/access.2026.3694496",
+        "arxiv": null,
+        "body_markdown": "MoSA - Modality-Aware Spatially-Adaptive Adaptation for RGB-X Semantic Segmentation.md",
+        "body_sha256": "fb770abb3f94acb4a7dcc01af508d39a268a383a22d8d349a6ba26594c04f42f",
+        "resource_counts": {
+          "figures": 8,
+          "tables_structured": 7,
+          "tables_rendered": 7,
+          "formulas_latex": 1,
+          "formulas_image": 22,
+          "word_summary": 1,
+          "total": 46
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000028"
+      },
+      "human": {
+        "manual_ids": [
+          "MoSA"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "MaskMentor - Unlocking the Potential of Masked Self-Teaching for Missing Modality RGB-D Semantic Segmentation",
+        "previous_folder_names": [
+          "Zhao 等 - 2024 - MaskMentor Unlocking the potential of masked self-teaching for missing modality RGB-D semantic segm"
+        ],
+        "folder": "MaskMentor - Unlocking the Potential of Masked Self-Teaching for Missing Modality RGB-D Semantic Segmentation",
+        "entry_md": "MaskMentor - Unlocking the Potential of Masked Self-Teaching for Missing Modality RGB-D Semantic Segmentation/MaskMentor - Unlocking the Potential of Masked Self-Teaching for Missing Modality RGB-D Semantic Segmentation.md",
+        "md_sha256": "1fa2dbe89570c8f44d198d80306c5f757363b72273c3aed16b26d2b3b8b9b44f",
+        "bundle_signature": {
+          "md_sha256": "1fa2dbe89570c8f44d198d80306c5f757363b72273c3aed16b26d2b3b8b9b44f",
+          "figures": 4,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 0,
+          "formulas_image": 0,
+          "word_summary": 1,
+          "total": 15
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": false,
+          "formulas_image": false,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "MaskMentor: Unlocking the Potential of Masked Self-Teaching for Missing Modality RGB-D Semantic Segmentation",
+        "title_source": "h1",
+        "normalized_title": "maskmentorunlockingthepotentialofmaskedselfteachingformissingmodalityrgbdsemanticsegmentation",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "MaskMentor - Unlocking the Potential of Masked Self-Teaching for Missing Modality RGB-D Semantic Segmentation.md",
+        "body_sha256": "1fa2dbe89570c8f44d198d80306c5f757363b72273c3aed16b26d2b3b8b9b44f",
+        "resource_counts": {
+          "figures": 4,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 0,
+          "formulas_image": 0,
+          "word_summary": 1,
+          "total": 15
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000029"
+      },
+      "human": {
+        "manual_ids": [
+          "AI019"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout",
+        "previous_folder_names": [
+          "Zhu 等 - 2026 - Toward reliable RGB-D semantic segmentation Handling missing modalities via condition dropout"
+        ],
+        "folder": "Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout",
+        "entry_md": "Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout/Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout.md",
+        "md_sha256": "6747d14abafe6cbdf7b3f9b7fc9b4769b3cd7b3f17c483211f7dd8be988a34b2",
+        "bundle_signature": {
+          "md_sha256": "6747d14abafe6cbdf7b3f9b7fc9b4769b3cd7b3f17c483211f7dd8be988a34b2",
+          "figures": 4,
+          "tables_structured": 2,
+          "tables_rendered": 2,
+          "formulas_latex": 1,
+          "formulas_image": 4,
+          "word_summary": 1,
+          "total": 14
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Toward Reliable RGB-D Semantic Segmentation: Handling Missing Modalities via Condition Dropout",
+        "title_source": "h1",
+        "normalized_title": "towardreliablergbdsemanticsegmentationhandlingmissingmodalitiesviaconditiondropout",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout.md",
+        "body_sha256": "6747d14abafe6cbdf7b3f9b7fc9b4769b3cd7b3f17c483211f7dd8be988a34b2",
+        "resource_counts": {
+          "figures": 4,
+          "tables_structured": 2,
+          "tables_rendered": 2,
+          "formulas_latex": 1,
+          "formulas_image": 4,
+          "word_summary": 1,
+          "total": 14
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000030"
+      },
+      "human": {
+        "manual_ids": [
+          "AI024"
+        ],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Segmenting Anything in the Dark via Depth Perception",
+        "previous_folder_names": [],
+        "folder": "Segmenting Anything in the Dark via Depth Perception",
+        "entry_md": "Segmenting Anything in the Dark via Depth Perception/Segmenting Anything in the Dark via Depth Perception.md",
+        "md_sha256": "522fb40f9d6a1aa751fcbdafafe12f0e42608c0f01468da2cab500bdf835f5ed",
+        "bundle_signature": {
+          "md_sha256": "522fb40f9d6a1aa751fcbdafafe12f0e42608c0f01468da2cab500bdf835f5ed",
+          "figures": 5,
+          "tables_structured": 9,
+          "tables_rendered": 9,
+          "formulas_latex": 1,
+          "formulas_image": 1,
+          "word_summary": 1,
+          "total": 26
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Segmenting Anything in the Dark via Depth Perception",
+        "title_source": "h1",
+        "normalized_title": "segmentinganythinginthedarkviadepthperception",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Segmenting Anything in the Dark via Depth Perception.md",
+        "body_sha256": "522fb40f9d6a1aa751fcbdafafe12f0e42608c0f01468da2cab500bdf835f5ed",
+        "resource_counts": {
+          "figures": 5,
+          "tables_structured": 9,
+          "tables_rendered": 9,
+          "formulas_latex": 1,
+          "formulas_image": 1,
+          "word_summary": 1,
+          "total": 26
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000031"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes",
+        "previous_folder_names": [
+          "UMIS-Mine"
+        ],
+        "folder": "UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes",
+        "entry_md": "UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes/UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes.md",
+        "md_sha256": "33a0ec8b48549f9997fe8642fffe797ec2c4cfc7b8739b8f6b33410764c720b1",
+        "bundle_signature": {
+          "md_sha256": "33a0ec8b48549f9997fe8642fffe797ec2c4cfc7b8739b8f6b33410764c720b1",
+          "figures": 7,
+          "tables_structured": 2,
+          "tables_rendered": 2,
+          "formulas_latex": 1,
+          "formulas_image": 5,
+          "word_summary": 1,
+          "total": 18
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "UMIS-Mine: Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes",
+        "title_source": "h1",
+        "normalized_title": "umisminerobustrgbdinstancesegmentationinvisuallydegradedundergroundminescenes",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes.md",
+        "body_sha256": "33a0ec8b48549f9997fe8642fffe797ec2c4cfc7b8739b8f6b33410764c720b1",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 2,
+          "tables_rendered": 2,
+          "formulas_latex": 1,
+          "formulas_image": 5,
+          "word_summary": 1,
+          "total": 18
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000032"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    }
+  ],
+  "duplicate_review": [
+    {
+      "original_path": "D:\\0Project\\origin\\论文\\MMFR-附件\\Tan 等 - 2026 - Towards robust multi-modal semantic segmentation with teacher-student framework and hybrid prototype",
+      "canonical_path": "D:\\0Project\\origin\\论文\\Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillat",
+      "review_path": "D:\\0Project\\origin\\论文_duplicates_review\\Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype__7a72f547",
+      "sha256": "7a72f547f18ea82de0ef7b4ac562cb6632c5b66ccb96dbd1754bf17a7d8b783d",
+      "resource_counts": {
+        "figures": 8,
+        "tables_structured": 4,
+        "tables_rendered": 4,
+        "formulas_latex": 1,
+        "formulas_image": 9,
+        "word_summary": 1,
+        "total": 27
+      },
+      "status": "moved_to_review",
+      "title": "Towards Robust Multi-Modal Semantic Segmentation with Teacher-Student Framework and Hybrid Prototype Distillation",
+      "canonical_lib_id": "LIB000023"
+    }
+  ]
+}

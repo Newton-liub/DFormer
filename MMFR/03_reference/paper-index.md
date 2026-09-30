@@ -4,6 +4,7 @@
 > **日期：** 2026-09-23（创建）。
 > **编号来源：** 沿用 [`MMFR_reference_index_v4_1_2026-09-20.md`](MMFR_reference_index_v4_1_2026-09-20.md) 与 [`MMFR_reference_registry_v4_1_2026-09-20.json`](MMFR_reference_registry_v4_1_2026-09-20.json) 的既有 PR/RE/AI 编号与 MoSA/ANGA 代号。本文件**不新增、不重排、不改写**任何编号；题名、年份、DOI/标识均转抄自该编号总索引或本地全文页眉，未提供的写 `未记录`，不补造。
 > **迁移来源：** 原 `liu-test-exp/MMFR/附件/` 与 `DFormer-archive-20260922/doc/paper/`（含 `补充材料/`、`补充材料2/`）。
+> **现行位置：** 本表的下方物理路径与归档统计是 2026-09-23 整理前快照，**不是当前可访问路径**；请用 [`PAPER_LIBRARY_INDEX.json`](PAPER_LIBRARY_INDEX.json) 的 `auto.library_id`、`auto.entry_md` 和 `auto.previous_folder_names` 找主库正文，人读入口见 [`PAPER_LIBRARY_INDEX.md`](PAPER_LIBRARY_INDEX.md)。原 PR/RE/AI 对应关系与当时的 supplemental / 转写差异说明留作历史证据，不改写论文判断。
 > **边界：** 论文全文与提取产物位于**仓库外** `D:\0Project\origin\论文\`，不纳入 Git。本文件只记录纯文本路径，不表示 Git 仓库包含这些文件。外部代码索引见 [`code-index.md`](code-index.md)。
 
 ## 1. 本地全文归档结构

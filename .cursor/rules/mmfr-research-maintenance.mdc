@@ -37,6 +37,7 @@ alwaysApply: true
 ## 边界
 
 - 论文全文、supplementary 原文件、外部代码仓库副本、checkpoint、dataset、大体积日志与 eval cache 不得放回 `MMFR/`；论文全文统一放在仓库外 `D:\0Project\origin\论文\`，clone 代码统一放在仓库外 `D:\0Project\origin\`。
+- 论文库一级目录一篇论文一个完整 paper bundle，正文以入口 Markdown 为准、表格数值优先 `Tables/*.xlsx`、图用 `Figure/*.jpg`、公式优先 `Formula/*_formula.md` 并用公式图片核对；项目统一通过 `MMFR/03_reference/PAPER_LIBRARY_INDEX.json` 查询实体，`.md` 供浏览。PR/RE/AI 是人工编号而非物理身份，自动工具不得覆盖 `human` 字段；新论文优先用 `human/paper_library.cmd` 接入。
 - MMFR 内只保留 `.md`、`.txt`、小型 `.json`、索引、文献分析、PR/RE/防撞车报告与必要小脚本。
 - `99_review_packet_current/` 是生成产物，不得手工编辑；用 `MMFR/98_tools/rebuild_review_packet.ps1` 按 `00_control/review_profile.json` 重建，重建前先确认包内 canonical Markdown 没有坏链。
 - 不新建额外的 manifest、hash 数据库、profile 类型或复杂审计系统；沿用现有 `review_profile.json`、`packet_manifest.json` 与注册表。

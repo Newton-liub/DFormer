@@ -19,7 +19,8 @@ New Markdown, JSON, TXT, audit, report, manifest, or log files must not be place
 - Package index, file rules, change history, and review profile: `00_control/`.
 - Current blueprint, plans, protocols, and frozen research designs: `01_research/`.
 - Engineering audits, experiment reports, validation, and reproducibility metadata: `02_evidence/`.
-- Reference index/registry, local paper index, local code index, literature audits, provenance, and original source materials: `03_reference/`.
+- Reference index/registry, unified paper library JSON/Markdown index, local paper index, local code index, literature audits, provenance, and original source materials: `03_reference/`.
+- Human-triggered paper bundle maintenance: repository-root `human/paper_library.cmd` (Python implementation alongside it). Paper entities remain outside Git under `D:\0Project\origin\论文\`; one first-level folder holds one intact bundle. Automatic refresh owns only `auto` fields, never `human` fields or historical PR/RE/AI numbering.
 - Local paper full texts and extraction artifacts: repository-external `D:\0Project\origin\论文\`, not part of this package and never committed to Git. `03_reference/paper-index.md` maps paper numbers to those local paths.
 - Superseded files and migration evidence: event-based subdirectories under `90_archive/`.
 - Automation: `98_tools/`.

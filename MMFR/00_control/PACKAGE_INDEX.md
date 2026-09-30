@@ -27,7 +27,7 @@ This package is a maintained evidence library and review-packet source. It is no
 | 最新研究蓝图 | [`01_research/MMFR_research_blueprint_v4_1_2026-09-20.md`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md) |
 | 当前实验结论 | R-OE-lite v2 正式训练已完成 2560/2560 次更新并生成 fixed-final checkpoint，四条件 Quick-Val（单视图 screening）相对 C0 为 `0.00 / +0.01 / +0.01 / +0.01` pp、判定 `inconclusive`，证据见 [`02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md`](../02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md)；执行边界见 [`doc/main/MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md)；v1 正式训练 CUDA OOM 历史报告见 [`02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md`](../02_evidence/report_e1_batch1b_roe_formal_training_attempt_20260924.md)；v1 Gate-B PASS 历史证据见 [`02_evidence/report_e1_batch1b_roe_gateb.md`](../02_evidence/report_e1_batch1b_roe_gateb.md)；Batch 1A Main-Val 描述性分析在 `doc/reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md` |
 | 下一阶段计划 | [`01_research/e1_screening_plan.md`](../01_research/e1_screening_plan.md)、[`01_research/e1_batch1_protocol.md`](../01_research/e1_batch1_protocol.md)、[`01_research/r_oe_lite_design.md`](../01_research/r_oe_lite_design.md) |
-| 相关论文在哪里 | [`03_reference/paper-index.md`](../03_reference/paper-index.md)；本地全文在仓库外 `D:\0Project\origin\论文\` |
+| 相关论文在哪里 | 统一实体见 [`03_reference/PAPER_LIBRARY_INDEX.md`](../03_reference/PAPER_LIBRARY_INDEX.md)（机器索引 `03_reference/PAPER_LIBRARY_INDEX.json`）；既有 PR/RE/AI 编号与本地全文映射见 [`03_reference/paper-index.md`](../03_reference/paper-index.md)。实体在仓库外 `D:\0Project\origin\论文\`，新 bundle 由 `human/paper_library.cmd` 接入 |
 | 相关代码在哪里 | [`03_reference/code-index.md`](../03_reference/code-index.md)；本地 clone 在仓库外 `D:\0Project\origin\` |
 | 当前需要上级审核什么 | [`99_review_packet_current/REVIEW_BRIEF.md`](../99_review_packet_current/REVIEW_BRIEF.md)；实时阶段、授权边界与“待审核事项”始终以实时入口为准 |
 
@@ -73,7 +73,7 @@ MMFR uses two evidence layers:
 - Paper full texts and extraction artifacts (Markdown conversions, extracted figures/tables, supplementary originals) live outside the Git repository, under `D:\0Project\origin\论文\`. They are read-only reference material and are intentionally not committed.
 - Portable conclusions, source identities, provenance, and review evidence remain tracked in this package, primarily under `03_reference/`.
 
-The local files remain readable by tools and AI when they exist on the current machine. Canonical package documents must show local-only paths as plain text rather than portable Markdown links, so a clean Git checkout does not claim that those files are included. `03_reference/paper-index.md` is the mapping from MMFR paper numbers to those local paths.
+The local files remain readable by tools and AI when they exist on the current machine. Canonical package documents must show local-only paths as plain text rather than portable Markdown links, so a clean Git checkout does not claim that those files are included. `03_reference/PAPER_LIBRARY_INDEX.json` is the machine-readable current bundle directory, with `03_reference/PAPER_LIBRARY_INDEX.md` for browsing; `03_reference/paper-index.md` preserves the established PR/RE/AI research numbering and pre-normalization location evidence. New paper bundles enter through `human/paper_library.cmd`, whose refresh may update only automatic metadata and must preserve human fields.
 
 ## Source-material integrity
 

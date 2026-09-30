@@ -21,4 +21,8 @@ R-OE-lite v2 已在 RTX 4090 上完成 2560/2560 次成功更新并生成 fixed-
 
 Batch 1A 十条件、十视图 Main-Val 的 F-lite 相对 C0 未复现四条件单视图 Quick-Val 的优势；事先没有为该批 Main-Val 预注册数值门槛，现有单 seed 描述性结果**不能自行判定 F-lite 去留或 C0 更好**。需要上级决定其后续研究处置；该判断独立于 Batch 1B 的路线选择，不据此自动开放新的训练/评价。证据：[`Main-Val 分析报告`](../reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md)。
 
+## 4. 论文库遗留实体与人工编号归属（待用户确认）
+
+本次已形成 32 条 canonical LIB 记录，DFormerv2 的另一份不同抽取仍在旧目录，正式 supplemental 与 PDF-only 资料也未当成独立论文迁入；不能自动决定哪个抽取更好或是否将 supplemental 作为主 bundle 的附属资源。PR090 两份材料按正文 SHA-256 和主要资源数量一致判为 exact，重复实体已移到 `D:\0Project\origin\论文_duplicates_review\` 而非删除；旧 `paper-index.md` 曾记录两份独立提取字节不同，如需证明所有附属文件相同仍应人工复核，不把简单签名写成逐字节全包相同。RE042、RE053、RE188、RE447 的旧编号—题名对应未经总索引核实，统一索引只记录为 `human.unverified_manual_ids`，未绑定为已确认 `manual_ids`。已知旧归档 `D:\0Project\DFormer-archive-20260922\doc\paper` 当前不可访问，是否恢复来源再补扫需要用户决定。证据与现行位置：[`PAPER_LIBRARY_INDEX.json`](../../MMFR/03_reference/PAPER_LIBRARY_INDEX.json)、[`paper-index.md`](../../MMFR/03_reference/paper-index.md)。这些未决项不改变现有训练/评价授权。
+
 已决定、已执行、失效和历史背景事项只在归档、协议或正式报告中追溯，不再追加到本文件。
