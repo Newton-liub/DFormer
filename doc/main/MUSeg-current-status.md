@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实截至：** 2026-10-01 08:32 UTC。用户已批准 **`fp32-full1280-resume`**：仅A-v1训练的NMF局部FP32，从原完整1280恢复全部训练状态，完成Proposal剩640/Gate640及唯一四条件Quick-Val。当前为 **`precision amendment implemented → minimal CPU checks passed; awaiting committed compatibility check/start`**。原失败、受控重放和三组现场对照证据保留；Gate/Quick-Val仍未开始，无fixed-final或性能结论。最新合同见 [protocol §8](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)，其他真正未决事项见 [开放决策](MUSeg-open-decisions.md)。
+> **事实截至：** 2026-10-01 09:09 UTC。批准的完整1280续训已完成：**Proposal1920/Gate640，skip0，fixed-final已生成**。训练runtime`812507385a1b4b805966799bffb9a13f4704e492`，新合同`5f437c5b470077476f28b8e1ecceddf119cc402045e723f5a1aadbc519c6cc2e`。唯一Quick-Val在第一个样本之前遇到NumPy配置数组比较的工程错误（无实际身份不一致结论），进程已退出，GPU空闲；尚无评价分数。当前为 **`training completed → Quick-Val initialization engineering fix in progress`**。原空评价目录/停止日志保留，做最小精确比较修复后继续同一轮、未消耗样本的评价，不重训或追加预算。最新合同见 [protocol §8](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)，其他真正未决事项见 [开放决策](MUSeg-open-decisions.md)。
 
 ## 当前动作、授权与实际意义
 
@@ -8,7 +8,11 @@ A-v1含Proposal（stage2候选补偿残差）与Gate（每图连续补偿强度�
 
 - 批准范围：先提交修订代码/config并核验固定父身份，再新目录恢复Proposal1280→1920；Gate新optimizer/scaler完成640；仅一次四条件Quick-Val，完成后停止。其他AMP/scaler1024、TF32、结构/loss、batch/种子/逻辑预算不变。
 - 原预检3+3、单次受控重放及三组失败现场对照均已执行结束，**不重复、不增加GPU检查**。无Main-Val、official test、新seed、sweep、追加预算或模型重设计授权。数值/身份错误立即停，保留证据，不自动重试或weights-only续训。
-- 2026-10-01 08:32 UTC已完成训练专用精度标记和固定1280完整恢复入口；定点语法、零forward CPU合同/原恢复边界/训练标记及eval关闭检查通过，普通跨提交恢复仍拒绝。直接diff确认原phase_loss、Proposal/Gate架构与Quick-Val文件未改。新合同SHA **`5f437c5b470077476f28b8e1ecceddf119cc402045e723f5a1aadbc519c6cc2e`**；仅移除新增精度字段后精确匹配原合同SHA。当前准备提交/push，完整显式兼容性CPU检查在代码提交后执行；剩余GPU运行尚未开始。
+- 2026-10-01 08:32 UTC已完成训练专用精度标记和固定1280完整恢复入口；定点语法、零forward CPU合同/原恢复边界/训练标记及eval关闭检查通过，普通跨提交恢复仍拒绝。直接diff确认原phase_loss、Proposal/Gate架构与Quick-Val文件未改。新合同SHA **`5f437c5b470077476f28b8e1ecceddf119cc402045e723f5a1aadbc519c6cc2e`**；仅移除新增精度字段后精确匹配原合同SHA。代码已提交/push，远端直接核验 **`812507385a1b4b805966799bffb9a13f4704e492`**；提交后显式完整兼容性CPU检查PASS，父protocol未改、model/optimizer状态finite。
+- **剩余正式段已完成：** runtime`812507385a1b4b805966799bffb9a13f4704e492`，开始`2026-10-01T08:37:03.420868+00:00`，Python PID56726已退出；输出`cloud/mmfr-av1-formal-fp32-resume1280-v1`，console同名`-console.log`。权威`training-result.json`：Proposal1920/Gate640，skip0，实际本次1280成功更新（保留原前1280），耗时1539.0116258771159s（仅恢复段，不是完整冷启动时间）；Proposal/Gate分别697.9259616411291/837.7544067027047s。
+- 最终`formal/checkpoint/update-2560.pth`，入口记录SHA **`87ec54d10192d3aedc1d6edb864b7b60b94ce66220a748a12f1ca50ca605d336`**；独立CPU复核PASS：同SHA、完整resume/lineage、最终model/optimizer全finite、812个C0张量与source完全一致、Proposal与transition相同；transition SHA`979b99d1928b42d87ce45d38701791279b56ab78e9e2ef015c9dd5f06da4d26a`。原1871坐标在修订轨迹成功，loss0.07739216089248657、finite、scale1024、optimizer_applied；不声称原FP16轨迹等价。
+- **Quick-Val初始化失败，尚未执行任何样本forward：** 09:02:43 UTC开始加载评价模型，在`verify_model_identity`比较配置`norm_mean/norm_std` NumPy数组时，旧`if array != array`引发`ValueError: truth value ... ambiguous`，发生在评价循环之前。根`stopped.json`与console保留，`quickval/`直接Glob无文件。已完成最小修复：数组用精确`np.array_equal`，实际不一致仍抛错；CPU检查已接受相同config并拒绝扰动`norm_mean`，语法/diff通过、零forward。提交后在`cloud/mmfr-av1-formal-fp32-resume1280-v1/quickval-config-equality-fix-v1`接同一轮，不重训、不重评已有样本、不覆盖旧目录。没有将错误当作身份核验PASS。
+- 09:03 UTC直接确认无A-v1训练/评价进程、GPU1MiB/0%；实例未关闭/销毁。checkpoint/dataset/大日志不入Git/MMFR。
 
 ## 已核验输入与准确恢复点
 
@@ -40,6 +44,6 @@ A-v1含Proposal（stage2候选补偿残差）与Gate（每图连续补偿强度�
 
 ## Git、证据与交付边界
 
-当前实现入口`tools/mmfr/av1_train.py`、`tools/mmfr/av1_quickval.py`；原概率BCE已在autocast禁用的FP32中采用相同公式，结构/loss不变。A-v1修订已完成定点静态/CPU核验和直接diff复核，待提交/push后的完整兼容性检查通过才启动GPU；结果验收仍由主代理完成。未运行完整测试、重复Gate-B、额外GPU诊断或其他评价。
+当前实现入口`tools/mmfr/av1_train.py`、`tools/mmfr/av1_quickval.py`；原概率BCE已在autocast禁用的FP32中采用相同公式，结构/loss不变。A-v1修订已完成定点静态/CPU核验和直接diff复核，已提交/push且显式兼容性检查PASS后启动批准的GPU剩余段；结果验收仍由主代理完成。未运行完整测试、重复Gate-B、额外GPU诊断或其他评价。
 
-`MMFR/99_review_packet_current/`仍为以前生成的旧快照；环境无`pwsh`，不能运行既有`MMFR/98_tools/rebuild_review_packet.ps1`，未手工编辑生成产物。最新事实以两份实时文档、protocol §8及既有复现JSON为准。checkpoint/dataset/大日志不入Git/MMFR。下一准确动作是完成数值标记/固定1280恢复入口、最小检查与提交，再启动批准的剩余正式段；本次继续尚未产生训练或评价结果。
+`MMFR/99_review_packet_current/`仍为以前生成的旧快照；环境无`pwsh`，不能运行既有`MMFR/98_tools/rebuild_review_packet.ps1`，未手工编辑生成产物。最新事实以两份实时文档、protocol §8及既有复现JSON为准。checkpoint/dataset/大日志不入Git/MMFR。下一准确动作是提交/push已完成CPU核验的精确配置比较修复，再从同一fixed-final执行唯一轮四条件Quick-Val；训练已完成，禁止重新启动训练或追加预算。

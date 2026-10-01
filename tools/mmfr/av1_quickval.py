@@ -176,7 +176,14 @@ def verify_model_identity(
     if getattr(av1_model, "av1", None) is None:
         raise RuntimeError("the fixed-final checkpoint did not build an enabled A-v1 module")
     for attribute in ("num_classes", "background", "class_names", "norm_mean", "norm_std"):
-        if getattr(source_config, attribute, None) != getattr(av1_config, attribute, None):
+        source_value = getattr(source_config, attribute, None)
+        av1_value = getattr(av1_config, attribute, None)
+        # Normalization fields are NumPy arrays; their elementwise != cannot
+        # serve as a scalar guard. Preserve exact equality and fail on mismatch.
+        equal = (np.array_equal(source_value, av1_value)
+                 if isinstance(source_value, np.ndarray) or isinstance(av1_value, np.ndarray)
+                 else source_value == av1_value)
+        if not equal:
             raise RuntimeError(f"source C0 and A-v1 config differ on {attribute}")
 
     source_state = source_model.state_dict()
