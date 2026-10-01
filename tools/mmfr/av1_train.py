@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from contextlib import nullcontext
 import datetime as dt
 import importlib
 import json
@@ -222,7 +223,58 @@ def restore_model_with_source_guard(model, state):
     model.load_state_dict(saved, strict=True)
 
 
-def run_phase(model, config, identity, output, phase, *, preflight, resume=None):
+def prepare_diagnostic(reference_dir, resume_path, state, identity, config):
+    """One explicitly authorized replay; ordinary resume remains same-commit only."""
+    original_commit = "91c7f96d3768fde0f478e03a4ccda8c6f19368dd"
+    expected_sha = "05714d165925c4549aa1111564bbca7d8b8d9896d337c5b68f0b7bb98590564d"
+    original = json.loads((reference_dir / "identity.json").read_text())
+    stopped = json.loads((reference_dir / "formal/proposal-stopped.json").read_text())
+    parent_identity = state.get("protocol", {})
+    if (parent_identity.get("git_commit") != original_commit
+            or original.get("git_commit") != original_commit
+            or file_sha256(resume_path) != expected_sha
+            or Path(stopped.get("latest_recovery", "")).resolve() != resume_path.resolve()
+            or stopped.get("attempted") != 1871 or stopped.get("completed") != 1870
+            or stopped.get("skipped") != 0 or stopped.get("status") != "stopped"
+            or "missing/nonfinite active gradient: av1.proposal.0.weight" not in stopped.get("exception", "")):
+        raise RuntimeError("diagnostic is restricted to the verified original 1280/1871 failure")
+    if {k: v for k, v in identity.items() if k != "git_commit"} != {
+            k: v for k, v in parent_identity.items() if k != "git_commit"}:
+        raise RuntimeError("diagnostic input/contract identity changed")
+    if any(original.get(k) != v for k, v in parent_identity.items()):
+        raise RuntimeError("original run and recovery identity disagree")
+    phase, n = validate_resume(state, parent_identity, config)
+    if (phase, n) != ("proposal", 1280):
+        raise RuntimeError("diagnostic boundary changed")
+    allowed = {"tools/mmfr/av1_train.py", "doc/main/MUSeg-current-status.md",
+               "doc/main/MUSeg-open-decisions.md", "MMFR/02_evidence/reproducibility_current.json"}
+    changed = set(subprocess.check_output(
+        ["git", "diff", "--name-only", original_commit, identity["git_commit"]], cwd=ROOT, text=True).splitlines())
+    if not changed <= allowed or subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=ROOT, text=True).strip():
+        raise RuntimeError("diagnostic permits only committed runner instrumentation and live evidence changes")
+    fields = ("phase", "epoch", "iteration", "attempted", "completed", "skipped", "global_completed",
+              "lr", "loss", "finite", "scale_before", "scale_after", "optimizer_applied",
+              "batch_size", "ce", "clean_consistency")
+    expected = {}
+    with (reference_dir / "formal/proposal-steps.jsonl").open() as log:
+        for line in log:
+            record = json.loads(line)
+            k = record["completed"]
+            if 1280 < k <= 1870:
+                if k in expected or record["attempted"] != k or record["skipped"] != 0:
+                    raise RuntimeError("original replay reference is not a unique successful sequence")
+                expected[k] = {key: record[key] for key in fields}
+    if set(expected) != set(range(1281, 1871)):
+        raise RuntimeError("original replay reference is incomplete")
+    return {"parent_identity": parent_identity, "parent_checkpoint": str(resume_path.resolve()),
+            "parent_checkpoint_sha256": expected_sha, "runtime_commit": identity["git_commit"],
+            "changed_files": sorted(changed), "stop_attempt": 1871,
+            "expected": expected, "matched_steps": 0,
+            "compatibility_scope": "explicit diagnostic-only parent identity; math/RNG/data unchanged; normal resume guard untouched"}
+
+
+def run_phase(model, config, identity, output, phase, *, preflight, resume=None, diagnostic=None):
     from utils.dataloader.dataloader import get_train_loader
     from utils.dataloader.RGBXDataset import RGBXDataset
     optimizer = T.configure_phase(model, phase, lr=3e-5, weight_decay=0.01)
@@ -231,7 +283,8 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None)
                                       backoff_factor=s["backoff_factor"], growth_interval=s["growth_interval"])
     completed = 0
     if resume is not None:
-        phase_restored, completed = validate_resume(resume, identity, config)
+        phase_restored, completed = validate_resume(
+            resume, diagnostic["parent_identity"] if diagnostic else identity, config)
         if phase_restored != phase:
             raise RuntimeError("resume phase mismatch")
         restore_model_with_source_guard(model, resume)
@@ -246,13 +299,17 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None)
     if sampler is not None or len(loader) != 128 or loader.persistent_workers:
         raise RuntimeError("unexpected data/sampler contract")
     total = config.mmfr_av1["phase_successful_updates"][phase]
-    limit = 3 if preflight else total
+    limit = diagnostic["stop_attempt"] if diagnostic else (3 if preflight else total)
     attempted, skipped = completed, 0
     torch.cuda.reset_peak_memory_stats()
     phase_started = time.perf_counter()
     records = []
     latest_recovery = None
     progress = {"phase": phase, "preflight": preflight, "git_commit": identity["git_commit"]}
+    failed_site = None
+    if diagnostic:
+        progress.update(diagnostic_only=True, parent_commit=diagnostic["parent_identity"]["git_commit"],
+                        stop_attempt=diagnostic["stop_attempt"])
     log_path = output / f"{phase}-steps.jsonl"
     try:
         with log_path.open("x", buffering=1) as log:
@@ -278,11 +335,26 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None)
                     update_started = time.perf_counter()
                     optimizer.zero_grad(set_to_none=True)
                     before = float(scaler.get_scale())
-                    with torch.autocast(device_type="cuda", dtype=torch.float16):
-                        loss, details = T.phase_loss(model, batch, labels, phase=phase,
-                                                     margin=0.01, lambda_clean=0.1)
-                    scaler.scale(loss).backward()
+                    diagnose_site = diagnostic is not None and attempted == diagnostic["stop_attempt"]
+                    if diagnose_site:
+                        failed_site = {"rng_before_forward": capture_rng_state(), "backward_completed": False,
+                                       "unscale_completed": False, "batch": batch,
+                                       "labels": labels, "sample_ids": list(data["fn"])}
+                    # Instrument only the original failure coordinate; no extra forward/backward.
+                    with torch.autograd.detect_anomaly(check_nan=True) if diagnose_site else nullcontext():
+                        with torch.autocast(device_type="cuda", dtype=torch.float16):
+                            loss, details = T.phase_loss(model, batch, labels, phase=phase,
+                                                         margin=0.01, lambda_clean=0.1)
+                        if diagnose_site:
+                            failed_site.update(loss=float(loss.detach()),
+                                               loss_details={key: float(details[key]) for key in
+                                                             ("ce", "clean_consistency")})
+                        scaler.scale(loss).backward()
+                        if diagnose_site:
+                            failed_site["backward_completed"] = True
                     scaler.unscale_(optimizer)
+                    if diagnose_site:
+                        failed_site["unscale_completed"] = True
                     for name, p in model.named_parameters():
                         if p.requires_grad and (p.grad is None or not bool(torch.isfinite(p.grad).all())):
                             raise RuntimeError(f"missing/nonfinite active gradient: {name}")
@@ -312,6 +384,15 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None)
                         record.update(utility=u.tolist(), positive=int((u > 0.01).sum()),
                                       negative=int((u < -0.01).sum()), ambiguous=int((u.abs() <= 0.01).sum()),
                                       gate=details["gate"].float().cpu().tolist())
+                    if diagnostic and completed in diagnostic["expected"]:
+                        expected = diagnostic["expected"][completed]
+                        actual = {key: record[key] for key in expected}
+                        if actual != expected:
+                            atomic_write_json(output / "diagnostic-replay-mismatch.json",
+                                              {"completed": completed, "expected": expected, "actual": actual})
+                            raise RuntimeError("diagnostic replay diverged from original successful record; stop")
+                        diagnostic["matched_steps"] += 1
+                        progress["matched_reference_steps"] = diagnostic["matched_steps"]
                     log.write(json.dumps(record) + "\n")
                     print(json.dumps(record), flush=True)
                     progress.update(attempted=attempted, completed=completed, skipped=skipped,
@@ -322,11 +403,11 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None)
                         records.append(record)
                     del batch, labels, data, loss, details
                     wall_started = time.perf_counter()
-                    if preflight and completed == 3:
-                        break  # Each bounded short phase stops here, never a fourth update.
+                    if (preflight and completed == 3) or (diagnostic and attempted >= limit):
+                        break  # Bounded preflight/diagnostic never performs an extra update.
                 # Full formal epochs exhaust the iterator before checkpointing: no live worker
                 # or prefetch state is required at the next-epoch restart boundary.
-                if not preflight and completed % 640 == 0:
+                if not preflight and not diagnostic and completed % 640 == 0:
                     check_frozen(model, phase, reference)
                     name = ("proposal-update-1920.pth" if phase == "proposal" and completed == 1920
                             else f"update-{completed + (1920 if phase == 'gate' else 0)}.pth")
@@ -337,12 +418,49 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None)
             if completed != limit or attempted != completed or skipped:
                 raise RuntimeError("successful-update budget not exactly completed")
     except BaseException:
+        failure_trace = traceback.format_exc()
+        if diagnostic:
+            grad_summary = {}
+            for name, parameter in model.named_parameters():
+                if parameter.requires_grad:
+                    grad = parameter.grad
+                    grad_summary[name] = {"missing": grad is None}
+                    if grad is not None:
+                        grad_summary[name].update(dtype=str(grad.dtype),
+                                                  nan_count=int(torch.isnan(grad).sum()),
+                                                  inf_count=int(torch.isinf(grad).sum()))
+            artifact = None
+            if failed_site is not None:
+                artifact = output / "diagnostic-failure-state.pth"
+                atomic_save_checkpoint({"artifact_role": "diagnostic-only-nonresumable-not-performance-candidate",
+                                        "model": {k: v.detach().cpu() for k, v in model.state_dict().items()},
+                                        "batch": {k: v.detach().cpu() if isinstance(v, torch.Tensor) else v
+                                                  for k, v in failed_site["batch"].items()},
+                                        "labels": failed_site["labels"].detach().cpu(),
+                                        "rng_before_forward": failed_site["rng_before_forward"],
+                                        "sample_ids": failed_site["sample_ids"],
+                                        "parent_checkpoint_sha256": diagnostic["parent_checkpoint_sha256"],
+                                        "runtime_commit": identity["git_commit"],
+                                        "attempted": attempted, "completed": completed}, artifact)
+            atomic_write_json(output / "diagnostic-failure.json",
+                              {"diagnostic_only": True, "exception": failure_trace,
+                               "attempted": attempted, "completed": completed,
+                               "matched_reference_steps": diagnostic["matched_steps"],
+                               "loss": failed_site.get("loss") if failed_site else None,
+                               "loss_details": failed_site.get("loss_details") if failed_site else None,
+                               "sample_ids": failed_site.get("sample_ids") if failed_site else None,
+                               "backward_completed": failed_site.get("backward_completed") if failed_site else None,
+                               "unscale_completed": failed_site.get("unscale_completed") if failed_site else None,
+                               "active_gradients": grad_summary,
+                               "failure_state_artifact": str(artifact) if artifact else None,
+                               "no_contract_change": True, "no_gate_or_evaluation": True})
         progress.update(status="stopped", attempted=attempted, completed=completed, skipped=skipped,
-                        latest_recovery=latest_recovery, exception=traceback.format_exc(),
+                        latest_recovery=latest_recovery, exception=failure_trace,
                         recovery_policy="only last completed 640-update full checkpoint; no contaminated-state resume")
         atomic_write_json(output / f"{phase}-stopped.json", progress)
         raise
-    result = {**progress, "status": "passed" if preflight else "completed",
+    result = {**progress, "status": ("diagnostic-limit-reached-no-error" if diagnostic else
+                                     "passed" if preflight else "completed"),
               "attempted": attempted, "completed": completed, "skipped": skipped,
               "elapsed_seconds": time.perf_counter() - phase_started,
               "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
@@ -372,10 +490,11 @@ def run_quickval(config, identity, output, final):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check-inputs", action="store_true", help="identity only; no model or dataset workers")
-    parser.add_argument("--execute", choices=("preflight", "all"), help="explicit GPU start; all continues through Quick-Val")
+    parser.add_argument("--execute", choices=("preflight", "all", "diagnose"), help="explicit GPU start; diagnose never starts Gate/Quick-Val")
     parser.add_argument("--source-checkpoint", type=Path)
     parser.add_argument("--output-dir", type=Path)
-    parser.add_argument("--resume", type=Path, help="formal full checkpoint only; same commit/contract, new output directory")
+    parser.add_argument("--resume", type=Path, help="full checkpoint only; ordinary formal resume requires same commit")
+    parser.add_argument("--diagnostic-reference-dir", type=Path, help="original stopped run; diagnose only")
     args = parser.parse_args(argv)
     config = copy.deepcopy(importlib.import_module(CONFIG).C)
     if args.source_checkpoint:
@@ -389,8 +508,12 @@ def main(argv=None):
         return 0
     if not args.execute or not args.output_dir:
         parser.error("GPU execution requires --execute and --output-dir")
-    if args.resume and args.execute != "all":
-        parser.error("resume is formal-only")
+    if args.resume and args.execute not in ("all", "diagnose"):
+        parser.error("resume requires all or bounded diagnose")
+    if args.execute == "diagnose" and (not args.resume or not args.diagnostic_reference_dir):
+        parser.error("diagnose requires the original full recovery and stopped-run reference")
+    if args.diagnostic_reference_dir and args.execute != "diagnose":
+        parser.error("diagnostic reference is forbidden for ordinary training/resume")
     if not torch.cuda.is_available() or "4090" not in torch.cuda.get_device_name(0):
         raise RuntimeError("authorized existing RTX 4090 required; no CPU fallback")
     assert_committed()
@@ -407,11 +530,18 @@ def main(argv=None):
     started = time.perf_counter()
     try:
         resume = None
+        diagnostic = None
         if args.resume:
             resume = torch.load(args.resume, map_location="cpu", weights_only=False)
-            resume_phase, resume_n = validate_resume(resume, identity, config)
-            if resume_phase == "gate" and resume_n == 640:
-                raise RuntimeError("formal training already complete; refuse duplicate Quick-Val via resume")
+            if args.execute == "diagnose":
+                diagnostic = prepare_diagnostic(args.diagnostic_reference_dir.resolve(), args.resume,
+                                                resume, identity, config)
+                atomic_write_json(output / "diagnostic-compatibility.json",
+                                  {k: v for k, v in diagnostic.items() if k != "expected"})
+            else:
+                resume_phase, resume_n = validate_resume(resume, identity, config)
+                if resume_phase == "gate" and resume_n == 640:
+                    raise RuntimeError("formal training already complete; refuse duplicate Quick-Val via resume")
         else:
             model, _ = build_model(config, identity)
             preflight = output / "preflight"
@@ -426,6 +556,11 @@ def main(argv=None):
         model, load_info = build_model(config, identity)  # Discard every preflight tensor, draw and update.
         formal = output / "formal"
         formal.mkdir()
+        if diagnostic:
+            run_phase(model, config, identity, formal, "proposal", preflight=False,
+                      resume=resume, diagnostic=diagnostic)
+            print("Bounded diagnostic reached attempt1871 without error; no Gate/Quick-Val or formal completion claim", flush=True)
+            return 0
         results = {}
         if resume is None or resume_phase == "proposal":
             results["proposal"] = run_phase(model, config, identity, formal, "proposal", preflight=False, resume=resume)
