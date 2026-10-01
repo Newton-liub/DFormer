@@ -1,6 +1,6 @@
 ﻿{
   "schema_version": "mmfr-package-reproducibility-v2",
-  "recorded_at_utc": "2026-09-30T15:49:45Z",
+  "recorded_at_utc": "2026-10-01T04:25:14Z",
   "package_name": "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
   "package_layout": "in-repository-restored-package",
   "active_review_profile": "mmfr-a-v1-action-utility-gateb",
@@ -10,12 +10,12 @@
   "authoritative_open_decisions": "../../doc/main/MUSeg-open-decisions.md",
   "git": {
     "branch": "perf/mmfr-a2-v3-pipeline-opt1",
-    "commit": "e26d670e279970ecb8907aef1de470e992be500e",
+    "commit": "884ea1d2b9b5b08be30b53218f4c8feffab393e0",
     "tracking_ref": "origin/perf/mmfr-a2-v3-pipeline-opt1",
-    "ahead_of_local_tracking_ref": 2,
+    "ahead_of_local_tracking_ref": 0,
     "behind_local_tracking_ref": 0,
-    "workspace_dirty": true,
-    "package_tracking_state": "complete-local-closeout-preparing-for-authorized-origin-push; git object records observation snapshot, code hashes bind unchanged e26d670 runtime baseline"
+    "workspace_dirty": false,
+    "package_tracking_state": "verified-complete-snapshot-pushed-and-clean-before-receipt; git object is observed snapshot, not containing receipt commit; runtime/config hashes remain the unchanged e26d670 baseline"
   },
   "external_code": {
     "root": "D:\\0Project\\origin",
@@ -88,8 +88,8 @@
     "formal_training_started": false,
     "cloud_accessed_this_round": false,
     "validation_run_this_round": false,
-    "git_pushed_this_round": false,
-    "commit_receipt": "e26d670e279970ecb8907aef1de470e992be500e; full SHA recorded after the sole local commit, no amend or push"
+    "git_pushed_this_round": true,
+    "commit_receipt": "884ea1d2b9b5b08be30b53218f4c8feffab393e0 complete snapshot pushed to origin same branch and ls-remote verified; subsequent documentation receipt references this observed snapshot rather than its own SHA"
   },
   "migration_evidence": {
     "pre_migration_manifest": "90_archive/2026-09-21_directory_simplification/pre_migration_manifest.json",

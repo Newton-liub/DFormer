@@ -3,12 +3,12 @@
     "profile_schema_version":  1,
     "profile":  "mmfr-a-v1-action-utility-gateb",
     "review_level":  "L1",
-    "generation_id":  "23499c4a0a8183389c355411a721294df4fd6b180332b7b6cd4e8ce451e846c1",
+    "generation_id":  "56ccba1372419255dc7aca625a0cf63e1d55b312765464fff13c28f1aea188b7",
     "deterministic_identity":  "sha256(profile identity + canonical input hashes + git commit); no wall-clock timestamp",
     "source_package":  "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
     "git":  {
                 "branch":  "perf/mmfr-a2-v3-pipeline-opt1",
-                "commit":  "e26d670e279970ecb8907aef1de470e992be500e",
+                "commit":  "884ea1d2b9b5b08be30b53218f4c8feffab393e0",
                 "workspace_dirty":  true
             },
     "authoritative_status":  {
@@ -23,7 +23,7 @@
                       "role":  "generated_review_entry",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "c226928d4e2fa8d6316bdec87f77b92094991f88c9a5c3f2136159f03e381f13",
+                      "packet_sha256":  "f7808e78a21b8dec4dcd4db6ca6abc3dd58299456fabd481fbfbccb4fe6000e7",
                       "bytes":  5337,
                       "transform":  "generated_from_profile",
                       "input_sources":  [
@@ -63,7 +63,7 @@
                       "role":  "generated_evidence_summary",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "3e6da0c50662b483e9b821c64784ef09db115a8891adc1f8dccc32540013548e",
+                      "packet_sha256":  "444070ad38447e833e590c169779eb269d10aca1807e15d82a84ad7839cac29c",
                       "bytes":  2834,
                       "transform":  "generated_from_canonical_sources",
                       "input_sources":  [
@@ -89,7 +89,7 @@
                                             },
                                             {
                                                 "path":  "02_evidence/reproducibility_current.json",
-                                                "sha256":  "ba12ea33d93e1b271285899a6bf8cac962831dcbe17e5417d66df0b38ddcd291"
+                                                "sha256":  "8bab036301079b077c79ac2143ced5447afeb190736546ac2e6d916219d51908"
                                             }
                                         ]
                   },
@@ -132,8 +132,8 @@
                              },
                              {
                                  "path":  "02_evidence/reproducibility_current.json",
-                                 "sha256":  "ba12ea33d93e1b271285899a6bf8cac962831dcbe17e5417d66df0b38ddcd291",
-                                 "bytes":  5946
+                                 "sha256":  "8bab036301079b077c79ac2143ced5447afeb190736546ac2e6d916219d51908",
+                                 "bytes":  6072
                              }
                          ],
     "hard_exclusions":  [

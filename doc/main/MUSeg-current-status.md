@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实截至：** 2026-10-01 本地完整 Git 收口与云端连续执行授权。当前为 **`A-v1 Gate-B PASS; formal contract frozen; cloud preflight → formal training → four-condition Quick-Val authorized; local snapshot preparing for push`**。本会话只提交、推送和整理指令；尚未登录云端、运行模型、训练或评价。执行口径见 [A-v1 protocol](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)，仍开放的选择见 [开放决策](MUSeg-open-decisions.md)。
+> **事实截至：** 2026-10-01 本地完整 Git 收口与云端连续执行授权。当前为 **`A-v1 Gate-B PASS; formal contract frozen; cloud preflight → formal training → four-condition Quick-Val authorized; complete local snapshot committed and pushed`**。本会话只提交、推送和整理指令；尚未登录云端、运行模型、训练或评价。执行口径见 [A-v1 protocol](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)，仍开放的选择见 [开放决策](MUSeg-open-decisions.md)。
 
 ## 当前阶段与实际意义
 
@@ -37,7 +37,8 @@
 
 - 分支`perf/mmfr-a2-v3-pipeline-opt1`；目标远端`origin`（`https://github.com/Newton-liub/DFormer.git`）同名分支；用户本次明确授权普通push，不force、不改写历史、不推upstream或其他remote。
 - 本次纳入最新状态/审核材料、论文库报告、历史0.0.15 Canvas及对应索引；历史Canvas只是历史展示，不作当前实验口径。无内容diff的状态标记随暂存刷新，不人为修改代码。历史归档换行噪声不作为新成果提交。
-- 当前正在准备完整收口提交及推送；实际SHA/远端结果在Git操作后核验，再记录已发生事实。最新HEAD由Git读取，不在文件里预造自身SHA。
+- 完整收口快照 **`884ea1d2b9b5b08be30b53218f4c8feffab393e0`**（`chore(mmfr): close out workspace and authorize cloud results run`，14个文件）已成功推送至origin同名分支；直接`ls-remote`核验远端SHA相同，推送后工作区clean、无ahead/behind。原先两笔本地提交亦随普通push同步。此为2026-10-01 04:25 UTC前直接确认的事实，不代表云端已拉取。
+- 本文件及复现信息现在记录上述已确认快照，随一笔文档回执提交同步；回执不改变运行代码或训练合同。为保持最终工作区干净，不回填回执自身SHA；最新HEAD直接从Git读取。审核包Git字段是生成时快照，不要求它等于包含该包的新提交。
 - 本地实际检查仅限定Git差异、文本/JSON内容和既有审核包生成；未运行项目测试、GPU、训练、Val或云端，因为本次只交付版本与执行指令。
 - 下一恢复点：云端先读取本文件和protocol §7，确认同步版本后实现入口并按上述授权链执行；代码/config里的2026-09-30未授权保护字段需由新入口显式落实本次授权，test禁用保持不变。
 

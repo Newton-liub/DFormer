@@ -1,7 +1,7 @@
 ﻿# Evidence summary
 
 - Profile: `mmfr-a-v1-action-utility-gateb`
-- Generation identity: `23499c4a0a8183389c355411a721294df4fd6b180332b7b6cd4e8ce451e846c1`
+- Generation identity: `56ccba1372419255dc7aca625a0cf63e1d55b312765464fff13c28f1aea188b7`
 - Scope: review-relevant conclusions extracted from canonical sources; canonical files remain authoritative.
 
 ## Original Gate-B evidence remains PASS
@@ -22,7 +22,7 @@
 - Current relevance: Defines the bounded result-oriented cloud task; obsolete authorization in historical reports is not current permission.
 - Canonical sources:
   - `01_research/mmfr_a_v1_action_utility_protocol.md` - SHA-256 `c3b7f4e4bfa0e6bda3d81061153f28b67c94735158efec46f20db29f9ec9d5e9`
-  - `02_evidence/reproducibility_current.json` - SHA-256 `ba12ea33d93e1b271285899a6bf8cac962831dcbe17e5417d66df0b38ddcd291`
+  - `02_evidence/reproducibility_current.json` - SHA-256 `8bab036301079b077c79ac2143ced5447afeb190736546ac2e6d916219d51908`
 - Key conclusions:
   - Proposal1920/Gate640, existing seeds and fixed-final unchanged.
   - Both three-update preflights must pass; formal initialization discards preflight state.
@@ -33,7 +33,7 @@
 - Status: Runtime baseline unchanged; full local commit/push authorized
 - Current relevance: Runtime and generation snapshots are recorded without repeatedly chasing the self-referential latest commit.
 - Canonical sources:
-  - `02_evidence/reproducibility_current.json` - SHA-256 `ba12ea33d93e1b271285899a6bf8cac962831dcbe17e5417d66df0b38ddcd291`
+  - `02_evidence/reproducibility_current.json` - SHA-256 `8bab036301079b077c79ac2143ced5447afeb190736546ac2e6d916219d51908`
   - `01_research/mmfr_a_v1_action_utility_protocol.md` - SHA-256 `c3b7f4e4bfa0e6bda3d81061153f28b67c94735158efec46f20db29f9ec9d5e9`
 - Key conclusions:
   - Original Gate-B JSON SHA-256 bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf remains historical identity.
