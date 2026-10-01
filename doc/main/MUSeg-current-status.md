@@ -1,48 +1,47 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实截至：** 2026-09-30 A-v1 正式训练前本地收口。当前为 **`A-v1 Gate-B PASS; formal training contract frozen; local Git handoff pending; waiting for cloud 4090 full-resolution Proposal/Gate 3-update preflight`**。本轮仅本地合同、身份核验与Git准备；没有新模型执行、训练、Quick-Val/Main-Val、official test、云端操作或push。执行选择见 [开放决策](MUSeg-open-decisions.md)。
+> **事实截至：** 2026-10-01 本地完整 Git 收口与云端连续执行授权。当前为 **`A-v1 Gate-B PASS; formal contract frozen; cloud preflight → formal training → four-condition Quick-Val authorized; local snapshot preparing for push`**。本会话只提交、推送和整理指令；尚未登录云端、运行模型、训练或评价。执行口径见 [A-v1 protocol](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)，仍开放的选择见 [开放决策](MUSeg-open-decisions.md)。
 
 ## 当前阶段与实际意义
 
-**A-v1 固定实现和原 Gate-B 工程资格保持不变；第一轮正式合同、四条件筛选线和4090两阶段各3次成功更新的短预检边界已冻结。** MMFR 是多形式模态失效与可靠性研究；Gate-B 是训练前工程资格检查，Proposal 是补偿残差动作，Gate 是每图动作强度选择器。**大白话：** 下一次运行该做多少、用什么参数、什么时候停已经写清，但当前没有训练结果，也不能说4090一定容纳batch10。
+用户于本会话明确确认：**提交全部需要保留的本地改动并推送；云端实现必要入口，Proposal/Gate 各最多3次更新预检通过后，连续执行1920+640次正式训练及唯一四条件 Quick-Val，完成后停止。** Proposal 是补偿残差分支，Gate 是每图补偿强度选择器，Quick-Val 是小范围开发集筛选。**大白话：** 不再每一步都等待重复授权，但不能跳过容量预检，也不能擅自扩大实验或改变冻结合同。旧文档中的“正式训练未授权”和“预检后等待授权”属于2026-09-30历史边界，已被本次明确授权替代。
 
-权威合同：[A-v1 protocol（含Cloud handoff）](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)；工程历史与本轮补充：[Gate-B报告§7](../../MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)；原始证据：[Gate-B JSON](../../MMFR/02_evidence/mmfr_a_v1_gateb.json)；身份：[现行复现信息](../../MMFR/02_evidence/reproducibility_current.json)。[设计报告§9](../reports/2026-09-30-mmfr-next-generation-research-design.md)记录后续冻结合同，原设计历史不替代本协议。
+## 已核验事实与身份
 
-## 固定身份与直接核验
+- A-v1 identity：`MMFR-A-v1-action-utility-v1`；run：`MMFR-A-v1-action-utility-v1-formal-v1`；config：`local_configs.MUSeg.DFormerv2_S_MMFR_AV1`。
+- 现有运行代码基线：`e26d670e279970ecb8907aef1de470e992be500e`。本次直接检查5个关键代码/config文件相对HEAD无内容差异；本地没有实现新的runner/evaluator。只有阶段接口，云端需补齐全尺寸预检/正式训练和A-v1评价入口，不能直接套旧E1训练命令。
+- C0 fixed-final SHA-256：`ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`；原Gate-B JSON SHA-256：`bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf`。沿用2026-09-30直接核验结果，本次不重复计算大权重hash、不重跑GPU资格检查。
+- 原Gate-B仅为synthetic B1/64×64资格证据，不代表全尺寸容量、方法收益或论文创新性。4090 batch10仍待预检。原始证据及历史结果保持不变；历史pre-A-v1归档仅换行差异已恢复到HEAD原字节。
+- config的本地CRLF/Git LF哈希区别及5个Git代码hash仍见 [复现信息](../../MMFR/02_evidence/reproducibility_current.json)。后续有实质代码修复时记录新提交和影响，不要求每次文档修改都刷新全部文件hash。
+- official test保持 **`sealed_unread`**；A-v1没有训练或评价结果。
 
-- Identity **`MMFR-A-v1-action-utility-v1`**；run name `MMFR-A-v1-action-utility-v1-formal-v1`；config import `local_configs.MUSeg.DFormerv2_S_MMFR_AV1`，不复用旧E1运行身份。
-- C0 fixed-final SHA-256 本轮直接复算为 **`ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`**；本地source路径在protocol。checkpoint只读取哈希、不改字节、不纳入Git。
-- frozen C0、stage index2、256channels、Proposal256→32→256+DWConv、sample-level连续gate、Proposal→Gate、off/full/learned、paired off/full utility及observed-only gate边界全部不变。
-- 收口开始时五个关键文件hash与原Gate-B全部一致；本轮只改正式config，`models/mmfr_av1.py`、`models/builder.py`、`utils/mmfr_av1_training.py`、`tools/mmfr/av1_gateb.py`维持原字节。正式config SHA **`a868bc11e9aa0b950407ae4e0c5fd47fb6b298b81ba7b4a6e54be66f8da56319`**，与原Gate-B config版本明确区分。
-- 本地正式config为既有CRLF哈希；Git LF版本SHA为 **`329ac9fd15e2f09102350011bdf2b8b1afcdbad951bf6c96c844ca4b9b641f03`**。5个Git LF代码hash记在既有复现JSON，运行代码内容保持原实现；A-v1证据/hash绑定审核sources/生成包与历史快照定点设 `-text`，保证source/packet hash及原证据字节入Git不变。
-- 原Gate-B证据SHA仍为 **`bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf`**，必要工程checks全部PASS；没有重跑。原始范围是synthetic B1/64×64、8forward/2one-step update，不能推断全尺寸训练容量或性能。
-- 正式config在 `D:\2Env\anaconda\envs\df2\python.exe -B` 可import，冻结参数/身份/禁用Val与official-test字段断言PASS，无model/dataset/GPU调用；定点config静态诊断无问题。旧E1 protocol/evaluator与v3 corruption代码在Git中无内容差异。official test保持 **`sealed_unread`**。
+## 本次云端执行授权
 
-## 第一轮正式合同（冻结，不等于授权执行）
+1. 在用户指定的现有RTX4090环境同步本轮提交；只核对执行版本、真实train-dev路径/样本划分及C0权重身份等必要前提。不自行新建付费实例或扩大资源。
+2. 复用已有阶段接口、数据/损坏生成和评价工具，补齐最薄执行入口。只做覆盖新入口风险的最小检查；无需新测试框架、全仓扫描、完整测试套件、文献检索、重复Gate-B或benchmark。
+3. Proposal最多3次成功更新；正常后Gate最多3次，使用同一预检Proposal权重。每阶段短运行到上限即退出，记录显存、时间、loss、finite/scaler skip；Gate另报utility正/负/模糊计数。两阶段通过后，**本次已授权自动继续正式训练**，无需再等待重复确认。
+4. 从原C0及冻结初始化/种子干净开始正式训练，预检权重和步数不计正式预算。Proposal1920/Gate640；固定batch10、480×640、workers8、accumulation1、AMP fp16/TF32 on；margin0.01、lambda_clean0.1、AdamW LR3e-5/WD0.01、各阶段独立128-update warmup/poly0.9。其余以protocol为准。
+5. Proposal1920保存`proposal-update-1920.pth`，Gate使用同一Proposal权重；全局2560保存唯一`update-2560.pth`；每640次成功更新保存完整恢复状态。只因工程/数值/身份/基础设施错误或无法解释的明显loss异常停止，不以utility或gate分布提前终止。
+6. 正式成功后，仅对同一fixed-final执行一次四条件Quick-Val，off/full/learned同输入、配对随机状态；318 val-dev、original-full、scale1/no flip、FP32/TF32 off、eval seed2026091401/reset-per-unit。条件为clean、entire_missing@1.0、spatial_dropout@0.75、misalignment@0.75。评价薄入口需定点确认输入、随机回放和指标一致后再产生结果，不额外跑整套资格实验。
+7. 汇总三行为每条件mIoU、hard平均、相对matched off差值、gate mean/median及冻结筛选结论。继续线为learned hard增益>=+0.50pp、clean>=−0.20pp、hard严格优于full；pp为百分点。只作单seed筛选，不宣称统计显著性。完成后停止；Main-Val、official test、新seed、调参、追加训练均未授权。
 
-- Proposal **1920**、Gate **640**、总计 **2560 successful optimizer updates**；GradScaler skip不计更新，发生后停止回报。只有工程/数值/身份/基础设施错误或无法解释的明显loss异常可以停止；不新增utility early-stop，不因gate分布不好看停，不通过val-dev延长预算。
-- margin **0.01 per-image mean CE difference**；lambda_clean **0.1**两阶段一致；AdamW新branch peak LR **3e-5**、WD **0.01**、现有bias/norm no-decay。是用户预冻结研究/工程起点，不宣称最佳或来自val-dev调参。
-- 每阶段独立optimizer/scaler、128次成功更新linear warmup、poly0.9，阶段末LR归零；train/data seed772961337，initialization2026093000；phase corruption seeds **2026093001/2026093002**；p_clean **0.25**；六类既有Depth故障。现有A-v1接口使用phase-local v3 curriculum0..1，数据坐标15×128/5×128，不静默复用E1的0.84..0.88 remap。
-- 目标batch **10**、真实crop **480×640**、workers **8**、accumulation **1**、singleGPU/DDP off；AMP fp16 **on**、TF32 matmul/cuDNN **on**（显式沿用E1已核验实际训练行为）。4090容量/速度未验证。
-- Proposal结束保存 **`proposal-update-1920.pth`** transition/recovery；Gate必须从同一Proposal权重进入。唯一fixed-final为 **`update-2560.pth`**；每640次成功更新recovery，要求完整optimizer/scheduler/scaler/RNG/data cursor/phase/counters，不通过Val选checkpoint。
-- 未来仅一次clean/entire_missing@1.0/spatial_dropout@0.75/misalignment@0.75四条件Quick-Val，同一fixed-final输出off/full/learned。继续须同时满足learned hard mean相对matched off **>=+0.50pp**、clean **>=−0.20pp**、hard mean **严格>full**；否则记录selector-not-supported/stop/inconclusive。pp是百分点；这些是资源筛选线，不是统计显著性或评价授权。
+## 云端修复与Git同步约定
 
-## 本地Git恢复点与审核包
+- 本地完成全部收口后以云端为主要开发位置，本地尽量只读；云端普通工程修复可连续完成最小检查、提交并推送至同名origin分支，再由本地拉取。
+- 每次运行记录实际启动的完整commit SHA；代码/config在运行前提交。修复先停止原运行、保留日志、创建新提交再启动；按是否兼容完整恢复状态决定能否续训，不能静默weights-only重启冒称连续训练。错误修复后只重做受影响的最小检查，不自动无限重试。
+- OOM、NaN/Inf、GradScaler skip、身份错误立即停止。改变batch/结构/loss/种子/预算/评价口径或无法确认恢复正确性时交人工确认，不做自动sweep。
+- 数据划分、初始/最终权重、原始证据仍保留必要身份核验；普通工程文件hash和审查可以简化或交人工确认，待确认不得写成PASS。
+- 文档里的SHA可指向对应代码基线或已经完成的交付快照，不追逐每次最新HEAD；最终交付SHA直接从Git读取，不为回填自身SHA制造反复dirty/commit。当前审核包记录生成时的Git快照，不冒称包含自身提交SHA。
 
-- Branch：`perf/mmfr-a2-v3-pipeline-opt1`；准备前HEAD：`a7c5cc17c5b495f2210efa3604b05794b5fa16c4`；本轮授权**一个本地commit**，精确暂存A-v1文件，当前仍在提交准备，完成后回填完整SHA；不push、不改远端或tag。
-- 历史Canvas、论文库整理、旧实验与无关Base config等既存dirty保留，不删除、不清理、不混入commit。混合报告索引仅暂存A-v1条目，保留其他工作区条目。
-- SHA只能在commit创建后得知，因此完整SHA及生成审核包的当前Git identity在提交后回填为**元数据回执差异**；不amend、不补第二个commit，不把这些差异冒称已在自身commit内。执行代码/config/冻结合同必须在commit中。
-- 既有L1 profile保持 `mmfr-a-v1-action-utility-gateb`，更新到本地收口审核；生成包只能由 `MMFR/98_tools/rebuild_review_packet.ps1` 重建，不能手工编辑。当前已由既有generator重建6文件审核包；canonical、packet及独立复制包坏链均为0，generation identity以既有 `packet_manifest.json`为准。
+## 本地Git交付与恢复点
 
-## 授权边界、阻塞与准确恢复点
+- 分支`perf/mmfr-a2-v3-pipeline-opt1`；目标远端`origin`（`https://github.com/Newton-liub/DFormer.git`）同名分支；用户本次明确授权普通push，不force、不改写历史、不推upstream或其他remote。
+- 本次纳入最新状态/审核材料、论文库报告、历史0.0.15 Canvas及对应索引；历史Canvas只是历史展示，不作当前实验口径。无内容diff的状态标记随暂存刷新，不人为修改代码。历史归档换行噪声不作为新成果提交。
+- 当前正在准备完整收口提交及推送；实际SHA/远端结果在Git操作后核验，再记录已发生事实。最新HEAD由Git读取，不在文件里预造自身SHA。
+- 本地实际检查仅限定Git差异、文本/JSON内容和既有审核包生成；未运行项目测试、GPU、训练、Val或云端，因为本次只交付版本与执行指令。
+- 下一恢复点：云端先读取本文件和protocol §7，确认同步版本后实现入口并按上述授权链执行；代码/config里的2026-09-30未授权保护字段需由新入口显式落实本次授权，test禁用保持不变。
 
-- **本轮完成后停止。** 尚未授权正式训练、Quick-Val/Main-Val、official test、云端登录/同步/启动或push；合同冻结不等于训练权限。全文/近邻限制与原研究结论不在本轮改变，也未继续文献搜索。
-- 下一步仅允许在上级/用户另授云端权限后同步本轮commit到RTX4090，按正式分辨率/batch/AMP/TF32先Proposal最多**3 successful updates**，正常后Gate最多**3**；每阶段到3立即停、错误立即停，回报peak allocated/reserved、时间、loss、finite/OOM/GradScaler skip；Gate另报utility/positive/negative/ambiguous。**不能自动接1920+640**，预检不计正式预算，不作为正式起点。
-- 当前只有两阶段函数接口，**full-resolution preflight/formal runner与A-v1评价入口尚未实现**。恢复时先审核最薄限3-update调用器是否落实合同，不能直接套旧E1 `utils/train.py` 命令。本轮没有增加执行入口。
-- 本轮实际验证只做身份hash/config import/字段断言、定点静态与Git差异/文档检查；完整测试、GPU Gate-B重跑、全尺寸预检、训练、Val、benchmark均未运行，因为当前改动只有config/合同且用户禁止模型/云端执行。
+## 少量证据与独立事项
 
-## 仍需追溯的独立事项
-
-- R-OE-lite v2已完成正式训练、四条件Quick-Val为inconclusive，路线处置仍独立待决定：[原报告](../../MMFR/02_evidence/report_e1_batch1b_roe_v2_formal_training_quickval_20260924.md)。旧入口修复与Quick-Val文件已在 `1b061cbabaf76575b0812e1513d953b02cdb6254` 中本地提交，已不是“未提交文件处置”阻塞；不等于其评价资格自动通过。
-- F-lite十条件Main-Val未复现Quick-Val优势，去留仍待上级裁决：[原Main-Val报告](../reports/2026-09-22-mmfr-e1-batch1a-c0-flite-mainval.md)。Oracle-A geometry suppression维持历史NO-GO。
-- 论文实体/人工编号遗留项不影响本合同，见 [论文库整理报告](../reports/2026-09-30-paper-library-normalization-review.md)。旧Gate-B/设计轮完整事实通过原报告、protocol与Git history追溯，不把阶段流水账追加回实时入口。
+- [A-v1 protocol及云端指令](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)；[原Gate-B报告](../../MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)；[原证据](../../MMFR/02_evidence/mmfr_a_v1_gateb.json)；[现行审核入口](../../MMFR/99_review_packet_current/REVIEW_BRIEF.md)。2026-09-30完整本地收口事实由`e26d670`及原报告追溯，不改历史正文。
+- R-OE-lite v2的inconclusive、F-lite Main-Val未复现及论文库实体裁决仍独立待决定，见开放决策和 [论文库报告](../reports/2026-09-30-paper-library-normalization-review.md)，不阻塞本次A-v1执行。旧入口修复已在`1b061cb`提交，不恢复为未提交阻塞。

@@ -1,5 +1,12 @@
 # MMFR v4.1 package change log
 
+## 2026-10-01 — 完整Git收口及云端连续执行授权
+
+- 用户明确授权本地全部改动收口并push至origin同名分支；论文库报告、历史0.0.15 Canvas及索引一起保留。历史pre-A-v1归档的纯换行差异恢复原字节；运行代码/config无新内容变化。
+- 云端可实现必要薄入口、依次Proposal/Gate各最多3次成功更新预检，通过后从原C0干净开始1920+640正式训练，再做一次同checkpoint off/full/learned四条件Quick-Val，完成后停止。无需各阶段重复等待授权，不扩Main-Val/official test/新seed/超参搜索。
+- 普通工程修复允许最小检查后提交/push；每次运行记录实际代码提交，合同变更、OOM需改batch或恢复身份不明确时交人工。不追逐文档自身SHA；重要数据/权重/原始证据身份仍须匹配。
+- 更新滚动实时入口、protocol最新授权、既有profile/复现信息和生成审核包。本地只Git/文档检查，未运行测试/GPU/训练/Val/云端。
+
 ## 2026-09-30 — A-v1 正式训练前本地收口：合同冻结，等待4090短预检
 
 - 用户冻结第一轮Proposal/Gate=1920/640 successful updates、margin0.01、lambda_clean0.1、AdamW新branch LR3e-5/WD0.01；batch10、480×640、AMP/TF32 on、workers8、accumulation1与原phase seeds不变。config补最少正式合同字段，不修改结构/forward/loss/RNG或旧evaluator/corruption。

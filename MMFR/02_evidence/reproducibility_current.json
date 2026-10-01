@@ -10,12 +10,12 @@
   "authoritative_open_decisions": "../../doc/main/MUSeg-open-decisions.md",
   "git": {
     "branch": "perf/mmfr-a2-v3-pipeline-opt1",
-    "commit": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
+    "commit": "e26d670e279970ecb8907aef1de470e992be500e",
     "tracking_ref": "origin/perf/mmfr-a2-v3-pipeline-opt1",
-    "ahead_of_local_tracking_ref": 1,
+    "ahead_of_local_tracking_ref": 2,
     "behind_local_tracking_ref": 0,
     "workspace_dirty": true,
-    "package_tracking_state": "tracked-with-uncommitted-changes"
+    "package_tracking_state": "complete-local-closeout-preparing-for-authorized-origin-push; git object records observation snapshot, code hashes bind unchanged e26d670 runtime baseline"
   },
   "external_code": {
     "root": "D:\\0Project\\origin",
@@ -48,7 +48,7 @@
     "scope": "synthetic B1 64x64, real frozen C0/HAM, eight forwards, one update per phase; no dataset reads"
   },
   "formal_preparation": {
-    "status": "contract-frozen-local-identity-checks-pass-commit-pending",
+    "status": "cloud-minimal-runners-preflight-formal-and-single-quickval-authorized-2026-10-01-not-started",
     "identity": "MMFR-A-v1-action-utility-v1",
     "run_name": "MMFR-A-v1-action-utility-v1-formal-v1",
     "config_import": "local_configs.MUSeg.DFormerv2_S_MMFR_AV1",
@@ -80,12 +80,16 @@
     "gateb_evidence_unchanged": true,
     "preflight_successful_updates_per_phase_max": 3,
     "preflight_runner_implemented": false,
-    "formal_training_authorized": false,
+    "formal_training_authorized": true,
+    "quickval_authorized_after_formal_success": true,
+    "cloud_minimal_runners_and_preflight_authorized": true,
+    "authorization_date": "2026-10-01",
+    "authorization_note": "User confirmed local commit/push and cloud preflight -> clean formal1920+640 -> one four-condition Quick-Val; no Main-Val/official test. Existing config false authorization fields are the old local-only baseline; cloud entry must explicitly implement current permission while retaining test disablement.",
     "formal_training_started": false,
     "cloud_accessed_this_round": false,
     "validation_run_this_round": false,
     "git_pushed_this_round": false,
-    "commit_receipt": "pending; full SHA recorded only after local commit creation"
+    "commit_receipt": "e26d670e279970ecb8907aef1de470e992be500e; full SHA recorded after the sole local commit, no amend or push"
   },
   "migration_evidence": {
     "pre_migration_manifest": "90_archive/2026-09-21_directory_simplification/pre_migration_manifest.json",

@@ -3,12 +3,12 @@
     "profile_schema_version":  1,
     "profile":  "mmfr-a-v1-action-utility-gateb",
     "review_level":  "L1",
-    "generation_id":  "52fdaa881070430927f50d05a14e19171dd95c11866a2033b7dde314436c3e22",
+    "generation_id":  "23499c4a0a8183389c355411a721294df4fd6b180332b7b6cd4e8ce451e846c1",
     "deterministic_identity":  "sha256(profile identity + canonical input hashes + git commit); no wall-clock timestamp",
     "source_package":  "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
     "git":  {
                 "branch":  "perf/mmfr-a2-v3-pipeline-opt1",
-                "commit":  "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
+                "commit":  "e26d670e279970ecb8907aef1de470e992be500e",
                 "workspace_dirty":  true
             },
     "authoritative_status":  {
@@ -23,8 +23,8 @@
                       "role":  "generated_review_entry",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "4a1bd3958b8d82f0e62ba64c3bce12c62ffbc10e2668064191da54a56ee308d3",
-                      "bytes":  4788,
+                      "packet_sha256":  "c226928d4e2fa8d6316bdec87f77b92094991f88c9a5c3f2136159f03e381f13",
+                      "bytes":  5337,
                       "transform":  "generated_from_profile",
                       "input_sources":  [
                                             "00_control/review_profile.json",
@@ -35,9 +35,9 @@
                       "packet_file":  "CURRENT_PROTOCOL.md",
                       "role":  "current_protocol",
                       "source":  "01_research/mmfr_a_v1_action_utility_protocol.md",
-                      "source_sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472",
-                      "packet_sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472",
-                      "bytes":  15993,
+                      "source_sha256":  "c3b7f4e4bfa0e6bda3d81061153f28b67c94735158efec46f20db29f9ec9d5e9",
+                      "packet_sha256":  "c3b7f4e4bfa0e6bda3d81061153f28b67c94735158efec46f20db29f9ec9d5e9",
+                      "bytes":  20873,
                       "transform":  "exact_copy"
                   },
                   {
@@ -63,17 +63,17 @@
                       "role":  "generated_evidence_summary",
                       "source":  null,
                       "source_sha256":  null,
-                      "packet_sha256":  "7a451f983fb36c1ea011556543781bfa9bc25b621ac6cb179d37f5a4bcf78037",
-                      "bytes":  2807,
+                      "packet_sha256":  "3e6da0c50662b483e9b821c64784ef09db115a8891adc1f8dccc32540013548e",
+                      "bytes":  2834,
                       "transform":  "generated_from_canonical_sources",
                       "input_sources":  [
                                             {
                                                 "path":  "00_control/review_profile.json",
-                                                "sha256":  "50a26ce68cea0b0ebd20382aec71a90433c6299794f3ad52e32cc66f24f43655"
+                                                "sha256":  "fa7e336418d867d840288242d66a2b2831aa24b568303bc4b1cb43206fd2a854"
                                             },
                                             {
                                                 "path":  "01_research/mmfr_a_v1_action_utility_protocol.md",
-                                                "sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472"
+                                                "sha256":  "c3b7f4e4bfa0e6bda3d81061153f28b67c94735158efec46f20db29f9ec9d5e9"
                                             },
                                             {
                                                 "path":  "02_evidence/audit_mmfr_a_v1_implementation_20260930.md",
@@ -89,7 +89,7 @@
                                             },
                                             {
                                                 "path":  "02_evidence/reproducibility_current.json",
-                                                "sha256":  "93e99d4091baf296f50997bd96a97277c4b52c336eca5b9b29fc8b043abec615"
+                                                "sha256":  "ba12ea33d93e1b271285899a6bf8cac962831dcbe17e5417d66df0b38ddcd291"
                                             }
                                         ]
                   },
@@ -107,13 +107,13 @@
     "canonical_inputs":  [
                              {
                                  "path":  "00_control/review_profile.json",
-                                 "sha256":  "50a26ce68cea0b0ebd20382aec71a90433c6299794f3ad52e32cc66f24f43655",
-                                 "bytes":  7687
+                                 "sha256":  "fa7e336418d867d840288242d66a2b2831aa24b568303bc4b1cb43206fd2a854",
+                                 "bytes":  8263
                              },
                              {
                                  "path":  "01_research/mmfr_a_v1_action_utility_protocol.md",
-                                 "sha256":  "2355e1c9acc5046f888e58e5dc31448927ec0d68980eb0bb1680aa481d801472",
-                                 "bytes":  15993
+                                 "sha256":  "c3b7f4e4bfa0e6bda3d81061153f28b67c94735158efec46f20db29f9ec9d5e9",
+                                 "bytes":  20873
                              },
                              {
                                  "path":  "02_evidence/audit_mmfr_a_v1_implementation_20260930.md",
@@ -132,8 +132,8 @@
                              },
                              {
                                  "path":  "02_evidence/reproducibility_current.json",
-                                 "sha256":  "93e99d4091baf296f50997bd96a97277c4b52c336eca5b9b29fc8b043abec615",
-                                 "bytes":  5253
+                                 "sha256":  "ba12ea33d93e1b271285899a6bf8cac962831dcbe17e5417d66df0b38ddcd291",
+                                 "bytes":  5946
                              }
                          ],
     "hard_exclusions":  [

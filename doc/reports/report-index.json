@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "nextCanvasVersion": "0.0.15",
+  "nextCanvasVersion": "0.0.16",
   "latestFormalReport": {
     "path": "MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
     "periodStart": "2026-09-30",
@@ -26,6 +26,15 @@
       "baseCommit": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
       "verification": "pre-revision-byte-identity-and-targeted-document-diff-review;nine-A-v1-content-criteria;six-focused-queries-three-primary-paper-or-official-abstract-reviews;no-code-tests-gateb-training-or-evaluation",
       "status": "A-v1-design-ready-awaiting-revision-review-and-separate-implementation-gateb-authorization"
+    },
+    {
+      "path": "doc/reports/2026-09-30-paper-library-normalization-review.md",
+      "topic": "paper-library-normalization-review",
+      "periodStart": "2026-09-30",
+      "periodEnd": "2026-09-30",
+      "baseCommit": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
+      "verification": "current-index-status-and-commit-cross-check-plus-document-diff-review;prior-session-focused-tool-checks-not-rerun",
+      "status": "formal-paper-library-normalization-review-pending-entity-decisions"
     },
     {
       "path": "MMFR/02_evidence/report_e1_batch1b_roe_gateb.md",
@@ -263,6 +272,15 @@
     }
   ],
   "canvases": [
+    {
+      "version": "0.0.15",
+      "name": "mmfr-next-generation-research-design",
+      "source": "doc/canvases/0.0.15-mmfr-next-generation-research-design.canvas.tsx",
+      "publishedFilename": "0.0.15-mmfr-next-generation-research-design.canvas.tsx",
+      "relatedReport": "MMFR/90_archive/2026-09-30_mmfr_a_v1_design_revision/2026-09-30-mmfr-next-generation-research-design.pre-a-v1.md",
+      "createdAt": "2026-09-30",
+      "status": "historical-pre-A-v1-design-source-published-match-not-current-design"
+    },
     {
       "version": "0.0.1",
       "name": "report-workflow-decision",
