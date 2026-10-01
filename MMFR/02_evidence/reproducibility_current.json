@@ -274,6 +274,7 @@
     },
     "quickval_checks": "PASS four conditions each318 unique samples, 812 frozen C0 tensors exact, strict off first-sample logits exact/max_abs_error0 and zero Proposal/Gate calls, FP32/TF32off original-full, 3816 saved per-sample confusion units recomputed/summed to aggregates, mIoU/hard/delta/gate mean-median/frozen screening recomputed; 1280 saved training records consecutive finite applied scale1024 skip0; zero extra model forwards",
     "next_action": "stop; no Main-Val/test/new seed/extra budget; resource instance remains running",
+    "result_delivery": {"result_commit": "65d89c1dc03f762fc91316ebd4aef2b3b655acc2", "pushed_same_branch": true, "ls_remote_verified": true, "workspace_clean_after_result_commit": true, "scope": "observed completed-result delivery, not the later containing receipt commit"},
     "review_packet": "prior generated snapshot preserved; pwsh unavailable; no manual edits",
     "original_evidence_preserved": true,
     "extra_diagnostics_authorized": false,

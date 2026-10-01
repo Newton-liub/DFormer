@@ -52,7 +52,7 @@ A-v1包含Proposal（stage2候选补偿残差）与Gate（每图连续补偿强�
 
 ## Git交付、资源与停止边界
 
-分支`perf/mmfr-a2-v3-pipeline-opt1`，origin `https://github.com/Newton-liub/DFormer.git`。训练8125073/评价c798ed8已普通push并远端核验，未强推或改写历史；本次结果已写入两份实时文档与 [既有复现证据](../../MMFR/02_evidence/reproducibility_current.json)，正在按既定授权提交收口。文档引用实际运行commit，不追逐自身回执SHA。大checkpoint/dataset/日志/逐样本评价cache不入Git/MMFR。
+分支`perf/mmfr-a2-v3-pipeline-opt1`，origin `https://github.com/Newton-liub/DFormer.git`。训练8125073/评价c798ed8已普通push并远端核验，未强推或改写历史；两份实时文档与 [既有复现证据](../../MMFR/02_evidence/reproducibility_current.json) 的完整结果提交 **`65d89c1dc03f762fc91316ebd4aef2b3b655acc2`** 已普通push，`ls-remote`直接核验同一SHA、该结果提交后工作区clean。本段仅记录已核验结果提交，不追逐本回执文档自身SHA。大checkpoint/dataset/日志/逐样本评价cache不入Git/MMFR。
 
 09:30:44 UTC直接确认无A-v1训练/评价进程，GPU **1MiB/0%**。仅任务停止，**云实例仍开启、未关闭或销毁**。实验授权已执行完毕；下一恢复点是只读上述最终checkpoint/summary，不再启动训练或评价。未来若有新的研究/资源动作须另获授权。
 
