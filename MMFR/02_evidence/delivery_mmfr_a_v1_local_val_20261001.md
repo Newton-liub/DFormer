@@ -41,7 +41,7 @@
 2. 报告索引、review profile、既有复现JSON以UTF-8/BOM兼容读取并成功解析；打包前MMFR四个canonical目录顶层26份Markdown路径链接通过，最终新增收据后27份MMFR文档及2份实时入口共29份链接检查通过（仅本地路径存在性，不冒充全部fragment或跨平台渲染验证）。报告登记、profile所有attachment源、Canvas版本保留与ZIP收据SHA/大小一致性亦通过。
 3. ZIP使用显式源码和证据allowlist；所有996个成员逐字节SHA与输入对应，完整读到末尾核对CRC，成员集合/唯一性/安全路径通过。
 4. 两份checkpoint及两个dev split匹配冻结SHA；summary为四条件、每条件318样本且stop，final身份匹配。
-5. 后续Git提交前进行文档差异与空白检查；最终同分支普通push后再以远端SHA和工作区状态验收，不强推。
+5. Git提交前文档差异与空白检查通过；源材料提交 **`afbeec29a22e9f46ac958bb9ec1bf727f9fcd8ed`** 已普通push至 `origin/perf/mmfr-a2-v3-pipeline-opt1`。2026-10-01 15:44:29UTC直接核验本地/远端同SHA且工作区clean，未强推。本条是该已完成源材料交付的回执，后续包含本回执的文档提交不追逐自身SHA。
 
 本次未运行项目完整测试、模型导入、GPU、训练、重复Quick-Val、Main-Val、test或本地目标机器验证，因为交付范围只有文档与打包。跨硬件逐位等价、完整依赖锁定、本地数据可用性和Main-Val adapter仍未验证。
 

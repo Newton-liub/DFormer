@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实截至：2026-10-01 15:33 UTC。** A-v1正式训练与唯一四条件Quick-Val已完成，筛选 **`stop`**；本轮已完成上级审核报告和条件性本地val转移包，正在做文档Git交付。用户要求无GPU继续，本轮只做文件/哈希/文档工作，不加载模型或运行新实验。新的本地val及A-v1 Main-Val适配仍需明确授权。真正未决选择见 [开放决策](MUSeg-open-decisions.md)。
+> **事实截至：2026-10-01 15:44 UTC。** A-v1正式训练与唯一四条件Quick-Val已完成，筛选 **`stop`**；本轮上级审核报告和条件性本地val转移包已完成，源材料提交`afbeec29a22e9f46ac958bb9ec1bf727f9fcd8ed`已普通push并直接核验远端同SHA、工作区clean。本段是已完成交付的回执，不追逐其自身后续文档提交。用户要求无GPU继续，本轮只做文件/哈希/文档工作，不加载模型或运行新实验。新的本地val及A-v1 Main-Val适配仍需明确授权。真正未决选择见 [开放决策](MUSeg-open-decisions.md)。
 
 ## 当前结论与执行边界
 
@@ -32,10 +32,10 @@ A-v1的Proposal是stage2候选补偿残差，Gate是每图连续补偿强度选�
 
 ## Git交付、生成包限制与云资源
 
-分支 `perf/mmfr-a2-v3-pipeline-opt1`，origin `https://github.com/Newton-liub/DFormer.git`。已有实验结果提交`65d89c1dc03f762fc91316ebd4aef2b3b655acc2`及回执基线`4f84b469c4b04de657eaf2c455bd44e991b7f869`已普通push并远端核验。本轮报告/收据/索引/profile/实时文档的提交与push尚待收口；用户已明确授权同分支普通push，禁止强推/改历史。checkpoint、ZIP、大日志和逐样本cache不进Git/MMFR。
+分支 `perf/mmfr-a2-v3-pipeline-opt1`，origin `https://github.com/Newton-liub/DFormer.git`。已有实验结果提交`65d89c1dc03f762fc91316ebd4aef2b3b655acc2`及回执基线`4f84b469c4b04de657eaf2c455bd44e991b7f869`已普通push并远端核验。本轮报告/收据/索引/profile/实时文档源材料提交 **`afbeec29a22e9f46ac958bb9ec1bf727f9fcd8ed`** 已普通push至origin同名分支；15:44:29UTC以`ls-remote`直接核验本地/远端同SHA、该提交后工作区clean。此处记录已核验源材料交付，不要求本回执自身SHA写入文件；最终回执提交的远端/clean验收由本轮最终答复报告。用户已明确授权同分支普通push，未强推/改历史。checkpoint、ZIP、大日志和逐样本cache不进Git/MMFR。
 
 `MMFR/99_review_packet_current/`仍为旧生成快照：15:33 UTC再次直接确认无`pwsh`，未安装PowerShell、未手工改生成产物。既有profile源已指向本轮报告；当前可直接转交正式报告。正式六文件入口仍需在PowerShell可用环境先核验canonical链接，再由原`MMFR/98_tools/rebuild_review_packet.ps1`重建，旧包不可冒充最新结果。
 
 云资源**最后直接核验**仍为09:30:44 UTC：无A-v1实验进程，GPU1MiB/0%，实例开启。用户15:27 UTC要求无GPU模式继续，本轮不重新检查GPU、不关闭/销毁资源；不能据旧观测声称现在GPU或计费状态已核验。
 
-下一恢复点：完成文档Git交付后等待上级对报告的回复，默认维持`stop`；若例外批准本地val，先明确范围与适配/最小资格/运行预算再执行。本次未运行完整测试、模型导入、GPU、训练、重复Quick-Val、Main-Val或test，检查只覆盖报告与文件交付风险。
+下一恢复点：文档与转移资料已交付，等待上级对报告的回复，默认维持`stop`；若例外批准本地val，先明确范围与适配/最小资格/运行预算再执行。本次未运行完整测试、模型导入、GPU、训练、重复Quick-Val、Main-Val或test，检查只覆盖报告与文件交付风险。

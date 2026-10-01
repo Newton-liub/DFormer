@@ -297,7 +297,7 @@
       "review_profile_source_updated": true,
       "generated_review_packet_rebuilt": false,
       "review_packet_blocker": "pwsh unavailable; existing generated packet retained and explicitly stale; use standalone report, then existing generator in a PowerShell-capable environment",
-      "git_delivery": "document-only export closeout to be committed/pushed with direct remote and clean-worktree verification; no self-referential commit receipt"
+      "git_delivery": "source-material commit afbeec29a22e9f46ac958bb9ec1bf727f9fcd8ed pushed to origin same branch; ls-remote same SHA and clean workspace directly verified at2026-10-01T15:44:29Z; scope is completed source-material delivery, not the later containing receipt commit"
     },
     "result_delivery": {"result_commit": "65d89c1dc03f762fc91316ebd4aef2b3b655acc2", "pushed_same_branch": true, "ls_remote_verified": true, "workspace_clean_after_result_commit": true, "scope": "observed completed-result delivery, not the later containing receipt commit"},
     "review_packet": "prior generated snapshot preserved; pwsh unavailable; no manual edits",
