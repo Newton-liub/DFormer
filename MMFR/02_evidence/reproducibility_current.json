@@ -1,6 +1,6 @@
 ﻿{
   "schema_version": "mmfr-package-reproducibility-v2",
-  "recorded_at_utc": "2026-10-01T07:57:50Z",
+  "recorded_at_utc": "2026-10-01T08:04:48Z",
   "package_name": "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
   "package_layout": "in-repository-restored-package",
   "active_review_profile": "mmfr-a-v1-action-utility-gateb",
@@ -149,7 +149,7 @@
       "formal_restart": "preflight model discarded; fresh original C0/initialization/seeds; preflight updates excluded"
     },
     "last_directly_verified_formal": {"proposal_completed": 1870, "proposal_attempted": 1871, "proposal_skipped": 0, "gate_completed": 0, "last_success_finite": true, "last_success_loss": 0.16575674712657928, "artifact": "cloud/mmfr-av1-formal-v1/formal/proposal-stopped.json", "scope": "stopped-state counters; failed attempt occurred before scaler.step/update, so zero skips does not establish failed-attempt health"},
-    "failure": {"exception": "RuntimeError: missing/nonfinite active gradient: av1.proposal.0.weight", "trigger": "gradient guard after backward/unscale, before optimizer step", "root_cause": "controlled replay matched590 records then reproduced NaN in HAM NMF2D.local_step BmmBackward0 at bmm(x,coef); concrete floating-point mechanism/repair unverified; original guard itself had not distinguished missing/nonfinite", "elapsed_seconds_from_preflight_start": 1743.1536060059443, "artifacts": ["cloud/mmfr-av1-formal-v1/stopped.json", "cloud/mmfr-av1-formal-v1/formal/proposal-stopped.json"], "automatic_retry": false, "gate_started": false, "quickval_started": false},
+    "failure": {"exception": "RuntimeError: missing/nonfinite active gradient: av1.proposal.0.weight", "trigger": "gradient guard after backward/unscale, before optimizer step", "root_cause": "controlled replay matched590 records then reproduced NaN in HAM NMF2D.local_step BmmBackward0 at bmm(x,coef); concrete floating-point intermediates unverified; later three-case controls support a single-batch localFP32 repair candidate; original guard itself had not distinguished missing/nonfinite", "elapsed_seconds_from_preflight_start": 1743.1536060059443, "artifacts": ["cloud/mmfr-av1-formal-v1/stopped.json", "cloud/mmfr-av1-formal-v1/formal/proposal-stopped.json"], "automatic_retry": false, "gate_started": false, "quickval_started": false},
     "last_full_recovery": {"path": "cloud/mmfr-av1-formal-v1/formal/checkpoint/update-1280.pth", "sha256": "05714d165925c4549aa1111564bbca7d8b8d9896d337c5b68f0b7bb98590564d", "phase": "proposal", "completed": 1280, "cpu_contract_validation": "PASS using existing validate_resume on unchanged runtime HEAD", "model_optimizer_floating_state_finite": true, "scaler_scale": 1024.0, "scaler_growth_tracker": 1280, "next_epoch": 11, "next_iteration": 0, "next_lr": 1.185953940035674e-05, "rng_keys": ["python", "numpy", "torch_cpu", "torch_cuda"], "runtime_equivalence_verified": false},
     "recovery_decision": "user selected bounded diagnostic: replay from full1280 through at most attempt1871, unchanged numerical contract, no Gate/evaluation; diagnostic-only parent-commit compatibility and exact590-record comparison added; ordinary same-commit resume guard unchanged; formal recovery/contract changes require later decision",
     "fixed_final_sha256": null,
@@ -177,7 +177,7 @@
     "failure_localization": {"operator": "BmmBackward0", "nan_output_index": 1, "forward_site": "models/decoders/ham_head.py:130 NMF2D.local_step numerator=torch.bmm(x,coef)", "loss": 0.07739032804965973, "ce": 0.07739003002643585, "clean_consistency": 2.9797172373946523e-06, "backward_completed": false, "unscale_completed": false, "specific_float_mechanism_verified": false, "repair_verified": false, "missing_grad_interpretation": "None gradients follow anomaly early-abort; not evidence original error was missing gradient"},
     "failure_state": {"path": "cloud/mmfr-av1-gradient-diagnosis-v1/formal/diagnostic-failure-state.pth", "sha256": "6865e8865bd486fac5b9bf06317af768d5a4634e5e4af4ea839a41c174bb0fb5", "role": "diagnostic-only-nonresumable-not-performance-candidate", "cpu_verified": true, "model_all_finite": true, "nonproposal_tensors_equal_full1280": true, "stored_float_inputs_all_finite": true, "batch_shape": [10, 3, 480, 640], "labels_shape": [10, 480, 640], "pre_forward_rng_keys": ["python", "numpy", "torch_cpu", "torch_cuda"], "formal_resume_version_present": false},
     "failure_evidence": ["cloud/mmfr-av1-gradient-diagnosis-v1/formal/diagnostic-failure.json", "cloud/mmfr-av1-gradient-diagnosis-v1/formal/proposal-stopped.json", "cloud/mmfr-av1-gradient-diagnosis-v1/stopped.json"],
-    "next_decision": "same saved failure batch precision controls require explicit budget (suggest max6 forwards+3 backwards, no optimizer); numerical contract and formal recovery remain unapproved",
+    "next_decision": "three saved-scene precision controls were separately approved and completed below; production numerical amendment and formal recovery still require user decision",
     "compare_scope": "exact loss/CE/KL/LR/counters/scaler and other frozen record fields for original1281..1870; mismatch stops immediately; not general runtime-equivalence certification",
     "instrumentation": "autograd anomaly only at original attempt1871; same forward/backward count; failing inputs/model/RNG saved outside Git as diagnostic-only nonresumable artifact",
     "no_contract_change": true,
@@ -186,9 +186,23 @@
     "formal_recovery_requires_later_decision": true
   },
   "cloud_failure_precision_controls": {
-    "status": "authorized-preparing",
+    "status": "completed",
     "runner": "tools/mmfr/av1_failure_controls.py",
-    "planned_output": "cloud/mmfr-av1-failure-controls-v1",
+    "output_root": "cloud/mmfr-av1-failure-controls-v1",
+    "result_artifact": "cloud/mmfr-av1-failure-controls-v1/controls-result.json",
+    "runtime_commit": "9092bfbc49100717afd33aadcabf99a4272d1e5b",
+    "runtime_pushed_remote_verified": true,
+    "started_utc": "2026-10-01T08:01:54.824896+00:00",
+    "actual_model_forwards": 6,
+    "actual_backwards": 3,
+    "all_model_tensors_unchanged": true,
+    "case_results": [
+      {"case": "original_amp_scale1024", "loss": 0.07739032804965973, "all_active_gradients_present": true, "all_active_gradients_finite": false, "nan_gradient_scalars": 16992, "inf_gradient_scalars": 0},
+      {"case": "original_amp_scale1", "loss": 0.07739032804965973, "all_active_gradients_present": true, "all_active_gradients_finite": true, "nan_gradient_scalars": 0, "inf_gradient_scalars": 0, "forward_loss_ce_kl_equal_original": true},
+      {"case": "nmf_local_fp32_scale1024", "loss": 0.07738957554101944, "all_active_gradients_present": true, "all_active_gradients_finite": true, "nan_gradient_scalars": 0, "inf_gradient_scalars": 0, "delta_loss_vs_original": -0.0000007525086402893066}
+    ],
+    "conclusion_scope": "same saved failure scene only; scale/precision-dependent backward failure; NMF localFP32 supports single-batch repair candidate, not full-training stability/performance",
+    "next_decision": "approve A-v1-training-only NMF FP32 numerical amendment and choose full1280 recovery vs clean C0 restart, or stop; ordinary resume guard/production contract not modified",
     "scene_sha256": "6865e8865bd486fac5b9bf06317af768d5a4634e5e4af4ea839a41c174bb0fb5",
     "cases": ["original_amp_scale1024", "original_amp_scale1", "nmf_local_fp32_scale1024"],
     "max_model_forwards": 6,
