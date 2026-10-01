@@ -202,6 +202,9 @@ datasets/*
 output*
 *_old*
 
+# Machine-local uploaded A-v1 transfer bundle contains C0 weights; never commit it.
+/MMFR_AV1_cloud_transfer_*.zip
+
 # Local cloud experiment evidence and downloaded artifacts
 cloud/
 !doc/guides/cloud/

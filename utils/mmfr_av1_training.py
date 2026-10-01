@@ -90,7 +90,10 @@ def masked_gate_bce(gate, targets, mask):
     """An all-ambiguous batch gives a differentiable exact zero, without 0/0."""
     if not bool(mask.any().item()):
         return gate.sum() * 0.0
-    return F.binary_cross_entropy(gate[mask], targets.detach()[mask])
+    # CUDA autocast rejects probability-space BCE; evaluate the same loss in
+    # FP32 outside autocast (no logits reformulation or loss/weight change).
+    with torch.autocast(device_type=gate.device.type, enabled=False):
+        return F.binary_cross_entropy(gate[mask].float(), targets.detach()[mask].float())
 
 
 def clean_consistency(reference, logits, labels, clean_mask, *, ignore_index=255):

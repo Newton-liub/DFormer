@@ -1,5 +1,10 @@
-"""Independent A-v1 implementation identity; formal training remains unauthorized."""
+"""Frozen A-v1 contract; GPU execution requires the explicit runner command.
 
+2026-10-01: preflight, conditional formal training and one Quick-Val authorized.
+The current no-GPU preparation session does not execute that authorization.
+"""
+
+import os
 from copy import deepcopy
 from pathlib import Path
 
@@ -15,9 +20,10 @@ C.mmfr_av1 = {
     "protocol": C.run_id,
     "protocol_document": "MMFR/01_research/mmfr_a_v1_action_utility_protocol.md",
     "source_config": "local_configs.MUSeg.DFormerv2_S_MMFR_E1_Batch1A_C0",
-    "source_checkpoint": str(_ROOT / "cloud" / "MMFR_E1_Batch1A_local_transfer_20260922"
-                             / "MMFR_E1_Batch1A_local_transfer_20260922" / "C0"
-                             / "checkpoint" / "update-2560.pth"),
+    "source_checkpoint": os.environ.get("MMFR_AV1_SOURCE_CHECKPOINT", str(
+        _ROOT / "cloud" / "MMFR_E1_Batch1A_local_transfer_20260922"
+        / "MMFR_E1_Batch1A_local_transfer_20260922" / "C0"
+        / "checkpoint" / "update-2560.pth")),
     "source_checkpoint_sha256": "ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a",
     "initialization_seed": 2026093000,
     "phase_corruption_seeds": {"proposal": 2026093001, "gate": 2026093002},
@@ -79,7 +85,7 @@ C.mmfr_av1 = {
         "learned_hard_delta_pp_min": 0.50,
         "learned_clean_delta_pp_min": -0.20,
         "learned_hard_must_exceed_full": True,
-        "authorized": False,
+        "authorized": True,
     },
     "cloud_preflight": {
         "device": "RTX 4090",
@@ -87,11 +93,11 @@ C.mmfr_av1 = {
         "successful_updates_per_phase_max": 3,
         "stop_after_each_phase": True,
         "gate_requires_proposal_pass": True,
-        "auto_start_formal_training": False,
+        "auto_start_formal_training": True,
         "preflight_updates_count_toward_formal_budget": False,
-        "execution_authorized_this_round": False,
+        "execution_authorized_this_round": True,
     },
-    "formal_training_authorized": False,
+    "formal_training_authorized": True,
     "validation_enabled": False,
     "official_test": "sealed_unread",
 }
