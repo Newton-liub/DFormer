@@ -1,6 +1,6 @@
 ﻿{
   "schema_version": "mmfr-package-reproducibility-v2",
-  "recorded_at_utc": "2026-10-01T07:30:00Z",
+  "recorded_at_utc": "2026-10-01T07:57:50Z",
   "package_name": "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
   "package_layout": "in-repository-restored-package",
   "active_review_profile": "mmfr-a-v1-action-utility-gateb",
@@ -184,6 +184,20 @@
     "no_gate_or_evaluation": true,
     "automatic_retry": false,
     "formal_recovery_requires_later_decision": true
+  },
+  "cloud_failure_precision_controls": {
+    "status": "authorized-preparing",
+    "runner": "tools/mmfr/av1_failure_controls.py",
+    "planned_output": "cloud/mmfr-av1-failure-controls-v1",
+    "scene_sha256": "6865e8865bd486fac5b9bf06317af768d5a4634e5e4af4ea839a41c174bb0fb5",
+    "cases": ["original_amp_scale1024", "original_amp_scale1", "nmf_local_fp32_scale1024"],
+    "max_model_forwards": 6,
+    "max_backwards": 3,
+    "optimizer_updates": 0,
+    "same_scene_model_inputs_pre_forward_rng": true,
+    "production_precision_contract_unchanged": true,
+    "formal_recovery_authorized": false,
+    "automatic_retry": false
   },
   "migration_evidence": {
     "pre_migration_manifest": "90_archive/2026-09-21_directory_simplification/pre_migration_manifest.json",

@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实截至：** 2026-10-01 07:30 UTC。A-v1两阶段预检PASS；首次正式Proposal在attempt1871/completed1870触发梯度门禁停止（原runtime **`91c7f96d3768fde0f478e03a4ccda8c6f19368dd`**）。用户授权的单次受控诊断已结束：从完整1280恢复后，**590条原成功记录逐字段精确匹配**，同1871坐标的有限loss在HAM/NMF `torch.bmm(x, coef)`反向出现NaN；07:28:16 UTC自动退出。诊断runtime **`9c257a9557483cd4219399c83e3566ab1965d471`**，现场已保存/CPU核验，GPU当前空闲。当前为 **`formal stopped → bounded diagnostic completed → numerical-policy/recovery decision required`**。Gate/Quick-Val未开始，无fixed-final/性能结论。冻结合同见 [A-v1 protocol](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)，阻塞见 [开放决策](MUSeg-open-decisions.md)。
+> **事实截至：** 2026-10-01 07:57 UTC。A-v1两阶段预检PASS；首次正式Proposal在attempt1871/completed1870触发梯度门禁停止（原runtime **`91c7f96d3768fde0f478e03a4ccda8c6f19368dd`**）。用户授权的单次受控诊断已结束：从完整1280恢复后，**590条原成功记录逐字段精确匹配**，同1871坐标的有限loss在HAM/NMF `torch.bmm(x, coef)`反向出现NaN；07:28:16 UTC自动退出。诊断runtime **`9c257a9557483cd4219399c83e3566ab1965d471`**，现场已保存/CPU核验，GPU当前空闲。当前为 **`formal stopped → replay diagnostic completed → authorized three-case failure-scene controls preparing`**。用户随后批准使用已保存现场做三组精度对照，总上限6次模型forward+3次backward、无optimizer；正式精度合同与恢复策略仍待对照后裁决。Gate/Quick-Val未开始，无fixed-final/性能结论。冻结合同见 [A-v1 protocol](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)，阻塞见 [开放决策](MUSeg-open-decisions.md)。
 
 ## 当前阶段与实际意义
 
@@ -51,7 +51,7 @@ A-v1 包含 stage2 补偿残差 Proposal（候选补偿动作）和 Gate（每�
 - 原1871坐标（epoch15/iteration78）loss **0.0773903280**、CE0.0773900300、KL2.9797172374e-6，均finite；仅此坐标开启autograd anomaly，无额外forward/backward。首个检测到NaN的算子为 **`BmmBackward0`第1输出（0-based索引1，即第二个返回梯度）**，forward堆栈指向 `models/decoders/ham_head.py` 的 `NMF2D.local_step`，`numerator = torch.bmm(x, coef)`（当前line130）。这是**反向非有限**定位，不证明更深的浮点原因；尚未验证降低scale或HAM局部FP32能修复。
 - anomaly在backward中提前抛错，尚未unscale/optimizer step；诊断现场的Proposal.grad为None是反向提前中止后的状态，**不能据此把原异常改判为梯度缺失**。scaler skip仍0，失败尝试未被计作成功更新。
 - 现场`formal/diagnostic-failure-state.pth`已CPU直接核验，SHA **`6865e8865bd486fac5b9bf06317af768d5a4634e5e4af4ea839a41c174bb0fb5`**：model全finite、非Proposal张量与完整1280完全一致、保存输入浮点张量全finite、batch10/480×640、label网格一致、pre-forward RNG四类齐全。该文件明确 **diagnostic-only/nonresumable/non-performance-candidate**，不含正式resume version/optimizer状态；禁止仅取其1870权重冒充完整续训。
-- 已授权诊断预算耗尽，无自动重跑。下一步待用户裁决：是否做同一失败batch的最小精度对照（建议最多3组定点loss/backward对照，沿用每组off/full配对，即总≤6次模型forward+3次backward、无optimizer），或停止本轮；任何AMP/scaler/HAM局部精度合同修改及正式恢复策略都需确认。最安全完整恢复点仍是原`update-1280.pth`；已保存现场可用于后续单batch诊断，不需要再次从1280跑590步。
+- 单次恢复重放授权已经执行结束，不再重跑590步。用户随后明确批准**三组失败现场精度对照**：原AMP+scale1024、原AMP+scale1、仅NMF局部FP32+scale1024；同模型/输入/pre-forward RNG，每组off/full配对，总≤6次模型forward+3次backward，无optimizer更新，不接Gate/评价。新`tools/mmfr/av1_failure_controls.py`只在诊断进程临时替换NMF forward，正式HAM/phase_loss/config未改；基线必须精确复现原loss及NaN，否则立即停，末尾核对全部model张量未变。待提交检查后执行，计划输出`cloud/mmfr-av1-failure-controls-v1`，实际结果待核验。
 - 普通`all --resume`同提交门禁保持原样；本次仅诊断显式审定parent身份与实际runtime差异，不改写原checkpoint。后续正式跨提交恢复、修复是否需要新正式起点尚未决定，见开放决策。原训练/预检/诊断证据均不覆盖。
 
 ## 实现、验证与 Git 交付
