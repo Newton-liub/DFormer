@@ -107,6 +107,16 @@ class NMF2D(_MatrixDecomposition2DBase):
 
         self.inv_t = 1
 
+    def forward(self, x, return_bases=False):
+        if (
+            getattr(self, "_mmfr_av1_training_active", False)
+            and x.is_cuda
+            and torch.is_autocast_enabled()
+        ):
+            with torch.autocast(device_type="cuda", enabled=False):
+                return super().forward(x.float(), return_bases=return_bases)
+        return super().forward(x, return_bases=return_bases)
+
     def _build_bases(self, B, S, D, R, cuda=False):
         if cuda:
             bases = torch.rand((B * S, D, R)).cuda()

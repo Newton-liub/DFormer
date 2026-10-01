@@ -1,6 +1,6 @@
 # MUSeg 当前开放问题
 
-> **事实截至：** 2026-10-01 08:04 UTC。受控重放和三组失败现场对照均完成；正式NMF精度合同修订与恢复路线仍需裁决，当前没有训练进程。只记录仍未裁决事项，参数/预算/筛选线不重复开放。执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
+> **事实截至：** 2026-10-01 08:19 UTC。用户已批准仅A-v1训练的NMF局部FP32，并选择从原完整1280恢复全部状态，完成Proposal剩640/Gate640及唯一四条件Quick-Val；该决定已关闭，实施状态见实时入口。只记录仍未裁决事项，参数/预算/筛选线不重复开放。执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
 
 ## 0. A-v1 合同变更或筛选后扩展（仅触发时需人工决定）
 
@@ -10,15 +10,6 @@
 - 四条件筛选结束后，是否追加Main-Val或其他研究轮次；无论promote-for-next-review与否，本次均不自动授权追加实验或official test。
 
 原文献创新性与全文缺口仍为论证局限，不以此重新搜索或重设计。以下旧路线问题保持独立。
-
-## 0.1 A-v1 NMF局部FP32合同修订与正式恢复（当前阻塞）
-
-重放和三组对照已完成：原AMP/scale1024的Proposal梯度全NaN；scale1或NMF局部FP32/scale1024在同失败现场梯度全有限、无optimizer更新。详细证据只看实时状态；两个诊断选择已关闭。
-
-仍需决定：
-- 是否批准**仅A-v1训练的NMF局部FP32**，其他AMP/scaler1024/结构/loss/种子/batch/预算不变；这属于明确的数值合同修订，单batch成功不冒充整轮稳定。
-- 若批准，是从原完整1280恢复，完成Proposal剩640/Gate640后唯一Quick-Val，还是从原C0按新精度干净正式1920+640。跨提交/合同兼容性必须显式审定，原身份不可改写，不静默weights-only续训。
-- 也可以停止本轮并保留证据。**大白话：** 局部提高精度已经解决这个失败批次的NaN，但是否把它写入正式训练以及保留哪些历史更新，仍由用户决定。
 
 ## 1. R-OE-lite 路线的去留（待用户裁决）
 

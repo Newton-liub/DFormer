@@ -150,3 +150,16 @@ Gate 包含 off/full endpoints + learned active pass，必须单独测显存/速
 > 7. 最终交付实际运行/修复commit、原始日志和结果位置、fixed-final SHA、训练计数/耗时、四条件分数及筛选结论；结果不论正负都如实报告。同步更新两份实时入口和已有MMFR证据/审核包，代码和小型结果材料提交并push，供本地Git拉取。数据/checkpoint/大日志不入Git；文档可引用对应代码提交，不为追逐最新HEAD反复回填hash。优先完成结果，报告保持简短，单seed筛选不冒称论文结论或统计显著性。
 
 运行版本以实际提交为准，必要数据/权重/原始证据身份仍须核对；普通工程文件hash限制可简化或由人工确认，未确认必须标为待核验。本次授权不保证运行成功，也不改变历史原始证据。
+
+## 8. 2026-10-01 NMF局部FP32修订与完整1280恢复（最新授权）
+
+用户在单次受控重放和三组失败现场对照完成后明确选择 **`fp32-full1280-resume`**。本节是明确的数值执行合同修订，替代§3.2的NMF继承FP16 autocast及§7的干净重启要求；其余原冻结合同与历史原始证据不改写。
+
+- 仅A-v1训练、CUDA autocast开启时，HAM内部NMF forward局部关闭autocast并将输入转FP32；NMF算法、迭代次数、随机初始化、C0 eval/BN状态不变。C0模块的`training=False`不能被用来禁用此训练专用修订；以A-v1显式训练标记控制。其他backbone/decoder/proposal/gate维持原AMP，GradScaler1024/growth2/backoff0.5/interval2000、TF32 on不变。FP32 Quick-Val及其他模型默认路径不变。
+- 配置新增唯一数值字段`nmf_training_precision="float32"`；去除此字段后的完整合同必须仍匹配原SHA **`96e93e02bfb2ad8214ab26f826ca66728a80231e16133f81a04709036578f7cd`**（含原显式source路径）。新合同和实际runtime分别记录，不能声称原合同不变。
+- 唯一批准的跨提交父恢复点：原runtime **`91c7f96d3768fde0f478e03a4ccda8c6f19368dd`** 的Proposal1280完整checkpoint，SHA **`05714d165925c4549aa1111564bbca7d8b8d9896d337c5b68f0b7bb98590564d`**。必须恢复model、AdamW状态、GradScaler、scheduler坐标、四类RNG及数据cursor；下一epoch11/iteration0、LR1.185953940035674e-5、scale1024/growth_tracker1280。父checkpoint及其protocol字典不可修改。
+- 保留原前1280次正式更新；新目录执行Proposal剩640后保存transition，Gate使用同一Proposal和全新Gate optimizer/scaler，成功640后fixed-final/global2560。不得用1870诊断现场weights-only恢复，也不得从C0再跑一轮。恢复段耗时单列，不能冒称完整冷启动耗时。
+- 显式`--precision-amendment-full1280`只允许固定父SHA/commit/contract，通过source/split、完整状态、冻结代码差异和仅一个数值合同字段检查后执行。普通恢复仍严格同commit/同合同。新checkpoint在protocol之外单列父身份与修订lineage，不污染原身份。
+- 原预检、单次重放与三组现场对照预算已结束，不重复。不追加GPU smoke/对照、seed、sweep、预算或设计变更；完成剩余正式训练后执行§4的**唯一一次**四条件Quick-Val，随后停止。OOM/NaN/Inf/scaler skip/身份错误仍立即停并保留全部证据，不自动重试。
+
+**大白话：** 用户选择保留前1280步的完整训练状态，只在后续训练中局部提高NMF精度；这是混合历史精度的正式续训，不是全轮FP32重训，也不是已经证明整轮稳定。原失败1871、590步重放和三个同batch对照仍作为独立历史证据保留。实际实现/执行/结果以实时状态及复现JSON为准。

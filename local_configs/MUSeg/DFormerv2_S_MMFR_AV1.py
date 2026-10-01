@@ -58,6 +58,8 @@ C.mmfr_av1 = {
     "train_resolution": [480, 640],
     "amp": True,
     "amp_dtype": "float16",
+    # 2026-10-01 approved numerical amendment; evaluation/default C0 stays unchanged.
+    "nmf_training_precision": "float32",
     "tf32_matmul": True,
     "tf32_cudnn": True,
     "float32_matmul_precision": "high",

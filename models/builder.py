@@ -343,7 +343,22 @@ class EncoderDecoder(nn.Module):
 
         # A-v1 has an independent identity and never changes internal geometry.
         self.av1 = None
+        self._av1_nmf_fp32_training = False
         av1_cfg = getattr(cfg, "mmfr_av1", None)
+        nmf_training_precision = av1_cfg.get("nmf_training_precision") if av1_cfg else None
+        if nmf_training_precision is not None:
+            if nmf_training_precision != "float32":
+                raise ValueError(
+                    "unsupported mmfr_av1.nmf_training_precision "
+                    f"{nmf_training_precision!r}; expected 'float32'"
+                )
+            if cfg.decoder != "ham":
+                raise ValueError("mmfr_av1.nmf_training_precision='float32' requires the HAM decoder")
+        self._av1_nmf_fp32_training = bool(
+            av1_cfg
+            and av1_cfg.get("enabled", False)
+            and nmf_training_precision == "float32"
+        )
         if av1_cfg and av1_cfg.get("enabled", False):
             if cfg.backbone != "DFormerv2_S" or self.channels[2] != 256:
                 raise ValueError("A-v1 requires DFormerv2_S stage index 2 with 256 channels")
@@ -356,6 +371,8 @@ class EncoderDecoder(nn.Module):
                 torch.manual_seed(int(av1_cfg["initialization_seed"]))
                 self.av1 = ActionUtilityResidual()
             self.requires_grad_(False)
+            if self._av1_nmf_fp32_training:
+                self.decode_head.hamburger.ham._mmfr_av1_training_active = False
             self.eval()
 
     def train(self, mode=True):
@@ -363,6 +380,8 @@ class EncoderDecoder(nn.Module):
         if getattr(self, "av1", None) is None:
             return super().train(mode)
         super().train(False)
+        if self._av1_nmf_fp32_training:
+            self.decode_head.hamburger.ham._mmfr_av1_training_active = bool(mode)
         self.av1.train(mode)
         for branch in (self.av1.proposal, self.av1.gate):
             if not any(parameter.requires_grad for parameter in branch.parameters()):

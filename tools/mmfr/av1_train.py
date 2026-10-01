@@ -45,6 +45,10 @@ SPLITS = {
     "val-dev.txt": (318, "1d0719d8f64f016d48995c25ab66d4004d76b7155d9efeef7cbb7454c0dd0e83"),
 }
 RESUME_VERSION = "mmfr-av1-epoch-boundary-v1"
+PRECISION_AMENDMENT = "av1-nmf-fp32-full1280-resume-20261001"
+PARENT_COMMIT = "91c7f96d3768fde0f478e03a4ccda8c6f19368dd"
+PARENT_CONTRACT_SHA = "96e93e02bfb2ad8214ab26f826ca66728a80231e16133f81a04709036578f7cd"
+PARENT_CHECKPOINT_SHA = "05714d165925c4549aa1111564bbca7d8b8d9896d337c5b68f0b7bb98590564d"
 
 
 def seed_training(seed):
@@ -70,6 +74,7 @@ def check_inputs(config):
         "phase_corruption_seeds": {"proposal": 2026093001, "gate": 2026093002},
         "batch_size": 10, "num_workers": 8, "accumulation_steps": 1,
         "train_resolution": [480, 640], "amp": True, "amp_dtype": "float16",
+        "nmf_training_precision": "float32",
         "tf32_matmul": True, "tf32_cudnn": True, "p_clean": 0.25,
         "optimizer": "AdamW", "float32_matmul_precision": "high",
         "grad_scaler": {"initial_scale": 1024.0, "growth_factor": 2.0,
@@ -120,7 +125,7 @@ def check_inputs(config):
 def assert_committed():
     tracked = ["tools/mmfr/av1_train.py", "tools/mmfr/av1_quickval.py",
                "local_configs/MUSeg/DFormerv2_S_MMFR_AV1.py", "utils/mmfr_av1_training.py",
-               "models/builder.py", "models/mmfr_av1.py"]
+               "models/builder.py", "models/mmfr_av1.py", "models/decoders/ham_head.py"]
     dirty = subprocess.check_output(["git", "status", "--porcelain", "--", *tracked],
                                     cwd=ROOT, text=True)
     if dirty.strip():
@@ -160,9 +165,13 @@ def check_frozen(model, phase, reference):
     if any(module.training for name, module in model.named_modules()
            if name and not name.startswith("av1")):
         raise RuntimeError("C0 module escaped eval mode")
+    if (model.cfg.mmfr_av1.get("nmf_training_precision") == "float32"
+            and not getattr(model.decode_head.hamburger.ham, "_mmfr_av1_training_active", False)):
+        raise RuntimeError("approved A-v1 training NMF FP32 marker is inactive")
 
 
-def save_recovery(path, model, optimizer, scaler, phase, completed, identity, config, preflight):
+def save_recovery(path, model, optimizer, scaler, phase, completed, identity, config, preflight,
+                  precision_amendment=None):
     total = config.mmfr_av1["phase_successful_updates"][phase]
     global_step = completed + (1920 if phase == "gate" else 0)
     checkpoint = {
@@ -185,6 +194,8 @@ def save_recovery(path, model, optimizer, scaler, phase, completed, identity, co
         "best_val_miou": None, "best_val_epoch": None, "best_tie_break_rule": "strict-greater-keeps-earliest",
         "completed_epoch": completed // 128, "next_epoch": completed // 128 + 1,
     }
+    if precision_amendment is not None:
+        checkpoint["precision_amendment"] = copy.deepcopy(precision_amendment)
     atomic_save_checkpoint(checkpoint, path)
 
 
@@ -274,7 +285,69 @@ def prepare_diagnostic(reference_dir, resume_path, state, identity, config):
             "compatibility_scope": "explicit diagnostic-only parent identity; math/RNG/data unchanged; normal resume guard untouched"}
 
 
-def run_phase(model, config, identity, output, phase, *, preflight, resume=None, diagnostic=None):
+def prepare_precision_amendment(resume_path, state, identity, config):
+    """Approved one-parent numerical amendment, never a general resume exemption."""
+    parent = state.get("protocol", {})
+    if (file_sha256(resume_path) != PARENT_CHECKPOINT_SHA
+            or parent.get("git_commit") != PARENT_COMMIT
+            or parent.get("contract_sha256") != PARENT_CONTRACT_SHA):
+        raise RuntimeError("precision amendment requires the exact original full1280 checkpoint")
+    original_contract = copy.deepcopy(config.mmfr_av1)
+    if original_contract.pop("nmf_training_precision", None) != "float32":
+        raise RuntimeError("only the approved NMF training FP32 amendment is permitted")
+    if stable_sha256(original_contract) != PARENT_CONTRACT_SHA:
+        raise RuntimeError("non-precision contract field differs from the original frozen contract")
+    unchanged = {k: v for k, v in identity.items() if k not in ("git_commit", "contract_sha256")}
+    if unchanged != {k: v for k, v in parent.items() if k not in ("git_commit", "contract_sha256")}:
+        raise RuntimeError("precision amendment changed source/splits/data/protocol identity")
+    if validate_resume(state, parent, config) != ("proposal", 1280):
+        raise RuntimeError("precision amendment requires Proposal1280 full-state boundary")
+    expected_scaler = {"scale": 1024.0, "growth_factor": 2.0, "backoff_factor": 0.5,
+                       "growth_interval": 2000, "_growth_tracker": 1280}
+    if state.get("amp_scaler") != expected_scaler:
+        raise RuntimeError("parent GradScaler state differs from verified full1280")
+    if (set(state.get("rng_state", {})) != {"python", "numpy", "torch_cpu", "torch_cuda"}
+            or not state.get("optimizer", {}).get("state")
+            or not state["optimizer"].get("param_groups")):
+        raise RuntimeError("complete optimizer/RNG state required; no weights-only fallback")
+
+    def require_finite(value):
+        if isinstance(value, torch.Tensor):
+            if value.is_floating_point() and not bool(torch.isfinite(value).all()):
+                raise RuntimeError("nonfinite parent model/optimizer tensor")
+        elif isinstance(value, dict):
+            for item in value.values():
+                require_finite(item)
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                require_finite(item)
+    require_finite(state["model"])
+    require_finite(state["optimizer"])
+    allowed = {"tools/mmfr/av1_train.py", "tools/mmfr/av1_failure_controls.py",
+               "models/builder.py", "models/decoders/ham_head.py",
+               "local_configs/MUSeg/DFormerv2_S_MMFR_AV1.py",
+               "MMFR/01_research/mmfr_a_v1_action_utility_protocol.md",
+               "doc/main/MUSeg-current-status.md", "doc/main/MUSeg-open-decisions.md",
+               "MMFR/02_evidence/reproducibility_current.json"}
+    changed = set(subprocess.check_output(
+        ["git", "diff", "--name-only", PARENT_COMMIT, identity["git_commit"]], cwd=ROOT, text=True).splitlines())
+    if not changed <= allowed or subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=ROOT, text=True).strip():
+        raise RuntimeError("precision amendment requires committed approved changes only")
+    return {"amendment_id": PRECISION_AMENDMENT, "user_decision": "fp32-full1280-resume",
+            "parent_identity": copy.deepcopy(parent),
+            "parent_checkpoint": str(resume_path.resolve()), "parent_checkpoint_sha256": PARENT_CHECKPOINT_SHA,
+            "amended_runtime_commit": identity["git_commit"], "amended_contract_sha256": identity["contract_sha256"],
+            "contract_changed_fields": {"nmf_training_precision": {"before": "inherited CUDA autocast float16",
+                                                                      "after": "float32 during A-v1 training only"}},
+            "changed_files": sorted(changed), "retained_proposal_updates": 1280,
+            "remaining_successful_updates": {"proposal": 640, "gate": 640},
+            "recovery": "full model/optimizer/scaler/scheduler/RNG/data cursor; original parent identity immutable",
+            "timing_scope": "resumed segment only; not a cold full-run duration"}
+
+
+def run_phase(model, config, identity, output, phase, *, preflight, resume=None, diagnostic=None,
+              precision_amendment=None, resume_parent_identity=None):
     from utils.dataloader.dataloader import get_train_loader
     from utils.dataloader.RGBXDataset import RGBXDataset
     optimizer = T.configure_phase(model, phase, lr=3e-5, weight_decay=0.01)
@@ -284,13 +357,15 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None,
     completed = 0
     if resume is not None:
         phase_restored, completed = validate_resume(
-            resume, diagnostic["parent_identity"] if diagnostic else identity, config)
+            resume, diagnostic["parent_identity"] if diagnostic else
+            (resume_parent_identity if resume_parent_identity is not None else identity), config)
         if phase_restored != phase:
             raise RuntimeError("resume phase mismatch")
         restore_model_with_source_guard(model, resume)
         optimizer.load_state_dict(resume["optimizer"])
         scaler.load_state_dict(resume["amp_scaler"])
         restore_rng_state(resume["rng_state"])
+    started_completed = completed
     reference = frozen_snapshot(model, phase)
     check_frozen(model, phase, reference)
     local_config = copy.deepcopy(config)
@@ -310,6 +385,9 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None,
     if diagnostic:
         progress.update(diagnostic_only=True, parent_commit=diagnostic["parent_identity"]["git_commit"],
                         stop_attempt=diagnostic["stop_attempt"])
+    if precision_amendment:
+        progress.update(precision_amendment_id=precision_amendment["amendment_id"],
+                        started_completed=started_completed, timing_scope="resumed segment only")
     log_path = output / f"{phase}-steps.jsonl"
     try:
         with log_path.open("x", buffering=1) as log:
@@ -412,7 +490,8 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None,
                     name = ("proposal-update-1920.pth" if phase == "proposal" and completed == 1920
                             else f"update-{completed + (1920 if phase == 'gate' else 0)}.pth")
                     destination = output / "checkpoint" / name
-                    save_recovery(destination, model, optimizer, scaler, phase, completed, identity, config, False)
+                    save_recovery(destination, model, optimizer, scaler, phase, completed, identity, config, False,
+                                  precision_amendment=precision_amendment)
                     latest_recovery = str(destination)
             check_frozen(model, phase, reference)
             if completed != limit or attempted != completed or skipped:
@@ -462,6 +541,7 @@ def run_phase(model, config, identity, output, phase, *, preflight, resume=None,
     result = {**progress, "status": ("diagnostic-limit-reached-no-error" if diagnostic else
                                      "passed" if preflight else "completed"),
               "attempted": attempted, "completed": completed, "skipped": skipped,
+              "started_completed": started_completed, "executed_successful_updates": completed - started_completed,
               "elapsed_seconds": time.perf_counter() - phase_started,
               "peak_allocated_bytes": torch.cuda.max_memory_allocated(),
               "peak_reserved_bytes": torch.cuda.max_memory_reserved(), "latest_recovery": latest_recovery}
@@ -494,6 +574,8 @@ def main(argv=None):
     parser.add_argument("--source-checkpoint", type=Path)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--resume", type=Path, help="full checkpoint only; ordinary formal resume requires same commit")
+    parser.add_argument("--precision-amendment-full1280", action="store_true",
+                        help="approved A-v1 NMF FP32 amendment; exact original full1280 only")
     parser.add_argument("--diagnostic-reference-dir", type=Path, help="original stopped run; diagnose only")
     args = parser.parse_args(argv)
     config = copy.deepcopy(importlib.import_module(CONFIG).C)
@@ -508,6 +590,10 @@ def main(argv=None):
         return 0
     if not args.execute or not args.output_dir:
         parser.error("GPU execution requires --execute and --output-dir")
+    if args.execute != "all" or not args.resume:
+        parser.error("current amendment authorizes full-state formal resume only; preflight/diagnostic budgets are closed")
+    if args.precision_amendment_full1280 and (args.execute != "all" or not args.resume):
+        parser.error("precision amendment requires all plus exact original full1280 resume")
     if args.resume and args.execute not in ("all", "diagnose"):
         parser.error("resume requires all or bounded diagnose")
     if args.execute == "diagnose" and (not args.resume or not args.diagnostic_reference_dir):
@@ -531,6 +617,8 @@ def main(argv=None):
     try:
         resume = None
         diagnostic = None
+        precision_amendment = None
+        resume_parent_identity = None
         if args.resume:
             resume = torch.load(args.resume, map_location="cpu", weights_only=False)
             if args.execute == "diagnose":
@@ -538,8 +626,17 @@ def main(argv=None):
                                                 resume, identity, config)
                 atomic_write_json(output / "diagnostic-compatibility.json",
                                   {k: v for k, v in diagnostic.items() if k != "expected"})
+            elif args.precision_amendment_full1280:
+                precision_amendment = prepare_precision_amendment(args.resume, resume, identity, config)
+                resume_parent_identity = precision_amendment["parent_identity"]
+                resume_phase, resume_n = validate_resume(resume, resume_parent_identity, config)
+                atomic_write_json(output / "precision-amendment-compatibility.json", precision_amendment)
+                atomic_write_json(output / "identity.json", {**identity, "argv": sys.argv,
+                    "started_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                    "precision_amendment": precision_amendment})
             else:
                 resume_phase, resume_n = validate_resume(resume, identity, config)
+                precision_amendment = copy.deepcopy(resume.get("precision_amendment"))
                 if resume_phase == "gate" and resume_n == 640:
                     raise RuntimeError("formal training already complete; refuse duplicate Quick-Val via resume")
         else:
@@ -563,15 +660,20 @@ def main(argv=None):
             return 0
         results = {}
         if resume is None or resume_phase == "proposal":
-            results["proposal"] = run_phase(model, config, identity, formal, "proposal", preflight=False, resume=resume)
+            results["proposal"] = run_phase(model, config, identity, formal, "proposal", preflight=False,
+                resume=resume, precision_amendment=precision_amendment, resume_parent_identity=resume_parent_identity)
             resume = None  # Gate always gets a new optimizer/scaler and phase-local corruption stream.
-        results["gate"] = run_phase(model, config, identity, formal, "gate", preflight=False, resume=resume)
+        results["gate"] = run_phase(model, config, identity, formal, "gate", preflight=False, resume=resume,
+                                    precision_amendment=precision_amendment)
         final = formal / "checkpoint/update-2560.pth"
         del model, resume
         torch.cuda.empty_cache()
         sha = file_sha256(final)
         atomic_write_json(output / "training-result.json", {"identity": identity, "source_load": load_info,
                           "phases": results, "global_completed": 2560, "global_skipped": 0,
+                          "precision_amendment": precision_amendment,
+                          "executed_successful_updates": sum(r["executed_successful_updates"] for r in results.values()),
+                          "timing_scope": "resumed segment only" if args.resume else "cold run including preflight",
                           "elapsed_seconds": time.perf_counter() - started, "fixed_final": str(final),
                           "fixed_final_sha256": sha, "status": "completed", "official_test_included": False})
         run_quickval(config, identity, output, final)
