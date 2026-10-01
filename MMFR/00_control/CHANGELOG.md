@@ -1,5 +1,14 @@
 # MMFR v4.1 package change log
 
+## 2026-10-01 — A-v1训练/唯一Quick-Val完成，stop与条件性本地资料交付
+
+- 从原完整1280恢复，按用户批准仅训练NMF局部FP32执行剩Proposal640/Gate640；逻辑1920+640、skip0，唯一实际评分的四条件Quick-Val为`stop`。learned三hard−matched off为−0.0018730026999946858pp，冻结+0.50pp门槛FAIL；旧实验和诊断原始证据不改写。
+- 新增上级正式报告、条件性本地val操作交接及交付收据；登记现有report-index，更新既有review profile、包导航、复现JSON和两份滚动实时文档。2026-09-30Gate-B报告/audit与旧归档保留，未新建profile类型或manifest体系。
+- 仓库外ZIP `MMFR_AV1_local_val_conditional_20261001.zip` 已生成：429993998 bytes、996文件，SHA `1975bde09fcde5924dc3c947f6762e59db51b1e0a2ae1ed25ca4410a07fadcd7`。包含最终/C0原完整权重、4f84b469基线限定源码/dev清单、报告/protocol/交接和选定小证据；dataset/official-test/大日志/父或诊断权重/外部论文clone/旧生成包不入包。全部归档成员字节SHA、CRC与安全唯一路径核验通过，无模型执行。
+- 本次按用户无GPU要求只做资料与Git普通交付。新的本地val仍待上级例外授权，A-v1十条件多视图Main-Val适配未实现；既有配置授权字段是已完成轮次的历史合同，不可自动续用。
+- 既有profile源已更新为本轮结果审核；15:33UTC直接确认缺少pwsh，未安装或手改`99_review_packet_current/`。它仍为旧快照，当前可直接转交新报告；恢复点是PowerShell可用环境先核验canonical链接，再运行原generator。
+- Git仅纳入小型报告/索引/状态，ZIP/checkpoint/cache保持仓库外；本轮不训练、不重评、不测试、不操作资源生命周期。详细结果与转移验收见 `02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md` 和 `02_evidence/delivery_mmfr_a_v1_local_val_20261001.md`。
+
 ## 2026-10-01 — 完整Git收口及云端连续执行授权
 
 - 用户明确授权本地全部改动收口并push至origin同名分支；论文库报告、历史0.0.15 Canvas及索引一起保留。历史pre-A-v1归档的纯换行差异恢复原字节；运行代码/config无新内容变化。

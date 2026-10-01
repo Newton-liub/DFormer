@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.16",
   "latestFormalReport": {
-    "path": "MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
+    "path": "MMFR/02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md",
     "periodStart": "2026-09-30",
-    "periodEnd": "2026-09-30",
-    "baseCommit": "a7c5cc17c5b495f2210efa3604b05794b5fa16c4",
-    "status": "A-v1-formal-contract-frozen-local-handoff-prepared-awaiting-4090-three-update-preflight"
+    "periodEnd": "2026-10-01",
+    "baseCommit": "4f84b469c4b04de657eaf2c455bd44e991b7f869",
+    "status": "formal1920-gate640-completed-single-quickval-stop-upper-review-conditional-local-handoff"
   },
   "reports": [
+    {
+      "path": "MMFR/02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md",
+      "topic": "mmfr-a-v1-formal-quickval-upper-review",
+      "periodStart": "2026-09-30",
+      "periodEnd": "2026-10-01",
+      "baseCommit": "4f84b469c4b04de657eaf2c455bd44e991b7f869",
+      "verification": "direct-training-result-summary-and-identity-checks-review;prior-CPU-final-state-and-saved-confusion-reconciliation-evidence;content-json-links-diff-and-transfer-byte-identity-checks;no-new-model-execution",
+      "status": "formal1920-gate640-completed-single-quickval-stop-upper-review-conditional-local-handoff"
+    },
     {
       "path": "MMFR/02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md",
       "topic": "mmfr-a-v1-implementation-gateb",

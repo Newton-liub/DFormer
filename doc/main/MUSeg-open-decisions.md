@@ -1,15 +1,14 @@
 # MUSeg 当前开放问题
 
-> **事实截至：** 2026-10-01 09:22 UTC。A-v1批准的完整1280续训与唯一四条件Quick-Val已完成，筛选结论`stop`，既定实验授权执行结束；当前没有A-v1待裁决阻塞。只记录仍真正未裁决事项，参数/预算/筛选线不重复开放。执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
+> **事实截至：** 2026-10-01 15:33 UTC。A-v1唯一四条件Quick-Val已完成并筛选`stop`；上级报告和条件性本地val资料包已准备，当前实验授权执行结束。新增裁决仅为上级是否例外同意新的本地验证，不阻塞资料交付。只记录仍真正未裁决事项，参数/预算/筛选线不重复开放。执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
 
-## 0. A-v1 合同变更或筛选后扩展（仅触发时需人工决定）
+## 0. A-v1 筛选后是否例外授权本地val（待上级回复）
 
-预检、第一轮正式训练、批准的NMF局部FP32/完整1280恢复及唯一四条件Quick-Val均已执行结束，筛选`stop`；已决定事项移出未决清单。准确执行边界见实时状态和 [protocol §7–8](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)。**大白话：** 本轮已停止，以下只在用户日后要求新的研究动作或合同变更时需单独裁决，不自动延续运行。
+本轮learned三hard相对matched off为−0.0018730026999946858pp，未达冻结+0.50pp门槛，结论`stop`。**默认继续停止实验**，报告和打包只是资料交付；用户提出“若上级模型同意后的本地val”没有授权立即运行。
 
-- 若batch10显存不足，或修复必须改变结构/loss/种子/预算/数据或评价口径，停止并决定是否修改合同；不自动降batch、accumulation改约或sweep。中断恢复兼容性无法确认时同样先问人工。
-- 四条件筛选结束后，是否追加Main-Val或其他研究轮次；无论promote-for-next-review与否，本次均不自动授权追加实验或official test。
+上级需决定是否有充分研究理由例外追加验证。若同意，必须明确四条件重评或十条件Main-Val、off/full/learned行为范围、视图/随机配对/指标口径、硬件与时间预算，以及必要适配和最小资格核验权限。A-v1现有入口仅四条件单视图，Main-Val adapter未实现，收到包不等于可直接启动。参见 [`上级报告裁决项`](../../MMFR/02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md) 和 [`条件性交接`](../../MMFR/02_evidence/handoff_mmfr_a_v1_local_val_conditional_20261001.md)。本项不开放official test、新seed、训练或调参。
 
-原文献创新性与全文缺口仍为论证局限，不以此重新搜索或重设计。以下旧路线问题保持独立。
+**大白话：** 先看上级是否认为值得再评，再确认怎么评；在明确同意之前保持停止。原文献创新性与全文缺口仍为论证局限，不据此重新搜索或重设计。以下旧路线问题保持独立。
 
 ## 1. R-OE-lite 路线的去留（待用户裁决）
 

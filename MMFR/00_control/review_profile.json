@@ -9,70 +9,71 @@
   },
   "external_code_root": "D:\\0Project\\origin",
   "review": {
-    "title": "MMFR A-v1 cloud execution authorization and complete Git closeout",
-    "current_task": "The user authorized full local commit/push and cloud implementation of minimal runners, Proposal/Gate three-update preflight, conditional continuation to 1920+640 formal training, then exactly one four-condition off/full/learned Quick-Val. Stop after results; no Main-Val or official test. Local execution is Git/document-only.",
+    "title": "MMFR A-v1 completed formal training, single Quick-Val stop and conditional local handoff",
+    "current_task": "Review completed A-v1 results and the stop outcome. The user authorized report preparation, an external transfer bundle and ordinary same-branch GitHub delivery only. Further local validation, Main-Val adaptation or experiments require a new explicit decision.",
     "state_summary": [
-      "A-v1 implementation complete; original Gate-B PASS; identity MMFR-A-v1-action-utility-v1 and frozen first-round contract unchanged. No new training/evaluation result exists.",
-      "Existing runtime/config baseline is e26d670e279970ecb8907aef1de470e992be500e. The five key Python files have no content diff in this local closeout; full-resolution runners and A-v1 evaluator still need implementation in the cloud.",
-      "Source C0 SHA-256 ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a and original Gate-B SHA are preserved from the previous direct checks; no repeat GPU qualification or checkpoint hashing locally.",
-      "Proposal/Gate successful updates 1920/640; margin0.01, lambda_clean0.1, AdamW LR3e-5/WD0.01, phase-local128-update warmup/poly0.9; target batch10/480x640/workers8/accumulation1/AMP+TF32 on. No model/loss/seed changes.",
-      "Preflight caps each short phase run at three successful updates. Both phases must pass before clean formal initialization from C0; the user now authorizes automatic formal continuation without another approval round.",
-      "Transition proposal-update-1920.pth; fixed-final update-2560.pth; full-state recovery every640 successful updates. No validation checkpoint selection, utility early stop, budget extension or tuning.",
-      "One four-condition off/full/learned Quick-Val is conditionally authorized after formal completion and minimal evaluator review. Learned hard vs matched off >=+0.50pp, clean >=-0.20pp and hard strictly above full are screening requirements only.",
-      "Normal cloud engineering repairs may be committed/pushed with minimal targeted checks. OOM/numerical failures stop; contract changes or uncertain recovery require human confirmation. Each run records its actual code commit; document receipts need not track every latest HEAD.",
-      "All intended local report/index/Canvas/receipt changes are included; historical archive line-ending noise is restored. Local Git commit/push is authorized, while no local model/data/GPU/cloud execution occurs. Main-Val, official test, new seeds and extra experiments remain outside scope."
+      "Proposal1920/Gate640 completed, skip0. Approved training-only NMF local FP32 restored the original complete1280 state and executed remaining640+640; not a cold full FP32 retrain.",
+      "Training runtime812507385a1b4b805966799bffb9a13f4704e492; evaluator runtimec798ed8f27483157ba6b164dafec4995bc47fce1. Final SHA87ec54d10192d3aedc1d6edb864b7b60b94ce66220a748a12f1ca50ca605d336; source C0 SHAca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a.",
+      "Exactly one scored four-condition original-full/single-view Quick-Val completed, 318 samples per condition, same-checkpoint matched off/full/learned, FP32/TF32off and paired HAM RNG.",
+      "Learned hard mean50.76849101659144 vs off50.770364019291435, delta-0.0018730026999946858pp. Frozen gain>=+0.50pp FAIL; clean>=-0.20pp PASS; learned hard>full PASS. Both full and learned hard means below off, classification stop.",
+      "First evaluator initialization failed before sample forwards due to NumPy config-array comparison; exact np.array_equal engineering repair retained real mismatch rejection. Original stopped evidence and empty directory preserved; no repeated scored round.",
+      "812 frozen C0 tensors exact, first real clean strict off logits equal C0/max_abs_error0, saved3816 confusion units and metrics recomputed, resumed1280 training records checked. Evidence checks added zero model forwards.",
+      "External bundle preserves final and C0 checkpoint bytes, bounded source snapshot at4f84b469c4b04de657eaf2c455bd44e991b7f869, dev splits, report/protocol/handoff and selected evidence. Dataset, official-test artifacts and large logs excluded.",
+      "Existing A-v1 evaluator supports only four-condition single-view Quick-Val. Ten-condition multi-scale/flip A-v1 Main-Val adapter is not implemented or authorized. Transfer preparation is not experimental permission.",
+      "Generated six-file packet is still a prior snapshot: pwsh unavailable, original generator not run and output not hand-edited. Use the new standalone report until canonical-link validation and regeneration in a PowerShell-capable environment.",
+      "All experiment processes exited; last direct resource check09:30:44UTC showed GPU1MiB/0percent. Instance remains running; report/export does not shut down resources. Single-seed screening only, no significance or novelty claim."
     ],
     "review_questions": [
-      "Are runtime identity, source and original evidence preserved while latest user authorization is distinguished from the historical local-only boundary?",
-      "Does preflight completion lead to a clean formal run using the frozen schedule rather than reusing preflight weights or updates?",
-      "Does the evaluator preserve same-checkpoint matched off/full/learned inputs, random pairing and original-grid metrics without adding experiments?",
-      "Are numerical/identity failures stopped and contract-changing repairs sent to human confirmation?",
-      "Are actual run commits and frozen result identities recorded without self-referential HEAD receipt loops?"
+      "Accept stop and close the current A-v1 experiment authorization, or explicitly justify an exceptional local validation?",
+      "If exceptional validation is desired, specify conditions, off/full/learned behaviors, views, metric policy, hardware/time budget and A-v1 adapter plus minimum qualification authorization before execution.",
+      "Does the precision amendment preserve the exact original1280 lineage and distinguish mixed historical precision from full FP32 retraining?",
+      "Are the single scored round, matched comparisons and stop criteria faithfully represented without treating tiny differences as significance?",
+      "Are transfer identities, excluded data/test artifacts, missing Main-Val adapter and stale generated-packet status clear?"
     ],
     "do_not_infer_or_authorize": [
-      "Segmentation benefit, trained selector ability, statistical significance or publication novelty",
-      "Verified batch10 capacity or measured A-v1 training throughput before preflight",
-      "Main-Val, official-test access, new seeds, optimizer searches, budget extensions or redesigned structures",
-      "Local GPU/training/evaluation execution in this Git-only closeout, new paid cloud resources, force push or history rewriting"
+      "Main-Val, repeated Quick-Val, official-test access, new seeds, tuning, budget extensions or redesigned models",
+      "Statistical significance, general model superiority/failure, demonstrated selector ability or publication novelty",
+      "An executable A-v1 Main-Val runner or verified cross-hardware bitwise equivalence",
+      "Resource shutdown, new paid cloud resources, force push or history rewriting"
     ],
-    "reading_order": ["CURRENT_PROTOCOL.md", "CURRENT_REPORT.md", "IMPLEMENTATION_DIFF.md", "EVIDENCE_SUMMARY.md"],
+    "reading_order": ["CURRENT_REPORT.md", "CURRENT_PROTOCOL.md", "EVIDENCE_SUMMARY.md", "IMPLEMENTATION_DIFF.md"],
     "changed_since_previous_review": [
-      "2026-10-01 user explicitly authorized full local commit/push and conditional cloud preflight -> formal training -> single Quick-Val without repeated stage approvals.",
-      "Cloud minimal runner/evaluator implementation and normal engineering fixes are allowed; frozen model/data/loss/budget changes still need human confirmation.",
-      "Document Git references may point to their corresponding code baseline or observed snapshot; mandatory evidence/weight identity and truthful actual-run commits remain required.",
-      "Old R-OE/F-lite outcomes and paper-library decisions remain independent; original Gate-B and archive evidence are not rewritten."
+      "Full-resolution runners and preflight completed, original formal training stopped on NaN, bounded diagnosis/controls completed and user approved training-only NMF FP32 complete1280 resume.",
+      "Formal1920+640 and the sole scored Quick-Val finished with stop; original evidence and runtime identities retained.",
+      "New upper-review report and conditional local handoff replace the current report source; historical Gate-B report/audit remain unchanged.",
+      "Existing profile updated without creating a new type. Packet regeneration is blocked by absent pwsh, not silently reported as complete."
     ],
     "background_not_included": ["Full literature library", "Full old E1 experiment history", "Raw checkpoints/datasets/logs", "Archives"]
   },
   "attachments": [
     {"packet_file": "CURRENT_PROTOCOL.md", "role": "current_protocol", "source": "01_research/mmfr_a_v1_action_utility_protocol.md", "transform": "exact_copy"},
-    {"packet_file": "CURRENT_REPORT.md", "role": "current_report", "source": "02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md", "transform": "exact_copy"},
+    {"packet_file": "CURRENT_REPORT.md", "role": "current_report", "source": "02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md", "transform": "exact_copy"},
     {"packet_file": "IMPLEMENTATION_DIFF.md", "role": "implementation_diff", "source": "02_evidence/audit_mmfr_a_v1_implementation_20260930.md", "transform": "exact_copy"}
   ],
   "summaries": [
     {
       "id": "av1_engineering_qualification",
-      "title": "Original Gate-B evidence remains PASS",
-      "status": "Original evidence unchanged; no repeat GPU execution",
-      "sources": ["02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md", "02_evidence/mmfr_a_v1_gateb.json"],
-      "current_relevance": "Historical engineering qualification only; current authorization comes from live status and protocol section7.",
-      "key_conclusions": ["Strict off/zero-init and C0 freeze were checked previously.", "Phase optimizer and paired RNG/input/utility checks passed in the original synthetic scope.", "No trained benefit or full-resolution capacity is inferred."]
+      "title": "Historical Gate-B and real-run identity evidence",
+      "status": "Original Gate-B unchanged; completed final run checked",
+      "sources": ["02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md", "02_evidence/mmfr_a_v1_gateb.json", "02_evidence/reproducibility_current.json"],
+      "current_relevance": "Historical implementation audit is pre-training only; current runtime changes and final results are described in the new report and outcome pointer.",
+      "key_conclusions": ["Strict off/frozen C0 identity checked during actual Quick-Val.", "Saved metrics/training evidence independently checked without additional forwards.", "Qualification success does not imply segmentation benefit."]
     },
     {
       "id": "av1_formal_contract",
-      "title": "Frozen first-round schedule and conditional execution authorization",
-      "status": "Cloud preflight -> formal training -> one Quick-Val authorized, not executed",
-      "sources": ["01_research/mmfr_a_v1_action_utility_protocol.md", "02_evidence/reproducibility_current.json"],
-      "current_relevance": "Defines the bounded result-oriented cloud task; obsolete authorization in historical reports is not current permission.",
-      "key_conclusions": ["Proposal1920/Gate640, existing seeds and fixed-final unchanged.", "Both three-update preflights must pass; formal initialization discards preflight state.", "Four-condition screening only, followed by stop; no Main-Val or official test."]
+      "title": "Approved numerical amendment and final screening",
+      "status": "Completed; stop; experiment authorization exhausted",
+      "sources": ["01_research/mmfr_a_v1_action_utility_protocol.md", "02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md", "02_evidence/reproducibility_current.json"],
+      "current_relevance": "Protocol section8 records amendment; latest outcome comes from cloud_precision_amended_resume, not older pending flags.",
+      "key_conclusions": ["Retained original1280 plus remaining640+640, no skips.", "Learned hard gain-0.001873pp failed+0.50pp screening line.", "No Main-Val or further experiments automatically authorized."]
     },
     {
       "id": "av1_identity_boundary",
-      "title": "Complete Git closeout and cloud repair workflow",
-      "status": "Runtime baseline unchanged; full local commit/push authorized",
-      "sources": ["02_evidence/reproducibility_current.json", "01_research/mmfr_a_v1_action_utility_protocol.md"],
-      "current_relevance": "Runtime and generation snapshots are recorded without repeatedly chasing the self-referential latest commit.",
-      "key_conclusions": ["Original Gate-B JSON SHA-256 bf87cc2fc46dd413131f7a6778d8df82388cf7fffa08852126d1f62178be01bf remains historical identity.", "Every cloud execution records actual committed code/config; important checkpoint/data/evidence identities remain required.", "Routine repairs can proceed with minimum checks; contract changes or uncertain recovery need human confirmation."]
+      "title": "Conditional local transfer and review delivery",
+      "status": "Report/export only; Main-Val adapter and authorization pending",
+      "sources": ["02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md", "02_evidence/handoff_mmfr_a_v1_local_val_conditional_20261001.md", "02_evidence/reproducibility_current.json"],
+      "current_relevance": "Preserves byte identities and provides preparation instructions while disclosing execution and generator limitations.",
+      "key_conclusions": ["Final/C0 checkpoints remain outside Git/MMFR; dataset and official-test excluded.", "Source snapshot is not a Git repository; use real committed checkout for Git-bound entry.", "Old generated packet remains explicitly stale until the existing PowerShell generator is available."]
     }
   ],
   "hard_exclusions": ["03_reference/source_materials/", "90_archive/", "D:\\0Project\\origin external repositories", "datasets", "checkpoints", "raw logs", "telemetry", "caches", "official-test artifacts"]
