@@ -1,6 +1,6 @@
 ﻿{
   "schema_version": "mmfr-package-reproducibility-v2",
-  "recorded_at_utc": "2026-10-01T09:09:31Z",
+  "recorded_at_utc": "2026-10-01T09:30:44Z",
   "package_name": "MMFR_v4_1_blueprint_and_reference_package_2026-09-20",
   "package_layout": "in-repository-restored-package",
   "active_review_profile": "mmfr-a-v1-action-utility-gateb",
@@ -8,6 +8,8 @@
   "official_test": "sealed_unread",
   "authoritative_research_status": "../../doc/main/MUSeg-current-status.md",
   "authoritative_open_decisions": "../../doc/main/MUSeg-open-decisions.md",
+  "current_cloud_outcome_pointer": "cloud_precision_amended_resume",
+  "historical_cloud_sections": "cloud_preparation/cloud_execution/cloud_gradient_diagnostic/cloud_failure_precision_controls retain their contemporaneous scopes and decisions; latest approved amendment and final screening are in current_cloud_outcome_pointer",
   "git": {
     "scope": "historical local-closeout snapshot; current cloud code delivery is recorded in cloud_preparation.code_commit",
     "branch": "perf/mmfr-a2-v3-pipeline-opt1",
@@ -214,7 +216,8 @@
     "automatic_retry": false
   },
   "cloud_precision_amended_resume": {
-    "status": "training-completed-quickval-pre-forward-engineering-fix",
+    "status": "completed-single-quickval-stop-no-further-experiments",
+    "quickval_execution": {"evaluator_commit": "c798ed8f27483157ba6b164dafec4995bc47fce1", "evaluator_pushed_remote_verified": true, "shell_started_at_utc": "2026-10-01T09:11:34.637Z", "evaluation_started_at_utc": "2026-10-01T09:11:42.064156+00:00", "evaluation_finished_at_utc": "2026-10-01T09:21:50.023665+00:00", "process_ended_at_utc": "2026-10-01T09:21:50.830Z", "process_pid": 60976, "exit_code": 0, "output_root": "cloud/mmfr-av1-formal-fp32-resume1280-v1/quickval-config-equality-fix-v1", "console": "cloud/mmfr-av1-formal-fp32-resume1280-v1-quickval-config-equality-fix-v1-console.log", "summary_artifact": "cloud/mmfr-av1-formal-fp32-resume1280-v1/quickval-config-equality-fix-v1/summary.json", "scope": "one scored authorized round; previous initialization had zero sample forwards/metrics", "evaluation_seconds": 607.959805, "completed": true},
     "training_result_artifact": "cloud/mmfr-av1-formal-fp32-resume1280-v1/training-result.json",
     "training_elapsed_seconds": 1539.0116258771159,
     "training_timing_scope": "resumed segment only; original retained1280 excluded",
@@ -230,7 +233,7 @@
     "output_root": "cloud/mmfr-av1-formal-fp32-resume1280-v1",
     "console": "cloud/mmfr-av1-formal-fp32-resume1280-v1-console.log",
     "compatibility_artifact": "cloud/mmfr-av1-formal-fp32-resume1280-v1/precision-amendment-compatibility.json",
-    "last_directly_verified": {"proposal_attempted": 1920, "proposal_completed": 1920, "gate_attempted": 640, "gate_completed": 640, "skipped": 0, "scale": 1024.0, "finite": true, "quickval_initialization_attempted": true, "quickval_scored_samples": 0, "process_state": "exited; GPU1MiB/0percent"},
+    "last_directly_verified": {"proposal_attempted": 1920, "proposal_completed": 1920, "gate_attempted": 640, "gate_completed": 640, "skipped": 0, "scale": 1024.0, "finite": true, "quickval_conditions_completed": 4, "quickval_samples_per_condition": 318, "quickval_scored_behavior_units": 3816, "process_state": "training/evaluator exited; no experimental processes; GPU1MiB/0percent at09:30:44UTC; instance not shut down"},
     "authorization_recorded_at_utc": "2026-10-01T08:19:29Z",
     "user_decision": "fp32-full1280-resume",
     "amendment_id": "av1-nmf-fp32-full1280-resume-20261001",
@@ -252,7 +255,26 @@
     "fixed_final_sha256": "87ec54d10192d3aedc1d6edb864b7b60b94ce66220a748a12f1ca50ca605d336",
     "transition_sha256": "979b99d1928b42d87ce45d38701791279b56ab78e9e2ef015c9dd5f06da4d26a",
     "final_cpu_checks": "PASS independent final/transition hashes, full resume metadata/lineage, all final model/optimizer tensors finite, 812 frozen C0 tensors exactly match source, Proposal equals transition, identical NumPy config accepted/perturbed norm_mean rejected; zero model forwards",
-    "quickval_scores": null,
+    "quickval_scores": {
+      "metric": "mIoU percent, unrounded; delta in percentage points",
+      "conditions": {
+        "clean": {"off": 53.456269549700224, "full": 53.43686508877415, "learned": 53.44623817933583, "learned_minus_off_pp": -0.010031370364394832, "gate_mean": 0.5427776474810246, "gate_median": 0.5432371497154236},
+        "entire_missing@1.0": {"off": 48.76234971391729, "full": 48.766589694769706, "learned": 48.7648492855599, "learned_minus_off_pp": 0.0024995716426090553, "gate_mean": 0.5432085437969592, "gate_median": 0.5444479584693909},
+        "spatial_dropout@0.75": {"off": 51.39733769797987, "full": 51.396645048454836, "learned": 51.39721234334407, "learned_minus_off_pp": -0.0001253546357986579, "gate_mean": 0.5409448712876758, "gate_median": 0.5417675971984863},
+        "misalignment@0.75": {"off": 52.15140464597714, "full": 52.1350824108133, "learned": 52.14341142087036, "learned_minus_off_pp": -0.007993225106780244, "gate_mean": 0.5427480414041184, "gate_median": 0.5425331890583038}
+      },
+      "hard_means": {"off": 50.770364019291435, "full": 50.766105718012604, "learned": 50.76849101659144},
+      "learned_hard_minus_off_pp": -0.0018730026999946858,
+      "full_hard_minus_off_pp": -0.004258301278831311,
+      "learned_hard_minus_full_pp": 0.0023852985788366254,
+      "learned_clean_minus_off_pp": -0.010031370364394832,
+      "continuation_requirements_passed": {"learned_hard_gain_vs_off": false, "learned_clean_delta_vs_off": true, "learned_hard_vs_full": true},
+      "classification": "stop",
+      "interpretation": "both full and learned hard means are below matched off; frozen +0.50pp gain criterion failed; tiny differences are single-seed screening, not significance or a general model claim"
+    },
+    "quickval_checks": "PASS four conditions each318 unique samples, 812 frozen C0 tensors exact, strict off first-sample logits exact/max_abs_error0 and zero Proposal/Gate calls, FP32/TF32off original-full, 3816 saved per-sample confusion units recomputed/summed to aggregates, mIoU/hard/delta/gate mean-median/frozen screening recomputed; 1280 saved training records consecutive finite applied scale1024 skip0; zero extra model forwards",
+    "next_action": "stop; no Main-Val/test/new seed/extra budget; resource instance remains running",
+    "review_packet": "prior generated snapshot preserved; pwsh unavailable; no manual edits",
     "original_evidence_preserved": true,
     "extra_diagnostics_authorized": false,
     "automatic_retry": false,

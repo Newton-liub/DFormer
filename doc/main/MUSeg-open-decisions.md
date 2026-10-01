@@ -1,10 +1,10 @@
 # MUSeg 当前开放问题
 
-> **事实截至：** 2026-10-01 08:19 UTC。用户已批准仅A-v1训练的NMF局部FP32，并选择从原完整1280恢复全部状态，完成Proposal剩640/Gate640及唯一四条件Quick-Val；该决定已关闭，实施状态见实时入口。只记录仍未裁决事项，参数/预算/筛选线不重复开放。执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
+> **事实截至：** 2026-10-01 09:22 UTC。A-v1批准的完整1280续训与唯一四条件Quick-Val已完成，筛选结论`stop`，既定实验授权执行结束；当前没有A-v1待裁决阻塞。只记录仍真正未裁决事项，参数/预算/筛选线不重复开放。执行边界见 [`MUSeg-current-status.md`](MUSeg-current-status.md)；既往完整决策史见 [`整理前归档`](../../MMFR/90_archive/2026-09-24_live_docs_rolling_window/README.md)。
 
 ## 0. A-v1 合同变更或筛选后扩展（仅触发时需人工决定）
 
-预检、1920+640正式训练、唯一四条件Quick-Val及必要薄入口实现已于2026-10-01授权，移出未决清单。准确执行边界见实时状态和 [protocol §7](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)。**大白话：** 正常路径可以连续执行，不再逐步等批准；以下超出冻结合同的情况才需人工裁决。
+预检、第一轮正式训练、批准的NMF局部FP32/完整1280恢复及唯一四条件Quick-Val均已执行结束，筛选`stop`；已决定事项移出未决清单。准确执行边界见实时状态和 [protocol §7–8](../../MMFR/01_research/mmfr_a_v1_action_utility_protocol.md)。**大白话：** 本轮已停止，以下只在用户日后要求新的研究动作或合同变更时需单独裁决，不自动延续运行。
 
 - 若batch10显存不足，或修复必须改变结构/loss/种子/预算/数据或评价口径，停止并决定是否修改合同；不自动降batch、accumulation改约或sweep。中断恢复兼容性无法确认时同样先问人工。
 - 四条件筛选结束后，是否追加Main-Val或其他研究轮次；无论promote-for-next-review与否，本次均不自动授权追加实验或official test。
