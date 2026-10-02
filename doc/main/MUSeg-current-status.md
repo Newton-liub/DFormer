@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实截至：2026-10-02（新方向计划与项目接入审计收口）。** 用户提供了方向 A（自然深度空洞形态重放）和方向 B（固定观测下的推理协议研究）两份 v1.0 方案。本轮完成限定现状核验与 [上级审计报告](../reports/2026-10-02-direction-plans-project-readiness-upper-review.md)，推荐 A 优先、B 暂只贡献共用单视图入口；这是待审建议，尚未选择/授权实现或实验。真正未决事项见 [开放决策](MUSeg-open-decisions.md)。
+> **事实与执行边界截至：2026-10-03。** 用户通过综合执行单授权最小目录整理与 Direction A 首轮 readiness。A（自然深度空洞形态重放）优先，B（推理协议研究）备用；本轮允许独立分割配置、LR `1e-6`、确定性输入配对与统一S1实现，精确C0和本机GPU就绪时才允许每组最多3次成功更新及极少量val-dev预检。正式三组各2560更新、完整评价、B1a、official test及付费云未授权。当前正在执行，最终证据与停止点将在收口时更新。
 
 ## 当前事实与实际意义
 
@@ -9,11 +9,11 @@ C0 是 E1 Batch 1A 的训练对照；fixed-final 是成功更新 2560 次后的�
 - 已有自然缺失调查仍有效：train-dev1277图/762组，val-dev318图/196组；train Depth 缺失率mean31.674541%，val30.148527%只描述。已核验dev的Depth16/Depth8零值支持一致，量化新增零0，不外推test。train P25/P75为0.10761048923865359/0.4944140559923207，对应val低/中/高80/174/64图。
 - 本轮直接复核现存summary与限定源码，未重跑1595图统计或读取标签。真实空洞形态与随机网格删除不同，但 Replay 尚未实现、训练或取得收益；高缺失性能缺口仍待验证。
 - **新接入风险已核验：**实际训练helper为`utils/dataloader/mmfr_training_v3.py::build_mmfr_training_batch_v3`，两份方案的`utils/mmfr_training.py`路径需在执行单纠正。loader没有返回空间变换/support元信息，旧helper用normalized零值推断support。旧C0配置继承A2混合故障与辅助可靠性头；`EncoderDecoder.forward`训练时要求完整可靠性监督并添加辅助loss。`utils/train.py`的旧E1入口固定candidate/protocol、base LR1e-5、预算及AMP/SyncBN等合同，不能仅复制旧配置改名接新三组。
-- 上级方案提出原骨干/解码器三组全参数微调；首轮辅助头/损失、具体LR、BN/精度/scheduler、mask空间传递、删除量匹配及矩形不可达语义仍待定。本地建议仅分割目标、独立配置和薄入口，不改旧冻结合同。
-- 方案A拟议三组各2560更新，共7680正式成功更新；四checkpoint×318图×三输入×S1共3816 view前向。方案B完整B1a拟议33072 view前向。均为预算计数，不是授权、耗时或实际运行结果。
-- 本地C0/F-lite与NYUv2资产就绪证据仍不足；本轮未扩大搜盘、取回权重、下载数据或接云。恢复C0建议优先于重训；A首轮不必先恢复F-lite。CMX/GeminiFusion/ConD等完整MUSeg对照也未就绪。
+- 本轮已采用原骨干/解码器三组全参数segmentation-only continuation，LR `1e-6`；BN/精度/scheduler按实际正式E1 C0 runner核对后写入新protocol。输入mask/support、删除量匹配及矩形不可达语义由本轮限定实现明确，不改旧冻结合同。实现与真实更新尚待本轮检查。
+- 正式Round-1合同预算仍为三组各2560成功更新、合计7680，C0+三组×318图×三条件S1共3816 view前向；本轮不执行这两个正式预算。B完整B1a33072 view前向未授权。所有预算计数不表示实际运行结果。
+- 本地C0尚在限定搜索/恢复中，F-lite/NYUv2资产不属本轮必须恢复范围；不取回额外baseline、不下载数据或启动付费云。恢复精确C0优先于重训，禁止另训C0代替。
 
-**大白话：** 两份计划已经可以送审，但还不能直接开跑。先确认三组只差新增删除方式、取得正确C0并统一评价，再决定训练；本轮没有把上级方案自动升级为执行许可。
+**大白话：** 本轮已经获准准备三组只差新增删除方式的输入与训练链，并严格限量预检；正式训练仍要等就绪报告审核。目录整理和代码实现不代表Replay已取得收益。
 
 ## 旧路线结论与执行边界
 
@@ -24,18 +24,15 @@ C0 是 E1 Batch 1A 的训练对照；fixed-final 是成功更新 2560 次后的�
 
 ## 证据入口与文档位置
 
-- [本轮上级审计报告](../reports/2026-10-02-direction-plans-project-readiness-upper-review.md)：现状、代码风险、最小文件职责、分阶段预算与8项裁决；当前交付入口。
-- 上级原方案：[A原稿](../../临时/MMFR_direction_A_natural_missing_2026-10-02.md)、[B原稿](../../临时/MMFR_direction_B_inference_protocol_2026-10-02.md)。保持原文与位置，未迁移；拟在接受后移至MMFR/01_research单一正文位置，不保留双份可编辑当前副本。
+- [10月3日目录与代码职责审计](../reports/2026-10-03-project-directory-responsibility-audit.md)：当前结构、十项风险、文件职责/冻结边界与仅建议的处置清单；当前交付入口。
+- [10月2日上级接入审计](../reports/2026-10-02-direction-plans-project-readiness-upper-review.md)：现状、代码风险、最小文件职责、分阶段预算与8项裁决；新方向研究裁决仍以此及开放决策为依据。
+- canonical方案：[A正文（优先）](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[B正文（备用）](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)。已原样迁至MMFR/01_research，临时目录不留第二份可编辑正文；历史代码/报告/配置冻结原位。
 - [原本地调查](../reports/2026-10-02-direction-audit-local-evidence.md)：自然统计、完整Quick/Main差异、baseline/NYU/官方来源和历史结果。统计工具仍为`tools/mmfr/audit_museg_natural_missing.py`，summary/CSV为本地Git排除产物，无mask库。
 - [A-v1正式报告](../../MMFR/02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md)、[既有复现JSON](../../MMFR/02_evidence/reproducibility_current.json)：训练runtime812507385a1b4b805966799bffb9a13f4704e492、评价runtimec798ed8f27483157ba6b164dafec4995bc47fce1与final身份沿用既有核验，不重hash。
 - [MMFR导航](../../MMFR/00_control/PACKAGE_INDEX.md)、[计划索引](../plans/README.md)、现有report-index已登记本轮报告。最新候选与旧A-v1设计分开展示，不回写历史计划/报告。
 
 ## 本轮交付与下一恢复点
 
-本轮基准HEAD `8b5860173749b999bdf272b77505a34e79e75a46`，分支`perf/mmfr-a2-v3-pipeline-opt1`；开始时ahead2且已有dirty。没有commit/push/fetch/reset、模型/配置改动、代码迁移、权重恢复、数据下载或云操作。旧归档行尾差异与用户原稿保持，不宣称当前工作区clean。
+2026-10-03综合执行正在进行。开始HEAD为 `34a4dea41c1e08a5a1f85711eb97107471445272`，分支 `perf/mmfr-a2-v3-pipeline-opt1`；既有审计报告、report-index及导航/状态dirty保留，不把无关产物纳入提交。A/B科研正文已迁到canonical位置，默认旧输入/历史runner/config/model/证据不搬移或删除；必要loader扩展只允许opt-in。下一恢复点：目录整理本地提交后，冻结实际C0参数、限定恢复精确权重、完成三组输入/独立配置/S1与最小检查；满足条件才做授权内预检，最终报告后停止。
 
-只新增审计报告并更新现有索引/导航/实时入口；检查为内容、关键源码/产物、限定链接/JSON结构和Git差异。完整测试、配置import、GPU/forward/测时、训练、新Quick/Main/test均未运行，纯报告按验证预算不扩验证。
-
-`MMFR/99_review_packet_current/`仍是历史生成快照，既有A-v1 profile继续服务上次实验；本轮不手改生成产物、不新增profile/manifest/hash库或复制第二正文。直接提交本报告供上级阅读；若要求正式生成包，待明确canonical方案位置与审核范围后再用既有生成器重建。
-
-**准确恢复点：**把本报告及两份原方案交上级，裁决分割-only/辅助头、实际LR、mask/support与匹配/压力测试合同，以及C0恢复、限定代码、GPU预检和正式训练各自预算。建议A先准备、B仅S1共用；未获新授权时保持停止。旧F-lite/R-OE/A-v1例外local-val决策独立，不自动关闭也不自动复活。
+这轮是就绪准备，不是正式实验。`official test=sealed_unread`，不push，不启动付费云。历史目录审计详情继续由日期化报告留存；新阶段最终事实待实际检查后更新。

@@ -4,7 +4,7 @@
 
 - Package: `MMFR_v4_1_blueprint_and_reference_package_2026-09-20`；仓库内 `MMFR/` 是证据与审核材料入口，不是第二份实时状态。
 - Historical blueprint: [`MMFR v4.1`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)，冻结历史不追改。
-- Latest candidate proposals: [`方向A：自然空洞形态覆盖`](../../临时/MMFR_direction_A_natural_missing_2026-10-02.md)、[`方向B：推理协议研究`](../../临时/MMFR_direction_B_inference_protocol_2026-10-02.md)（上级v1.0原稿；待审，暂保留原位置，未授权实现/实验）。
+- Canonical direction proposals: [`方向A：自然空洞形态覆盖（优先）`](../01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[`方向B：推理协议研究（备用）`](../01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)（v1.0科研正文原样迁移；已授权本轮最小整理与A首轮readiness，未授权正式训练或完整B1a）。
 - Latest formal report: [`新方向计划、项目现状与最小文件治理上级审计`](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)（2026-10-02；推荐A优先、B备用与S1共用，明确旧C0继承/辅助loss及入口硬约束；仅审计）。
 - Prior local evidence: [`两个候选方向的本地事实摸底`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)（自然Depth缺失、F-lite协议差异、baseline/NYU与官方代码；原始事实/局限保留）。
 - Previous implemented design: [`A-v1任务效用控制残差`](../../doc/reports/2026-09-30-mmfr-next-generation-research-design.md)；对应正式筛选已stop，不再作为新方向入口。
@@ -18,14 +18,14 @@
 
 事实、权限、阻塞和恢复点只以 [`MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md) 与 [`MUSeg-open-decisions.md`](../../doc/main/MUSeg-open-decisions.md) 为准。
 
-**大白话：** 当前已收到两份新方向方案，建议先用三组训练验证自然空洞形态是否有价值，推理协议研究暂作备用。但旧C0配置带有历史增强/辅助训练，需先定新合同并恢复真实权重；本轮只有审计报告，没有实现或新实验。A-v1仍stop，任何新准备、GPU或评价都需明确授权。
+**大白话：** A 是当前优先准备的方向，B 保留备用。本轮执行单允许独立分割配置、真实空洞/网格配对输入与统一S1入口准备；精确C0和本机GPU就绪时才允许每组最多3次成功更新及极少量val-dev预检。三组各2560次正式训练、完整评价、付费云与official test均未授权；A-v1仍stop。
 
 ## Quick navigation
 
 | 需要知道 | 权威材料或证据 |
 | --- | --- |
 | 当前阶段和授权 | [`唯一实时状态`](../../doc/main/MUSeg-current-status.md)；[`真正未决事项`](../../doc/main/MUSeg-open-decisions.md) |
-| 本次新方案、接入风险与8项裁决 | [`新方向项目准备审计`](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)；原稿A/B见本页Package identity，尚未移至canonical计划目录 |
+| 本次新方案、接入风险与8项裁决 | [`新方向项目准备审计`](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)；canonical A/B正文见本页Package identity；本轮执行边界以实时状态为准 |
 | 原方向A/B输入与历史协议事实 | [`2026-10-02本地调查报告`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)，保留原证据；本轮不重跑统计 |
 | 上次A-v1结果、失败修复、精确分数与局限 | [`2026-10-01上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md) |
 | 正式合同和局部FP32完整1280恢复 | [`A-v1 protocol §8`](../01_research/mmfr_a_v1_action_utility_protocol.md#8-2026-10-01-nmf局部fp32修订与完整1280恢复最新授权)；旧章节保留历史，当前完成结果见实时状态 |

@@ -1,5 +1,12 @@
 # MMFR v4.1 package change log
 
+## 2026-10-03 — NaturalMissing 首轮就绪准备授权与正文位置收口
+
+- A/B v1.0科研正文原样迁至 `01_research/`，保留文件名，临时目录不留第二份；A优先，B备用且不运行完整B1a。
+- 最小当前导航指向canonical正文；历史runner/config/evidence冻结原位，旧结果不回写。
+- 本轮允许segmentation-only、LR1e-6、Natural/Grid/Replay配对输入、薄训练与S1入口准备；精确C0及本机GPU满足时最多每组3成功更新/极少量val-dev预检。正式7680成功更新、完整评价、paid cloud与official test仍关闭。
+- 目录整理先单独本地提交；后续readiness实际结果见日期化报告和唯一实时状态。既有审计产物/索引dirty保持，不手改或重建旧review packet、不push。
+
 ## 2026-10-02 — 上级两方向方案接入审计与最小文件治理建议
 
 - 完整读取用户方向A/B v1.0原稿，新增 `doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md`；推荐A优先、B备用且先仅借用统一padding单视图S1。两份原稿留在 `临时/` 保持原文，本轮不迁移代码/计划或执行实验。

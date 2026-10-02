@@ -1,7 +1,7 @@
 # MUSeg 阶段计划与历史执行记录
 
 > **文档角色：** 计划目录索引，不承担实时状态。
-> **入口维护时点：** 2026-10-02；下述旧阶段设计按各自形成时点理解。
+> **入口维护时点：** 2026-10-03；下述旧阶段设计按各自形成时点理解。
 > **实时入口：** `doc/main/MUSeg-current-status.md`；研究选择见 `doc/main/MUSeg-open-decisions.md`。
 > **后继关系：** 计划只记录设计和形成时点；当前事实与恢复步骤以实时状态为准。
 
@@ -9,8 +9,9 @@
 
 ## 最新候选与待审入口
 
-- [新方向计划与项目接入上级审计](../reports/2026-10-02-direction-plans-project-readiness-upper-review.md)：推荐自然空洞形态增强A优先，推理协议研究B备用；当前仅报告/导航交付，未授权实现、权重恢复或实验。
-- 用户提供的 [方案A原稿](../../临时/MMFR_direction_A_natural_missing_2026-10-02.md) 与 [方案B原稿](../../临时/MMFR_direction_B_inference_protocol_2026-10-02.md) 暂保留原位置。接受后建议迁至 `MMFR/01_research/` 单一正文位置，本目录只做索引/执行子计划，不复制研究正文。
+- [Direction A：自然空洞形态（当前优先）](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md) 与 [Direction B：推理协议（备用）](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md) 已迁至唯一正文位置 `MMFR/01_research/`，科研正文未改写。本目录只做索引/执行子计划，不复制研究正文。
+- 本轮已授权最小目录整理与 A 首轮 readiness（就绪准备），包括独立分割配置、LR `1e-6`、输入配对与统一S1；满足精确C0/本机GPU条件时每组最多3次成功更新预检。正式三组各2560次训练、完整val-dev及B1a未授权。
+- [新方向接入审计](../reports/2026-10-02-direction-plans-project-readiness-upper-review.md) 与 [目录职责审计](../reports/2026-10-03-project-directory-responsibility-audit.md) 是工程依据，不承担实时权限。
 - 最新输入与历史协议事实见 [本地调查](../reports/2026-10-02-direction-audit-local-evidence.md)；准备/训练权限与恢复点只看两份 `doc/main/` 实时文档。
 
 ## 既有阶段计划与历史候选
