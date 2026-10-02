@@ -50,3 +50,19 @@
 - 外部仓库只作为实现依据和参考，不整体替换 DFormer backbone、MUSeg 数据管线、corruption protocol、evaluator、baseline 或 Gate 流程。
 - 任何移植前必须先在本目录与 [`external_reference_provenance_2026-09-21.md`](external_reference_provenance_2026-09-21.md) 补齐：原始文件/class/function、许可证与再分发条款、MMFR 对应实现、具体改动、实验身份和实验编号。
 - 未声明许可证的仓库（`nconv-nyu`、`LightDepth`、`NR-MVSNet`、`OPM-MVS`、`SMAC`、`S2MA`）在确认许可前不得复制其代码进入主工程。
+
+## 6. 2026-10-02 现查补充
+
+### 新增本地官方 clone：MMSS Benchmark
+
+| 目录名 | 本地路径 | 官方来源 | `.git/config` remote / branch | 许可证 | 用途与适用边界 |
+| --- | --- | --- | --- | --- | --- |
+| `MMSS` | `D:\0Project\origin\MMSS` | [Chenfei-Liao/Multi-Modal-Semantic-Segmentation-Robustness-Benchmark](https://github.com/Chenfei-Liao/Multi-Modal-Semantic-Segmentation-Robustness-Benchmark) | 官方 URL / `main` | 未确认；仓库根常见 `LICENSE`、`LICENSE.md`、`LICENSE.txt`、`COPYING` 文件未找到，未作全树扫描 | 官方 EMM/RMM/NM 评测脚本；README 说明基于 DELIVER、需替换其验证入口。不是现成 MUSeg 两模态 evaluator，未运行模型。浅克隆时跳过 LFS smudge；本次没有主动下载数据或 checkpoint。 |
+
+此项是本次新增现查事实；上方 2026-09-23 的 11-repo 盘点表保留为历史快照，没有改写其原始日期或结论。
+
+### GeomPrompt 官方代码链接现查
+
+截至 2026-10-02，作者项目页 [geomprompt.github.io](https://geomprompt.github.io/) 与 CVPR Open Access 论文页仅核到论文/arXiv材料，未发现官方源码仓库链接；`D:\0Project\origin\GeomPrompt\.git\config` 也未找到。本次未克隆第三方或非官方仓库。当前状态记为“官方代码未找到”，不等同于证明作者从未发布或未来不会发布代码。
+
+本次文件与函数级证据及适用边界见 [唯一主报告§8–10](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)；本地中间提取材料保留在 `outputs/direction-audit-20261002/assets-external-evidence.md`，不代替主报告。

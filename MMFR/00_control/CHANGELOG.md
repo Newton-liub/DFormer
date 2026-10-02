@@ -1,5 +1,13 @@
 # MMFR v4.1 package change log
 
+## 2026-10-02 — 两候选方向本地事实摸底完成，等待上级选择
+
+- 唯一主要交付为 `doc/reports/2026-10-02-direction-audit-local-evidence.md`，十二章覆盖自然Depth missing、synthetic区别、train-only replay接口、F-lite Quick/Main矩阵、matched推理、baseline/NYUv2、MMSS/GeomPrompt与四历史路线，列8个裁决问题；不形成新方法或实验授权。
+- 新增可复用CPU统计工具 `tools/mmfr/audit_museg_natural_missing.py`；只读1277 train-dev与318 val-dev的RGB/Depth/Depth16，输出本地summary/CSV，不读Label/test、不存mask。train自然无效率mean31.674541%，val30.148527%仅描述；dev量化新增零0，固定映射一致，不外推test。
+- 复用已有官方DFormer，仅新增仓库外MMSS官方浅clone，跳过LFS/数据/权重；更新code-index现查补充。GeomPrompt官方来源未找到可确认代码，未clone第三方。MMSS依赖DELIVER、随机观测复用与许可均有缺口，未移植运行。
+- 主代理复核关键统计/代码/结果/来源后滚动更新两份实时文档，登记现有report-index与本导航。A-v1仍stop、ROE/Flite旧裁决独立，official test仍sealed。
+- 不改历史报告/原始结果/backbone/evaluator；不新训练/评价/GPU/完整测试/数据下载/manifest/hash库，不提交或push。沿用上一实验profile，不生成或手改旧审核包；本次独立报告是当前交付入口。
+
 ## 2026-10-02 — 9个待处理论文包接入：新增5篇、跳过4份重复
 
 - 输入为本机仓库外 `D:\0Project\origin\论文待处理\1`–`9`，使用既有 `human/paper_library.cmd`，先 `--dry-run` 预览，再正式导入；未使用 `--bootstrap`，未修改工具代码。

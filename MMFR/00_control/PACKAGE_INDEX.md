@@ -5,7 +5,8 @@
 - Package: `MMFR_v4_1_blueprint_and_reference_package_2026-09-20`；仓库内 `MMFR/` 是证据与审核材料入口，不是第二份实时状态。
 - Historical blueprint: [`MMFR v4.1`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)，冻结历史不追改。
 - Latest design: [`A-v1任务效用控制残差`](../../doc/reports/2026-09-30-mmfr-next-generation-research-design.md)。
-- Latest formal report: [`A-v1正式训练/唯一Quick-Val上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md)（2026-10-01；Proposal1920/Gate640完成、skip0，四条件筛选`stop`）。
+- Latest formal report: [`两个候选方向的本地事实摸底`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)（2026-10-02；自然Depth缺失、F-lite协议差异、baseline/NYU及官方代码；仅调查，等待上级选择）。
+- Latest experiment report: [`A-v1正式训练/唯一Quick-Val上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md)（2026-10-01；Proposal1920/Gate640完成、skip0，四条件筛选`stop`，不因调查自动复活）。
 - Local conditional handoff: [`资料接收与本地val前置条件`](../02_evidence/handoff_mmfr_a_v1_local_val_conditional_20261001.md)；[`转移包交付收据`](../02_evidence/delivery_mmfr_a_v1_local_val_20261001.md)记录整包SHA、大小与逐成员核验。打包不授权新实验，Main-Val适配尚缺。
 - Historical implementation evidence: [`Gate-B报告`](../02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)、[`差异审核`](../02_evidence/audit_mmfr_a_v1_implementation_20260930.md)，原结论/字节保留。
 - Pre-revision snapshot: [`pre-A-v1设计`](../90_archive/2026-09-30_mmfr_a_v1_design_revision/2026-09-30-mmfr-next-generation-research-design.pre-a-v1.md)，历史0.0.15展示仅对应此设计。
@@ -15,14 +16,15 @@
 
 事实、权限、阻塞和恢复点只以 [`MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md) 与 [`MUSeg-open-decisions.md`](../../doc/main/MUSeg-open-decisions.md) 为准。
 
-**大白话：** 训练跑完不等于有性能收益；本轮learned困难条件平均比matched off低0.001873pp，未通过+0.50pp门槛，当前停止实验。上级若例外同意本地val，还需明确新授权和完成A-v1评价适配。
+**大白话：** 当前在选择值得继续验证的论文问题。自然缺失有输入分布证据，F-lite有推理协议差异与历史反转证据，但没有本轮新收益实验。A-v1困难条件未通过+0.50pp门槛仍为stop；任何实现、本地val或新评价都需新授权。
 
 ## Quick navigation
 
 | 需要知道 | 权威材料或证据 |
 | --- | --- |
 | 当前阶段和授权 | [`唯一实时状态`](../../doc/main/MUSeg-current-status.md)；[`真正未决事项`](../../doc/main/MUSeg-open-decisions.md) |
-| 本轮结果、失败修复、精确分数与局限 | [`2026-10-01上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md) |
+| 本次方向A/B事实与8个裁决问题 | [`2026-10-02本地调查报告`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)，唯一主要交付；没有新实验 |
+| 上次A-v1结果、失败修复、精确分数与局限 | [`2026-10-01上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md) |
 | 正式合同和局部FP32完整1280恢复 | [`A-v1 protocol §8`](../01_research/mmfr_a_v1_action_utility_protocol.md#8-2026-10-01-nmf局部fp32修订与完整1280恢复最新授权)；旧章节保留历史，当前完成结果见实时状态 |
 | 运行身份与结果JSON | [`reproducibility_current.json`](../02_evidence/reproducibility_current.json)，`current_cloud_outcome_pointer`指向`cloud_precision_amended_resume`；旧pending字段不当当前权限 |
 | 条件性本地转移包 | [`本地val交接`](../02_evidence/handoff_mmfr_a_v1_local_val_conditional_20261001.md)；包在仓库外，不含dataset/test，大checkpoint不进Git |
@@ -44,9 +46,9 @@
 
 ## Review packet: source current, generated output stale
 
-既有profile的 `CURRENT_REPORT.md` 源现已指向本轮正式报告；生成包仍是旧快照。当前Linux环境直接核验无`pwsh`，本次未安装PowerShell、未运行生成器、未手改六文件包。**转交本轮上级报告即可完成此次汇报；旧包不可当作最新完成结果审核包。**
+既有profile的 `CURRENT_REPORT.md` 源仍指向2026-10-01 A-v1实验报告；生成包仍是更早的历史快照。2026-10-02本次用户限定不创建manifest/审核包，故未运行生成器或手改六文件包；直接转交上述本地方向调查报告。生成器只接受MMFR包内canonical源，单一主报告位于doc/reports，本轮不为适配生成器复制第二份报告或改工具。旧包不能冒充本次调查交付。
 
-正式六文件审核入口仍限定 `99_review_packet_current/`，只可在PowerShell可用环境先核验canonical Markdown链接，再用既有生成器重建。从MMFR目录执行：
+正式六文件审核入口仍限定 `99_review_packet_current/`；未来另获授权时先核验对应profile的canonical Markdown链接，再用既有生成器重建。从MMFR目录执行：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\98_tools\rebuild_review_packet.ps1

@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.16",
   "latestFormalReport": {
-    "path": "MMFR/02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md",
-    "periodStart": "2026-09-30",
-    "periodEnd": "2026-10-01",
-    "baseCommit": "4f84b469c4b04de657eaf2c455bd44e991b7f869",
-    "status": "formal1920-gate640-completed-single-quickval-stop-upper-review-conditional-local-handoff"
+    "path": "doc/reports/2026-10-02-direction-audit-local-evidence.md",
+    "periodStart": "2026-10-02",
+    "periodEnd": "2026-10-02",
+    "baseCommit": "459908b0ed5f75b38858ea5b708864ff4cc4beb6",
+    "status": "local-direction-evidence-audit-completed-awaiting-upper-direction-decision-no-new-experiment"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-10-02-direction-audit-local-evidence.md",
+      "topic": "mmfr-direction-audit-local-evidence",
+      "periodStart": "2026-10-02",
+      "periodEnd": "2026-10-02",
+      "baseCommit": "459908b0ed5f75b38858ea5b708864ff4cc4beb6",
+      "verification": "CPU-dev-RGB-Depth16-Depth-input-statistics;direct-statistic-tool-summary-CSV-key-path-and-legacy-result-review;bounded-official-source-and-local-asset-audit;content-index-JSON-and-diff-checks;no-label-test-model-GPU-or-new-evaluation",
+      "status": "local-direction-evidence-audit-completed-awaiting-upper-direction-decision-no-new-experiment"
+    },
     {
       "path": "MMFR/02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md",
       "topic": "mmfr-a-v1-formal-quickval-upper-review",
