@@ -134,6 +134,13 @@ class RGBXDataset(data.Dataset):
         self.channel_order = setting.get("channel_order")
         if self.channel_order not in {"BGR", "RGB"}:
             raise ValueError("dataset setting channel_order must be explicitly set to BGR or RGB")
+        self._natural_missing_metadata = bool(
+            split_name == "train"
+            and (
+                setting.get("natural_missing_metadata", False)
+                or getattr(preprocess, "natural_missing_metadata", False)
+            )
+        )
 
     def __len__(self):
         if self._file_length is not None:
@@ -164,9 +171,12 @@ class RGBXDataset(data.Dataset):
             gt = self._gt_transform(gt)
 
         x = {}
+        raw_depth = None
         for modal in self.x_modal:
             if modal == "d":
                 x[modal] = self._open_image(path_dict[modal + "_path"], cv2.IMREAD_GRAYSCALE)
+                if self._natural_missing_metadata:
+                    raw_depth = np.array(x[modal], dtype=np.uint8, copy=True)
                 x[modal] = cv2.merge([x[modal], x[modal], x[modal]])
             else:
                 x[modal] = self._open_image(path_dict[modal + "_path"], "RGB")
@@ -177,10 +187,14 @@ class RGBXDataset(data.Dataset):
             rgb = cv2.resize(rgb, (640, 480), interpolation=cv2.INTER_LINEAR)
             x = cv2.resize(x, (640, 480), interpolation=cv2.INTER_LINEAR)
             gt = cv2.resize(gt, (640, 480), interpolation=cv2.INTER_NEAREST)
+            if self._natural_missing_metadata:
+                raw_depth = cv2.resize(raw_depth, (640, 480), interpolation=cv2.INTER_LINEAR)
         elif self.dataset_name == "StanFord2D3D":
             rgb = cv2.resize(rgb, dsize=(480, 480), interpolation=cv2.INTER_LINEAR)
             x = cv2.resize(x, dsize=(480, 480), interpolation=cv2.INTER_LINEAR)
             gt = cv2.resize(gt, dsize=(480, 480), interpolation=cv2.INTER_NEAREST)
+            if self._natural_missing_metadata:
+                raw_depth = cv2.resize(raw_depth, dsize=(480, 480), interpolation=cv2.INTER_LINEAR)
 
         # if self._x_single_channel:
         #     x = self._open_image(x_path, cv2.IMREAD_GRAYSCALE)
@@ -188,8 +202,16 @@ class RGBXDataset(data.Dataset):
         # else:
         #     x = self._open_image(x_path, cv2.COLOR_BGR2RGB)
 
+        transform_metadata = None
         if self.preprocess is not None:
-            rgb, gt, x = self.preprocess(rgb, gt, x)
+            if self._natural_missing_metadata:
+                if raw_depth is None:
+                    raise ValueError("NaturalMissing opt-in requires the single-channel Depth modality")
+                rgb, gt, x, transform_metadata = self.preprocess(rgb, gt, x)
+            else:
+                rgb, gt, x = self.preprocess(rgb, gt, x)
+        elif self._natural_missing_metadata:
+            raise ValueError("NaturalMissing opt-in requires a training preprocessing transform")
 
         rgb = torch.from_numpy(np.ascontiguousarray(rgb)).float()
         gt = torch.from_numpy(np.ascontiguousarray(gt)).long()
@@ -206,6 +228,27 @@ class RGBXDataset(data.Dataset):
         #     x = torch.from_numpy(np.ascontiguousarray(x)).float()
 
         output_dict = dict(data=rgb, label=gt, modal_x=x, fn=str(path_dict["rgb_path"]), n=len(self._file_names))
+        if self._natural_missing_metadata:
+            sample_id = os.path.splitext(os.path.basename(item_name.replace("\\", "/")))[0]
+            identity_parts = sample_id.split("-")
+            if len(identity_parts) != 7 or not all(part.isdigit() for part in identity_parts):
+                raise ValueError(f"unexpected MUSeg sample identity for NaturalMissing: {sample_id!r}")
+            if "raw_depth" not in transform_metadata or "support" not in transform_metadata:
+                raise ValueError("NaturalMissing preprocessing did not return raw_depth/support")
+            output_dict["raw_depth"] = torch.from_numpy(
+                np.ascontiguousarray(transform_metadata["raw_depth"], dtype=np.uint8)
+            )
+            output_dict["support"] = torch.from_numpy(
+                np.ascontiguousarray(transform_metadata["support"], dtype=np.bool_)
+            )
+            output_dict["metadata"] = {
+                key: value for key, value in transform_metadata.items()
+                if key not in {"raw_depth", "support"}
+            }
+            output_dict["metadata"].update({
+                "sample_id": sample_id,
+                "group_id": "-".join(identity_parts[:4]),
+            })
 
         return output_dict
 

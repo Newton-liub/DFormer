@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.16",
   "latestFormalReport": {
-    "path": "doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md",
-    "periodStart": "2026-10-02",
-    "periodEnd": "2026-10-02",
-    "baseCommit": "8b5860173749b999bdf272b77505a34e79e75a46",
-    "status": "upper-direction-plan-and-project-readiness-review-completed-awaiting-decisions-no-implementation-or-new-experiment"
+    "path": "doc/reports/2026-10-03-natural-missing-round1-readiness.md",
+    "periodStart": "2026-10-03",
+    "periodEnd": "2026-10-03",
+    "baseCommit": "34a4dea41c1e08a5a1f85711eb97107471445272",
+    "status": "partially-ready-code-and-targeted-CPU-checks-C0-blocked-remote-access-GPU-preflight-blocked-no-formal-training"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-10-03-natural-missing-round1-readiness.md",
+      "topic": "natural-missing-round1-readiness",
+      "periodStart": "2026-10-03",
+      "periodEnd": "2026-10-03",
+      "baseCommit": "34a4dea41c1e08a5a1f85711eb97107471445272",
+      "verification": "canonical-plan-renames;bounded-C0-locator-review;config-isolation-opt-in-geometry-and-two-train-sample-input-checks;CPU-segmentation-construction-optimizer-membership;synthetic-S1-pad-crop-keyed-RNG-and-independent-condition-group-confusion;strict-key-and-resume-targeted-checks;no-real-model-forward-GPU-training-formal-evaluation-test-cloud-or-push",
+      "status": "partially-ready-code-and-targeted-CPU-checks-C0-blocked-remote-access-GPU-preflight-blocked-no-formal-training"
+    },
     {
       "path": "doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md",
       "topic": "mmfr-direction-plans-project-readiness-upper-review",

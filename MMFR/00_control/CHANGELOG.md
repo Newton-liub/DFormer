@@ -1,5 +1,12 @@
 # MMFR v4.1 package change log
 
+## 2026-10-03 — NaturalMissing 首轮readiness实现与资产阻塞收口
+
+- 新增独立三策略配置、纯CPU配对输入、严格分割加载、continuation训练与仅S1评价入口；loader仅opt-in返回空间元信息/当前Depth/support，旧默认行为保留。
+- 执行合同冻结LR1e-6、三组各2560成功更新、分割-only、Grid/Replay新增删除率匹配及S1原尺度FP32/no-flip/pad32；正式预算仍未执行/未授权。
+- CPU输入、配置、模型构造/参数分组、合成S1与固定全图分层检查通过；真实C0尚未恢复，`C0_RECOVERY=BLOCKED_REMOTE_ACCESS`、`GPU_PREFLIGHT=BLOCKED`。未进行真实模型forward/backward、GPU更新、完整val-dev、test或云资源操作。
+- 详细结果和后续实际检查以 [`readiness报告`](../../doc/reports/2026-10-03-natural-missing-round1-readiness.md) 为交付快照，实时事实/恢复点仍只在两份doc/main文档。只作两次指定本地提交，不push；既有用户审计产物/索引entry不随本轮代码stage。
+
 ## 2026-10-03 — NaturalMissing 首轮就绪准备授权与正文位置收口
 
 - A/B v1.0科研正文原样迁至 `01_research/`，保留文件名，临时目录不留第二份；A优先，B备用且不运行完整B1a。

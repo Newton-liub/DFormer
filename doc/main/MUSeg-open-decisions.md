@@ -4,13 +4,15 @@
 
 ## 0. NaturalMissing 正式训练与完整评价授权（readiness后待裁决）
 
-2026-10-03综合执行单已接受 A 优先、B 备用，并授权正文迁移、独立 segmentation-only（只优化分割目标）配置、LR `1e-6`、严格分割权重加载及必要输入/S1代码准备。精确C0与本机现有GPU就绪时，每组最多3成功更新及极少量val-dev预检已获本轮条件授权；这些已决定事项不再列为未决。
+2026-10-03 readiness收口为 **PARTIALLY READY**，见[就绪报告](../reports/2026-10-03-natural-missing-round1-readiness.md)与[执行合同](../../MMFR/01_research/natural_missing_round1_protocol.md)。A优先、B备用，独立segmentation-only（只优化分割目标）、LR1e-6、配对输入和新S1已实现；精确C0未取得，真实加载与GPU预检BLOCKED。精确C0和本机现有GPU条件满足后每组≤3成功更新/极少量val-dev仍属已授权预检，不需把这项重新列为研究裁决。
 
-仍未授权的是 Natural/Grid/Replay 各2560成功更新、C0+三组完整318图三条件S1、Direction B B1a与付费云。readiness报告完成后，按真实C0/加载/CPU/GPU结果决定是否批准正式预算、设备与费用责任；预检权重不能用作正式初始化，必须重新从同一精确C0干净启动。NYUv2及外部baseline不是本轮前置工作。
+仍需裁决的是：恢复资产并补齐真实预检证据后，是否批准Natural/Grid/Replay各2560成功更新、C0+三组完整318图三条件S1，以及正式设备/费用责任。当前无实测GPU时间/显存，不能承诺本机batch10可跑；4090仅为待批备选，不能自动启动付费资源。B1a和其他数据集/baseline预算独立关闭。
 
-[A canonical正文](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[B备用正文](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md) 科研设计保留原文。类别支持与不可达矩形等最小工程口径在本轮执行protocol中明示，正式结果前冻结，不根据val分数修改。
+C0取回途径若需要用户登录或付费资源，须由用户明确提供可访问路径/权限；精确权重不能用重训替代。预检权重不得用作正式初始化，正式运行必须从同一个核验C0干净启动。类别支持、原始全图固定分层与矩形固定几何语义已在protocol确定，不根据val分数改写。
 
-**大白话：** 已经可以准备代码并做严格限量的本机预检，但只有就绪证据通过审核后，才可能开始三组正式训练。
+[A canonical正文](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[B备用正文](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)科研内容保持原文。NYUv2和外部baseline不是本轮恢复前置项。
+
+**大白话：** 代码/CPU就绪不是正式开跑资格；先取得共同底座权重并完成真实限量预检，再决定正式预算和资源。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 
