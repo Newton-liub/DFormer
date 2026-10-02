@@ -7,6 +7,12 @@
 > **现行位置：** 本表的下方物理路径与归档统计是 2026-09-23 整理前快照，**不是当前可访问路径**；请用 [`PAPER_LIBRARY_INDEX.json`](PAPER_LIBRARY_INDEX.json) 的 `auto.library_id`、`auto.entry_md` 和 `auto.previous_folder_names` 找主库正文，人读入口见 [`PAPER_LIBRARY_INDEX.md`](PAPER_LIBRARY_INDEX.md)。原 PR/RE/AI 对应关系与当时的 supplemental / 转写差异说明留作历史证据，不改写论文判断。
 > **边界：** 论文全文与提取产物位于**仓库外** `D:\0Project\origin\论文\`，不纳入 Git。本文件只记录纯文本路径，不表示 Git 仓库包含这些文件。外部代码索引见 [`code-index.md`](code-index.md)。
 
+## 最近论文接入（2026-10-02）
+
+- 从仓库外 `D:\0Project\origin\论文待处理\` 接入9个论文包：新增5篇并分配 `LIB000033`–`LIB000037`，4份按工具规则重复的来源跳过复制；主库统一索引现为37条。
+- 新增论文为 Benchmarking Multi-modal Semantic Segmentation under Sensor Failures、When Fusion Fails、OmniSegmentor、SimMLM、DFormer++；完整标题、规范化路径及正文入口以 [`PAPER_LIBRARY_INDEX.json`](PAPER_LIBRARY_INDEX.json) 为准。本轮LIB是稳定论文库身份，未新增或改写PR/RE/AI人工编号。
+- 9个来源全部保留；重复判定只覆盖身份、正文哈希与资源数量，不是全资产逐字节等同结论。接入映射、实际检查和最短人工流程见 [`CHANGELOG.md` 的2026-10-02事件](../00_control/CHANGELOG.md)。**实际意义：** 查询新论文用统一索引，下方旧目录和统计仍为历史快照，不随此次接入改写。
+
 ## 1. 本地全文归档结构
 
 | 归档根（在 `D:\0Project\origin\论文\` 下） | 内容 | 原位置 |

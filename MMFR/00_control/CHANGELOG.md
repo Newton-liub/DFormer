@@ -1,5 +1,16 @@
 # MMFR v4.1 package change log
 
+## 2026-10-02 — 9个待处理论文包接入：新增5篇、跳过4份重复
+
+- 输入为本机仓库外 `D:\0Project\origin\论文待处理\1`–`9`，使用既有 `human/paper_library.cmd`，先 `--dry-run` 预览，再正式导入；未使用 `--bootstrap`，未修改工具代码。
+- 新增对应关系：`1 → LIB000033`（Benchmarking Multi-modal Semantic Segmentation under Sensor Failures: Missing and Noisy Modality Robustness）；`2 → LIB000034`（When Fusion Fails: Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation）；`3 → LIB000035`（OmniSegmentor）；`6 → LIB000036`（SimMLM）；`9 → LIB000037`（DFormer++）。完整标题、主库路径及正文哈希见 `03_reference/PAPER_LIBRARY_INDEX.json`。
+- 重复输入跳过复制：`4 → LIB000023 / PR090`（RobustSeg）；`5 → LIB000014 / PR089`（SGMA）；`7 → LIB000030 / AI024`（Condition Dropout）；`8 → LIB000001 / RE326`（MUSeg）。此处重复仅按工具的身份匹配、正文SHA-256与资源数量判断，不证明附属文件逐字节相同。
+- 实际复制5个完整论文包至 `D:\0Project\origin\论文\`，目标目录按标题规范化，并重命名5个正文入口Markdown；全部9个待处理来源保留，未删除或自动合并论文。**实际意义：** 主库新增5篇可查询论文，4份已收录论文没有重复接入。
+- 统一索引从32条变为37条，下一LIB序号38；既有32条记录与全部人工字段无内容差异，已确认人工编号仍为16个，另一抽取仍为1份，历史重复审查记录仍为1条。本轮4份被跳过的输入没有新增到历史 `duplicate_review`，由本事件记录追溯。新论文仅分配LIB身份，未猜配PR/RE/AI编号、年份或DOI。
+- 导入后再次对同一输入执行 `--dry-run`：9个来源全部为 `exact bundle already exists`，无复制/移动/重命名计划；直接读取5个新正文入口确认路径与标题，复核索引实际差异。未做全资产逐文件哈希、完整测试、GPU、训练、评价或云端操作；未提交或推送。
+- 最短人工流程：把新完整论文包放在上述主库外待处理目录；PowerShell先运行 `& "D:\0Project\DFormer\human\paper_library.cmd" --dry-run "D:\0Project\origin\论文待处理"`；确认无需人工裁决的WARNING/ERROR后，去掉 `--dry-run` 执行；在 `03_reference/PAPER_LIBRARY_INDEX.md` 查看编号与入口。来源保留，疑似重复或不同抽取版本需人工确认。
+- 同步实时状态和论文索引入口；当前A-v1 L1审核profile排除完整论文库，本轮不改变实验结论或授权，未重建该实验审核包。
+
 ## 2026-10-01 — A-v1训练/唯一Quick-Val完成，stop与条件性本地资料交付
 
 - 从原完整1280恢复，按用户批准仅训练NMF局部FP32执行剩Proposal640/Gate640；逻辑1920+640、skip0，唯一实际评分的四条件Quick-Val为`stop`。learned三hard−matched off为−0.0018730026999946858pp，冻结+0.50pp门槛FAIL；旧实验和诊断原始证据不改写。
@@ -8,6 +19,7 @@
 - 本次按用户无GPU要求只做资料与Git普通交付。新的本地val仍待上级例外授权，A-v1十条件多视图Main-Val适配未实现；既有配置授权字段是已完成轮次的历史合同，不可自动续用。
 - 既有profile源已更新为本轮结果审核；15:33UTC直接确认缺少pwsh，未安装或手改`99_review_packet_current/`。它仍为旧快照，当前可直接转交新报告；恢复点是PowerShell可用环境先核验canonical链接，再运行原generator。
 - Git仅纳入小型报告/索引/状态，ZIP/checkpoint/cache保持仓库外；本轮不训练、不重评、不测试、不操作资源生命周期。详细结果与转移验收见 `02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md` 和 `02_evidence/delivery_mmfr_a_v1_local_val_20261001.md`。
+
 
 ## 2026-10-01 — 完整Git收口及云端连续执行授权
 

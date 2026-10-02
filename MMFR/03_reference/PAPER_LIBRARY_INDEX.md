@@ -4,7 +4,7 @@
 > 正文读入口 Markdown；表格数值优先 Tables/*.xlsx，图读 Figure/*.jpg，公式优先 Formula/*_formula.md 并核对图片；Word 仅辅助。
 
 - 主库（本机）：`D:\0Project\origin\论文`
-- Canonical records：32
+- Canonical records：37
 
 | Preferred ID / LIB | 标题 | 人工编号 | 年份 / DOI / arXiv | 一级目录 / 正文入口 | 图 / 结构表 / 渲染表 / LaTeX / 公式图 | 标签 / 角色 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -40,6 +40,11 @@
 | AI024 / LIB000030 | Toward Reliable RGB-D Semantic Segmentation: Handling Missing Modalities via Condition Dropout | AI024 | — | `Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout` / `Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout/Toward Reliable RGB-D Semantic Segmentation - Handling Missing Modalities via Condition Dropout.md` | Y / Y / Y / Y / Y | — |
 | LIB000031 / LIB000031 | Segmenting Anything in the Dark via Depth Perception | — | — | `Segmenting Anything in the Dark via Depth Perception` / `Segmenting Anything in the Dark via Depth Perception/Segmenting Anything in the Dark via Depth Perception.md` | Y / Y / Y / Y / Y | — |
 | LIB000032 / LIB000032 | UMIS-Mine: Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes | — | — | `UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes` / `UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes/UMIS-Mine - Robust RGB-D Instance Segmentation in Visually Degraded Underground Mine Scenes.md` | Y / Y / Y / Y / Y | — |
+| LIB000033 / LIB000033 | Benchmarking Multi-modal Semantic Segmentation under Sensor Failures: Missing and Noisy Modality Robustness | — | — | `Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness` / `Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness/Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness.md` | Y / Y / Y / Y / Y | — |
+| LIB000034 / LIB000034 | When Fusion Fails: Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation | — | — | `When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation` / `When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation/When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation.md` | Y / Y / Y / Y / Y | — |
+| LIB000035 / LIB000035 | OmniSegmentor: A Flexible Multi-Modal Learning Framework for Semantic Segmentation | — | — | `OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation` / `OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation/OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation.md` | Y / Y / Y / — / — | — |
+| LIB000036 / LIB000036 | SimMLM: A Simple Framework for Multi-modal Learning with Missing Modality | — | — | `SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality` / `SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality/SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality.md` | Y / Y / Y / Y / Y | — |
+| LIB000037 / LIB000037 | DFormer++: Improving RGBD Representation Learning for Semantic Segmentation | — | — | `DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation` / `DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation/DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation.md` | Y / Y / Y / Y / Y | — |
 
 ## 待人工确认的其他抽取
 

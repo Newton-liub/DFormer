@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "library_root": "D:\\0Project\\origin\\论文",
-  "next_lib_number": 33,
+  "next_lib_number": 38,
   "bootstrap_complete": true,
   "papers": [
     {
@@ -1881,6 +1881,286 @@
         },
         "ambiguous_body": false,
         "library_id": "LIB000032"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness",
+        "previous_folder_names": [
+          "1"
+        ],
+        "folder": "Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness",
+        "entry_md": "Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness/Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness.md",
+        "md_sha256": "4d63433a15e402a8afc8854eb52cf01b6500f5dd104e4a83a21057d83af7cc55",
+        "bundle_signature": {
+          "md_sha256": "4d63433a15e402a8afc8854eb52cf01b6500f5dd104e4a83a21057d83af7cc55",
+          "figures": 4,
+          "tables_structured": 11,
+          "tables_rendered": 11,
+          "formulas_latex": 1,
+          "formulas_image": 7,
+          "word_summary": 1,
+          "total": 35
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "Benchmarking Multi-modal Semantic Segmentation under Sensor Failures: Missing and Noisy Modality Robustness",
+        "title_source": "h1",
+        "normalized_title": "benchmarkingmultimodalsemanticsegmentationundersensorfailuresmissingandnoisymodalityrobustness",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "Benchmarking Multi-modal Semantic Segmentation under Sensor Failures - Missing and Noisy Modality Robustness.md",
+        "body_sha256": "4d63433a15e402a8afc8854eb52cf01b6500f5dd104e4a83a21057d83af7cc55",
+        "resource_counts": {
+          "figures": 4,
+          "tables_structured": 11,
+          "tables_rendered": 11,
+          "formulas_latex": 1,
+          "formulas_image": 7,
+          "word_summary": 1,
+          "total": 35
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000033"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation",
+        "previous_folder_names": [
+          "2"
+        ],
+        "folder": "When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation",
+        "entry_md": "When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation/When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation.md",
+        "md_sha256": "9be1f32cecf3dbba01dd6cb3a7a9133b21532af0667396cb0740e97fad80e06a",
+        "bundle_signature": {
+          "md_sha256": "9be1f32cecf3dbba01dd6cb3a7a9133b21532af0667396cb0740e97fad80e06a",
+          "figures": 7,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 8,
+          "word_summary": 1,
+          "total": 27
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "When Fusion Fails: Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation",
+        "title_source": "h1",
+        "normalized_title": "whenfusionfailscorruptionawarerebalancedfusionformultimodalmedicalimagesegmentation",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "When Fusion Fails - Corruption-Aware Rebalanced Fusion for Multi-Modal Medical Image Segmentation.md",
+        "body_sha256": "9be1f32cecf3dbba01dd6cb3a7a9133b21532af0667396cb0740e97fad80e06a",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 8,
+          "word_summary": 1,
+          "total": 27
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000034"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation",
+        "previous_folder_names": [
+          "3"
+        ],
+        "folder": "OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation",
+        "entry_md": "OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation/OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation.md",
+        "md_sha256": "41faf3104486df329b724bed9978eaaebe570b38db57543328cbfe30bfe8a5df",
+        "bundle_signature": {
+          "md_sha256": "41faf3104486df329b724bed9978eaaebe570b38db57543328cbfe30bfe8a5df",
+          "figures": 7,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 0,
+          "formulas_image": 0,
+          "word_summary": 1,
+          "total": 20
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": false,
+          "formulas_image": false,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "OmniSegmentor: A Flexible Multi-Modal Learning Framework for Semantic Segmentation",
+        "title_source": "h1",
+        "normalized_title": "omnisegmentoraflexiblemultimodallearningframeworkforsemanticsegmentation",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "OmniSegmentor - A Flexible Multi-Modal Learning Framework for Semantic Segmentation.md",
+        "body_sha256": "41faf3104486df329b724bed9978eaaebe570b38db57543328cbfe30bfe8a5df",
+        "resource_counts": {
+          "figures": 7,
+          "tables_structured": 6,
+          "tables_rendered": 6,
+          "formulas_latex": 0,
+          "formulas_image": 0,
+          "word_summary": 1,
+          "total": 20
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000035"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality",
+        "previous_folder_names": [
+          "6"
+        ],
+        "folder": "SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality",
+        "entry_md": "SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality/SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality.md",
+        "md_sha256": "7704b6f394d52a4c91edb63691ccf798a60aa50098af852d459901fd4ca3ab95",
+        "bundle_signature": {
+          "md_sha256": "7704b6f394d52a4c91edb63691ccf798a60aa50098af852d459901fd4ca3ab95",
+          "figures": 3,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 6,
+          "word_summary": 1,
+          "total": 21
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "SimMLM: A Simple Framework for Multi-modal Learning with Missing Modality",
+        "title_source": "h1",
+        "normalized_title": "simmlmasimpleframeworkformultimodallearningwithmissingmodality",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "SimMLM - A Simple Framework for Multi-modal Learning with Missing Modality.md",
+        "body_sha256": "7704b6f394d52a4c91edb63691ccf798a60aa50098af852d459901fd4ca3ab95",
+        "resource_counts": {
+          "figures": 3,
+          "tables_structured": 5,
+          "tables_rendered": 5,
+          "formulas_latex": 1,
+          "formulas_image": 6,
+          "word_summary": 1,
+          "total": 21
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000036"
+      },
+      "human": {
+        "manual_ids": [],
+        "unverified_manual_ids": []
+      },
+      "status": "present",
+      "alternate_bundles": []
+    },
+    {
+      "auto": {
+        "bundle_path": "DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation",
+        "previous_folder_names": [
+          "9"
+        ],
+        "folder": "DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation",
+        "entry_md": "DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation/DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation.md",
+        "md_sha256": "75e47d3421b82252abe4e8f8de360b49917c19096cf4752b1187b99fffbc0164",
+        "bundle_signature": {
+          "md_sha256": "75e47d3421b82252abe4e8f8de360b49917c19096cf4752b1187b99fffbc0164",
+          "figures": 9,
+          "tables_structured": 12,
+          "tables_rendered": 12,
+          "formulas_latex": 1,
+          "formulas_image": 6,
+          "word_summary": 1,
+          "total": 41
+        },
+        "content_capabilities": {
+          "full_text": true,
+          "figures": true,
+          "tables_structured": true,
+          "tables_rendered": true,
+          "formulas_latex": true,
+          "formulas_image": true,
+          "word_summary": true
+        },
+        "year": null,
+        "authors": [],
+        "title": "DFormer++: Improving RGBD Representation Learning for Semantic Segmentation",
+        "title_source": "h1",
+        "normalized_title": "dformerimprovingrgbdrepresentationlearningforsemanticsegmentation",
+        "doi": null,
+        "arxiv": null,
+        "body_markdown": "DFormer++ - Improving RGBD Representation Learning for Semantic Segmentation.md",
+        "body_sha256": "75e47d3421b82252abe4e8f8de360b49917c19096cf4752b1187b99fffbc0164",
+        "resource_counts": {
+          "figures": 9,
+          "tables_structured": 12,
+          "tables_rendered": 12,
+          "formulas_latex": 1,
+          "formulas_image": 6,
+          "word_summary": 1,
+          "total": 41
+        },
+        "ambiguous_body": false,
+        "library_id": "LIB000037"
       },
       "human": {
         "manual_ids": [],
