@@ -4,8 +4,10 @@
 
 - Package: `MMFR_v4_1_blueprint_and_reference_package_2026-09-20`；仓库内 `MMFR/` 是证据与审核材料入口，不是第二份实时状态。
 - Historical blueprint: [`MMFR v4.1`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)，冻结历史不追改。
-- Latest design: [`A-v1任务效用控制残差`](../../doc/reports/2026-09-30-mmfr-next-generation-research-design.md)。
-- Latest formal report: [`两个候选方向的本地事实摸底`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)（2026-10-02；自然Depth缺失、F-lite协议差异、baseline/NYU及官方代码；仅调查，等待上级选择）。
+- Latest candidate proposals: [`方向A：自然空洞形态覆盖`](../../临时/MMFR_direction_A_natural_missing_2026-10-02.md)、[`方向B：推理协议研究`](../../临时/MMFR_direction_B_inference_protocol_2026-10-02.md)（上级v1.0原稿；待审，暂保留原位置，未授权实现/实验）。
+- Latest formal report: [`新方向计划、项目现状与最小文件治理上级审计`](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)（2026-10-02；推荐A优先、B备用与S1共用，明确旧C0继承/辅助loss及入口硬约束；仅审计）。
+- Prior local evidence: [`两个候选方向的本地事实摸底`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)（自然Depth缺失、F-lite协议差异、baseline/NYU与官方代码；原始事实/局限保留）。
+- Previous implemented design: [`A-v1任务效用控制残差`](../../doc/reports/2026-09-30-mmfr-next-generation-research-design.md)；对应正式筛选已stop，不再作为新方向入口。
 - Latest experiment report: [`A-v1正式训练/唯一Quick-Val上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md)（2026-10-01；Proposal1920/Gate640完成、skip0，四条件筛选`stop`，不因调查自动复活）。
 - Local conditional handoff: [`资料接收与本地val前置条件`](../02_evidence/handoff_mmfr_a_v1_local_val_conditional_20261001.md)；[`转移包交付收据`](../02_evidence/delivery_mmfr_a_v1_local_val_20261001.md)记录整包SHA、大小与逐成员核验。打包不授权新实验，Main-Val适配尚缺。
 - Historical implementation evidence: [`Gate-B报告`](../02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)、[`差异审核`](../02_evidence/audit_mmfr_a_v1_implementation_20260930.md)，原结论/字节保留。
@@ -16,14 +18,15 @@
 
 事实、权限、阻塞和恢复点只以 [`MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md) 与 [`MUSeg-open-decisions.md`](../../doc/main/MUSeg-open-decisions.md) 为准。
 
-**大白话：** 当前在选择值得继续验证的论文问题。自然缺失有输入分布证据，F-lite有推理协议差异与历史反转证据，但没有本轮新收益实验。A-v1困难条件未通过+0.50pp门槛仍为stop；任何实现、本地val或新评价都需新授权。
+**大白话：** 当前已收到两份新方向方案，建议先用三组训练验证自然空洞形态是否有价值，推理协议研究暂作备用。但旧C0配置带有历史增强/辅助训练，需先定新合同并恢复真实权重；本轮只有审计报告，没有实现或新实验。A-v1仍stop，任何新准备、GPU或评价都需明确授权。
 
 ## Quick navigation
 
 | 需要知道 | 权威材料或证据 |
 | --- | --- |
 | 当前阶段和授权 | [`唯一实时状态`](../../doc/main/MUSeg-current-status.md)；[`真正未决事项`](../../doc/main/MUSeg-open-decisions.md) |
-| 本次方向A/B事实与8个裁决问题 | [`2026-10-02本地调查报告`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)，唯一主要交付；没有新实验 |
+| 本次新方案、接入风险与8项裁决 | [`新方向项目准备审计`](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)；原稿A/B见本页Package identity，尚未移至canonical计划目录 |
+| 原方向A/B输入与历史协议事实 | [`2026-10-02本地调查报告`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)，保留原证据；本轮不重跑统计 |
 | 上次A-v1结果、失败修复、精确分数与局限 | [`2026-10-01上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md) |
 | 正式合同和局部FP32完整1280恢复 | [`A-v1 protocol §8`](../01_research/mmfr_a_v1_action_utility_protocol.md#8-2026-10-01-nmf局部fp32修订与完整1280恢复最新授权)；旧章节保留历史，当前完成结果见实时状态 |
 | 运行身份与结果JSON | [`reproducibility_current.json`](../02_evidence/reproducibility_current.json)，`current_cloud_outcome_pointer`指向`cloud_precision_amended_resume`；旧pending字段不当当前权限 |
@@ -46,7 +49,7 @@
 
 ## Review packet: source current, generated output stale
 
-既有profile的 `CURRENT_REPORT.md` 源仍指向2026-10-01 A-v1实验报告；生成包仍是更早的历史快照。2026-10-02本次用户限定不创建manifest/审核包，故未运行生成器或手改六文件包；直接转交上述本地方向调查报告。生成器只接受MMFR包内canonical源，单一主报告位于doc/reports，本轮不为适配生成器复制第二份报告或改工具。旧包不能冒充本次调查交付。
+既有profile的 `CURRENT_REPORT.md` 源仍指向2026-10-01 A-v1实验报告；生成包仍是更早的历史快照。上一轮本地调查按用户限定未生成包；本轮收到方向A/B方案后仅准备独立上级审计报告，沿用旧A-v1 profile作为历史审核身份，不手改生成产物或新建profile类型。当前直接转交上述新方向项目准备审计及两份原稿，旧包不能冒充本次交付。生成器只接受MMFR包内canonical源；待明确方案正式位置与新的审核范围后再用现有generator重建，不为适配它复制第二份报告。
 
 正式六文件审核入口仍限定 `99_review_packet_current/`；未来另获授权时先核验对应profile的canonical Markdown链接，再用既有生成器重建。从MMFR目录执行：
 

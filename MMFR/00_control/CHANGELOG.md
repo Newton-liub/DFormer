@@ -1,5 +1,14 @@
 # MMFR v4.1 package change log
 
+## 2026-10-02 — 上级两方向方案接入审计与最小文件治理建议
+
+- 完整读取用户方向A/B v1.0原稿，新增 `doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md`；推荐A优先、B备用且先仅借用统一padding单视图S1。两份原稿留在 `临时/` 保持原文，本轮不迁移代码/计划或执行实验。
+- 直接源码核验旧C0继承A2混合故障/辅助可靠性头、模型训练forward的完整辅助监督和loss，以及旧E1训练入口固定LR/protocol/预算等合同。实际builder是 `utils/dataloader/mmfr_training_v3.py`，原稿/旧调查的 `utils/mmfr_training.py` 路径指正在本次报告记录；loader未返回空间元信息，旧helper从normalized零值推断support。评价旧reset-per-unit不等于per-view配对。要求上级冻结新目标、实际LR与输入/评价合同，不只复制配置改名。
+- 预算只作待批计数：A三组共7680正式成功更新、C0+三组一次三输入S1为3816 view前向；B1a为33072 view前向，不写成时间/费用保证或授权。
+- 更新滚动实时状态、当前开放选择、现有report-index、MMFR导航与计划索引，区分待审新方案和旧阶段快照；历史结果/协议/归档/源论文不改写，用户既有dirty保留。
+- 当前上级入口是独立新报告和两份原稿；旧A-v1 profile/历史生成包不代表本轮，未新建profile/manifest/hash系统或手改生成产物。待明确canonical方案位置与审核范围后才按现有generator重建。
+- 实际只做限定源码/产物/文档/Git核验与内容/差异检查；未运行完整测试、import配置、模型/GPU、新训练/评价/test、云操作或资产下载，未commit/push。等待上级对报告§8裁决与新的分阶段权限。
+
 ## 2026-10-02 — 两候选方向本地事实摸底完成，等待上级选择
 
 - 唯一主要交付为 `doc/reports/2026-10-02-direction-audit-local-evidence.md`，十二章覆盖自然Depth missing、synthetic区别、train-only replay接口、F-lite Quick/Main矩阵、matched推理、baseline/NYUv2、MMSS/GeomPrompt与四历史路线，列8个裁决问题；不形成新方法或实验授权。

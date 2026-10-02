@@ -1,13 +1,21 @@
 # MUSeg 阶段计划与历史执行记录
 
 > **文档角色：** 计划目录索引，不承担实时状态。
-> **核验时点：** 2026-09-14。
+> **入口维护时点：** 2026-10-02；下述旧阶段设计按各自形成时点理解。
 > **实时入口：** `doc/main/MUSeg-current-status.md`；研究选择见 `doc/main/MUSeg-open-decisions.md`。
 > **后继关系：** 计划只记录设计和形成时点；当前事实与恢复步骤以实时状态为准。
 
 本目录保存 MUSeg 阶段设计、执行计划和历史记录。计划不单独构成代码、GPU、训练、云资源或 official test 授权。
 
-## 当前与候选计划
+## 最新候选与待审入口
+
+- [新方向计划与项目接入上级审计](../reports/2026-10-02-direction-plans-project-readiness-upper-review.md)：推荐自然空洞形态增强A优先，推理协议研究B备用；当前仅报告/导航交付，未授权实现、权重恢复或实验。
+- 用户提供的 [方案A原稿](../../临时/MMFR_direction_A_natural_missing_2026-10-02.md) 与 [方案B原稿](../../临时/MMFR_direction_B_inference_protocol_2026-10-02.md) 暂保留原位置。接受后建议迁至 `MMFR/01_research/` 单一正文位置，本目录只做索引/执行子计划，不复制研究正文。
+- 最新输入与历史协议事实见 [本地调查](../reports/2026-10-02-direction-audit-local-evidence.md)；准备/训练权限与恢复点只看两份 `doc/main/` 实时文档。
+
+## 既有阶段计划与历史候选
+
+下述“当前”“下一步”“未授权”均是原阶段快照，不描述2026-10-02的新执行边界；例如A2/E1/A-v1后续已发生正式训练，详见实时入口和正式报告。旧计划正文保持原历史口径。
 
 - [`2026-09-MUSeg-多形式模态失效可靠性学习/00-总方向规划.md`](2026-09-MUSeg-多形式模态失效可靠性学习/00-总方向规划.md)：当前 MMFR（多模态失效鲁棒性）方向；A1 standalone 脚手架与 A2 post-crop/pre-GPU Depth corruption、确定性 RNG、辅助 reliability loss 和公平 clean/corruption config 均已完成 CPU qualification。GPU preflight、训练、完整评价、云执行和 official test 均未授权。
 - [`2026-09-MUSeg-多形式模态失效可靠性学习/01-新对话最小上下文与当前任务.md`](2026-09-MUSeg-多形式模态失效可靠性学习/01-新对话最小上下文与当前任务.md)：新对话恢复入口；当前没有已授权执行任务，下一拟议步骤是单独批准本地 GPU 单步 preflight。
