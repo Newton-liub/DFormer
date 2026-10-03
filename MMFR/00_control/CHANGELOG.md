@@ -1,5 +1,11 @@
 # MMFR v4.1 package change log
 
+## 2026-10-03 — Direction A正式首轮授权与运行准备
+
+- 用户明确批准Natural→Grid→Replay各2560成功更新，独立精确原C0初始化，全部合法完成后四权重×318图×3条件完整S1；canonical Direction A §6.5门槛、原科研合同不变。Direction B/B1a、Main-Val、NYUv2/baseline和official test未授权。
+- 同一现有4090实例启动前设置6小时平台关机保险，screen持久正式流程、SwanLab有限排障失败允许LOG_ONLY；正常结束/失败主动停GPU，正常完成后另设30分钟保险CPU-only取回正式权重/小证据，取完停机。必要代码/文档提交push到origin同分支，云端同formal-run SHA，不reset用户dirty。
+- 当前只完成授权/冻结入口/Git与实例初态核对，正式运行尚未启动；最小编排与资源监督正在准备。运行结果与准确恢复点以两份doc/main实时入口为准，§10记录持久授权，历史预检正文不改。
+
 ## 2026-10-03 — 4090限量云端预检完成与Git同步授权
 
 - 用户明确批准现有实例有卡模式，仅Natural/Grid/Replay各≤3成功更新、workers8；原C0/科研合同不变。先推送已有3提交及必要监控代码，实际云端干净HEAD核对为18271ad0b0c3e7ba81c630c099d02592c02a45f4。

@@ -4,7 +4,7 @@
 > **形成/核验时点：** 2026-10-03。
 > **实时入口：** [当前状态](../../doc/main/MUSeg-current-status.md)；[开放决策](../../doc/main/MUSeg-open-decisions.md)。
 > **科学依据：** [Direction A canonical 正文](MMFR_direction_A_natural_missing_2026-10-02.md)，§5–6；[接入审计](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)与[目录审计](../../doc/reports/2026-10-03-project-directory-responsibility-audit.md)。
-> **权限：** 初始实现/本机就绪授权保留为历史。2026-10-03用户另批现有4090有卡限量预检，仅三组各≤3成功更新、Linux workers8、30分钟平台关机保险和条件性SwanLab；先提交推送再云端拉取同SHA，结束主动停机。正式三组训练和完整评价仍未授权，详见§8。
+> **权限：** 初始实现/本机就绪与§8–9限量预检授权保留为历史。2026-10-03用户最新批准Direction A正式首轮：三组各2560成功更新及四权重完整S1，现有4090、6小时平台保险、screen与条件性SwanLab、完成后主动停GPU及CPU-only取回停机，先必要提交push再云端同SHA运行；详见§10。§1–7科研合同和canonical门槛不变，旧章节“本轮未授权”指其形成时点。
 
 ## 1. 对象、身份与合法主张
 
@@ -88,3 +88,18 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 云端干净运行提交18271ad0b0c3e7ba81c630c099d02592c02a45f4，现有RTX4090 24564MiB、workers8，科研合同不变。Natural/Grid/Replay各attempted3/successful3/skipped0，finite loss/gradient、optimizer/scaler和保存链通过，三个preflight-only checkpoint云端CPU-only读回计数/状态/身份通过。工程结论READY_ENGINEERING_ONLY；没有科研分数/GO/STOP、真实GPU resume或长期稳定证据，预检权重不作正式初始化/正式resume。
 
 平台30分钟保险启动前/后已核验，任务正常结束主动停GPU；必要小型CPU-only取回后最终09:46:59+08:00直接确认Stopped/GPU0。SwanLab初始化RuntimeError，本轮LOG_ONLY且无在线链接；不把监控上传记通过。精确结果、计时边界和收据见[同一readiness报告§13](../../doc/reports/2026-10-03-natural-missing-round1-readiness.md#13-已批准4090限量云端预检真实执行收口)。三组各3步预算已用完，正式预算仍待独立授权，不重复预检或C0 hash。
+
+## 10. 2026-10-03 Direction A正式首轮最新授权
+
+用户通过本地`临时/2026-10-03-mmfr-direction-a-round1-formal-execution.md`正式执行指令批准一次完整首轮；本节为其持久授权记录，不改变§1–7科研内容或canonical Direction A §6.5门槛。
+
+- 必要正式编排/logging与文档选择性提交，push到origin `perf/mmfr-a2-v3-pipeline-opt1`；已有无关dirty保留，不reset。云端只轻量fast-forward，正式运行HEAD等于本地formal-run SHA，运行源码无冲突tracked dirty；不使用旧snapshot。
+- 只启动现有`cpod-1vbh7faqcauq` RTX4090，不创建/resize；启动前设置并确认**6小时平台自动关机保险**，Running后复核同截止。接近截止优先合法保存并停机，不无限延长。
+- Natural→Grid→Replay各从同一精确原C0独立weights-only初始化，2560 successful updates/group，attempted=successful、optimizer skip0。禁止preflight权重、组间续训、自动改变合同或重试；每640 recovery与固定final。
+- 全部三组合法完成后唯一一次四权重×318图×3条件完整S1（3816 views）；按原冻结门槛GO/STOP，工程/输入/身份失效写INVALID/BLOCKED，不能用无效分数裁决方法。训练与S1均使用既有原合同入口，不启用旧Quick/Main/S2/S10。
+- SwanLab先按既有登录/环境/项目设置做有限排障，不泄露token或重建依赖；ONLINE成功则使用，合理尝试失败记录LOG_ONLY并继续。screen持久终端`natural-missing-round1-formal`，保存阶段/计数/loss/LR/time/memory/checkpoint及轻量输入遥测，不保留大mask cache。
+- GPU任务正常结束或失败后主动stop并直接确认Stopped/GPU0，不为下载保留GPU。正常完成后同实例CPU-only取回三个正式final、完整S1/confusion/summary、receipt、training/input summary和必要日志，启动前20–30分钟保险；取完立即停机并确认Stopped/GPU0。本地CPU schema/身份与权重hash核验不增加模型forward或训练。
+- 最终报告`doc/reports/2026-10-03-natural-missing-round1-formal.md`，同步两份实时入口与必要导航/索引，按执行指令必要收口提交push。checkpoint/outputs/大日志/cache不入Git，历史原始证据不改写。
+- Direction B/B1a、Main-Val、NYUv2、外部baseline、official test、新seed/调参/救结果均未授权；本轮结束即停止，GO也只请求下一阶段授权。
+
+**大白话：** 获批的是一轮完整且预先定好门槛的对照实验；监控故障允许降级，科研训练或身份错误必须停，结果不够好就结束候选，不继续修模块。
