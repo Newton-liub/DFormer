@@ -1,5 +1,12 @@
 # MMFR v4.1 package change log
 
+## 2026-10-03 — Direction A正式运行非有限梯度停止与证据收口
+
+- 修复首次0更新参数门禁错误后，用户批准沿原绝对保险截止继续原预算；正式源码edb660a83da1ec67626149d06dc59460565e2c20已push、云端同HEAD且tracked-clean。平台资源不足后用户手动启动原实例，Natural实际attempted1598/successful1597，第1598次在optimizer前非有限梯度停止；Grid/Replay/完整S1未运行，INVALID/BLOCKED而非科研GO/STOP。科研合同与冻结门槛未改，不自动重试。
+- GPU主动stop，API22:41:12–23:06:24运行1512秒；失败monitor有30分钟保险CPU-only取回exit0，异步状态/UTF-8解析两次小失败均停机并保留记录。最终23:11:39直接Stopped/GPU0，最终账单未核验；未取回不完整权重或运行额外评价。
+- 新增[正式执行报告](../../doc/reports/2026-10-03-natural-missing-round1-formal.md)，同步两份实时入口与必要索引；首个0更新失败证据原样保留。收口仅为资源监督补UTF-8 JSON与显式start/stop wait，不改模型/AMP/NMF，也未用于重跑。
+- 下一步需独立裁决非有限定位与重新资格，或终止本次执行准备；Direction B/B1a、Main-Val、NYUv2/baseline、Round-2与official test仍关闭。历史review packet未重建或手改，既有无关目录审计dirty保留，不随本次提交。
+
 ## 2026-10-03 — Direction A正式首轮授权与运行准备
 
 - 用户明确批准Natural→Grid→Replay各2560成功更新，独立精确原C0初始化，全部合法完成后四权重×318图×3条件完整S1；canonical Direction A §6.5门槛、原科研合同不变。Direction B/B1a、Main-Val、NYUv2/baseline和official test未授权。

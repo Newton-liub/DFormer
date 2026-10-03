@@ -11,6 +11,10 @@ param(
     [string]$Instance = 'cpod-1vbh7faqcauq'
 )
 $ErrorActionPreference = 'Stop'
+# PowerShell 5 native pipes must decode the CLI's UTF-8 JSON without corrupting CJK fields.
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$env:PYTHONUTF8 = '1'
+$env:PYTHONIOENCODING = 'utf-8'
 New-Item -ItemType Directory -Force -Path $LocalRoot | Out-Null
 $record = [ordered]@{
     instance = $Instance; formal_run_sha = $FormalSha; job_id = $JobId
@@ -44,7 +48,7 @@ function Add-Event([string]$Name, $Value) {
     Write-Output "$Name $([DateTimeOffset]::Now.ToString('o'))"
 }
 function Stop-And-Confirm([switch]$RequireGpuZero) {
-    $stop = Invoke-Cloud -CloudArgs @('instance','stop',$Instance,'--yes','--timeout','600')
+    $stop = Invoke-Cloud -CloudArgs @('instance','stop',$Instance,'--yes','--wait','--timeout','600')
     $show = Invoke-Cloud -CloudArgs @('instance','show',$Instance,'--status','--spec','--billing')
     $state = @($show.data.UHostSet)[0]
     Add-Event 'stopped_direct_query' $state
@@ -97,7 +101,7 @@ try {
         throw 'CPU shutdown insurance did not confirm the exact deadline'
     }
     # Respect an unexpected prior stop: only retrieve after a known terminal job.
-    $start = Invoke-Cloud -CloudArgs @('instance','start',$Instance,'--without-gpu','A','--timeout','600')
+    $start = Invoke-Cloud -CloudArgs @('instance','start',$Instance,'--without-gpu','A','--wait','--timeout','600')
     $cpuStarted = $true
     $show = Invoke-Cloud -CloudArgs @('instance','show',$Instance,'--status','--spec','--billing')
     $state = @($show.data.UHostSet)[0]

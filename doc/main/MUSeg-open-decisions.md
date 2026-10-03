@@ -1,8 +1,12 @@
 # MUSeg 当前开放问题
 
-> **执行边界截至：2026-10-03（0更新启动失败后的原预算重新执行已获用户明确批准）。** 本次失败只发生于启动参数校验，GPU/CPU-only已关闭；用户确认补齐命令后继续尚未执行的三组2560+完整S1，必须保留失败证据，先提交push新SHA/新输出根，沿原2026-10-04 02:11:47+08:00关机截止、不延长。实际运行状态见[实时状态](MUSeg-current-status.md)，持久授权见[首轮protocol](../../MMFR/01_research/natural_missing_round1_protocol.md)。
+> **执行边界截至：2026-10-03（正式运行已因非有限梯度停止，实例Stopped/GPU0）。** 修复后的原预算运行Natural attempted1598/successful1597，第1598次梯度检查失败；Grid/Replay/S1未运行，本次INVALID/BLOCKED，不能给科研GO/STOP。原继续执行选择已消耗为当前运行，不再授权自动重试。详见[实时状态](MUSeg-current-status.md)与[正式报告](../reports/2026-10-03-natural-missing-round1-formal.md)；持久合同见[首轮protocol](../../MMFR/01_research/natural_missing_round1_protocol.md)。
 
-重新启动的选择已关闭，不再列为未决问题；SwanLab允许LOG_ONLY。下一科研阶段仍要等合法完整S1结果，当前不授权Round-2、NYUv2/baseline、Direction B/B1a、Main-Val或official test。**大白话：** 用户已同意修复启动命令后继续原实验，失败的0更新尝试不会计成正式训练，也不能改科研合同或延长保险。
+## Direction A非有限梯度后的独立处置（待用户/上级裁决）
+
+需要选择：是否授权限定数值定位与重新资格检查，或终止本次执行准备。现有证据只确定Natural第1598次attempt、epoch13发生非有限梯度，未定位tensor/算子，不足以直接裁定AMP/NMF/数据原因。任何GPU诊断、精度或NMF变更、resume/重训、新预算都需明确独立授权；没有自动继续剩余963更新的权限，也不能把数值失败当科研收益门槛STOP。
+
+**大白话：** 先决定要不要查明数值问题，再谈重新运行；当前云容器已经关闭，没有后台训练。Round-2、NYUv2/baseline、Direction B/B1a、Main-Val和official test仍关闭，SwanLab允许LOG_ONLY不改变这一边界。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 

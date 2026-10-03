@@ -111,3 +111,9 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 用户随后明确选择`continue_original_budget`：允许修正调用参数与停机监督判据，必要选择性提交push后用新SHA、新输出根执行尚未消耗的原三组2560预算与完整S1。首次失败原始证据保留在`outputs/natural-missing-round1-formal-20261003/`，不得覆盖。GPU平台保险仍为原绝对截止**2026-10-04 02:11:47+08:00 / Unix1791051107**，重新启动前及Running后必须核验；不得重新增加六小时。其余科学合同、停止规则与关闭边界不变，没有授权自动重试或追加预算。
 
 **大白话：** 只修复尚未进入训练的启动命令，继续原实验；第一次失败不算训练结果，也不换来额外时间。
+
+## 12. 已执行正式运行的非有限停止与当前边界（2026-10-03）
+
+正式源码edb660a83da1ec67626149d06dc59460565e2c20，云端同HEAD/无tracked dirty。Natural attempted1598/successful1597/已记录optimizer skip0，第1598次在梯度有限性检查、optimizer执行前退出；Grid/Replay和完整S1未运行。按§3及§10停止规则，本次INVALID/BLOCKED，不能科研GO/STOP或继续剩余更新；没有改变AMP/NMF/LR/输入/预算。监督器主动停GPU，失败证据CPU-only取回后23:11:39直接Stopped/GPU0。运行、计时与证据详见[正式报告](../../doc/reports/2026-10-03-natural-missing-round1-formal.md)。
+
+原正式继续授权已执行并因非有限停止，不保留自动重试权限。任何数值定位GPU操作、合同修订、resume/重训或新预算均须独立授权；当前只完成报告/状态/必要索引与Git收口。**大白话：** 基础组没能合法完成，先决定是否单独查数值问题，不能直接续跑或拿不完整结果评价Replay。

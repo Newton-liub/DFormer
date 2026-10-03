@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.16",
   "latestFormalReport": {
-    "path": "doc/reports/2026-10-03-natural-missing-round1-readiness.md",
+    "path": "doc/reports/2026-10-03-natural-missing-round1-formal.md",
     "periodStart": "2026-10-03",
     "periodEnd": "2026-10-03",
-    "baseCommit": "34a4dea41c1e08a5a1f85711eb97107471445272",
-    "status": "ready-engineering-only-bounded-4090-three-updates-each-checkpoint-readback-pass-SwanLab-log-only-final-Stopped-GPU0-no-formal-experiment"
+    "baseCommit": "edb660a83da1ec67626149d06dc59460565e2c20",
+    "status": "invalid-blocked-Natural-attempted1598-successful1597-nonfinite-gradients-Grid-Replay-S1-not-run-final-Stopped-GPU0"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-10-03-natural-missing-round1-formal.md",
+      "topic": "natural-missing-round1-formal",
+      "periodStart": "2026-10-03",
+      "periodEnd": "2026-10-03",
+      "baseCommit": "edb660a83da1ec67626149d06dc59460565e2c20",
+      "verification": "authorized-repair-commit-push-and-clean-cloud-HEAD-match;original-absolute-GPU-shutdown-deadline-directly-confirmed-no-extension;actual-Natural-attempt1598-successful1597-nonfinite-gradient-before-optimizer-stop-log-receipt-summary-review;Grid-Replay-S1-not-run-no-scientific-GO-STOP;active-GPU-stop-insured-CPU-only-monitor-transfer-exit0-final-direct-Stopped-GPU0;CPU-CLI-gate-Python-static-and-PowerShell-parser-diff-review;no-full-tests-extra-GPU-resume-S1-final-checkpoint-readback-or-official-test",
+      "status": "invalid-blocked-Natural-attempted1598-successful1597-nonfinite-gradients-Grid-Replay-S1-not-run-final-Stopped-GPU0"
+    },
     {
       "path": "doc/reports/2026-10-03-natural-missing-round1-readiness.md",
       "topic": "natural-missing-round1-readiness",

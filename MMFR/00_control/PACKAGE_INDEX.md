@@ -4,12 +4,13 @@
 
 - Package: `MMFR_v4_1_blueprint_and_reference_package_2026-09-20`；仓库内 `MMFR/` 是证据与审核材料入口，不是第二份实时状态。
 - Historical blueprint: [`MMFR v4.1`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)，冻结历史不追改。
-- Canonical direction proposals: [`方向A：自然空洞形态覆盖（优先）`](../01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[`方向B：推理协议研究（备用）`](../01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)（v1.0科研正文原样迁移；已授权本轮最小整理与A首轮readiness，未授权正式训练或完整B1a）。
-- NaturalMissing Round-1 readiness: [`2026-10-03就绪报告`](../../doc/reports/2026-10-03-natural-missing-round1-readiness.md)；[`首轮执行合同`](../01_research/natural_missing_round1_protocol.md)。代码/初始CPU准备、精确C0恢复/真实加载通过；本机OOM和2图S1工程证据保留。新增4090云端三组各3成功更新/skip0与checkpoint保存读回通过，SwanLab LOG_ONLY；最终Stopped/GPU0，正式训练/完整评价仍待独立授权。
+- Canonical direction proposals: [`方向A：自然空洞形态覆盖（优先）`](../01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[`方向B：推理协议研究（备用）`](../01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)（v1.0科研正文原样迁移；Direction A正式首轮执行与非有限停止见protocol §10–12及下列正式报告，完整B1a仍未授权）。
+- NaturalMissing Round-1 readiness: [`2026-10-03就绪报告`](../../doc/reports/2026-10-03-natural-missing-round1-readiness.md)；[`首轮执行合同`](../01_research/natural_missing_round1_protocol.md)。代码/初始CPU准备、精确C0恢复/真实加载通过；本机OOM和2图S1工程证据保留。新增4090云端三组各3成功更新/skip0与checkpoint保存读回通过，SwanLab LOG_ONLY；最终Stopped/GPU0；此为预检历史身份，后续正式执行见下列报告，预检权重不用于正式初始化。
+- NaturalMissing Round-1 formal execution: [`2026-10-03正式执行报告`](../../doc/reports/2026-10-03-natural-missing-round1-formal.md)；Natural attempted1598/successful1597，第1598次非有限梯度停止，Grid/Replay/完整S1未运行，INVALID/BLOCKED而非科研GO/STOP。失败证据已取回，最终Stopped/GPU0；任何数值定位、合同变更或重训须独立授权。
 - Latest formal report: [`新方向计划、项目现状与最小文件治理上级审计`](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)（2026-10-02；推荐A优先、B备用与S1共用，明确旧C0继承/辅助loss及入口硬约束；仅审计）。
 - Prior local evidence: [`两个候选方向的本地事实摸底`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)（自然Depth缺失、F-lite协议差异、baseline/NYU与官方代码；原始事实/局限保留）。
 - Previous implemented design: [`A-v1任务效用控制残差`](../../doc/reports/2026-09-30-mmfr-next-generation-research-design.md)；对应正式筛选已stop，不再作为新方向入口。
-- Latest experiment report: [`A-v1正式训练/唯一Quick-Val上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md)（2026-10-01；Proposal1920/Gate640完成、skip0，四条件筛选`stop`，不因调查自动复活）。
+- Previous experiment report: [`A-v1正式训练/唯一Quick-Val上级报告`](../02_evidence/report_mmfr_a_v1_formal_quickval_upper_review_20261001.md)（2026-10-01；Proposal1920/Gate640完成、skip0，四条件筛选`stop`，不因调查自动复活）。
 - Local conditional handoff: [`资料接收与本地val前置条件`](../02_evidence/handoff_mmfr_a_v1_local_val_conditional_20261001.md)；[`转移包交付收据`](../02_evidence/delivery_mmfr_a_v1_local_val_20261001.md)记录整包SHA、大小与逐成员核验。打包不授权新实验，Main-Val适配尚缺。
 - Historical implementation evidence: [`Gate-B报告`](../02_evidence/report_mmfr_a_v1_implementation_gateb_20260930.md)、[`差异审核`](../02_evidence/audit_mmfr_a_v1_implementation_20260930.md)，原结论/字节保留。
 - Pre-revision snapshot: [`pre-A-v1设计`](../90_archive/2026-09-30_mmfr_a_v1_design_revision/2026-09-30-mmfr-next-generation-research-design.pre-a-v1.md)，历史0.0.15展示仅对应此设计。
@@ -19,7 +20,7 @@
 
 事实、权限、阻塞和恢复点只以 [`MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md) 与 [`MUSeg-open-decisions.md`](../../doc/main/MUSeg-open-decisions.md) 为准。
 
-**大白话：** A优先、B备用，精确C0和极小S1的工程证据保留。4090按原batch/精度合同完成Natural/Grid/Replay各3成功更新与保存读回，工程资格通过；最终实例Stopped/GPU0，在线监控本次不可用。下一步是裁决正式预算，不是自动继续训练或重启GPU；正式2560更新/组、完整评价和official test仍关闭，A-v1仍stop。
+**大白话：** Direction A正式运行已开始，但Natural在1597成功更新后发生非有限梯度，未能合法完成；Grid/Replay/S1未运行，不能比较Replay收益或给科研GO/STOP。失败证据已取回，最终Stopped/GPU0；先另行裁决是否定位数值问题，不能自动重训或开放B/B1a。在线监控本轮LOG_ONLY，official test仍sealed_unread，A-v1仍stop。
 
 ## Quick navigation
 
