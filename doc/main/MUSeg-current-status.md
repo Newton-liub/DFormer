@@ -20,7 +20,7 @@
 
 ## 交付、证据与准确恢复点
 
-- [正式执行报告](../reports/2026-10-03-natural-missing-round1-formal.md)已落盘：实际训练、停止位置、输入边界、无S1/无GO-STOP、资源时间和下一授权。报告与实时入口/必要索引按用户许可选择性Git收口；formal-run SHA与收口提交区分，实际提交/推送身份以canonical同分支Git记录为准。原有无关审计dirty保留，权重/outputs/大日志/cache不入Git。
+- [正式执行报告](../reports/2026-10-03-natural-missing-round1-formal.md)已落盘，报告/合同/必要索引及资源监督修复选择性收口提交`5ddf4cf2a5fb0ee314d61149614ee7bc689234fd`（`docs(mmfr): close natural missing round1`）已push到canonical同分支；首次TLS握手失败后同一push重试成功。23:27:24最终复查实例仍Stopped/GPU0。formal-run SHA仍为edb660a，与收口提交区分；后续只作本条状态确认，确认提交身份以Git记录为准。原有无关审计dirty保留，权重/outputs/大日志/cache不入Git。
 - 本地根`outputs/natural-missing-round1-formal-restart-20261003/`：`run-identity.json`、`restart-capacity-receipt.json`、原始`lifecycle.json`、`nonfinite-closeout.json`及`monitor/`中的formal receipt、Natural summary、stdout/stderr、screen.log。远端根`/root/rivermind-data/cloud/natural-missing-round1-formal-20261003-edb660a/`；没有三组合格final或完整S1本地产物，不运行成功final专用读回工具。
 - 首次源码`8d2490ef433807ec60d475cab27fbadd04d18e1f`漏传`--successful-updates 2560`，Natural参数门禁0尝试/0成功更新；修复后用户另批继续原预算，已用于当前实际运行。首次证据在`outputs/natural-missing-round1-formal-20261003/`独立保留，不覆盖历史结果。
 - 收口仅修正资源监督的UTF-8 JSON解码与显式start/stop `--wait`，避免Initializing/Stopping竞态；未用于再次GPU运行。实际检查包括原CPU CLI门禁、Python静态检查、本次PowerShell parser/差异复核、运行日志及直接云状态核验；未运行完整测试、额外GPU验证、真实resume、非有限定位训练或S1，不把未运行写成通过。
