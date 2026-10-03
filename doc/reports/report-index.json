@@ -2,13 +2,22 @@
   "schemaVersion": 1,
   "nextCanvasVersion": "0.0.16",
   "latestFormalReport": {
-    "path": "doc/reports/2026-10-03-natural-missing-round1-formal.md",
+    "path": "doc/reports/2026-10-04-natural-missing-numerical-repair-qualification.md",
     "periodStart": "2026-10-03",
-    "periodEnd": "2026-10-03",
-    "baseCommit": "edb660a83da1ec67626149d06dc59460565e2c20",
-    "status": "invalid-blocked-Natural-attempted1598-successful1597-nonfinite-gradients-Grid-Replay-S1-not-run-final-Stopped-GPU0"
+    "periodEnd": "2026-10-04",
+    "baseCommit": "00ca7375fbaa4a42dc781bdd368e7d1b2738c9d3",
+    "status": "qualification1664-finite-zero-skip-renewed-formal-not-launched-SSH-Git-TLS-blocked-no-S1-no-gate-final-Stopped-GPU0"
   },
   "reports": [
+    {
+      "path": "doc/reports/2026-10-04-natural-missing-numerical-repair-qualification.md",
+      "topic": "natural-missing-numerical-repair-qualification",
+      "periodStart": "2026-10-03",
+      "periodEnd": "2026-10-04",
+      "baseCommit": "00ca7375fbaa4a42dc781bdd368e7d1b2738c9d3",
+      "verification": "direct-Natural-nonfinite-NMF-backward-diagnosis-reproduced-at1598;uniform-local-FP32-minimal-repair-pushed-clean-cloud-HEAD-and-Natural1664-finite-zero-skip-qualification-no-checkpoint;CPU-only-diagnosis-qualification-evidence-transfer;formal-final-readback-adaptation-Python-syntax-diff-review-and-push-ref-confirmed;renewed-formal-source-sync-failed-SSH-and-Git-TLS-no-new-GPU-or-formal-job-or-S1;final-direct-Stopped-GPU0;content-JSON-targeted-diff-checks-no-full-tests-extra-model-runs-or-official-test",
+      "status": "qualification1664-finite-zero-skip-renewed-formal-not-launched-SSH-Git-TLS-blocked-no-S1-no-gate-final-Stopped-GPU0"
+    },
     {
       "path": "doc/reports/2026-10-03-natural-missing-round1-formal.md",
       "topic": "natural-missing-round1-formal",

@@ -6,7 +6,8 @@
 - Historical blueprint: [`MMFR v4.1`](../01_research/MMFR_research_blueprint_v4_1_2026-09-20.md)，冻结历史不追改。
 - Canonical direction proposals: [`方向A：自然空洞形态覆盖（优先）`](../01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[`方向B：推理协议研究（备用）`](../01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)（v1.0科研正文原样迁移；Direction A正式首轮执行与非有限停止见protocol §10–12及下列正式报告，完整B1a仍未授权）。
 - NaturalMissing Round-1 readiness: [`2026-10-03就绪报告`](../../doc/reports/2026-10-03-natural-missing-round1-readiness.md)；[`首轮执行合同`](../01_research/natural_missing_round1_protocol.md)。代码/初始CPU准备、精确C0恢复/真实加载通过；本机OOM和2图S1工程证据保留。新增4090云端三组各3成功更新/skip0与checkpoint保存读回通过，SwanLab LOG_ONLY；最终Stopped/GPU0；此为预检历史身份，后续正式执行见下列报告，预检权重不用于正式初始化。
-- NaturalMissing Round-1 formal execution: [`2026-10-03正式执行报告`](../../doc/reports/2026-10-03-natural-missing-round1-formal.md)；Natural attempted1598/successful1597，第1598次非有限梯度停止，Grid/Replay/完整S1未运行，INVALID/BLOCKED而非科研GO/STOP。失败证据已取回，最终Stopped/GPU0；任何数值定位、合同变更或重训须独立授权。
+- NaturalMissing Round-1 formal history: [`2026-10-03正式执行报告`](../../doc/reports/2026-10-03-natural-missing-round1-formal.md)；Natural attempted1598/successful1597，第1598次非有限梯度停止，Grid/Replay/完整S1未运行，INVALID/BLOCKED而非科研GO/STOP。旧失败事实与原始证据保留；后续定位/修复/重启授权见protocol §13–15及下列新报告。
+- Latest numerical repair and qualification: [`2026-10-04定位、修复与资格报告`](../../doc/reports/2026-10-04-natural-missing-numerical-repair-qualification.md)；原NMF反向故障复现，三组统一局部FP32，Natural限定资格1664/1664/skip0、无checkpoint。新三组正式与S1尚未启动，云端SSH/GitHub TLS同步阻塞，同HEAD门禁未通过；最新直接Stopped/GPU0。
 - Latest formal report: [`新方向计划、项目现状与最小文件治理上级审计`](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)（2026-10-02；推荐A优先、B备用与S1共用，明确旧C0继承/辅助loss及入口硬约束；仅审计）。
 - Prior local evidence: [`两个候选方向的本地事实摸底`](../../doc/reports/2026-10-02-direction-audit-local-evidence.md)（自然Depth缺失、F-lite协议差异、baseline/NYU与官方代码；原始事实/局限保留）。
 - Previous implemented design: [`A-v1任务效用控制残差`](../../doc/reports/2026-09-30-mmfr-next-generation-research-design.md)；对应正式筛选已stop，不再作为新方向入口。
@@ -20,7 +21,7 @@
 
 事实、权限、阻塞和恢复点只以 [`MUSeg-current-status.md`](../../doc/main/MUSeg-current-status.md) 与 [`MUSeg-open-decisions.md`](../../doc/main/MUSeg-open-decisions.md) 为准。
 
-**大白话：** Direction A正式运行已开始，但Natural在1597成功更新后发生非有限梯度，未能合法完成；Grid/Replay/S1未运行，不能比较Replay收益或给科研GO/STOP。失败证据已取回，最终Stopped/GPU0；先另行裁决是否定位数值问题，不能自动重训或开放B/B1a。在线监控本轮LOG_ONLY，official test仍sealed_unread，A-v1仍stop。
+**大白话：** Direction A原数值故障已定位，局部FP32修复后的Natural资格1664次全部成功、零跳步；完整三组尚未重启，因为云端SSH/Git版本同步门禁未通过。没有新S1分数或科研GO/STOP，当前仍INVALID/BLOCKED；实例最新直接Stopped/GPU0，恢复点只看实时状态。SwanLab仍LOG_ONLY，official test sealed_unread，B/B1a关闭、A-v1仍stop。
 
 ## Quick navigation
 
