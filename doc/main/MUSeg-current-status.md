@@ -11,7 +11,7 @@
 
 ## 当前动作、授权与停止边界
 
-- 正式验收代码正在最小适配：将final schema合同的旧 `amp_autocast` 改为已修订 `fp32_local`；每组完成后先CPU map_location读回final schema/provenance/计数/optimizer/RNG与SHA，失败立即停止下一组及S1。已核验hash交给同进程S1避免重复hash，取回后仍需本地CPU读回并对齐S1身份。此验收适配不改科研变量。
+- 正式验收适配已完成并提交推送：将final schema合同的旧 `amp_autocast` 改为已修订 `fp32_local`；每组完成后先CPU map_location读回final schema/provenance/计数/optimizer/RNG与SHA，失败立即停止下一组及S1。已核验hash交给同进程S1避免重复hash，取回后仍需本地CPU读回并对齐S1身份。此验收适配不改科研变量，Python语法与直接差异复核通过；云端Bash语法及同步仍待核验。
 - 适配与文档选择性commit/push后，云端只Git fast-forward，直接核验同HEAD/运行源码tracked-clean、原环境与本轮平台关机保险。随后从原C0分别干净启动 **Natural → Grid → Replay**，各2560 successful updates、attempted=successful、optimizer skip0、每640 recovery与2560 fixed-final。不得续跑旧Natural1597或资格1664，不得组间继承权重。
 - 任一正式组再次资格性故障，立即停止后续流程并报告INVALID/BLOCKED，不跳坏update、不改protocol救结果、不自动重试。三组全部合法完成才唯一完整S1：C0/Natural/Grid/Replay ×318样本×3条件=3816 views。
 - 沿[Direction A §6.5](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)冻结gate：Replay自然high≥最强C0/Natural/Grid+1.0pp；natural all/low各≥最强−0.3pp；rectangle≥最强Natural/Grid+0.5pp；entire≥Grid−0.5pp，并且删除量/类别支持/采集组解释合格。门槛不改，工程失效不能科研裁决。

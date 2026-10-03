@@ -153,4 +153,3 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 重新正式运行继续§13授权，三组从冻结C0分别初始化各2560更新，不接旧1597或资格1664。每组训练完成后、下一组及S1之前，CPU-only读回fixed-final并检查schema、formal身份、源码SHA、C0/数据/预算/已修订 `fp32_local` 合同、cursor/attempted/successful/skip、模型/optimizer状态、RNG与无best选择；直接计算并记录final SHA256。任一失败立即停止后续阶段。S1复用这些已核验的final身份，CPU-only取回后仍直接读回并核验本地权重hash与完整S1报告一致。验收适配不改变模型、输入、LR、预算、S1定义或冻结gate。
 
 **大白话：** 修复已通过限定检查，现在可以按原授权重新做完整三组；每组权重先验收再进入下一步，资格结果不能代替正式训练结果。
-
