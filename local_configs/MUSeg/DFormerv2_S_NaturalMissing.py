@@ -174,7 +174,10 @@ def make_config(strategy: str = "Natural"):
     config.tf32_matmul_precision = "high"
     config.tf32_matmul = True
     config.tf32_cudnn = True
-    config.nmf_training_precision = "amp_autocast"
+    # The 2026-10-04 Natural diagnosis reproduced non-finite NMF backward
+    # under autocast at attempt 1598. All three strategies use the same local
+    # FP32 numerical repair; the NMF algorithm and surrounding AMP stay unchanged.
+    config.nmf_training_precision = "fp32_local"
 
     # Explicitly disable all legacy training branches and gates.
     config.mmfr_a2 = None

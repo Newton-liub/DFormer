@@ -133,3 +133,13 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 - 三组全部合法完成才运行冻结完整S1四权重×318×3=3816 views；沿canonical §6.5原阈值GO / 科研STOP / 工程INVALID/BLOCKED，结果差不临时调门槛。Main-Val、official test、NYUv2、其他baseline、Round-2、Direction B/B1a均关闭。
 
 **大白话：** 先用有限额外算力查清坏梯度，只有修复有证据且资格通过才重新做完整对照；旧失败不能接着算正式结果，下载文件也不能继续占GPU。
+
+## 14. 2026-10-04 已复现NMF反向非有限与最小FP32数值修订
+
+诊断运行源码 `1cf9a8af517a1cf060846461cd31be5aba667950`，从冻结C0独立启动Natural，cap1664/观测起点1536。实际attempt1598/successful1597/skip0，失败loss0.18105733394622803 finite，scale1024、backward未完成、unscale未开始；输入及已观察前向均finite。首个观测坏中间梯度 `decode_head.hamburger.ham.iteration.2.bases.divide` 为39 Inf，异常反向trace定位NMF基底更新的分母batch-matmul `BmmBackward0`产生NaN。具体证据在 `outputs/natural-missing-numerical-20261004-1cf9a8a/monitor/numerical-run-receipt.json` 和 `Natural.stderr.log`。这支持AMP下NMF反向数值不稳定，不是输入NaN/Inf污染或已证明的scaler增长/解缩放bug；不能将未完成反向中的partial参数finite摘要记成完整通过。
+
+按§13已授权，仅修订**训练NMF局部精度为FP32**：`nmf_training_precision=fp32_local`，共享NaturalMissing builder为原NMF2D设置训练flag，CUDA训练autocast中仅NMF范围关闭autocast并输入float32。Natural/Grid/Replay统一使用此策略；§3原生NMF autocast是修订前历史合同，不冒充修订后的实际精度。外围AMP/scaler1024、NMF算法/六次训练迭代/随机基底、模型结构/参数、数据/顺序/普通增强、LR/scheduler、三组各2560预算及S1/科研门槛全不变；不启用旧A-v1。
+
+修复完成必要commit/push、云端fast-forward和同HEAD核验后，先Natural从原C0限定资格至1664，确认越过已复现1598区间且attempted=successful、skip0、loss/gradient全程finite。资格为diagnosis-only，无正式checkpoint/正式resume资格，不继承诊断或旧Natural1597权重；失败立即停止，未通过不得进入三组正式。资格当前尚未运行，局部修复不自动等于稳定性已获证明。GPU任务结束立即关闭，证据只CPU-only取回；本诊断取回后01:33:29已直接确认Stopped/GPU0。
+
+**大白话：** 只把已经出错的矩阵分解计算改用更稳的数值精度，其他研究变量不动；先验证能通过原失败区间，再重新做完整对照，不能把诊断的1597更新接成正式结果。

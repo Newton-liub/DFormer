@@ -53,6 +53,13 @@ def build_model(config, device: torch.device | str) -> nn.Module:
         reduction="none",
         ignore_index=int(config.background),
     )
+    precision = config.nmf_training_precision
+    if precision not in {"amp_autocast", "fp32_local"}:
+        raise ValueError(f"unsupported NaturalMissing NMF precision {precision!r}")
+    nmf = model.decode_head.hamburger.ham
+    if nmf.__class__.__name__ != "NMF2D":
+        raise ValueError("NaturalMissing numerical policy requires the original NMF2D")
+    nmf._natural_missing_nmf_fp32 = precision == "fp32_local"
     model.to(torch.device(device))
     return model
 

@@ -687,6 +687,10 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
     resume_identity = _resume_identity(config, split_metadata, args.mode, workers, c0_sha256)
 
     model = build_model(config, device)
+    _emit({"event": "numerical_policy", "mode": args.mode, "strategy": args.strategy,
+           "nmf_training_precision": config.nmf_training_precision,
+           "nmf_local_fp32_enabled": bool(model.decode_head.hamburger.ham._natural_missing_nmf_fp32),
+           "amp_dtype": config.amp_dtype, "initial_amp_scale": config.grad_scaler["initial_scale"]})
     if not all(parameter.requires_grad for parameter in model.parameters()):
         raise ValueError("NaturalMissing requires full-parameter continuation")
 

@@ -139,7 +139,10 @@ class NMF2D(_MatrixDecomposition2DBase):
 
     def forward(self, x, return_bases=False):
         if (
-            getattr(self, "_mmfr_av1_training_active", False)
+            (
+                getattr(self, "_mmfr_av1_training_active", False)
+                or (self.training and getattr(self, "_natural_missing_nmf_fp32", False))
+            )
             and x.is_cuda
             and torch.is_autocast_enabled()
         ):
