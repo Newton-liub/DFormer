@@ -23,7 +23,7 @@ C0是已有E1训练对照；checkpoint是模型参数和训练状态快照。Nat
 - 唯一实例 `cpod-1vbh7faqcauq`；启动前设置 **30分钟平台保险，10:07:28+08:00 / Unix1790993248**，读取确认scheduled=true；09:37:50请求有卡start，直接确认Running/GPU1，启动后再次核验同截止，没有延长或改变付费规格。
 - GPU任务正常结束后 **09:43:01+08:00主动stop，09:43:13+08:00直接查询确认Stopped**，API StopTime1790991782；没有等20分钟或为下载保持GPU运行。运行态API InstancePrice1.88，不把CPU价0.13/resize-price0当GPU价；最终账单未核验。
 - 正常结束后按授权，仅为checkpoint CPU读回与5个小型证据取回，另设 **10分钟保险，09:54:10+08:00 / Unix1790992450**，09:44:16请求 `--without-gpu A`，直接确认CPU2/4096MiB/**GPU0**。没有模型前向、训练或新增更新；不下载三个大checkpoint。
-- 五个文件transfer均exit0后 **09:46:49+08:00立即stop，09:46:59+08:00直接确认Stopped/GPU0**，API StopTime1790992011。全过程无人工保险关机事件、无自动重启训练；CPU取回阶段是正常结束后的已授权操作。平台保险仍为该较早CPU截止，不自动延长；Stopped不会自动开机。
+- 五个文件transfer均exit0后 **09:46:49+08:00立即stop，09:46:59+08:00直接确认Stopped/GPU0**，API StopTime1790992011。全过程无人工保险关机事件、无自动重启训练；CPU取回阶段是正常结束后的已授权操作。**10:01:58+08:00最终复查仍Stopped/GPU0**；CPU保险已到期，API SchedulerStopTime=null，没有延长保险或自动开机。
 - 本轮≤3/组预算已经用完并关闭。正式训练 **3×2560=7680成功更新**、完整S1 **3816 views**、Main-Val/B1a33072 views、NYUv2/外部baseline仍未授权，official test仍 **sealed_unread**。真正未决事项见[open-decisions](MUSeg-open-decisions.md)。
 
 ## 证据、提交与恢复点
