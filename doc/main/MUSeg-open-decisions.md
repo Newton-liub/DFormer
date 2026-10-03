@@ -1,6 +1,6 @@
 # MUSeg 当前开放问题
 
-> **执行边界截至：2026-10-04（Direction A数值定位完成，最小修复待资格）。** Natural在同一attempt1598复现NMF反向非有限，首个坏中间梯度39 Inf、后续BmmBackward0产生NaN；本地仅准备三组统一NMF局部FP32修复，尚未运行修复资格或新三组正式/S1。当前仍INVALID/BLOCKED；诊断日志CPU-only取回、实例直接Stopped/GPU0。定位/最小修复/资格/重新正式的授权已经决定，不列为开放选择；精确事实与恢复点见[实时状态](MUSeg-current-status.md)，持久边界与精度修订见[首轮protocol §13–14](../../MMFR/01_research/natural_missing_round1_protocol.md)。
+> **执行边界截至：2026-10-04（Direction A数值定位及最小修复资格通过，重新正式准备）。** Natural原attempt1598故障已定位为AMP下NMF反向非有限；三组统一NMF局部FP32修复已提交推送并云端同HEAD运行，Natural从冻结C0限定资格attempted1664/successful1664/skip0，通过原故障区间，无资格checkpoint。三组新正式训练及S1尚未运行，当前仍INVALID/BLOCKED，不能科研GO/STOP。资格证据CPU-only取回、实例直接Stopped/GPU0。顺序执行授权已经决定，不列为开放选择；事实与恢复点见[实时状态](MUSeg-current-status.md)，持久边界与精度修订见[首轮protocol §13–15](../../MMFR/01_research/natural_missing_round1_protocol.md)。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 

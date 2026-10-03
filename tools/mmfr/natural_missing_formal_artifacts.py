@@ -1,7 +1,8 @@
 """CPU-only readback of this project's own formal NaturalMissing artifacts.
 
 Loads fixed finals on CPU and checks schema, provenance, counters and the hash
-already recorded by S1. It never constructs a model or performs a forward.
+before S1, or against completed S1 hashes on retrieval. It never constructs a
+model or performs a forward.
 """
 from __future__ import annotations
 
@@ -29,12 +30,13 @@ def _require(condition: bool, message: str) -> None:
         raise ValueError(message)
 
 
-def read_final(path: Path, strategy: str, git_sha: str, s1_hashes: set[str]) -> dict:
+def read_final(path: Path, strategy: str, git_sha: str, s1_hashes: set[str] | None = None) -> dict:
     _require(path.is_file(), f"missing final: {path}")
     size = path.stat().st_size
     _require(300_000_000 < size < 400_000_000, f"unexpected checkpoint size: {size}")
     sha = _file_sha(path)
-    _require(sha in s1_hashes, "local final hash is absent from completed S1 reports")
+    if s1_hashes is not None:
+        _require(sha in s1_hashes, "local final hash is absent from completed S1 reports")
     # Only the explicitly named, locally generated and trusted run artifacts.
     checkpoint = torch.load(path, map_location="cpu", weights_only=False)
     _require(checkpoint.get("schema_version") == "dformer-training-checkpoint-v2", "schema mismatch")
@@ -55,7 +57,7 @@ def read_final(path: Path, strategy: str, git_sha: str, s1_hashes: set[str]) -> 
                           "base_lr": 1e-6, "weight_decay": 0.01, "batch_size": 10,
                           "num_workers": 8, "amp": True, "amp_dtype": "float16",
                           "syncbn": True, "legacy_auxiliary_training": False,
-                          "nmf_training_precision": "amp_autocast"}.items():
+                          "nmf_training_precision": "fp32_local"}.items():
         _require(summary.get(key) == expected, f"scientific contract mismatch: {key}")
     for key, expected in {"epoch": 21, "batch_position": 0, "successful_updates": 2560,
                           "attempted_steps": 2560, "skipped_steps": 0}.items():

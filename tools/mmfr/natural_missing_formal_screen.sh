@@ -10,6 +10,8 @@ EXPECTED_SHA="$2"
 ROOT="$3"
 C0="$4"
 [[ "$(git rev-parse HEAD)" == "$EXPECTED_SHA" ]]
+git diff --quiet
+git diff --cached --quiet
 command -v screen >/dev/null
 [[ -f "$C0" ]]
 # Refuse replacing an existing session or an earlier formal receipt.

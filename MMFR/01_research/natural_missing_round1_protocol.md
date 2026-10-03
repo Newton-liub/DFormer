@@ -143,3 +143,14 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 修复完成必要commit/push、云端fast-forward和同HEAD核验后，先Natural从原C0限定资格至1664，确认越过已复现1598区间且attempted=successful、skip0、loss/gradient全程finite。资格为diagnosis-only，无正式checkpoint/正式resume资格，不继承诊断或旧Natural1597权重；失败立即停止，未通过不得进入三组正式。资格当前尚未运行，局部修复不自动等于稳定性已获证明。GPU任务结束立即关闭，证据只CPU-only取回；本诊断取回后01:33:29已直接确认Stopped/GPU0。
 
 **大白话：** 只把已经出错的矩阵分解计算改用更稳的数值精度，其他研究变量不动；先验证能通过原失败区间，再重新做完整对照，不能把诊断的1597更新接成正式结果。
+
+## 15. 2026-10-04 修复资格通过与重新正式验收
+
+修复源码 `7d6246a7db77f77e26e20d84074dff6e191e9fa5` 已commit/push，云端Git fast-forward、同HEAD/tracked-clean后Natural从原C0限定资格至1664。receipt `CAP_REACHED_FINITE`，attempted1664/successful1664/optimizer skip0/complete=true，workers8、scheduler2560；实际数值策略为NMF局部FP32、外围AMP fp16/scaler1024。全程runner loss/gradient与optimizer检查通过，越过原第1598次故障区间，checkpoint_dir=null/checkpoint_written=false；不保存或复用资格权重。此证据只证明该资格运行通过，不等于三组正式完成或科研GO。
+
+资格job `natural-missing-qualification-20261004-7d6246a` Succeeded/exit0，GPU结束主动停止；15分钟保险CPU-only Running/GPU0取回exit0，02:09:46+08:00直接确认实例Stopped/GPU0。证据为 `outputs/natural-missing-qualification-20261004-7d6246a/monitor/numerical-run-receipt.json`、Natural stdout/stderr与 `numerical-lifecycle.json`。SwanLab online客户端未登录且settings.api_key=None，非交互初始化在SDK `prompt_init_mode` line323拒绝；保持LOG_ONLY，没有online链接/上传成功证据。
+
+重新正式运行继续§13授权，三组从冻结C0分别初始化各2560更新，不接旧1597或资格1664。每组训练完成后、下一组及S1之前，CPU-only读回fixed-final并检查schema、formal身份、源码SHA、C0/数据/预算/已修订 `fp32_local` 合同、cursor/attempted/successful/skip、模型/optimizer状态、RNG与无best选择；直接计算并记录final SHA256。任一失败立即停止后续阶段。S1复用这些已核验的final身份，CPU-only取回后仍直接读回并核验本地权重hash与完整S1报告一致。验收适配不改变模型、输入、LR、预算、S1定义或冻结gate。
+
+**大白话：** 修复已通过限定检查，现在可以按原授权重新做完整三组；每组权重先验收再进入下一步，资格结果不能代替正式训练结果。
+

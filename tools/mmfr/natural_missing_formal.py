@@ -212,6 +212,12 @@ def train(strategy: str, args, root: Path, entry: dict, tracker, tracking: dict,
                 require(checkpoint.is_file() and checkpoint.stat().st_size > 300_000_000, "recovery/final checkpoint missing or too small")
                 entry["checkpoints"][str(update)] = str(checkpoint)
                 print(f"CHECKPOINT strategy={strategy} update={update} path={checkpoint}", flush=True)
+            from tools.mmfr.natural_missing_formal_artifacts import read_final
+            entry["final_readback"] = read_final(directory / "update-2560.pth", strategy,
+                                                  receipt["source_commit"])
+            save_json(root / f"{strategy}-final-readback.json", entry["final_readback"])
+            print(f"FINAL_READBACK strategy={strategy} passed=true "
+                  f"sha256={entry['final_readback']['sha256']} CPU_ONLY_NO_MODEL_FORWARD", flush=True)
             entry["result"] = {key: value for key, value in final.items() if key != "telemetry"}
             entry["status"] = "SUCCEEDED"
             return directory / "update-2560.pth"
@@ -226,7 +232,7 @@ def train(strategy: str, args, root: Path, entry: dict, tracker, tracking: dict,
             save_json(root / f"{strategy}-training-summary.json", entry)
 
 
-def evaluate(args, root: Path, finals: list[Path], entry: dict):
+def evaluate(args, root: Path, finals: list[Path], entry: dict, final_hashes: dict[Path, str]):
     from tools.mmfr.natural_missing_eval import run_evaluation
     print("S1_START checkpoints=4 samples=318 conditions=3 expected_views=3816 FP32 TF32_OFF", flush=True)
     started = time.monotonic()
@@ -235,7 +241,7 @@ def evaluate(args, root: Path, finals: list[Path], entry: dict):
             contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
         paths = run_evaluation(dataset_root=args.dataset_root, checkpoints=[args.c0_checkpoint, *finals],
                                output_dir=root / "s1", sample_limit=318, formal_dev_authorization=True,
-                               device_name="cuda", verified_checkpoint_sha256={args.c0_checkpoint: C0_SHA})
+                               device_name="cuda", verified_checkpoint_sha256={args.c0_checkpoint: C0_SHA, **final_hashes})
     require(len(paths) == 4 and len(set(paths)) == 4, "S1 four-report completeness mismatch")
     reports = []
     for path, checkpoint in zip(paths, [args.c0_checkpoint, *finals]):
@@ -247,6 +253,8 @@ def evaluate(args, root: Path, finals: list[Path], entry: dict):
                 and all(value["sample_count"] == 318 and len(value["sample_observations"]) == 318
                         for value in report["s1_conditions"].values()), "S1 condition completeness mismatch")
         require(report["forward_rng_policy"]["counts"]["forward_calls"] == 954, "S1 forward completeness mismatch")
+        expected_sha = C0_SHA if checkpoint == args.c0_checkpoint else final_hashes[checkpoint]
+        require(report["identity"]["checkpoint_sha256"] == expected_sha, "S1 verified final identity mismatch")
         reports.append({"path": str(path), "checkpoint": str(checkpoint),
                         "sha256": report["identity"]["checkpoint_sha256"], "views": 954})
     require(reports[0]["sha256"] == C0_SHA, "S1 original C0 identity mismatch")
@@ -329,7 +337,9 @@ def main() -> int:
         current["status"] = "RUNNING"
         receipt["stage"] = "S1_EVALUATION"
         save_json(receipt_path, receipt)
-        evaluate(args, root, finals, current)
+        final_hashes = {path: receipt["strategies"][strategy]["final_readback"]["sha256"]
+                        for strategy, path in zip(STRATEGIES, finals)}
+        evaluate(args, root, finals, current, final_hashes)
         receipt["status"] = "SUCCEEDED"
         receipt["stage"] = "COMPLETE"
         exit_code = 0
