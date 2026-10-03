@@ -1,18 +1,16 @@
 # MUSeg 当前开放问题
 
-> **执行边界截至：2026-10-03（NaturalMissing readiness获授权）。** A优先、B备用及本轮代码/限量预检边界已由综合执行单决定；这里只保留尚影响下一步的正式预算、资源与独立旧路线选择。事实与恢复点见 [实时状态](MUSeg-current-status.md)，历史输入与证据见 [本地调查](../reports/2026-10-02-direction-audit-local-evidence.md)。
+> **执行边界截至：2026-10-03（4090限量预检完成）。** A优先、B备用及本轮限量预检已决定并执行；这里只保留影响下一步的正式预算、资源责任与独立旧路线选择。事实与恢复点见 [实时状态](MUSeg-current-status.md)，历史输入与证据见 [本地调查](../reports/2026-10-02-direction-audit-local-evidence.md)。
 
-## 0. NaturalMissing 正式训练与完整评价授权（readiness后待裁决）
+## 0. NaturalMissing 正式训练与完整评价预算（待用户/上级裁决）
 
-2026-10-03真实执行收口仍为 **PARTIALLY READY**，见[就绪报告](../reports/2026-10-03-natural-missing-round1-readiness.md)与[执行合同](../../MMFR/01_research/natural_missing_round1_protocol.md)。精确C0已CPU-only取回、立即确认云实例Stopped，关机后一次SHA匹配，真实严格加载802分割键/只排除10辅助键/missing0/unexpected0。2图真实C0 S1完成6次finite前向，仅工程预检；资产恢复/登录途径不再是待决事项。
+4090限量预检已完成 **READY_ENGINEERING_ONLY**，三组各3成功更新、保存/云端CPU读回通过，实例已Stopped；事实见[就绪报告](../reports/2026-10-03-natural-missing-round1-readiness.md) §13与[实时状态](MUSeg-current-status.md)。C0恢复、限量有卡预检和本轮推送已执行关闭，不再是开放选择。
 
-**有卡限量预检与本轮推送已获批，不再作为待决事项。** 用户批准现有实例有卡启动、三组各≤3成功更新、workers8、30分钟平台关机保险与条件性SwanLab；先提交并推送再云端拉取同SHA，结束主动停机。此前本机各首次forward OOM/successful0事实仍保留，云端真实资格尚待本轮执行，不从失败wall外推正式耗时。
+**需裁决：** 是否批准Natural/Grid/Replay各2560成功更新、C0+三组完整318图三条件S1，并明确设备、费用/时间上限、超时处置与运行责任？已测后两step的条件性纯计算线性估计约92.42分钟，不含输入构建/保存/初始化或评价，短样本不证明长期稳定；完整费用与评价耗时仍待预算确认。若下一阶段要求SwanLab在线，需同时明确本次LOG_ONLY后的既有配置恢复及在线验收条件。
 
-**仍需裁决的是正式预算与资源责任：** 本轮云端限量预检通过后，是否批准Natural/Grid/Replay各2560成功更新、C0+三组完整318图三条件S1及正式费用/设备/时间预算？预检授权不包含正式开跑，也不包含改batch/precision挽救失败。正式训练/完整评价/Main-Val/B1a和其他数据集/baseline继续关闭。预检权重不得用作正式初始化；固定分层、类别支持与矩形语义不按小样本分数改写。
+正式训练/完整评价/Main-Val/B1a和其他数据集/baseline继续关闭；预检权重不得用于正式初始化或formal resume，三组正式必须从同精确C0独立开始。固定分层、类别支持与矩形语义不按小样本loss改写；真实GPU resume未运行，不将checkpoint读回冒称resume通过。科研内容仍以[A canonical正文](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[首轮合同](../../MMFR/01_research/natural_missing_round1_protocol.md)为准，[B备用](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)未转入执行。
 
-[A canonical正文](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[B备用正文](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)科研内容保持原文。NYUv2和外部baseline不是本轮恢复前置项。
-
-**大白话：** 云端只做限量资格检查与测时，正式训练仍需结果和预算审核；允许启动GPU并不等于允许跑完整实验。
+**大白话：** 已确认能按原合同训练几步，但真正跑完整实验仍需要批准预算和运行责任；当前没有任何自动继续或重启权限。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 

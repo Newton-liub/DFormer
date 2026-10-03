@@ -1,7 +1,7 @@
 # Natural Missing Round-1 Readiness
 
-> 范围：2026-10-03综合执行单的目录整理、独立训练/输入/S1实现、初始CPU检查，以及后续获准的CPU-only C0取回、确认停机后单次哈希/真实加载、本机限量GPU与2图S1；不包含正式实验。
-> 本次真实执行起始HEAD：`caaeda289cb68767c9fa3e0ea011e2f4e4ede1ec`。执行收口使用 `test(mmfr): validate natural missing round1 readiness` 本地提交，不push；准确身份以Git提交为准，不追逐报告自引用。
+> 范围：2026-10-03目录整理、独立训练/输入/S1实现、初始CPU检查、CPU-only C0恢复、本机限量GPU/2图S1，以及后续获批的4090云端三组各3成功更新与停机收口；不包含正式实验。
+> 本机恢复阶段起始HEAD：`caaeda289cb68767c9fa3e0ea011e2f4e4ede1ec`，收口提交 `d47a4be1c139cde1a9c304b5bf36239069ec2bd0`，当时未push。云端阶段起始HEAD为该收口提交；先将已有3提交及必要监控代码推送origin，云端实际干净运行提交 **`18271ad0b0c3e7ba81c630c099d02592c02a45f4`**。本次后续文档收口另行提交推送，不追逐报告自身SHA。
 > 起始HEAD：`34a4dea41c1e08a5a1f85711eb97107471445272`；branch：`perf/mmfr-a2-v3-pipeline-opt1`。
 > 第一阶段docs commit：`ca65f4bdfc76e687746745df12e7c767a0a46049`（`docs(mmfr): normalize direction plan locations`）。
 > 第二阶段readiness commit：`caaeda289cb68767c9fa3e0ea011e2f4e4ede1ec`（`feat(mmfr): prepare natural missing round1`）。此行为第二阶段提交后的历史SHA收据，未纳入该commit；本次真实执行收口保留该收据，不为自身SHA追加提交。
@@ -9,13 +9,13 @@
 
 ## 1. Executive Summary
 
-**PARTIALLY READY — C0已恢复，RTX5060训练容量阻塞。** 独立配置、配对输入、分割训练与新S1入口已实现；精确C0在CPU-only云取回后已经本地落盘，云实例已直接确认Stopped。关机后仅计算一次SHA-256，身份匹配；真实严格分割加载802键、只排除已知10个辅助键、missing/unexpected均0，`C0_RECOVERY=PASS`。
+**READY_ENGINEERING_ONLY — 4090限量训练链与保存读取通过，正式实验待授权。** Natural/Grid/Replay分别独立从精确C0开始，在同一云端代码提交、batch10/480×640、workers8和原生NMF AMP合同下，各 **attempted3 / successful3 / skipped0**；持久任务Succeeded/exit0，共9次成功更新，没有追加预算或合同变更。九次loss、gradient检查与optimizer/scaler路径均通过；三个预检checkpoint已在云端CPU-only读取核对计数、802模型键、685 optimizer state、scaler及RNG保存，均为preflight-only、不可正式初始化或formal resume。详见§13。
 
-Natural/Grid/Replay各自从该C0启动独立进程，保留batch10/480×640/AMP合同；各在第一次前向发生显存不足（OOM，GPU内存无法满足分配），各attempted=1/successful=0/optimizer skipped=0，`GPU_PREFLIGHT=FAILED_OOM`。不存在有效更新耗时、loss finite或backward/scaler运行通过证据。2张val-dev的真实C0 S1完成6次FP32前向，finite、pad/crop、三条件和采集组统计通过，`S1_TINY_PREFLIGHT=PASS_ENGINEERING_ONLY`；不披露或使用小样本分数作为正式Round-1结果。
+初始精确C0恢复与严格加载（802 loaded/10已知aux dropped/missing0/unexpected0）、本机RTX5060三组首次forward OOM/successful0、2图真实C0 S1的6次FP32前向工程通过，均保留为先前阶段事实；本次未重复这些初始检查或任何评价。§3/§8/§9中的旧结果不被云端成功覆盖或改写。
 
-C0是已有E1训练对照，fixed-final是成功更新2560次的固定权重；checkpoint是保存的参数/训练状态。**实际意义：共同底座和真实评价入口已确认，但本机8GB GPU不能按当前合同完成训练预检，尚不具备立即正式训练资格。** 建议另行申请4090或同等级更大显存设备的限量预检权限，不在本轮启动。
+C0是已有E1训练对照，checkpoint是保存的参数/训练状态。**实际意义：4090能在原训练合同下完成少量真实更新和可靠保存，硬件容量阻塞已解除；这不证明完整训练长期稳定，更不证明Replay优于Natural/Grid。** 本轮没有正式Round-1分数、科研GO/STOP或正式训练授权。
 
-本轮GPU成功更新总数0、真实模型评价前向6；云操作仅现有实例CPU-only取回→立即停机，无GPU云启动、完整val-dev、正式训练、official test或push。official test仍为 `sealed_unread`。
+启动前已核验30分钟平台定时关机，运行后再次确认；GPU预检正常结束后09:43:01+08:00主动stop，直接确认Stopped；仅为小型取回另启CPU-only/GPU0并设置10分钟保险，最终09:46:59+08:00直接确认 **Stopped/GPU0**。SwanLab在线初始化返回RuntimeError，按条件性授权降为LOG_ONLY，保留明确SUCCEEDED终态；没有在线实验链接或上传已完成证据。正式训练、完整评价、official test均未运行；official test仍 `sealed_unread`。
 
 ## 2. 本轮目录整理
 
@@ -106,7 +106,7 @@ CPU直接检查：配置对象及可变字段互不污染；原segmentation模�
 
 本次恢复执行未重复上述CPU测试或7文件编译；仅真实strict-load、三次限量GPU尝试、2图S1及实际输出定点核对。两个最小改动Python入口静态诊断无报错；现有报告索引/收据JSON、导航和working/staged差异在收口复核。没有完整测试套件、全仓扫描、临时test脚本、完整评价或其他高成本验证；失败的训练预检明确记录OOM，不记PASS。
 
-## 9. GPU Preflight
+## 9. 本机 GPU / 极小 S1 Preflight（此前阶段）
 
 **FAILED_OOM，三组各在首次forward停止。** RTX5060 Laptop GPU总8151MiB；启动前nvidia-smi观察占用1559MiB（包含桌面/其他占用，不将其归给模型）。三组分别新建进程，从§3的同一个C0初始化，不resume、不接续其他预检，batch10/480×640、workers0只用于preflight，其余科研合同不变。
 
@@ -141,22 +141,66 @@ CPU直接检查：配置对象及可变字段互不污染；原segmentation模�
 
 第二阶段修改：`utils/dataloader/dataloader.py`/`RGBXDataset.py`只作opt-in元信息扩展；实时状态/open-decisions、report-index、MMFR导航/changelog记录实际收口。
 
-本次真实执行仅最小修改 `tools/mmfr/natural_missing_train.py`（attempt入口日志和reserved峰值记录，便于失败定位）与 `natural_missing_eval.py`（显式复用恢复责任者已核验身份，CLI只允许单checkpoint+冻结C0 SHA，其他checkpoint默认仍直接hash，输出明确provenance）。不修改backbone/decoder/loss、batch、geometry、NMF精度或科研协议。其余修改为本报告、两份实时文档和既有索引/导航/changelog。
+此前本机恢复执行仅最小修改 `tools/mmfr/natural_missing_train.py`（attempt入口日志和reserved峰值记录，便于失败定位）与 `natural_missing_eval.py`（显式复用恢复责任者已核验身份，CLI只允许单checkpoint+冻结C0 SHA，其他checkpoint默认仍直接hash，输出明确provenance）。不修改backbone/decoder/loss、batch、geometry、NMF精度或科研协议。其余修改为本报告、两份实时文档和既有索引/导航/changelog。
 
 开始时已有目录审计报告、执行单、report-index中的审计entry及PACKAGE_INDEX的审计入口原样保留；不把它们误作本轮新产物或随代码提交。checkpoint、数据、大日志、outputs/mask cache不纳入Git。既有生成审核包保持历史快照。
 
-## 11. 正式 Round-1 预算估计
+## 11. 正式 Round-1 预算估计（4090短样本）
 
-正式训练预算3×2560=7680成功更新；完整S1为C0+三组×318图×3条件=3816 view前向。两者均未执行、未获得自动执行权限。
+正式训练预算3×2560=7680成功更新；完整S1为C0+三组×318图×3条件=3816 view前向。两者均未执行、未获得自动执行权限。本机8GB的既有OOM仍然成立；本节只依据新4090实测，不从失败进程wall外推。
 
-本机没有完成一次成功更新，因此**正式本地训练在当前合同下不可执行，无法给出可信完成时间**。Grid/Replay的7.6453s/5.9977s是含初始化的失败进程wall，不能乘7680，更不能外推4090速度。完整S1也不从这2图推出可靠全集耗时/费用。
+各进程首次成功step明显慢于其后两step，Natural/Grid/Replay为11.0994/3.3473/4.3114s；本次没有进一步剖析首步开销。只取每组step2–3的均值：Natural **0.771277s**、Grid **0.711740s**、Replay **0.683076s**。按$2560t_s$作条件性线性估计，分别为32.91/30.37/29.14分钟，合计 **92.42分钟（约1.54小时）**。运行态API显示InstancePrice **1.88**；完整计费口径/费用报价及最终账单未核验，正式总费用仍待确认。
 
-建议未来另批RTX4090 24GB或同等级大显存设备的每组≤3次预检，用实测成功step时间及allocated/reserved峰值评估正式预算；设备容量更大是候选理由，不代表其finite、NMF AMP路径或训练资格已经通过。以各组实测稳定step时间$t_s$估计单组$2560t_s$、三组之和，并单列加载/保存/I/O/初始化与短样本不确定性；当前$t_s$未取得，不填写数值。该建议**不授权也未执行本轮任何GPU云启动/再次开机**。
+计时从输入传入GPU且同步后开始，到optimizer完成再同步结束，**不含取batch、Grid/Replay构建输入、checkpoint保存、环境/加载和评价**。每组只有2个后续step，仍在warmup最初位置，不能宣称稳态全程均值或长期稳定；估计未覆盖完整训练墙钟，应另列额外预算。整个三组持久预检任务实测65s，但包含三个独立初始化/限量保存，不能直接乘为正式耗时；完整S1耗时/费用尚无新证据，不拿2图结果硬推。
+
+本估计只供下一轮预算审批，不授权启动正式任务、重启GPU或接续预检权重。
 
 ## 12. 下一步申请
 
-下一步适合申请的是**更大显存设备的限量预检及明确费用/设备合同**，不是立即无条件开跑3×2560。精确C0资产和2图真实S1的工程门禁已通过；当前阻塞是batch10/480×640在本机首次前向OOM，完整训练loss/backward/optimizer/scaler/save/resume链尚未验证。
+下一步是裁决 **正式3×2560训练、完整3816-view S1、设备/费用/时间上限及运行责任**，不是再重复本机OOM或自动扩展预检。若获准，正式三组仍从§3同一精确C0独立初始化，保持batch/geometry/精度/输入合同；本轮三个preflight-only权重均不得作正式初始化或formal resume。SwanLab在线监控本次不可用，若下一阶段必须在线，需另行确认既有配置/登录问题，而非冒称已有可用链接。
 
-若另行批准更大显存预检，应仍分别从同一精确C0干净初始化，三组每组≤3成功更新，保持batch/geometry/精度/输入合同，禁止接续预检权重作正式初始化；取得成功step测时/显存/finite与保存证据后再申请正式7680成功更新和完整3816 S1 views。本轮CPU-only资产恢复授权已执行并停机，**不得据此再次启动云实例**。
+完整训练长期finite、workers8实际恢复一致性与完整S1的high集合/跨checkpoint复用尚未真实验证；checkpoint读取通过不等于运行resume通过。本轮不为这些缺口追加更新或评价。Main-Val/B1a、NYUv2/外部baseline和official test继续关闭。最终实例Stopped/GPU0，小型证据已取回；无需再次开机、取回C0或重复hash。
 
-正式训练、完整val-dev、B1a/Main-Val、NYUv2/外部baseline、official test继续关闭。当前执行已停止；恢复点是用户对更大显存预检/费用的独立裁决，不是重新hash、重新取回C0或本机OOM重复尝试。
+## 13. 已批准4090限量云端预检：真实执行收口
+
+### 13.1 身份、环境与最小代码
+
+- 已批准计划仅现有 `cpod-1vbh7faqcauq` 有卡启动、三组各≤3成功更新；先提交推送再云端核对同SHA，30分钟平台关机保险和正常结束主动停机；正式预算不开放。
+- 本轮必要代码提交 **`18271ad0b0c3e7ba81c630c099d02592c02a45f4`**，与已有3本地提交一起推送 `origin/perf/mmfr-a2-v3-pipeline-opt1`。云端 `/root/rivermind-data/DFormer` 原origin实际为 `https://github.com/Newton-liub/DFormer.git`，原checkout干净，fetch/fast-forward后直接确认同一HEAD及空git status；没有强制reset、fork误拉或覆盖历史dirty。
+- `tools/mmfr/natural_missing_cloud_preflight.py` 顺序调用三个独立 `sys.executable -u -m tools.mmfr.natural_missing_train` 子进程；固定preflight/同C0/3成功更新/workers8，无resume/formal参数或重复hash。监控父进程复用 `ExperimentTracker`，不导入训练随机状态；训练文件唯一新差异为 `_emit` 的flush。主执行者直接复核实际diff，两文件静态诊断无报错；没有新增test脚本或全套测试。
+- 真实云环境Python3.10.16、torch2.1.2+cu118/CUDA11.8；GPU1 **NVIDIA GeForce RTX4090/24564MiB**、CPU14/内存32768MiB。数据环境 `DFORMER_DATA_ROOT=/root/rivermind-data/dataset`、`MUSEG_DEPTH16_ROOT=/root/rivermind-data/dataset/MUSeg_DFormer/Depth16`；仅确认所需RGB/Label/Depth/Depth16目录、train-dev1277条和原C0文件大小321150608 bytes，没有重建环境或再hash。
+
+### 13.2 三组成功更新与保存读取
+
+持久任务 `natural-missing-20261003-18271ad`，Created/Started Unix1790991687（09:41:27+08:00），Finished1790991752（09:42:32），**Succeeded/exit0**，wall65s。各组result均complete=true、attempt cap3、workers8、formal eligible false：
+
+- **Natural：attempted3 / successful3 / skipped0**；loss依次0.150492117/0.075245894/0.149992928；成功step依次11.099412/0.708800/0.833753s；peak allocated18955.576171875MiB、reserved20556MiB。训练循环至最终保存elapsed19.625719s。
+- **Grid：attempted3 / successful3 / skipped0**；loss0.146257848/0.071628839/0.139067933；step3.347309/0.735882/0.687599s；peak allocated18955.576171875MiB、reserved20556MiB。循环至保存elapsed10.361942s。
+- **Replay：attempted3 / successful3 / skipped0**；loss0.150824711/0.070011154/0.178284675；step4.311388/0.742372/0.623779s；peak allocated18954.138671875MiB、reserved20554MiB。循环至保存elapsed9.853987s。
+
+九次loss finite=true、optimizer_step_applied=true；已运行代码在每次optimizer之前检查gradient finite，任何非有限都会异常退出，因此这9次均通过该检查。scaler均1024；LR依次0、7.8125e-9、1.5625e-8，第一步LR0仍计数optimizer成功调用，后两步进入正LR；全部处于最初warmup。loss只为工程finite证据，不能据小样本值比较科研效果或训练收敛。
+
+三个 `preflight-update-000003.pth` 正常保存到持久盘，GPU先停后在CPU-only读回：Natural321113947 bytes，Grid/Replay各321117339 bytes；schema为dformer-training-checkpoint-v2，model802键，optimizer685 state且保存step均3，global_optimizer_step3，cursor epoch1/batch_position3/attempted3/successful3/skipped0，AMP scale1024/growth tracker3，训练RNG与epoch起点RNG均存在。三个保存protocol的Git/C0、batch10/workers8/原生NMF AMP与策略身份一致，preflight_only=true/execution_mode=preflight。**保存和读回通过，不是resume运行通过；预检权重不能用于正式初始化或formal resume。** CPU读回检查曾因日志中的JSON整数行出现TypeError，增加dict类型筛选后只重做只读核对；没有新增模型执行、更新或预算。
+
+### 13.3 输入配对与监控边界
+
+三批每组共30槽：Natural全为clean_control/新增0；Grid/Replay逐批为4clean/5matched/1skip、2clean/8matched/0skip、1clean/7matched/2skip，合计均 **7clean / 20matched / 3paired_skip**。三组全部30目标顺序相同；Grid/Replay源组/样本、status与有序候选历史逐槽相同。20个matched源目标组均不同，已应用Replay率 **0.1162650849–0.4617859556**，最大matched误差 **0.0197314467≤.02**。clean/paired_skip两组applied deletion均0且applied rate为null；成功训练没有把输入skip计为optimizer skip。
+
+paired_skip保留失败候选的grid/replay_rate字段，但它们不是实际应用值。例如首批skip的最后候选Replay率0.007575、误差0.025465，以及第三批skip候选Replay率0.625027，均没有应用删除，不能冒记为已应用超界。父执行者直接复核result/readback与Grid原始批记录的关键边界；限定四文件独立只读复核也确认上述配对无违例。证据为三组日志第18/20/22行的成功记录（不重复计attempt记录），全量来源日志已取回；小样本不推断长期skip率或策略效果。
+
+SwanLab显式请求online，现有包可找到，但初始化返回 **RuntimeError**；按条件性授权记录LOG_ONLY继续，没有在线实验链接、在线可见性或上传成功证据。receipt保存terminal/succeeded1、failed0、interrupted0、exit_code0。异常只打印类型，根因未进一步核验；不暴露凭据、不安装监控依赖、不为在线刷新占用GPU等待。在线完成/失败SDK路径及信号中断路径本轮未真实触发验证。
+
+### 13.4 定时关机与最终资源状态
+
+- **09:37:28+08:00**设置30分钟后的保险：Unix1790993248、**10:07:28+08:00**。启动前schedule show直接确认scheduled=true；09:37:50请求有卡启动、API StartTime1790991474，实际Running/GPU1；启动后再次直接核验同截止，不延长或改变规格。
+- 正常任务结束后 **09:43:01+08:00**主动stop，**09:43:13+08:00**再次直接确认Stopped（API StopTime1790991782）。启动到平台stop约308s；没有等20分钟、没有为大文件取回保持GPU运行，也没有人工保险关机事件。
+- 小型证据取回另设10分钟CPU保险：Unix1790992450、**09:54:10+08:00**，短于原GPU硬截止；09:44:16显式without-gpu A启动，API StartTime1790991862，直接确认CPU2/4096MiB/**GPU0**并再次核验保险。只读三个保存权重和五个小型文件，无训练/模型前向。
+- 5个文件transfer均exit0后，**09:46:49+08:00**立即stop；**09:46:59+08:00直接确认Stopped/GPU0**，API StopTime1790992011。GPU阶段运行态InstancePrice1.88，CPU-only0.13；最终账单未核验，不把CPU价格或升级查询0当GPU运行价。
+
+### 13.5 证据位置、验证预算与交付
+
+远端根 `/root/rivermind-data/cloud/natural-missing-preflight-20261003-18271ad/`，`monitor/`有result/readback/三组日志，`checkpoints/NaturalMissing-<strategy>-preflight/development/seed-772961337/checkpoint/preflight-only/`有三个预检权重。只取小文件，不取大权重；本地根 `outputs/natural-missing-cloud-preflight-20261003/` 包含 `preflight-result.json`、`checkpoint-readback.json`、`Natural.log`/`Grid.log`/`Replay.log` 和主执行者记录的 `lifecycle.json`，均不进Git。
+
+本次实际检查为必要diff/两文件静态诊断、同HEAD/相关源码干净、平台保险/实际GPU和最终Stopped直接查询、三组3成功更新、输入日志与checkpoint读回及五个小文件取回。未运行完整测试或重复初始CPU、本机GPU、真实resume、S1/完整val-dev/Main-Val/B1a、正式训练、其他数据集/baseline或official test；原因是限定预算且本次资格风险已经由所授权的九步与保存核对覆盖，未运行项不冒称通过。
+
+本报告、两份实时入口、既有report-index/MMFR导航/changelog/protocol按实际收口更新并提交推送同分支；用户既有目录审计报告/执行单及共享索引无关dirty选择性排除并保留。旧生成审核包仍历史快照，不重建或手改；历史本机OOM/C0/S1原结果及日志不追改。最终停止于正式预算审批，不自动重启或继续训练。

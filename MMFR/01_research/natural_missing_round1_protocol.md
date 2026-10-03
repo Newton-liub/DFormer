@@ -82,3 +82,9 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 启动前优先设置并核验30分钟平台关机保险；仅支持运行态时立即在启动后设置，未成功前不提交训练，失败立即停机，不自动延长。SwanLab有条件时复用已有配置记录整体进度和成功/失败，监控与训练子进程隔离。持久任务顺序执行；OOM/非有限/身份不符或需改变合同就停，不增加尝试/改batch/precision挽救，不自动进入正式阶段。
 
 正常结束立即主动stop并直接确认Stopped，不等用户20分钟保险。若发现用户因完成/中断后无下一步操作已人工停机，记录并退出，不自动重启；正常结束后仍需小型证据取回时可短时CPU-only、取完停机。只在大阶段开始/结束/中断更新实时文档，小动作不写流水账。完整测试、正式训练/全集评价和official test仍关闭。
+
+## 9. 已执行的限量预检工程资格（2026-10-03）
+
+云端干净运行提交18271ad0b0c3e7ba81c630c099d02592c02a45f4，现有RTX4090 24564MiB、workers8，科研合同不变。Natural/Grid/Replay各attempted3/successful3/skipped0，finite loss/gradient、optimizer/scaler和保存链通过，三个preflight-only checkpoint云端CPU-only读回计数/状态/身份通过。工程结论READY_ENGINEERING_ONLY；没有科研分数/GO/STOP、真实GPU resume或长期稳定证据，预检权重不作正式初始化/正式resume。
+
+平台30分钟保险启动前/后已核验，任务正常结束主动停GPU；必要小型CPU-only取回后最终09:46:59+08:00直接确认Stopped/GPU0。SwanLab初始化RuntimeError，本轮LOG_ONLY且无在线链接；不把监控上传记通过。精确结果、计时边界和收据见[同一readiness报告§13](../../doc/reports/2026-10-03-natural-missing-round1-readiness.md#13-已批准4090限量云端预检真实执行收口)。三组各3步预算已用完，正式预算仍待独立授权，不重复预检或C0 hash。

@@ -1,11 +1,11 @@
 # MMFR v4.1 package change log
 
-## 2026-10-03 — 4090限量云端预检与Git同步授权
+## 2026-10-03 — 4090限量云端预检完成与Git同步授权
 
-- 用户明确批准现有实例有卡模式，仅Natural/Grid/Replay各≤3成功更新、workers8；原C0/科研合同不变，不开正式训练/完整评价/test。
-- 先提交必要代码并推送origin同分支（含已有3个本地提交），云端拉取同SHA后执行；既有无关审计dirty保持。最小SwanLab监控与训练进程隔离，复用现有云配置，不引入常驻监控系统。
-- 30分钟平台关机保险必须核验，结束主动stop；人工保险关机后记录退出，不自动重启。正常结束后的必要小型取回可CPU-only并立即停机。只记录阶段启动/结束/中断，小动作不写状态流水。
-- 当前为启动前准备，真实云端结果/停机收据待本轮执行后更新同一readiness报告和实时入口，尚不宣称云端训练资格通过。
+- 用户明确批准现有实例有卡模式，仅Natural/Grid/Replay各≤3成功更新、workers8；原C0/科研合同不变。先推送已有3提交及必要监控代码，实际云端干净HEAD核对为18271ad0b0c3e7ba81c630c099d02592c02a45f4。
+- 三组各attempted3/successful3/skipped0，共9更新；loss/gradient/optimizer/scaler链通过，三份preflight-only checkpoint云端CPU读回计数/状态/身份通过。工程READY_ENGINEERING_ONLY，不是科研GO/STOP，不作真实resume或长期稳定主张；正式训练/完整评价/test仍关闭。
+- 30分钟平台保险启动前/后均核验（10:07:28+08:00），正常结束09:43:01主动stop并直接确认Stopped；仅小型证据CPU-only取回另设10分钟保险，最终09:46:59+08:00直接确认Stopped/GPU0，不下大权重。SwanLab初始化RuntimeError，本次LOG_ONLY，无在线链接或上传通过证据。
+- 同一readiness报告§13、两份实时入口、现有索引/导航/protocol同步。短样本step2–3纯计算线性估计正式7680步约92.42分钟，排除输入构建/I/O/保存/评价，正式总预算待裁决。既有无关审计dirty保持；历史原始证据不改，生成审核包仍旧快照，不重建或手改。
 
 ## 2026-10-03 — 精确C0恢复、CPU-only云停机与本机限量预检收口
 
