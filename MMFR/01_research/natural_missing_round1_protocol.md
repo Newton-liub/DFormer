@@ -4,7 +4,7 @@
 > **形成/核验时点：** 2026-10-03。
 > **实时入口：** [当前状态](../../doc/main/MUSeg-current-status.md)；[开放决策](../../doc/main/MUSeg-open-decisions.md)。
 > **科学依据：** [Direction A canonical 正文](MMFR_direction_A_natural_missing_2026-10-02.md)，§5–6；[接入审计](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)与[目录审计](../../doc/reports/2026-10-03-project-directory-responsibility-audit.md)。
-> **权限：** 初始实现/本机就绪与§8–9限量预检授权保留为历史。2026-10-03用户最新批准Direction A正式首轮：三组各2560成功更新及四权重完整S1，现有4090、6小时平台保险、screen与条件性SwanLab、完成后主动停GPU及CPU-only取回停机，先必要提交push再云端同SHA运行；详见§10。§1–7科研合同和canonical门槛不变，旧章节“本轮未授权”指其形成时点。
+> **权限：** 最新数值定位、证据驱动最小修复及重新正式首轮授权见§13，必须逐阶段通过门禁；旧非有限运行仍INVALID/BLOCKED，不续跑1597。初始实现/限量预检及2026-10-03正式授权与停止过程见§8–12历史记录。§1–7科研合同和canonical门槛不变，局部精度修订只允许在直接诊断证据支持后明确登记。
 
 ## 1. 对象、身份与合法主张
 
@@ -117,3 +117,19 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 正式源码edb660a83da1ec67626149d06dc59460565e2c20，云端同HEAD/无tracked dirty。Natural attempted1598/successful1597/已记录optimizer skip0，第1598次在梯度有限性检查、optimizer执行前退出；Grid/Replay和完整S1未运行。按§3及§10停止规则，本次INVALID/BLOCKED，不能科研GO/STOP或继续剩余更新；没有改变AMP/NMF/LR/输入/预算。监督器主动停GPU，失败证据CPU-only取回后23:11:39直接Stopped/GPU0。运行、计时与证据详见[正式报告](../../doc/reports/2026-10-03-natural-missing-round1-formal.md)。
 
 原正式继续授权已执行并因非有限停止，不保留自动重试权限。任何数值定位GPU操作、合同修订、resume/重训或新预算均须独立授权；当前只完成报告/状态/必要索引与Git收口。**大白话：** 基础组没能合法完成，先决定是否单独查数值问题，不能直接续跑或拿不完整结果评价Replay。
+
+## 13. 2026-10-04 数值定位、最小修复与重新正式首轮最新授权
+
+用户在本对话明确批准顺序：**Natural短数值定位 → 证据驱动最小数值修复 → 短资格 → Natural/Grid/Replay重新正式训练 → 完整S1 → Direction A冻结gate裁决**。本节替代§12中“待独立授权”的权限边界，不追改旧失败事实或§1–7科学定义。当前仍INVALID/BLOCKED，不是科研STOP。
+
+- 先基于现有报告/源码增加必要non-finite日志：首次非有限参数/层/算子、loss/gradient/AMP scale、attempt/successful、batch/sample身份、NMF前后及关键中间tensor。诊断阶段模型结构、数据、LR、正式预算和S1口径不变。
+- 本地选择性commit/push至当前origin分支，云端Git fast-forward；每次GPU运行前直接确认HEAD等于已push commit且运行源码tracked-clean，禁止不同版本复制运行。无关dirty保留，checkpoint/outputs/大日志不入Git。
+- 只启动现有RTX4090实例 `cpod-1vbh7faqcauq`，沿用原CUDA/PyTorch环境，不重建/无意义升级依赖。每个当前任务有平台自动定时关机保险与少量收尾余量，训练前直接核验；保留screen与日志，结束立即关GPU，取回只用CPU-only/无卡及短时保险，完成后关机。
+- SwanLab优先有限排查已有登录/配置/API key来源与非交互初始化，不泄露token，不大改环境。合理尝试仍失败则记录步骤/原因/错误，LOG_ONLY继续，不长期阻塞科研。
+- 数值定位只Natural从原C0干净起跑，沿原2560-update scheduler，诊断cap1664成功更新，细粒度观测窗口默认从attempt1536；不追求完整2560，不保存正式合格checkpoint或resume旧Natural1597。任何非有限停止，不跳坏update或吞异常。若cap内仍无异常，停止报告未复现，不擅自增加诊断预算。
+- 优先区分AMP/scaler、NMF、异常输入及首次tensor/layer/operator。只有直接诊断证据支持后才做最小数值修复（例如被证据确认的NMF局部FP32）；算法、随机基底、迭代数和研究模块不变，三组统一数值策略。
+- 修复再次commit → push → 云端git pull/fast-forward → 同HEAD直接核验，先短资格确认finite再正式。局部数值策略若改变，明确记录精度修订与资格证据，不能把旧原生autocast协议冒充实际修订策略。
+- 新正式必须从原冻结C0分别干净初始化，Natural → Grid → Replay，各2560 successful updates，attempted=successful、optimizer skip0，必要final/schema/hash/完成状态验收；不续跑旧1597或组间权重。任一组再次资格性故障立即停止后续流程并报告，不自行改合同。
+- 三组全部合法完成才运行冻结完整S1四权重×318×3=3816 views；沿canonical §6.5原阈值GO / 科研STOP / 工程INVALID/BLOCKED，结果差不临时调门槛。Main-Val、official test、NYUv2、其他baseline、Round-2、Direction B/B1a均关闭。
+
+**大白话：** 先用有限额外算力查清坏梯度，只有修复有证据且资格通过才重新做完整对照；旧失败不能接着算正式结果，下载文件也不能继续占GPU。

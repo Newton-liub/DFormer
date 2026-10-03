@@ -2,7 +2,9 @@
 
 Default execution is CPU-only readiness reporting. Preflight is limited to at most
 three successful updates; any non-finite or AMP-skipped update aborts immediately.
-The 2,560-update run requires explicit authorization and is never started implicitly.
+Natural-only diagnosis starts from C0, stops within 1,664 successful updates, and
+emits scoped tensor diagnostics without saving checkpoints. The 2,560-update run
+requires explicit authorization and is never started implicitly.
 """
 
 from __future__ import annotations
@@ -15,6 +17,7 @@ import os
 import random
 import time
 from collections.abc import Mapping
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -22,6 +25,14 @@ from typing import Any
 import numpy as np
 import torch
 import torch.nn as nn
+
+from tools.mmfr.natural_missing_diagnostics import (
+    NaturalMissingDiagnosticProbe,
+    parameter_gradient_summary,
+    safe_scalar,
+    sample_filenames,
+    tensor_stats,
+)
 
 from local_configs.MUSeg.DFormerv2_S_NaturalMissing import make_config
 from utils.dataloader.RGBXDataset import RGBXDataset
@@ -52,6 +63,8 @@ STRATEGIES = ("Natural", "Grid", "Replay")
 C0_SHA256 = "ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a"
 FORMAL_SUCCESSFUL_UPDATES = 2560
 PREFLIGHT_MAX_SUCCESSFUL_UPDATES = 3
+DIAGNOSIS_MAX_SUCCESSFUL_UPDATES = 1664
+DIAGNOSIS_DEFAULT_START_ATTEMPT = 1536
 INPUT_BUILDER_ID = "utils.dataloader.natural_missing.build_natural_missing_batch-v1"
 
 
@@ -87,9 +100,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--mode",
-        choices=("readiness", "preflight", "formal"),
+        choices=("readiness", "preflight", "diagnosis", "formal"),
         default="readiness",
-        help="readiness (default), bounded GPU preflight, or explicitly authorized formal run",
+        help="readiness, bounded GPU preflight, Natural-only numerical diagnosis, or explicitly authorized formal run",
     )
     parser.add_argument("--strategy", choices=STRATEGIES, default="Natural")
     parser.add_argument("--c0-checkpoint", default=None)
@@ -100,6 +113,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--resume", default=None)
     parser.add_argument("--successful-updates", type=int, default=None)
+    parser.add_argument(
+        "--diagnostic-start-attempt",
+        type=int,
+        default=None,
+        help="diagnosis-only attempt at which heavy tensor/anomaly observation begins",
+    )
     parser.add_argument(
         "--authorize-formal-training",
         action="store_true",
@@ -121,8 +140,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _validate_cli_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
     if args.mode == "readiness":
-        if args.authorize_formal_training or args.resume or args.successful_updates is not None:
-            parser.error("readiness mode does not train, resume, or accept an update budget")
+        if (
+            args.authorize_formal_training
+            or args.resume
+            or args.successful_updates is not None
+            or args.diagnostic_start_attempt is not None
+        ):
+            parser.error("readiness mode does not train, resume, or accept training budgets")
         if args.preflight_workers is not None:
             parser.error("--preflight-workers is valid only in preflight mode")
         if args.verified_c0_sha256 is not None and args.c0_checkpoint is None:
@@ -136,6 +160,34 @@ def _validate_cli_args(parser: argparse.ArgumentParser, args: argparse.Namespace
             parser.error("preflight must not be marked as formal training authorization")
         if args.preflight_workers is not None and args.preflight_workers < 0:
             parser.error("--preflight-workers cannot be negative")
+        if args.diagnostic_start_attempt is not None:
+            parser.error("--diagnostic-start-attempt is valid only in diagnosis mode")
+    elif args.mode == "diagnosis":
+        if args.strategy != "Natural":
+            parser.error("diagnosis mode is limited to --strategy Natural")
+        if args.resume is not None:
+            parser.error("diagnosis mode starts from C0 and does not accept --resume")
+        if args.authorize_formal_training:
+            parser.error("diagnosis mode must not use formal-training authorization")
+        if args.preflight_workers is not None:
+            parser.error("diagnosis mode requires the configured eight workers; no worker override is allowed")
+
+        requested = (
+            DIAGNOSIS_MAX_SUCCESSFUL_UPDATES
+            if args.successful_updates is None
+            else args.successful_updates
+        )
+        if requested < 1 or requested > DIAGNOSIS_MAX_SUCCESSFUL_UPDATES:
+            parser.error("diagnosis is limited to 1-1664 successful updates")
+        args.successful_updates = requested
+        diagnostic_start = (
+            DIAGNOSIS_DEFAULT_START_ATTEMPT
+            if args.diagnostic_start_attempt is None
+            else args.diagnostic_start_attempt
+        )
+        if diagnostic_start < 1 or diagnostic_start > requested:
+            parser.error("--diagnostic-start-attempt must be within 1..the diagnosis attempt cap")
+        args.diagnostic_start_attempt = diagnostic_start
     else:
         if not args.authorize_formal_training:
             parser.error("formal mode requires the explicit --authorize-formal-training flag")
@@ -143,10 +195,12 @@ def _validate_cli_args(parser: argparse.ArgumentParser, args: argparse.Namespace
             parser.error("formal mode requires exactly --successful-updates 2560")
         if args.preflight_workers is not None:
             parser.error("preflight-only worker overrides cannot be used for formal training")
+        if args.diagnostic_start_attempt is not None:
+            parser.error("--diagnostic-start-attempt is valid only in diagnosis mode")
 
-    if args.mode in {"preflight", "formal"}:
+    if args.mode in {"preflight", "formal", "diagnosis"}:
         if not args.verified_c0_sha256:
-            parser.error("preflight/formal mode requires the recovery owner's verified C0 SHA-256")
+            parser.error("training modes require the recovery owner's verified C0 SHA-256")
         if args.verified_c0_sha256.lower() != C0_SHA256:
             parser.error("verified C0 identity does not match the frozen NaturalMissing C0 identity")
         if args.resume is None and args.c0_checkpoint is None:
@@ -224,18 +278,20 @@ def _jsonable(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [_jsonable(item) for item in value]
     if isinstance(value, np.ndarray):
-        return value.tolist()
-    if isinstance(value, Path):
-        return str(value)
+        return _jsonable(value.tolist())
     if isinstance(value, (np.integer, np.floating)):
-        return value.item()
+        return _jsonable(value.item())
+    if isinstance(value, float) and not math.isfinite(value):
+        if math.isnan(value):
+            return "NaN"
+        return "+Inf" if value > 0 else "-Inf"
     if isinstance(value, (str, int, float, bool)) or value is None:
         return value
     return str(value)
 
 
 def _emit(payload: Mapping[str, Any]) -> None:
-    print(json.dumps(_jsonable(payload), ensure_ascii=False, sort_keys=True, default=str), flush=True)
+    print(json.dumps(_jsonable(payload), ensure_ascii=False, sort_keys=True, default=str, allow_nan=False), flush=True)
 
 
 def _run_readiness(args: argparse.Namespace) -> dict[str, Any]:
@@ -565,15 +621,14 @@ def _make_iterator(
 
 
 def _is_finite_gradients(model: nn.Module) -> bool:
-    return all(
-        parameter.grad is None or bool(torch.isfinite(parameter.grad).all().item())
-        for parameter in model.parameters()
-    )
+    return bool(parameter_gradient_summary(model)["is_finite"])
 
 
 def _run_training(args: argparse.Namespace) -> dict[str, Any]:
     config = make_config(args.strategy)
     _validate_config(config)
+    if args.mode == "diagnosis" and args.strategy != "Natural":
+        raise ValueError("diagnosis mode is limited to the Natural strategy")
     if args.strategy in {"Grid", "Replay"}:
         depth16_root = Path(config.natural_missing["depth16_root"])
         if depth16_root.name.lower() != "depth16":
@@ -590,7 +645,7 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
         workers = 0 if args.preflight_workers is None else int(args.preflight_workers)
         config.num_workers = workers
     elif workers != 8:
-        raise ValueError("formal NaturalMissing worker contract must remain at the E1 C0 value of 8")
+        raise ValueError("NaturalMissing diagnosis/formal worker contract requires exactly 8 workers")
 
     config.run_id = f"NaturalMissing-{args.strategy}-{args.mode}"
     output_root = Path(config.log_dir).parents[2]
@@ -600,6 +655,9 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
         config.checkpoint_dir = str(Path(config.checkpoint_dir) / "preflight-only")
 
     if args.mode == "preflight":
+        target_successful_updates = int(args.successful_updates)
+        attempt_cap = target_successful_updates
+    elif args.mode == "diagnosis":
         target_successful_updates = int(args.successful_updates)
         attempt_cap = target_successful_updates
     else:
@@ -763,6 +821,9 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
         labels = batch["label"].to(device, non_blocking=True).long()
         depth = batch["modal_x"].to(device, non_blocking=True)
 
+        attempt_epoch = int(epoch)
+        attempt_batch_position = int(batch_position)
+        sample_fn = sample_filenames(batch.get("fn"))
         lr = scheduler.get_lr(successful_updates)
         for group in optimizer.param_groups:
             group["lr"] = lr * float(group.get("lr_scale", 1.0))
@@ -771,40 +832,139 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
         torch.cuda.synchronize()
         step_started = time.perf_counter()
         scale_before = scaler.get_scale() if scaler is not None else 1.0
+        diagnostic_active = (
+            args.mode == "diagnosis"
+            and attempted_steps >= int(args.diagnostic_start_attempt)
+        )
+        probe = NaturalMissingDiagnosticProbe(attempt=attempted_steps) if diagnostic_active else None
+        if probe is not None:
+            probe.record_inputs(images=images, depth=depth, labels=labels)
+            probe.attach(model)
+
         _emit({
             "event": "attempt_started", "mode": args.mode, "strategy": args.strategy,
             "attempted_steps": attempted_steps, "successful_updates": successful_updates,
             "skipped_steps": skipped_steps, "amp_scale": float(scale_before),
             "batch_shape": list(images.shape), "telemetry": last_telemetry,
+            "epoch": attempt_epoch, "batch_position": attempt_batch_position,
+            "sample_fn": sample_fn, "diagnostic_window_active": diagnostic_active,
         })
 
-        with torch.autocast(
-            device_type="cuda",
-            dtype=torch.float16,
-            enabled=bool(config.amp),
-        ):
-            loss = model(images, depth, labels)
-        loss_finite = bool(torch.isfinite(loss.detach()).all().item())
-        if not loss_finite:
-            raise FloatingPointError("NaturalMissing loss is non-finite; refusing to skip the optimizer update")
-        if scaler is not None:
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
-        else:
-            loss.backward()
-        if not _is_finite_gradients(model):
-            raise FloatingPointError("NaturalMissing gradients are non-finite; refusing to skip the optimizer update")
-        if scaler is not None:
-            scaler.step(optimizer)
-            scaler.update()
-            applied = optimizer_step_was_applied(scale_before, scaler.get_scale())
-            if not applied:
-                raise RuntimeError("AMP GradScaler skipped a NaturalMissing optimizer update")
-        else:
-            optimizer.step()
-            applied = True
+        loss = None
+        loss_finite = None
+        pre_unscale_gradient_summary = None
+        post_unscale_gradient_summary = None
+        backward_completed = False
+        unscale_completed = False
+        applied = None
+        diagnostic_snapshot = None
+        try:
+            anomaly_context = torch.autograd.detect_anomaly(check_nan=True) if probe is not None else nullcontext()
+            with anomaly_context:
+                with torch.autocast(
+                    device_type="cuda",
+                    dtype=torch.float16,
+                    enabled=bool(config.amp),
+                ):
+                    loss = model(images, depth, labels)
+                loss_finite = bool(torch.isfinite(loss.detach()).all().item())
+                if probe is not None:
+                    _emit({
+                        "event": "diagnostic_forward",
+                        "mode": args.mode,
+                        "attempted_steps": attempted_steps,
+                        "successful_updates": successful_updates,
+                        "amp_scale": float(scale_before),
+                        "epoch": attempt_epoch,
+                        "batch_position": attempt_batch_position,
+                        "sample_fn": sample_fn,
+                        "loss": safe_scalar(loss.detach()),
+                        "loss_stats": tensor_stats(loss.detach()),
+                        "loss_finite": loss_finite,
+                        "diagnostics": probe.snapshot(),
+                    })
+                if not loss_finite:
+                    raise FloatingPointError(
+                        "NaturalMissing loss is non-finite; refusing to skip the optimizer update"
+                    )
+                if scaler is not None:
+                    scaler.scale(loss).backward()
+                    backward_completed = True
+                    if probe is not None:
+                        pre_unscale_gradient_summary = parameter_gradient_summary(model)
+                    scaler.unscale_(optimizer)
+                    unscale_completed = True
+                else:
+                    loss.backward()
+                    backward_completed = True
+                post_unscale_gradient_summary = parameter_gradient_summary(model)
+                if not post_unscale_gradient_summary["is_finite"]:
+                    raise FloatingPointError(
+                        "NaturalMissing gradients are non-finite; refusing to skip the optimizer update"
+                    )
 
-        optimizer.zero_grad(set_to_none=True)
+            if scaler is not None:
+                scaler.step(optimizer)
+                scaler.update()
+                applied = optimizer_step_was_applied(scale_before, scaler.get_scale())
+                if not applied:
+                    raise RuntimeError("AMP GradScaler skipped a NaturalMissing optimizer update")
+            else:
+                optimizer.step()
+                applied = True
+
+            optimizer.zero_grad(set_to_none=True)
+            if probe is not None:
+                diagnostic_snapshot = probe.snapshot()
+        except Exception as exc:
+            current_gradient_summary = parameter_gradient_summary(model)
+            first_bad_parameter = (
+                (post_unscale_gradient_summary or current_gradient_summary).get("first_nonfinite_parameter")
+                or (pre_unscale_gradient_summary or {}).get("first_nonfinite_parameter")
+            )
+            if scaler is None:
+                gradient_failure_phase = "unscaled_backward_or_later"
+            elif pre_unscale_gradient_summary is not None and not pre_unscale_gradient_summary["is_finite"]:
+                gradient_failure_phase = "already_nonfinite_after_scaled_backward"
+            elif post_unscale_gradient_summary is not None and not post_unscale_gradient_summary["is_finite"]:
+                gradient_failure_phase = "nonfinite_observed_after_unscale"
+            elif not backward_completed:
+                gradient_failure_phase = "backward_incomplete"
+            else:
+                gradient_failure_phase = "no_nonfinite_parameter_gradient_detected"
+            _emit({
+                "event": "training_attempt_failed",
+                "mode": args.mode,
+                "strategy": args.strategy,
+                "failure_type": type(exc).__name__,
+                "failure": str(exc),
+                "attempted_steps": attempted_steps,
+                "successful_updates": successful_updates,
+                "skipped_steps": skipped_steps,
+                "epoch": attempt_epoch,
+                "batch_position": attempt_batch_position,
+                "batch_cursor": {"epoch": attempt_epoch, "batch_position": attempt_batch_position},
+                "sample_fn": sample_fn,
+                "loss": safe_scalar(loss.detach()) if isinstance(loss, torch.Tensor) else None,
+                "loss_finite": loss_finite,
+                "amp_scale_before": float(scale_before),
+                "amp_scale_at_failure": float(scaler.get_scale()) if scaler is not None else 1.0,
+                "backward_completed": backward_completed,
+                "unscale_completed": unscale_completed,
+                "gradient_failure_phase": gradient_failure_phase,
+                "parameter_gradients": {
+                    "after_scaled_backward": pre_unscale_gradient_summary,
+                    "after_unscale": post_unscale_gradient_summary,
+                    "currently_available": current_gradient_summary,
+                },
+                "first_bad_parameter": first_bad_parameter,
+                "diagnostics": probe.snapshot() if probe is not None else None,
+            })
+            raise
+        finally:
+            if probe is not None:
+                probe.close()
+
         successful_updates += 1
 
         batch_position += 1
@@ -836,6 +996,24 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
                 "telemetry": last_telemetry,
             }
         )
+        if probe is not None:
+            _emit({
+                "event": "diagnostic_attempt_completed",
+                "mode": args.mode,
+                "attempted_steps": attempted_steps,
+                "successful_updates": successful_updates,
+                "amp_scale_before": float(scale_before),
+                "amp_scale_after": float(scaler.get_scale()) if scaler is not None else 1.0,
+                "epoch": attempt_epoch,
+                "batch_position": attempt_batch_position,
+                "sample_fn": sample_fn,
+                "loss": safe_scalar(loss.detach()),
+                "gradient_checks": {
+                    "after_scaled_backward": pre_unscale_gradient_summary,
+                    "after_unscale": post_unscale_gradient_summary,
+                },
+                "diagnostics": diagnostic_snapshot,
+            })
 
         is_preflight_done = args.mode == "preflight" and successful_updates >= target_successful_updates
         is_recovery_point = (
@@ -844,7 +1022,9 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
             and successful_updates % int(config.recovery_interval_successful_updates) == 0
         )
         is_final = args.mode == "formal" and successful_updates == FORMAL_SUCCESSFUL_UPDATES
-        if is_preflight_done or is_recovery_point or is_final:
+        if args.mode in {"preflight", "formal"} and (
+            is_preflight_done or is_recovery_point or is_final
+        ):
             cursor = {
                 "epoch": int(epoch),
                 "batch_position": int(batch_position),
@@ -920,10 +1100,14 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
         "skipped_steps": skipped_steps,
         "attempt_cap": attempt_cap,
         "complete": complete,
+        "successful_update_budget_scheduler": int(config.successful_update_budget),
+        "diagnostic_start_attempt": args.diagnostic_start_attempt if args.mode == "diagnosis" else None,
         "formal_config_num_workers": 8,
         "preflight_worker_override": workers if args.mode == "preflight" else None,
         "preflight_checkpoint_formal_eligible": False if args.mode == "preflight" else None,
-        "checkpoint_dir": config.checkpoint_dir,
+        "checkpoint_dir": config.checkpoint_dir if args.mode != "diagnosis" else None,
+        "checkpoint_written": False if args.mode == "diagnosis" else None,
+        "diagnosis_output_dir": config.log_dir if args.mode == "diagnosis" else None,
         "elapsed_seconds": elapsed_total,
         "telemetry": last_telemetry,
         "gpu_name": torch.cuda.get_device_name(device),

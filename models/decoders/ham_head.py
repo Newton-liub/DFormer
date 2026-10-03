@@ -26,6 +26,7 @@ class _MatrixDecomposition2DBase(nn.Module):
         self.eta = args.setdefault("ETA", 0.9)
 
         self.rand_init = args.setdefault("RAND_INIT", True)
+        self.diagnostic_observer = None
 
         print("spatial", self.spatial)
         print("S", self.S)
@@ -45,13 +46,32 @@ class _MatrixDecomposition2DBase(nn.Module):
 
     # @torch.no_grad()
     def local_inference(self, x, bases):
-        # (B * S, D, N)^T @ (B * S, D, R) -> (B * S, N, R)
+        observer = self.diagnostic_observer
+        if observer is None:
+            # (B * S, D, N)^T @ (B * S, D, R) -> (B * S, N, R)
+            coef = torch.bmm(x.transpose(1, 2), bases)
+            coef = F.softmax(self.inv_t * coef, dim=-1)
+
+            steps = self.train_steps if self.training else self.eval_steps
+            for _ in range(steps):
+                bases, coef = self.local_step(x, bases, coef)
+            return bases, coef
+
         coef = torch.bmm(x.transpose(1, 2), bases)
-        coef = F.softmax(self.inv_t * coef, dim=-1)
+        observer("initial.coef.bmm", coef)
+        scaled_coef = self.inv_t * coef
+        observer("initial.coef.scaled", scaled_coef)
+        coef = F.softmax(scaled_coef, dim=-1)
+        observer("initial.coef.softmax", coef)
 
         steps = self.train_steps if self.training else self.eval_steps
-        for _ in range(steps):
-            bases, coef = self.local_step(x, bases, coef)
+        for iteration in range(1, steps + 1):
+            bases, coef = self.local_step(
+                x,
+                bases,
+                coef,
+                diagnostic_iteration=iteration,
+            )
 
         return bases, coef
 
@@ -59,6 +79,8 @@ class _MatrixDecomposition2DBase(nn.Module):
         raise NotImplementedError
 
     def forward(self, x, return_bases=False):
+        if self.diagnostic_observer is not None:
+            self.diagnostic_observer("input", x)
         B, C, H, W = x.shape
 
         # (B, C, H, W) -> (B * S, D, N)
@@ -70,6 +92,8 @@ class _MatrixDecomposition2DBase(nn.Module):
             D = H * W
             N = C // self.S
             x = x.view(B * self.S, N, D).transpose(1, 2)
+        if self.diagnostic_observer is not None:
+            self.diagnostic_observer("input.reshaped", x)
 
         if not self.rand_init and not hasattr(self, "bases"):
             bases = self._build_bases(1, self.S, D, self.R, cuda=True)
@@ -80,6 +104,8 @@ class _MatrixDecomposition2DBase(nn.Module):
             bases = self._build_bases(B, self.S, D, self.R, cuda=True)
         else:
             bases = self.bases.repeat(B, 1, 1)
+        if self.diagnostic_observer is not None:
+            self.diagnostic_observer("initial.bases", bases)
 
         bases, coef = self.local_inference(x, bases)
 
@@ -88,12 +114,16 @@ class _MatrixDecomposition2DBase(nn.Module):
 
         # (B * S, D, R) @ (B * S, N, R)^T -> (B * S, D, N)
         x = torch.bmm(bases, coef.transpose(1, 2))
+        if self.diagnostic_observer is not None:
+            self.diagnostic_observer("output.reconstruction.bmm", x)
 
         # (B * S, D, N) -> (B, C, H, W)
         if self.spatial:
             x = x.view(B, C, H, W)
         else:
             x = x.transpose(1, 2).view(B, C, H, W)
+        if self.diagnostic_observer is not None:
+            self.diagnostic_observer("output", x)
 
         # (B * H, D, R) -> (B, H, N, D)
         bases = bases.view(B, self.S, D, self.R)
@@ -128,31 +158,79 @@ class NMF2D(_MatrixDecomposition2DBase):
         return bases
 
     # @torch.no_grad()
-    def local_step(self, x, bases, coef):
-        # (B * S, D, N)^T @ (B * S, D, R) -> (B * S, N, R)
-        numerator = torch.bmm(x.transpose(1, 2), bases)
-        # (B * S, N, R) @ [(B * S, D, R)^T @ (B * S, D, R)] -> (B * S, N, R)
-        denominator = coef.bmm(bases.transpose(1, 2).bmm(bases))
-        # Multiplicative Update
-        coef = coef * numerator / (denominator + 1e-6)
+    def local_step(self, x, bases, coef, diagnostic_iteration=None):
+        observer = self.diagnostic_observer
+        if observer is None:
+            # (B * S, D, N)^T @ (B * S, D, R) -> (B * S, N, R)
+            numerator = torch.bmm(x.transpose(1, 2), bases)
+            # (B * S, N, R) @ [(B * S, D, R)^T @ (B * S, D, R)] -> (B * S, N, R)
+            denominator = coef.bmm(bases.transpose(1, 2).bmm(bases))
+            # Multiplicative Update
+            coef = coef * numerator / (denominator + 1e-6)
 
-        # (B * S, D, N) @ (B * S, N, R) -> (B * S, D, R)
+            # (B * S, D, N) @ (B * S, N, R) -> (B * S, D, R)
+            numerator = torch.bmm(x, coef)
+            # (B * S, D, R) @ [(B * S, N, R)^T @ (B * S, N, R)] -> (B * S, D, R)
+            denominator = bases.bmm(coef.transpose(1, 2).bmm(coef))
+            # Multiplicative Update
+            bases = bases * numerator / (denominator + 1e-6)
+            return bases, coef
+
+        iteration = "unspecified" if diagnostic_iteration is None else int(diagnostic_iteration)
+        coef_prefix = f"iteration.{iteration}.coef"
+        numerator = torch.bmm(x.transpose(1, 2), bases)
+        observer(f"{coef_prefix}.numerator.bmm", numerator)
+        gram = bases.transpose(1, 2).bmm(bases)
+        observer(f"{coef_prefix}.denominator.gram.bmm", gram)
+        denominator = coef.bmm(gram)
+        observer(f"{coef_prefix}.denominator.bmm", denominator)
+        multiplied = coef * numerator
+        observer(f"{coef_prefix}.multiply", multiplied)
+        denominator_with_epsilon = denominator + 1e-6
+        observer(f"{coef_prefix}.denominator.add_epsilon", denominator_with_epsilon)
+        coef = multiplied / denominator_with_epsilon
+        observer(f"{coef_prefix}.divide", coef)
+
+        bases_prefix = f"iteration.{iteration}.bases"
         numerator = torch.bmm(x, coef)
-        # (B * S, D, R) @ [(B * S, N, R)^T @ (B * S, N, R)] -> (B * S, D, R)
-        denominator = bases.bmm(coef.transpose(1, 2).bmm(coef))
-        # Multiplicative Update
-        bases = bases * numerator / (denominator + 1e-6)
+        observer(f"{bases_prefix}.numerator.bmm", numerator)
+        gram = coef.transpose(1, 2).bmm(coef)
+        observer(f"{bases_prefix}.denominator.gram.bmm", gram)
+        denominator = bases.bmm(gram)
+        observer(f"{bases_prefix}.denominator.bmm", denominator)
+        multiplied = bases * numerator
+        observer(f"{bases_prefix}.multiply", multiplied)
+        denominator_with_epsilon = denominator + 1e-6
+        observer(f"{bases_prefix}.denominator.add_epsilon", denominator_with_epsilon)
+        bases = multiplied / denominator_with_epsilon
+        observer(f"{bases_prefix}.divide", bases)
 
         return bases, coef
 
     def compute_coef(self, x, bases, coef):
-        # (B * S, D, N)^T @ (B * S, D, R) -> (B * S, N, R)
-        numerator = torch.bmm(x.transpose(1, 2), bases)
-        # (B * S, N, R) @ (B * S, D, R)^T @ (B * S, D, R) -> (B * S, N, R)
-        denominator = coef.bmm(bases.transpose(1, 2).bmm(bases))
-        # multiplication update
-        coef = coef * numerator / (denominator + 1e-6)
+        observer = self.diagnostic_observer
+        if observer is None:
+            # (B * S, D, N)^T @ (B * S, D, R) -> (B * S, N, R)
+            numerator = torch.bmm(x.transpose(1, 2), bases)
+            # (B * S, N, R) @ (B * S, D, R)^T @ (B * S, D, R) -> (B * S, N, R)
+            denominator = coef.bmm(bases.transpose(1, 2).bmm(bases))
+            # multiplication update
+            coef = coef * numerator / (denominator + 1e-6)
+            return coef
 
+        prefix = "final_coef"
+        numerator = torch.bmm(x.transpose(1, 2), bases)
+        observer(f"{prefix}.numerator.bmm", numerator)
+        gram = bases.transpose(1, 2).bmm(bases)
+        observer(f"{prefix}.denominator.gram.bmm", gram)
+        denominator = coef.bmm(gram)
+        observer(f"{prefix}.denominator.bmm", denominator)
+        multiplied = coef * numerator
+        observer(f"{prefix}.multiply", multiplied)
+        denominator_with_epsilon = denominator + 1e-6
+        observer(f"{prefix}.denominator.add_epsilon", denominator_with_epsilon)
+        coef = multiplied / denominator_with_epsilon
+        observer(f"{prefix}.divide", coef)
         return coef
 
 

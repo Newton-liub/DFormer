@@ -1,28 +1,26 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实与执行边界截至：2026-10-03 23:11:39+08:00（Direction A正式运行因非有限梯度停止，证据取回且实例已关闭）。** 运行源码`edb660a83da1ec67626149d06dc59460565e2c20`已push，云端同HEAD/无tracked dirty；Natural **attempted1598 / successful1597 / 已记录optimizer skip0**，第1598次尝试在optimizer更新前非有限梯度退出。Grid/Replay与完整S1未运行，结论**INVALID/BLOCKED，不能给科研GO/STOP**。最终直接确认`cpod-1vbh7faqcauq` **Stopped/GPU0**。**大白话：** 基础对照组先出现数值问题，还无法比较Replay效果；原执行已按合同停止，不能自动改精度续跑。
+> **事实与执行边界截至：2026-10-04（Direction A 数值定位准备阶段）。** 用户已授权按“Natural短数值定位 → 证据驱动最小修复 → 短资格 → 三组从C0重新正式训练 → 完整S1 → 冻结gate裁决”推进。当前科研状态仍为 **INVALID/BLOCKED**；尚未得到新的诊断、修复、正式训练或S1结果。实例刚直接查询为 **Stopped/GPU0**。**大白话：** 获批查清基础组为何出现坏梯度，但还没有证据确定原因；不能续跑旧1597更新，也不能提前跑其他组或评价。
 
-## 当前结果与边界
+## 当前事实与诊断入口
 
-- Natural最后成功更新1597，loss0.1476122885942459、LR4.151961920329593e-07、AMP scale1024；第1598次attempt_started后，stderr明确`FloatingPointError: NaturalMissing gradients are non-finite; refusing to skip the optimizer update`。失败前所有成功更新均skip0，失败尝试不算成功或被跳过后继续。具体非有限tensor/产生算子未记录，不能直接归因NMF、AMP或数据。
-- 三组各2560成功更新与四权重完整S1（3816 views）的授权没有完成；非有限停止条款已触发，**当前无自动重试、resume或改变科研合同权限**。没有合格fixed-final/S1结果或科研门槛裁决。Natural输入15980槽含失败尝试，全部clean、新增删除0、已观测输入违例0；不代表未运行Grid/Replay匹配与跨组排除已验证。
-- 原C0仍为`/root/rivermind-data/cloud/MMFR_E1_Batch1A_local_transfer_20260922/C0/checkpoint/update-2560.pth`，321150608 bytes，既有核验SHA-256`ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`；本次不重复hash/下载，不使用预检或组间权重。流程经过640/1280保存点，但recovery文件/schema/hash未直接读回，不授予resume资格。
-- 合同未改：全部分割参数/segmentation-only；batch10/480×640/workers8、LR1e-6/AdamW/WD.01、warmup128/poly.9、AMP fp16/scaler1024/TF32on/SyncBN、原生NMF autocast；每640 recovery、2560fixed-final，无训练val/best选择。旧aux/A2混合故障/F-lite/R-OE/A-v1关闭。
-- Direction B/B1a、Main-Val、NYUv2/baseline、Round-2、新seed/调参及追加预算仍关闭；official test保持**sealed_unread**。A-v1保持stop，F-lite/R-OE处置独立未决。本次INVALID不能自动变成Direction A科研STOP或开放下一方向。
+- 上轮正式源码 `edb660a83da1ec67626149d06dc59460565e2c20`，Natural attempted1598 / successful1597 / 已记录optimizer skip0；attempt1598在optimizer执行前非有限梯度退出。最后成功loss0.1476122885942459、LR4.151961920329593e-07、AMP scale1024，epoch13。具体tensor/算子与失败步loss尚未定位，不直接归因AMP、NMF或数据。
+- 上轮Grid/Replay及完整S1未运行，无合格fixed-final，无科研GO/STOP。失败日志已在本地 `outputs/natural-missing-round1-formal-restart-20261003/monitor/`；权威历史报告见[2026-10-03正式报告](../reports/2026-10-03-natural-missing-round1-formal.md)。历史源码与证据不改写。
+- 唯一实例 `cpod-1vbh7faqcauq`，本对话直接API确认Stopped/GPU0。原环境历史身份Python3.10.16 / torch2.1.2+cu118 / CUDA11.8，下一次启动后仍需直接复核，不重建或升级依赖。
+- 原C0为 `/root/rivermind-data/cloud/MMFR_E1_Batch1A_local_transfer_20260922/C0/checkpoint/update-2560.pth`，321150608 bytes；已核验SHA-256 `ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a`。只加载分割权重，不继承旧optimizer/scaler/RNG，也不使用旧Natural或预检权重。
 
-## 资源、监控与实际时间
+## 最新授权与停止边界
 
-- 唯一实例`cpod-1vbh7faqcauq`；资源不足启动失败后用户手动启动，API GPU StartTime1791038472（22:41:12），RTX4090/GPU1/CPU14/32768MiB；CUDA报告显存25280839680 bytes。原环境Python3.10.16/torch2.1.2+cu118/CUDA11.8，未安装/升级依赖。
-- 原GPU保险截止2026-10-04 02:11:47+08:00 / Unix1791051107在Running直接复核，不延长。任务`natural-missing-formal-20261003-edb660a`及screen `natural-missing-round1-formal`持久运行；receipt wall1344.1179秒（22分24.12秒），Natural child1343.4608秒。
-- 监督器获得Failed后主动stop，API StopTime1791039984（23:06:24），23:06:32直接Stopped/GPU1配置规格；GPU运行窗口1512秒（25分12秒），未为下载保留GPU。
-- CPU-only失败证据取回沿同一30分钟保险23:37:54 / Unix1791041874；前两次Initializing状态与PowerShell UTF-8 JSON解码问题均立即stop、未取回；第三次明确等待Running/GPU0，monitor transfer exit0于23:10:57完成，API StopTime1791040259（23:10:59）。显式等待后23:11:39直接**Stopped/GPU0**，三个CPU API运行窗口合计34秒。最终账单未核验。
-- SwanLab（在线实验记录服务）仍为**LOG_ONLY**，初始化RuntimeError、finish_returned=true，无online链接/上传完成证据。screen/日志/receipt完整保留；监控故障不是已证明的非有限梯度原因。
+- 本地诊断准备中：记录首个非有限参数/层/算子、loss/梯度/AMP scale、attempt/successful、epoch/batch/sample身份及NMF前后/中间数值；只新增观测，不改变模型结构、数据、LR、训练预算和评价口径。NMF指分割解码器中的非负矩阵分解；AMP指混合精度训练，scaler负责缩放梯度。
+- 先必要选择性commit/push至当前origin分支，再云端Git fast-forward与直接HEAD/源码干净核验；禁止复制不同版本源码训练。原有无关dirty保留，不reset，不将outputs/checkpoint/大日志加入Git。诊断埋点及持久screen入口已落地，主代理已直接复核NMF默认算术路径、诊断模式隔离、计数/异常停止与日志字段；静态诊断/编排语法/限定差异检查通过。本机额外小型tensor检查因既有OpenMP重复runtime冲突未完成，没有采用不安全绕过或修改环境；不记为运行通过。
+- 先有限排查SwanLab既有配置/凭据来源及非交互初始化，不泄露token、不扩大环境改动；合理尝试失败则持久记录原因并LOG_ONLY，不长时间阻塞诊断。
+- 诊断仅Natural从C0干净开始，沿原2560-update scheduler，限定到1664 successful updates，重点从attempt1536启用细粒度日志；诊断没有正式合格checkpoint，不能转正式resume。非有限立即停止，不跳坏update或吞异常。约原失败区间仍未复现则停止并报告证据边界，不擅自扩预算。
+- 只在直接证据支持后采用最小数值修复；不借机改研究模块。Natural/Grid/Replay统一数值策略。修复后重新commit → push → 云端fast-forward → 同HEAD核验，再短资格，资格通过才开启新正式轮。
+- 新正式顺序Natural → Grid → Replay，各自原C0干净初始化、各2560 successful updates、attempted=successful、optimizer skip0、每640 recovery和2560 fixed-final。任一资格/工程故障立即停止后续流程，不自行改protocol。
+- 三组全部合法完成才运行完整S1（四权重×318样本×三条件=3816 views）。S1是冻结原尺度、无翻转、FP32开发评价；按[Direction A §6.5](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)固定门槛裁决，不因结果差改阈值。
+- 云GPU启动后训练前必须直接核验自动定时关机保险，覆盖当前任务并留少量收尾；screen与日志持久保留。GPU任务结束立即主动关GPU；下载只在无卡/CPU-only直接Running/GPU0下完成，另有短时保险，取完立即关机并直接确认。
+- Main-Val、official test、NYUv2、其他baseline、Round-2、Direction B/B1a、新seed/调参仍关闭；official test保持sealed_unread。A-v1 stop及F-lite/R-OE独立开放处置不变。
 
-## 交付、证据与准确恢复点
+## 准确恢复点与证据
 
-- [正式执行报告](../reports/2026-10-03-natural-missing-round1-formal.md)已落盘，报告/合同/必要索引及资源监督修复选择性收口提交`5ddf4cf2a5fb0ee314d61149614ee7bc689234fd`（`docs(mmfr): close natural missing round1`）已push到canonical同分支；首次TLS握手失败后同一push重试成功。23:27:24最终复查实例仍Stopped/GPU0。formal-run SHA仍为edb660a，与收口提交区分；后续只作本条状态确认，确认提交身份以Git记录为准。原有无关审计dirty保留，权重/outputs/大日志/cache不入Git。
-- 本地根`outputs/natural-missing-round1-formal-restart-20261003/`：`run-identity.json`、`restart-capacity-receipt.json`、原始`lifecycle.json`、`nonfinite-closeout.json`及`monitor/`中的formal receipt、Natural summary、stdout/stderr、screen.log。远端根`/root/rivermind-data/cloud/natural-missing-round1-formal-20261003-edb660a/`；没有三组合格final或完整S1本地产物，不运行成功final专用读回工具。
-- 首次源码`8d2490ef433807ec60d475cab27fbadd04d18e1f`漏传`--successful-updates 2560`，Natural参数门禁0尝试/0成功更新；修复后用户另批继续原预算，已用于当前实际运行。首次证据在`outputs/natural-missing-round1-formal-20261003/`独立保留，不覆盖历史结果。
-- 收口仅修正资源监督的UTF-8 JSON解码与显式start/stop `--wait`，避免Initializing/Stopping竞态；未用于再次GPU运行。实际检查包括原CPU CLI门禁、Python静态检查、本次PowerShell parser/差异复核、运行日志及直接云状态核验；未运行完整测试、额外GPU验证、真实resume、非有限定位训练或S1，不把未运行写成通过。
-- 授权/科研门槛见[首轮protocol](../../MMFR/01_research/natural_missing_round1_protocol.md)与[canonical Direction A §6.5](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)，旧工程预检只见[readiness报告 §13](../reports/2026-10-03-natural-missing-round1-readiness.md)。历史生成review packet仍是旧A-v1快照，不冒充本次结果、不重建或手改。
-- **准确恢复点：** 实例保持Stopped/GPU0，原正式任务已终态Failed，取回与监督进程已退出，不重复提交。先由用户/上级裁决是否授权限定非有限梯度定位与重新资格，或终止本次执行准备；任何GPU诊断、AMP/NMF调整、resume/重训与新预算必须另获明确授权。现有日志最后成功1597、失败attempt1598（epoch13）是定位入口，不是允许续训的位置。
+当前恢复点是完成诊断代码最小复核/门禁、选择性commit/push，再启动现有4090并核验Git/环境/保险，优先有限排查SwanLab后仅运行Natural诊断。实例尚未重启，尚无新云任务或数值修复结论；旧1597不是续训起点。授权持久记录见[首轮protocol §13](../../MMFR/01_research/natural_missing_round1_protocol.md)；旧阶段全部历史事实、生命周期与收口Git身份见上述正式报告及Git history。

@@ -1,12 +1,6 @@
 # MUSeg 当前开放问题
 
-> **执行边界截至：2026-10-03（正式运行已因非有限梯度停止，实例Stopped/GPU0）。** 修复后的原预算运行Natural attempted1598/successful1597，第1598次梯度检查失败；Grid/Replay/S1未运行，本次INVALID/BLOCKED，不能给科研GO/STOP。原继续执行选择已消耗为当前运行，不再授权自动重试。详见[实时状态](MUSeg-current-status.md)与[正式报告](../reports/2026-10-03-natural-missing-round1-formal.md)；持久合同见[首轮protocol](../../MMFR/01_research/natural_missing_round1_protocol.md)。
-
-## Direction A非有限梯度后的独立处置（待用户/上级裁决）
-
-需要选择：是否授权限定数值定位与重新资格检查，或终止本次执行准备。现有证据只确定Natural第1598次attempt、epoch13发生非有限梯度，未定位tensor/算子，不足以直接裁定AMP/NMF/数据原因。任何GPU诊断、精度或NMF变更、resume/重训、新预算都需明确独立授权；没有自动继续剩余963更新的权限，也不能把数值失败当科研收益门槛STOP。
-
-**大白话：** 先决定要不要查明数值问题，再谈重新运行；当前云容器已经关闭，没有后台训练。Round-2、NYUv2/baseline、Direction B/B1a、Main-Val和official test仍关闭，SwanLab允许LOG_ONLY不改变这一边界。
+> **执行边界截至：2026-10-04（Direction A数值定位已获授权，尚在本地准备）。** 用户已决定先仅Natural数值定位、证据驱动最小修复和短资格，再从原C0顺序重跑三组，全部合法完成后才能完整S1及冻结gate裁决。旧Natural attempted1598/successful1597的失败仍为INVALID/BLOCKED；不续跑旧权重，不提前Grid/Replay/S1。新诊断或修复事实尚未形成，实例直接确认Stopped/GPU0。授权不再是开放选择，故移出决策列表；运行状态与恢复点见[实时状态](MUSeg-current-status.md)，持久边界见[首轮protocol §13](../../MMFR/01_research/natural_missing_round1_protocol.md)。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 
