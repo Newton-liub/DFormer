@@ -4,15 +4,15 @@
 
 ## 0. NaturalMissing 正式训练与完整评价授权（readiness后待裁决）
 
-2026-10-03 readiness收口为 **PARTIALLY READY**，见[就绪报告](../reports/2026-10-03-natural-missing-round1-readiness.md)与[执行合同](../../MMFR/01_research/natural_missing_round1_protocol.md)。A优先、B备用，独立segmentation-only（只优化分割目标）、LR1e-6、配对输入和新S1已实现；精确C0未取得，真实加载与GPU预检BLOCKED。精确C0和本机现有GPU条件满足后每组≤3成功更新/极少量val-dev仍属已授权预检，不需把这项重新列为研究裁决。
+2026-10-03真实执行收口仍为 **PARTIALLY READY**，见[就绪报告](../reports/2026-10-03-natural-missing-round1-readiness.md)与[执行合同](../../MMFR/01_research/natural_missing_round1_protocol.md)。精确C0已CPU-only取回、立即确认云实例Stopped，关机后一次SHA匹配，真实严格加载802分割键/只排除10辅助键/missing0/unexpected0。2图真实C0 S1完成6次finite前向，仅工程预检；资产恢复/登录途径不再是待决事项。
 
-仍需裁决的是：恢复资产并补齐真实预检证据后，是否批准Natural/Grid/Replay各2560成功更新、C0+三组完整318图三条件S1，以及正式设备/费用责任。当前无实测GPU时间/显存，不能承诺本机batch10可跑；4090仅为待批备选，不能自动启动付费资源。B1a和其他数据集/baseline预算独立关闭。
+**当前直接阻塞下一步的是设备和限量预检授权：** Natural/Grid/Replay各从同C0独立启动，batch10/480×640在RTX5060 Laptop 8GB各首次forward OOM，successful均0，尚无loss/backward/optimizer/scaler/保存通过或有效step测时。是否另批4090 24GB或同等级更大显存设备的每组≤3成功更新预检，并明确设备、费用和时间上限？当前不改变合同制造本机PASS，也不从失败进程wall外推正式耗时。本轮CPU-only取回权限已经执行并停机，不允许据此再次开机或启动GPU云资源。
 
-C0取回途径若需要用户登录或付费资源，须由用户明确提供可访问路径/权限；精确权重不能用重训替代。预检权重不得用作正式初始化，正式运行必须从同一个核验C0干净启动。类别支持、原始全图固定分层与矩形固定几何语义已在protocol确定，不根据val分数改写。
+通过新的限量预检后，才裁决Natural/Grid/Replay各2560成功更新、C0+三组完整318图三条件S1及正式设备/费用责任。正式训练/完整评价/Main-Val/B1a和其他数据集/baseline预算仍独立关闭。预检权重不得用作正式初始化，正式运行必须从同一个核验C0干净启动；类别支持、原始全图固定分层和矩形固定几何语义已确定，不按小样本分数改写。
 
 [A canonical正文](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[B备用正文](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)科研内容保持原文。NYUv2和外部baseline不是本轮恢复前置项。
 
-**大白话：** 代码/CPU就绪不是正式开跑资格；先取得共同底座权重并完成真实限量预检，再决定正式预算和资源。
+**大白话：** 共同底座和极小真实评价已通过工程检查，本机训练因显存不足停在首次前向；先独立裁决更大显存的限量预检及费用，通过后再讨论正式预算。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 

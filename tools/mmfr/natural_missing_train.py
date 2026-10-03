@@ -771,6 +771,12 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
         torch.cuda.synchronize()
         step_started = time.perf_counter()
         scale_before = scaler.get_scale() if scaler is not None else 1.0
+        _emit({
+            "event": "attempt_started", "mode": args.mode, "strategy": args.strategy,
+            "attempted_steps": attempted_steps, "successful_updates": successful_updates,
+            "skipped_steps": skipped_steps, "amp_scale": float(scale_before),
+            "batch_shape": list(images.shape), "telemetry": last_telemetry,
+        })
 
         with torch.autocast(
             device_type="cuda",
@@ -826,6 +832,7 @@ def _run_training(args: argparse.Namespace) -> dict[str, Any]:
                 "last_batch_index": batch_position,
                 "elapsed_seconds": elapsed,
                 "peak_memory_mb": torch.cuda.max_memory_allocated(device) / (1024.0 * 1024.0),
+                "peak_reserved_memory_mb": torch.cuda.max_memory_reserved(device) / (1024.0 * 1024.0),
                 "telemetry": last_telemetry,
             }
         )

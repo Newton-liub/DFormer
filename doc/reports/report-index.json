@@ -6,7 +6,7 @@
     "periodStart": "2026-10-03",
     "periodEnd": "2026-10-03",
     "baseCommit": "34a4dea41c1e08a5a1f85711eb97107471445272",
-    "status": "partially-ready-code-and-targeted-CPU-checks-C0-blocked-remote-access-GPU-preflight-blocked-no-formal-training"
+    "status": "partially-ready-C0-recovered-once-hash-strict-load-pass-cloud-stopped-three-GPU-first-forward-OOM-tiny-S1-engineering-pass-no-formal-training"
   },
   "reports": [
     {
@@ -15,8 +15,8 @@
       "periodStart": "2026-10-03",
       "periodEnd": "2026-10-03",
       "baseCommit": "34a4dea41c1e08a5a1f85711eb97107471445272",
-      "verification": "canonical-plan-renames;bounded-C0-locator-review;config-isolation-opt-in-geometry-and-two-train-sample-input-checks;CPU-segmentation-construction-optimizer-membership;synthetic-S1-pad-crop-keyed-RNG-and-independent-condition-group-confusion;strict-key-and-resume-targeted-checks;no-real-model-forward-GPU-training-formal-evaluation-test-cloud-or-push",
-      "status": "partially-ready-code-and-targeted-CPU-checks-C0-blocked-remote-access-GPU-preflight-blocked-no-formal-training"
+      "verification": "prior-targeted-CPU-checks-retained-not-rerun;authorized-existing-instance-CPU-only-C0-transfer-immediate-stop-and-direct-Stopped-GPU0-confirmation;post-stop-single-SHA-and-real-strict-802-segmentation-key-load-10-aux-drop-no-missing-unexpected;three-independent-C0-first-forward-GPU-OOM-attempted1-successful0-each;paired-input-ten-slot-telemetry-review;two-real-val-dev-samples-six-finite-FP32-S1-forwards-pad-crop-RNG-condition-group-confusion;two-file-static-diagnostics-and-deliverable-diff-JSON-review;no-formal-training-full-evaluation-official-test-GPU-cloud-restart-or-push",
+      "status": "partially-ready-C0-recovered-once-hash-strict-load-pass-cloud-stopped-three-GPU-first-forward-OOM-tiny-S1-engineering-pass-no-formal-training"
     },
     {
       "path": "doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md",

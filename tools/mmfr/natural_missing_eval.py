@@ -674,6 +674,7 @@ def run_evaluation(
     sample_limit: int = 2,
     formal_dev_authorization: bool = False,
     device_name: str = "cuda",
+    verified_checkpoint_sha256: Mapping[Path, str] | None = None,
 ) -> list[Path]:
     """Evaluate an explicitly limited val-dev prefix; full runs require authorization."""
     if not checkpoints:
@@ -686,6 +687,17 @@ def run_evaluation(
     if sample_limit > len(allowlisted):
         raise ValueError(f"sample_limit {sample_limit} exceeds the val-dev allowlist size {len(allowlisted)}")
     selected_entries = allowlisted[:sample_limit]
+    # Recovery owners may supply an already verified identity to avoid re-hashing
+    # the same immutable checkpoint. Other checkpoints retain direct hashing.
+    verified_identities = {
+        Path(path).resolve(): str(sha256).lower()
+        for path, sha256 in (verified_checkpoint_sha256 or {}).items()
+    }
+    checkpoint_paths = {Path(path).resolve() for path in checkpoints}
+    if not set(verified_identities).issubset(checkpoint_paths):
+        raise ValueError("verified identity refers to a checkpoint outside this invocation")
+    if any(re.fullmatch(r"[0-9a-f]{64}", sha256) is None for sha256 in verified_identities.values()):
+        raise ValueError("externally verified checkpoint identity must be a SHA-256 hex digest")
     dataset_root = dataset_root.resolve()
     if any("official" in part.casefold() or "test" in part.casefold() for part in dataset_root.parts):
         raise ValueError("refusing a dataset root identified as official-test/test data")
@@ -710,7 +722,8 @@ def run_evaluation(
     result_paths: list[Path] = []
     for checkpoint in checkpoints:
         checkpoint = checkpoint.resolve()
-        checkpoint_sha256 = EV.file_sha256(checkpoint)
+        externally_verified = checkpoint in verified_identities
+        checkpoint_sha256 = verified_identities[checkpoint] if externally_verified else EV.file_sha256(checkpoint)
         report = _run_checkpoint(
             checkpoint=checkpoint,
             checkpoint_sha256=checkpoint_sha256,
@@ -723,6 +736,10 @@ def run_evaluation(
             channel_order=channel_order,
             split_sha256=allowlist_sha256,
             device=device,
+        )
+        report["identity"]["checkpoint_sha256_verification"] = (
+            "externally verified by recovery owner; not re-hashed in this invocation"
+            if externally_verified else "computed from checkpoint in this invocation"
         )
         report["identity"]["allowlist_path"] = str(allowlist_path)
         report["identity"]["allowlist_sha256"] = allowlist_sha256
@@ -891,6 +908,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--config", default=DEFAULT_CONFIG)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument(
+        "--verified-c0-sha256",
+        help="exact C0 identity already verified by recovery owner; one checkpoint only, no re-hash",
+    )
     parser.add_argument("--sample-limit", type=int, default=2, help="defaults to a tiny allowlisted val-dev subset")
     parser.add_argument(
         "--formal-dev-authorization",
@@ -911,6 +932,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         missing.append("checkpoint")
     if missing:
         raise SystemExit("missing required arguments: " + ", ".join(f"--{name.replace('_', '-')}" for name in missing))
+    verified_identities = None
+    if args.verified_c0_sha256 is not None:
+        if len(args.checkpoint) != 1 or args.verified_c0_sha256.lower() != (
+            "ca618b23d18eabb201a0d11d18da383ac99576d0feae5864e3233bda527d9a1a"
+        ):
+            raise SystemExit("--verified-c0-sha256 requires one checkpoint and the frozen exact C0 identity")
+        verified_identities = {args.checkpoint[0]: args.verified_c0_sha256}
     try:
         paths = run_evaluation(
             dataset_root=args.dataset_root,
@@ -920,6 +948,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             sample_limit=args.sample_limit,
             formal_dev_authorization=args.formal_dev_authorization,
             device_name=args.device,
+            verified_checkpoint_sha256=verified_identities,
         )
     except (OSError, RuntimeError, ValueError, TypeError, AttributeError, ModuleNotFoundError) as exc:
         print(json.dumps({"status": "failed", "error_type": type(exc).__name__, "error": str(exc)}, ensure_ascii=False))

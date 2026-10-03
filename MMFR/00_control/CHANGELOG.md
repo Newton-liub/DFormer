@@ -1,5 +1,13 @@
 # MMFR v4.1 package change log
 
+## 2026-10-03 — 精确C0恢复、CPU-only云停机与本机限量预检收口
+
+- 用户另批仅现有实例CPU-only取回C0：08:37:26+08:00显式without-gpu A启动，直接确认GPU0；只下载321150608-byte原C0，08:41:10立即请求stop、08:41:23直接确认Stopped/GPU0。随后本地只hash1次，冻结SHA匹配，真实strict load802分割键/已知10aux排除/missing0/unexpected0；无GPU云启动或再次开机。
+- Natural/Grid/Replay独立从同C0启动，保持batch10/480×640/AMP/原生NMF合同，各第一次forward OOM，attempted1/successful0/optimizer skipped0。Grid/Replay peak allocated7054.634MiB/reserved7354MiB；无有效成功step时间或loss/backward/scaler/保存通过。4clean/5matched/1paired_skip输入配对符合合同，不等于训练资格。
+- 2图真实C0 S1完成6次FP32/TF32off有限前向、pad/crop和独立采集组计数；仅工程预检，不发布正式Round-1分数。C0_RECOVERY=PASS、GPU_PREFLIGHT=FAILED_OOM、S1_TINY_PREFLIGHT=PASS_ENGINEERING_ONLY，整体PARTIALLY READY。
+- 仅训练attempt/reserved日志和评价已核验C0身份复用的最小入口修改，避免重复hash；更新同一readiness报告、两份实时入口和既有导航/索引。建议未来另批更大显存限量预检/费用，当前不启动4090，不运行正式训练/完整评价/test/完整测试。
+- 本地提交消息 `test(mmfr): validate natural missing round1 readiness`，不push；用户既有目录审计/执行单及其索引/导航dirty选择性保留，不纳入此提交。checkpoint/outputs/大日志不入Git，旧生成review packet不重建/手改。
+
 ## 2026-10-03 — NaturalMissing 首轮readiness实现与资产阻塞收口
 
 - 新增独立三策略配置、纯CPU配对输入、严格分割加载、continuation训练与仅S1评价入口；loader仅opt-in返回空间元信息/当前Depth/support，旧默认行为保留。
