@@ -1,6 +1,6 @@
 # MUSeg 当前状态与唯一实时入口
 
-> **事实与执行边界截至：2026-10-03。** Direction A NaturalMissing首轮readiness为 **PARTIALLY READY（精确C0已恢复，RTX5060训练容量阻塞）**。`C0_RECOVERY=PASS`，`GPU_PREFLIGHT=FAILED_OOM`，`S1_TINY_PREFLIGHT=PASS_ENGINEERING_ONLY`。现有云实例CPU-only取回后已直接确认Stopped，不得再次开机。A优先、B备用；下一恢复点是更大显存设备的独立限量预检/费用裁决，不是正式开跑。
+> **事实与执行边界截至：2026-10-03（4090限量预检启动前准备）。** 用户已批准现有实例有卡模式，仅Natural/Grid/Replay各最多3成功更新、云端workers8；先提交并推送，再设置并核验30分钟平台关机保险，启动后拉取同一代码提交。当前直接观测实例仍Stopped，尚未执行本轮有卡启动或训练；既有C0/极小S1通过、本机OOM事实保留。正式训练和完整评价仍关闭。
 
 ## 当前事实与实际意义
 
@@ -19,9 +19,11 @@ C0是已有E1训练对照；fixed-final是2560成功更新后的固定权重。c
 
 - 唯一现有实例 `cpod-1vbh7faqcauq`，2026-10-03 **08:37:26+08:00**请求 `--without-gpu A` 启动，08:37:37直接确认Running、CPU2/内存4096MiB/**GPU0**。只取回原远端C0文件，transfer exit0；未取整ZIP/F-lite/R-OE，未执行云模型、训练或hash。
 - 下载成功后 **08:41:10+08:00立即请求stop**，**08:41:23+08:00直接查询确认State=Stopped、GPU0**，API StopTime1790988072。实例名称/GpuType4090只是历史标签，实际本次GPU数量0；未启动GPU/新建资源/再次开机。API InstancePrice0.13，最终费用未核验，不将价格字段当最终账单。
-- 本次已授权CPU-only资产恢复、确认关机后单次hash/真实load、本机每组≤3成功更新与极小S1，现已完成允许的尝试并停止。预检OOM不自动授权改合同或升级资源；云取回权限也不自动授权下一次启动。
-- 正式训练 **3×2560=7680成功更新**、完整S1 **C0+三组×318×3=3816 views**、Main-Val/B1a33072 views、NYUv2/外部baseline、新云GPU与其他高成本验证仍未授权。official test仍 **sealed_unread**，无push。
-- 当前未完成：三组成功loss/backward/optimizer/scaler/save/resume链、成功step测时和正式设备预算。建议未来另批4090 24GB或同等级大显存设备的每组≤3次预检；它的容量/数值稳定性资格仍待真实预检，不引用失败进程wall外推训练耗时。真正待裁决见[open-decisions](MUSeg-open-decisions.md)。
+- **本轮新授权：** 用户批准现有 `cpod-1vbh7faqcauq` 有卡模式，仅三组各≤3成功更新，Linux workers8、同C0/科研合同不变；训练类检查全部云端，不重复本机GPU。先提交必要代码，授权将已有3提交和本轮必要提交推送到origin同分支，云端HEAD一致才运行；既有审计dirty不纳入。
+- 启动前优先设置并直接核验30分钟平台关机保险；若只能运行态设置，启动后立即设置，成功前不提交训练，失败立即停机。复用已有SwanLab配置，有条件时提供在线整体进度和完成/失败状态；训练子进程与监控进程隔离，不改变训练RNG。
+- 正常结束主动停机并确认Stopped，不等待20分钟；若用户因SwanLab完成/中断后20分钟无下一步人工关机，发现后记录并退出，不自动重启。正常结束后如需取小型证据可CPU-only短时取回再停机，不因大文件下载保持GPU运行。
+- 正式训练 **3×2560=7680成功更新**、完整S1 **C0+三组×318×3=3816 views**、Main-Val/B1a33072 views、NYUv2/外部baseline及其他高成本验证仍未授权。official test仍 **sealed_unread**。
+- 当前待验证：云端成功loss/backward/optimizer/scaler/save链、成功step测时和allocated/reserved峰值。发生OOM/非有限/身份冲突或需要改变科研合同时本轮停止，不改batch/precision挽救；云端通过后只提交工程资格和正式预算估计，正式预算仍需裁决。
 
 ## 旧路线结论保持
 
@@ -32,6 +34,6 @@ A-v1仍stop：learned三hard−off为−0.0018730026999946858pp，未达+0.50pp�
 - [本轮readiness报告](../reports/2026-10-03-natural-missing-round1-readiness.md)已更新原报告，记录真实取回/停机/加载/OOM/极小S1、最小改动和预算边界；[首轮protocol](../../MMFR/01_research/natural_missing_round1_protocol.md)不改科研合同。canonical [A优先](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)/[B备用](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)。
 - 本地忽略证据：`outputs/natural-missing-readiness-20261003/C0/recovery-receipt.json`（完整键清单/停机收据）、`execution-summary.json`、三组`*-gpu.log`、`s1/checkpoints/update-2560-ca618b23d18e.json`；权重/日志/outputs不入Git。既有[C0转移收据](../../MMFR/02_evidence/delivery_mmfr_a_v1_local_val_20261001.md)保留原始事实。
 - 本次代码只给训练入口增加attempt/reserved telemetry，评价入口显式复用已核验C0身份避免第二次hash；实际差异/输出定点核对与两文件静态诊断已完成。未重复完整测试或初始CPU套件、未新建test脚本；失败不记PASS。既有MMFR导航/changelog与report-index同步，旧生成审核包仍历史快照，不重建/手改。
-- 分支 `perf/mmfr-a2-v3-pipeline-opt1`；本次执行起始HEAD `caaeda289cb68767c9fa3e0ea011e2f4e4ede1ec`，之前目录提交 `ca65f4bdfc76e687746745df12e7c767a0a46049`。执行收口按 `test(mmfr): validate natural missing round1 readiness` 本地提交，确切SHA以Git为准，避免自引用追加；不push。用户既有目录审计/执行单及其索引/导航dirty选择性排除并保留。
+- 本轮执行起始HEAD `d47a4be1c139cde1a9c304b5bf36239069ec2bd0`（前一轮readiness本地收口），此前实现提交 `caaeda289cb68767c9fa3e0ea011e2f4e4ede1ec`、目录提交 `ca65f4bdfc76e687746745df12e7c767a0a46049`。此前未推送；本轮已获明确推送授权。新增云端wrapper仅顺序调用三个独立preflight子进程，固定3成功更新/workers8，训练入口只增加flush；两文件静态诊断无报错。监控与训练RNG隔离，compact receipt保留计数、step、checkpoint位置与输入telemetry。用户既有目录审计/执行单及其索引/导航dirty选择性排除并保留。
 
-**准确恢复点：** 等待更大显存限量预检和费用/设备授权；获准后每组仍独立从上述精确C0干净初始化，保持batch/geometry/precision/输入合同，先取得真实成功step/finite/峰值/保存证据再申请正式预算。当前不得重复C0哈希、重新取回、重试本机OOM或再次开云。
+**准确恢复点：** 完成启动前监控最小代码/静态复核与授权记录提交，推送origin同分支；设置并确认30分钟平台关机保险，现有实例有卡启动后拉取并核对同一代码SHA，再顺序三组各≤3成功更新。所有结束路径优先停机；人工保险关机后记录退出。小动作不逐条写状态，整体启动/结束或中断统一更新。C0不重新hash/取回，不运行正式实验。

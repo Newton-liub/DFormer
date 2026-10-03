@@ -6,13 +6,13 @@
 
 2026-10-03真实执行收口仍为 **PARTIALLY READY**，见[就绪报告](../reports/2026-10-03-natural-missing-round1-readiness.md)与[执行合同](../../MMFR/01_research/natural_missing_round1_protocol.md)。精确C0已CPU-only取回、立即确认云实例Stopped，关机后一次SHA匹配，真实严格加载802分割键/只排除10辅助键/missing0/unexpected0。2图真实C0 S1完成6次finite前向，仅工程预检；资产恢复/登录途径不再是待决事项。
 
-**当前直接阻塞下一步的是设备和限量预检授权：** Natural/Grid/Replay各从同C0独立启动，batch10/480×640在RTX5060 Laptop 8GB各首次forward OOM，successful均0，尚无loss/backward/optimizer/scaler/保存通过或有效step测时。是否另批4090 24GB或同等级更大显存设备的每组≤3成功更新预检，并明确设备、费用和时间上限？当前不改变合同制造本机PASS，也不从失败进程wall外推正式耗时。本轮CPU-only取回权限已经执行并停机，不允许据此再次开机或启动GPU云资源。
+**有卡限量预检与本轮推送已获批，不再作为待决事项。** 用户批准现有实例有卡启动、三组各≤3成功更新、workers8、30分钟平台关机保险与条件性SwanLab；先提交并推送再云端拉取同SHA，结束主动停机。此前本机各首次forward OOM/successful0事实仍保留，云端真实资格尚待本轮执行，不从失败wall外推正式耗时。
 
-通过新的限量预检后，才裁决Natural/Grid/Replay各2560成功更新、C0+三组完整318图三条件S1及正式设备/费用责任。正式训练/完整评价/Main-Val/B1a和其他数据集/baseline预算仍独立关闭。预检权重不得用作正式初始化，正式运行必须从同一个核验C0干净启动；类别支持、原始全图固定分层和矩形固定几何语义已确定，不按小样本分数改写。
+**仍需裁决的是正式预算与资源责任：** 本轮云端限量预检通过后，是否批准Natural/Grid/Replay各2560成功更新、C0+三组完整318图三条件S1及正式费用/设备/时间预算？预检授权不包含正式开跑，也不包含改batch/precision挽救失败。正式训练/完整评价/Main-Val/B1a和其他数据集/baseline继续关闭。预检权重不得用作正式初始化；固定分层、类别支持与矩形语义不按小样本分数改写。
 
 [A canonical正文](../../MMFR/01_research/MMFR_direction_A_natural_missing_2026-10-02.md)、[B备用正文](../../MMFR/01_research/MMFR_direction_B_inference_protocol_2026-10-02.md)科研内容保持原文。NYUv2和外部baseline不是本轮恢复前置项。
 
-**大白话：** 共同底座和极小真实评价已通过工程检查，本机训练因显存不足停在首次前向；先独立裁决更大显存的限量预检及费用，通过后再讨论正式预算。
+**大白话：** 云端只做限量资格检查与测时，正式训练仍需结果和预算审核；允许启动GPU并不等于允许跑完整实验。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 

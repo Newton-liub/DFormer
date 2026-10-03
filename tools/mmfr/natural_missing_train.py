@@ -235,7 +235,7 @@ def _jsonable(value: Any) -> Any:
 
 
 def _emit(payload: Mapping[str, Any]) -> None:
-    print(json.dumps(_jsonable(payload), ensure_ascii=False, sort_keys=True, default=str))
+    print(json.dumps(_jsonable(payload), ensure_ascii=False, sort_keys=True, default=str), flush=True)
 
 
 def _run_readiness(args: argparse.Namespace) -> dict[str, Any]:

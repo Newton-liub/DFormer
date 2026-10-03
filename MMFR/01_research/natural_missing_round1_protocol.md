@@ -4,7 +4,7 @@
 > **形成/核验时点：** 2026-10-03。
 > **实时入口：** [当前状态](../../doc/main/MUSeg-current-status.md)；[开放决策](../../doc/main/MUSeg-open-decisions.md)。
 > **科学依据：** [Direction A canonical 正文](MMFR_direction_A_natural_missing_2026-10-02.md)，§5–6；[接入审计](../../doc/reports/2026-10-02-direction-plans-project-readiness-upper-review.md)与[目录审计](../../doc/reports/2026-10-03-project-directory-responsibility-audit.md)。
-> **权限：** 本轮只实现与就绪检查。精确C0和本机现有GPU满足条件时，每组最多3成功更新、极少量val-dev预检；正式三组训练和完整评价仍需下一轮授权。
+> **权限：** 初始实现/本机就绪授权保留为历史。2026-10-03用户另批现有4090有卡限量预检，仅三组各≤3成功更新、Linux workers8、30分钟平台关机保险和条件性SwanLab；先提交推送再云端拉取同SHA，结束主动停机。正式三组训练和完整评价仍未授权，详见§8。
 
 ## 1. 对象、身份与合法主张
 
@@ -73,4 +73,12 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 
 沿A正文§6.5：Replay自然高缺失比C0/Natural/Grid最强者至少+1.0pp；全体/低缺失各不劣于最强者超过0.3pp；矩形比Natural/Grid强者至少+0.5pp；entire-missing相对Grid不下降超过0.5pp；删除量、类别支持与采集组解释合格。任一关键条件不满足STOP，不增加模块/预算挽救。门槛是资源筛选线，不是统计显著性。
 
-本轮最多READY / PARTIALLY READY / BLOCKED工程结论，不产出上述科学GO/STOP。完整测试、正式7680更新、完整3816 view评价、B1a、NYUv2/外部baseline、official test与付费云均不运行。精确C0/本机资源阻塞不阻止纯代码与CPU准备，但不得宣称真实训练链通过。最终只提交就绪报告、真实检查与恢复点后停止。
+本轮最多READY / PARTIALLY READY / BLOCKED工程结论，不产出上述科学GO/STOP。初始实现阶段未运行正式7680更新、完整3816 view评价、B1a、NYUv2/外部baseline或official test；后续限量GPU资源权限仅按§8，不改变上述科研合同。
+
+## 8. 2026-10-03 已批准4090限量云端预检
+
+只启动现有`cpod-1vbh7faqcauq`有卡模式，不新建或改变付费规格。Natural/Grid/Replay各独立从原精确C0开始，最多3成功更新、Linux workers8，其余合同不变；C0沿用先前核验身份/原远端文件，不重复hash。预检前先提交必要代码，用户明确批准已有3提交和本轮必要提交推送origin同分支；云端拉取且HEAD一致/相关源码干净后才能运行。
+
+启动前优先设置并核验30分钟平台关机保险；仅支持运行态时立即在启动后设置，未成功前不提交训练，失败立即停机，不自动延长。SwanLab有条件时复用已有配置记录整体进度和成功/失败，监控与训练子进程隔离。持久任务顺序执行；OOM/非有限/身份不符或需改变合同就停，不增加尝试/改batch/precision挽救，不自动进入正式阶段。
+
+正常结束立即主动stop并直接确认Stopped，不等用户20分钟保险。若发现用户因完成/中断后无下一步操作已人工停机，记录并退出，不自动重启；正常结束后仍需小型证据取回时可短时CPU-only、取完停机。只在大阶段开始/结束/中断更新实时文档，小动作不写流水账。完整测试、正式训练/全集评价和official test仍关闭。
