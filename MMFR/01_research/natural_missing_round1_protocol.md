@@ -103,3 +103,11 @@ S1为original scale1、noflip、whole image、batch1、右/下normalized0 pad到
 - Direction B/B1a、Main-Val、NYUv2、外部baseline、official test、新seed/调参/救结果均未授权；本轮结束即停止，GO也只请求下一阶段授权。
 
 **大白话：** 获批的是一轮完整且预先定好门槛的对照实验；监控故障允许降级，科研训练或身份错误必须停，结果不够好就结束候选，不继续修模块。
+
+## 11. 零更新启动失败后的原预算继续授权（2026-10-03）
+
+首个正式编排提交`8d2490ef433807ec60d475cab27fbadd04d18e1f`遗漏训练入口必需的`--successful-updates 2560`，Natural在参数门禁退出，attempted0/successful0；其余组及S1未运行。失败证据已取回，最终直接确认实例Stopped/GPU0。该次属于工程INVALID，不能给科研GO/STOP。
+
+用户随后明确选择`continue_original_budget`：允许修正调用参数与停机监督判据，必要选择性提交push后用新SHA、新输出根执行尚未消耗的原三组2560预算与完整S1。首次失败原始证据保留在`outputs/natural-missing-round1-formal-20261003/`，不得覆盖。GPU平台保险仍为原绝对截止**2026-10-04 02:11:47+08:00 / Unix1791051107**，重新启动前及Running后必须核验；不得重新增加六小时。其余科学合同、停止规则与关闭边界不变，没有授权自动重试或追加预算。
+
+**大白话：** 只修复尚未进入训练的启动命令，继续原实验；第一次失败不算训练结果，也不换来额外时间。

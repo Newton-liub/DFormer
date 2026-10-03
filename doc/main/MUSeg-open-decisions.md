@@ -1,8 +1,8 @@
 # MUSeg 当前开放问题
 
-> **执行边界截至：2026-10-03（Direction A 正式首轮已批准）。** Natural/Grid/Replay各2560成功更新、四权重完整318图三条件S1、现有4090的6小时关机保险、完成后CPU-only取回及必要同分支提交push已由用户执行指令明确批准；SwanLab有限排障失败允许LOG_ONLY，不再列为未决选择。当前执行事实与恢复点见[实时状态](MUSeg-current-status.md)，授权及科研合同见[首轮protocol §10](../../MMFR/01_research/natural_missing_round1_protocol.md#10-2026-10-03-direction-a正式首轮最新授权)。
+> **执行边界截至：2026-10-03（0更新启动失败后的原预算重新执行已获用户明确批准）。** 本次失败只发生于启动参数校验，GPU/CPU-only已关闭；用户确认补齐命令后继续尚未执行的三组2560+完整S1，必须保留失败证据，先提交push新SHA/新输出根，沿原2026-10-04 02:11:47+08:00关机截止、不延长。实际运行状态见[实时状态](MUSeg-current-status.md)，持久授权见[首轮protocol](../../MMFR/01_research/natural_missing_round1_protocol.md)。
 
-本页只保留独立旧路线和论文库归属的真正未决事项；Direction A下一阶段只有本轮冻结门槛结果出来后才形成裁决问题。获批首轮不授权Round-2、NYUv2、baseline、Direction B/B1a、Main-Val或official test。**大白话：** 这次可以按原合同跑完整首轮，但不能根据中间结果加实验或自动进入下一轮。
+重新启动的选择已关闭，不再列为未决问题；SwanLab允许LOG_ONLY。下一科研阶段仍要等合法完整S1结果，当前不授权Round-2、NYUv2/baseline、Direction B/B1a、Main-Val或official test。**大白话：** 用户已同意修复启动命令后继续原实验，失败的0更新尝试不会计成正式训练，也不能改科研合同或延长保险。
 
 ## 1. A-v1 stop后是否例外授权本地val（待上级回复）
 

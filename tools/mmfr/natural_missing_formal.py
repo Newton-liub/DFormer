@@ -152,7 +152,7 @@ def train(strategy: str, args, root: Path, entry: dict, tracker, tracking: dict,
     started = time.monotonic()
     command = [sys.executable, "-u", "-m", "tools.mmfr.natural_missing_train", "--mode", "formal",
                "--strategy", strategy, "--c0-checkpoint", str(args.c0_checkpoint),
-               "--verified-c0-sha256", C0_SHA, "--authorize-formal-training"]
+               "--verified-c0-sha256", C0_SHA, "--successful-updates", "2560", "--authorize-formal-training"]
     final = None
     last = {}
     peak = {"allocated_mb": 0., "reserved_mb": 0.}

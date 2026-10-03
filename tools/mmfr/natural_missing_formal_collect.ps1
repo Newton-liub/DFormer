@@ -28,8 +28,13 @@ function Invoke-Cloud([string[]]$CloudArgs) {
     try { $value = ($lines -join "`n") | ConvertFrom-Json } catch {
         throw "Non-JSON cloud response (exit $exitCode)"
     }
-    if ($exitCode -ne 0 -or -not $value.ok) {
-        throw "Cloud command failed: $($CloudArgs[0..1] -join ' '); $($value.error.code): $($value.error.message)"
+    if (-not $value.ok) {
+        throw "Cloud command failed: $($CloudArgs[0..2] -join ' '); $($value.error.code): $($value.error.message)"
+    }
+    # A terminal failed job can return valid JSON with ok=true but a nonzero exit.
+    $isJobWait = $CloudArgs.Count -ge 3 -and $CloudArgs[1] -eq 'job' -and $CloudArgs[2] -eq 'wait'
+    if ($exitCode -ne 0 -and -not $isJobWait) {
+        throw "Cloud command returned exit $exitCode despite ok=true: $($CloudArgs[0..1] -join ' ')"
     }
     return $value
 }
@@ -38,14 +43,16 @@ function Add-Event([string]$Name, $Value) {
     Save-Record
     Write-Output "$Name $([DateTimeOffset]::Now.ToString('o'))"
 }
-function Stop-And-Confirm {
+function Stop-And-Confirm([switch]$RequireGpuZero) {
     $stop = Invoke-Cloud -CloudArgs @('instance','stop',$Instance,'--yes','--timeout','600')
     $show = Invoke-Cloud -CloudArgs @('instance','show',$Instance,'--status','--spec','--billing')
     $state = @($show.data.UHostSet)[0]
     Add-Event 'stopped_direct_query' $state
-    if ($state.State -ne 'Stopped' -or [int]$state.GPU -ne 0) {
-        throw 'Instance did not directly confirm Stopped/GPU0'
+    if ($state.State -ne 'Stopped' -or ($RequireGpuZero -and [int]$state.GPU -ne 0)) {
+        throw 'Instance did not directly confirm the required stopped state'
     }
+    # After a GPU-mode stop the API can retain GPU=1 as configured specification.
+    # CPU-only final shutdown must directly show both Stopped and GPU=0.
     $record.final_state = $state.State
     $record.final_gpu = [int]$state.GPU
     Save-Record
@@ -58,6 +65,14 @@ try {
     if ($remaining -le 0) { throw 'Too close to fixed GPU insurance deadline' }
     $wait = Invoke-Cloud -CloudArgs @('instance','job','wait',$Instance,$JobId,'--timeout',"$remaining",'--interval','30')
     Add-Event 'formal_job_terminal' $wait.data
+    $job = $wait.data.job
+    if (-not $job) { $job = $wait.data }
+    if ($job.State -notin @('Succeeded','Failed','Cancelled','Interrupted')) {
+        throw 'Job wait did not provide a recognized terminal state'
+    }
+    if ($job.State -ne 'Succeeded' -or [int]$job.ExitCode -ne 0) {
+        throw "Formal job terminated with state $($job.State), exit $($job.ExitCode); no automatic restart"
+    }
 } catch {
     $record.wait_error = $_.Exception.Message
     Save-Record
@@ -114,7 +129,7 @@ try {
     Write-Output "CPU retrieval error: $($record.retrieval_error)"
 } finally {
     # Include start timeout/partial start: querying and stopping is safer than assuming.
-    Stop-And-Confirm
+    Stop-And-Confirm -RequireGpuZero
 }
 $record.supervisor_finished_at = [DateTimeOffset]::Now.ToString('o')
 Save-Record
