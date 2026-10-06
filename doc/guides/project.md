@@ -31,7 +31,11 @@ DFormer/
 - 所有正式项目文档进入 `doc/`，不散落在根目录；实验结论进 `doc/reports/`，`doc/state/current.md` 只保留摘要和指针。
 - 产物统一使用 `outputs/<experiment>/<run-id>/`，按需使用 `checkpoints/`、`logs/`、`swanlab/`、`predictions/`、`eval/`、`tmp/`。取回的代码或配置先当待审材料，复核后归位到 `research/` 或 `local_configs/research/`。
 - 数据集、预训练权重、checkpoint、预测、大日志不进 Git；作者的默认 `checkpoints/` 与 `datasets/` 已由作者的 `.gitignore` 忽略。
-- 论文库和外部代码保持在仓库外：论文全文 `D:\0Project\origin\论文\`，外部 clone `D:\0Project\origin\`。旧索引位于归档 `D:\0Project\DFormer-archive-20261007\MMFR\03_reference\`；确需维护时定点迁移，不新建第二套索引或编号体系。
+- 论文库、索引与外部代码都保持在仓库外，入口见 [外部资源入口](external-resources.md)：论文全文 `D:\0Project\origin\论文\`（37 篇 canonical），索引真源与维护工具 `D:\0Project\origin\_index\`，外部 clone `D:\0Project\origin\<repo>\`。本仓库不复制第二份索引。
+
+## 环境
+
+- 本地研究环境是独立 conda 环境 `dformer`（支持本机 RTX 5060 的 CUDA 版本），旧 `df2` 已冻结不再修改；云端正式训练优先按作者推荐软件栈建环境。细节见 [运行环境](environment.md)。
 
 ## 外部与历史入口
 
