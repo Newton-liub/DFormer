@@ -12,12 +12,13 @@
 ## 已确认事实
 
 - **基线**：`upstream/main` = `e3273009b759b578945483828ff315d560be94c9`，是作者官方 DFormer / DFormerv2 / DFormer++ 代码，含 `models/encoders/DFormerPP.py` 与 `local_configs/NYUDepthv2/DFormerPP_{T,S,B}.py`。2026-10-07 用 `git ls-remote upstream` 复核，作者远端 `main` 仍是该提交，本分支 HEAD 与其一致，未落后。
-- **当前分支**：`research/dformerpp-clean-start`，直接从上述提交建立，未合并任何旧 MMFR 分支；工作区相对基线干净，共 1037 个跟踪文件。
-- **远端**：`origin` = `https://github.com/Newton-liub/DFormer.git`（你的 fork，`main` 为 `43012ae`，未改写）；`upstream` = `https://github.com/VCIP-RGBD/DFormer.git`，其 push URL 已设为禁用值，防止误推作者仓库。当前研究分支未设置 upstream 跟踪，推送需显式指定目标。
+- **当前分支**：`research/dformerpp-clean-start`，直接从上述提交建立，未合并任何旧 MMFR 分支；工作区相对基线干净，基线 1037 个跟踪文件，加上本轮提交的 11 个文档与 Cursor 文件共 1048 个。
+- **提交与推送**：本轮 `doc/` 与 `.cursor/` 共 11 个文件已作为该分支的首次提交 `64bc2bd` 推送到 `origin/research/dformerpp-clean-start`，本地 HEAD 与远端一致，工作区无未提交改动。旧 MMFR 历史仍在归档与新分支之外。
+- **远端**：`origin` = `https://github.com/Newton-liub/DFormer.git`（你的 fork，`main` 为 `43012ae`，未改写）；`upstream` = `https://github.com/VCIP-RGBD/DFormer.git`，其 push URL 已设为禁用值，防止误推作者仓库。研究分支现已跟踪 `origin/research/dformerpp-clean-start`，后续 push 默认只到 fork。
 - **Cursor 机制**：两个 Rule（`.cursor/rules/project-context.mdc`、`project-safety.mdc`）与四个 Skill（`project-state`、`research-idea`、`subagent-dispatch`、`compshare-cloud`）已随 Cursor 重载被发现，四个描述均正常显示（`compshare-cloud` 原先的冒号缺陷已修复生效）。实际执行验证：`project-state` 已用于读写本文件，`research-idea` 已写入一条真实 idea，`compshare-cloud` 的只读命令已在真实平台跑通，`subagent-dispatch` 已实际委派一次限定范围的只读盘点。现有子代理模型配置未改动。
 - **运行环境**：`df2` conda 环境（`D:\2Env\anaconda\envs\df2`）为 Python 3.10.20、torch 2.7.0+cu128（CUDA 可用、1 张卡）、mmcv 1.7.2、timm 1.0.28、numpy 2.2.6。与作者 README 建议的 torch 2.1.2+cu118 / mmcv 2.1.0 **不一致**；尚未用该环境 import 项目代码或运行任何流程，兼容性**待核验**。
 - **数据集**：本机 `D:\0Project\dataset\` 只有 MUSeg 两套产物——原始 `MUSeg`（六个矿区目录加 Experiment/Processing，约 1.44 GB）与已转换的 `MUSeg_DFormer`（RGB / Label / Depth / Depth16 各 3171 个文件，train 1595 + test 1576 = 3171，附 `dataset_meta.json`，约 1.47 GB）；文件后缀 `.jpg` / `.png` 与 RGBXDataset 约定一致。NYU Depth v2 与 SUN RGBD 本地不存在。本轮只做检查，未因此修改任何配置。
-- **预训练权重**：本机 `D:\0Project\pretrained\DFormerv2_Small_pretrained.pth`（约 105 MB）确认存在，对应作者 DFormerv2_Small 配置。作者 DFormer++ 配置需要的 `checkpoints/pretrained/DFormerPP_{Tiny,Small,Base}.pth.tar` 在 `D:\0Project\pretrained` 与仓库根目录的直接检查中均未发现，仓库内也没有 `checkpoints/` 目录；更大范围的只读盘点在本次收尾时仍未返回，故 DFormer++ 权重是否存在于其他位置**待核验**。
+- **预训练权重**：本机只有 `D:\0Project\pretrained\DFormerv2_Small_pretrained.pth`（105.1 MB），对应作者 `DFormerv2_S` 配置。在 `pretrained`、新仓库、旧归档、`origin` 外部 clone 和 `dataset` 五处（深度 ≤3）共 36 个权重文件里，没有任何 DFormer++ 权重，即作者 DFormer++ 配置需要的 `checkpoints/pretrained/DFormerPP_{Tiny,Small,Base}.pth.tar` 本地不存在，需要时须另行下载；仓库内也没有 `checkpoints/` 目录。归档里的 306 MB checkpoint 是旧 MMFR / Quick-B0 训练产物，不是作者预训练编码器。
 - **旧项目归档**：`D:\0Project\DFormer-archive-20261007\`。归档前身份 HEAD `8c274c59775427544ab209957c26974f4d40d083`、分支 `perf/mmfr-a2-v3-pipeline-opt1`、1463 个跟踪文件、13 个已修改文件、3 个未跟踪条目；归档后逐项复核一致，未丢失。归档保留完整 `.git`（历史、分支、remote、index）以及被忽略产物的目录结构。
 - **旧状态与证据位置**：旧实时状态和授权记录在归档的 `doc/main/MUSeg-current-status.md` 与 `doc/main/MUSeg-open-decisions.md`；旧实验证据在归档的 `MMFR/` 下。
 - **外部资料**：论文全文仍在 `D:\0Project\origin\论文\`，外部 clone 代码仍在 `D:\0Project\origin\`，均未复制进仓库；旧论文与代码索引在归档的 `MMFR/03_reference/`。
@@ -35,6 +36,8 @@
 - 研究方向未定，因此暂不迁入 MMFR、LER、旧 MUSeg 配置以及 `natural_missing` 等实现。
 - 旧 DFormerv2 的 C0 权重、训练授权、指标阈值和数值修复资格**不沿用**到 DFormer++ 新基线；新实验需重新定义并单独授权。
 - 新基线未做环境验证：未安装或升级依赖、未 import 配置、未做 forward、未运行测试。作者 NYU 配置的默认评价入口使用 `test.txt`，新方向必须重新决定数据与评价合同。
+- 运行环境与本基线不匹配：`df2` 是 torch 2.7.0+cu128 + mmcv 1.7.2，作者要求 torch 2.1.2+cu118 + mmcv 2.1.0。开工前需决定新建环境还是验证现有环境兼容，尚未做任何 import 或运行验证。
+- 预训练权重缺口：本机没有 DFormer++ 预训练编码器（`DFormerPP_*.pth.tar`），任何 DFormer++ 训练前必须先行获取；DFormerv2_S 的编码器权重已就绪。
 - 旧研究目录（MMFR、LER、protocols、experiments、human、tests）不恢复；`research/`、`local_configs/research/`、`doc/reports/`、`doc/archive/` 按需创建，当前不存在。
 
 ## 授权边界
@@ -45,4 +48,4 @@
 
 ## 恢复点
 
-新仓库位于 `D:\0Project\DFormer\`，分支 `research/dformerpp-clean-start`（HEAD `e3273009b759b578945483828ff315d560be94c9`），工作区只有本轮新增的文档与 Cursor 文件未跟踪，没有源码改动。旧项目完整保留在 `D:\0Project\DFormer-archive-20261007\`。中断后从这里继续：确定论文方向 → 评审最小迁移清单 → 需要时才动数据与云端。
+新仓库位于 `D:\0Project\DFormer\`，分支 `research/dformerpp-clean-start`（HEAD `64bc2bd`，基线为 `e3273009`），工作区干净、本地与 `origin` 一致。旧项目完整保留在 `D:\0Project\DFormer-archive-20261007\`。中断后从这里继续：确定论文方向 → 评审最小迁移清单 → 需要时才动数据与云端。
