@@ -119,7 +119,8 @@ DFormer++ 预训练编码器**官方尚未发布，当前无法从官方渠道�
 - 新建独立 conda 环境 `dformer` 并安装依赖；旧 `df2` 未改动。
 - 把 7 个仍有效的索引与维护工具文件复制到 `D:\0Project\origin\_index\`（逐一 sha256 比对与源一致），并更新其中的索引路径、状态抬头与失效链接；未移动、未删除、未改写 `论文\`、`论文待处理\`、`论文_duplicates_review\` 与任何 clone。
 - 仓库侧新增 `doc/guides/external-resources.md`、`doc/guides/environment.md`，更新项目指南、状态文件与本报告；未修改作者代码或配置。
+- 按补充定案把 `DFormerv2_Small_pretrained.pth` 复制到作者默认路径 `D:\0Project\DFormer\checkpoints\pretrained\`（两侧 sha256 一致；`checkpoints/` 被 Git 忽略，因此没有产生 Git 变更），并实测确认 `extra_norms.*` 为恒等初始化。
 
 ## 8. 恢复点
 
-五项裁决已执行完毕。后续从 `doc/state/current.md` 的“已裁决”与“下一步”继续：确定论文方向与第一轮研究问题 → 评审最小迁移清单 → 需要时才动数据与云端。任何权重下载、云资源操作、大规模重跑与推送仍需单独授权；`DFormerv2-Small` 的权重放置方式与 `extra_norms.*` 随机初始化两点先处理。
+五项裁决已执行完毕。后续从 `doc/state/current.md` 的“已裁决”与“下一步”继续：确定论文方向与第一轮研究问题 → 评审最小迁移清单 → 需要时才动数据与云端。任何权重下载、云资源操作、大规模重跑与推送仍需单独授权。补充定案（2026-10-07）：DFormerv2-Small 权重已复制到作者默认路径 `checkpoints\pretrained\`；`extra_norms.*` 为恒等初始化（实测 weight=1、bias=0），不是随机初始化，首次 baseline 验收记录一次 missing / unexpected keys 即可。

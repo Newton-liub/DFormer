@@ -17,10 +17,11 @@
 - 实际建模型并前向一次：`EncoderDecoder` + 本机 `D:\0Project\pretrained\DFormerv2_Small_pretrained.pth`，26.7M 参数，前向 0.78 秒，输出 `(1, 40, 480, 640)` float32、全部 finite，峰值显存 366 MiB。
 - 未运行训练、未跑完整测试、未做多卡或长耗时验证。
 
-## 需要先处理的两点
+## 权重放置与预训练加载（2026-10-07 已定案）
 
-1. **权重放置方式未定**：`DFormerv2_S` 配置期望 `checkpoints/pretrained/DFormerv2_Small_pretrained.pth`（相对仓库根），而权重目前在本机 `D:\0Project\pretrained\`。本次验证是在脚本里临时覆盖路径完成的，**没有**修改任何配置，也**没有**复制权重。正式运行前需要确定：复制到期望路径、建 junction，还是在研究配置里覆盖路径。
-2. **预训练键不完全匹配**：加载官方 DFormerv2_Small 权重时，`load_state_dict(strict=False)` 报告 `unexpected keys`（`proj.*`、`norm.*`、`head.*`、`aux_head.*`）与 `missing keys`（`extra_norms.0/1/2`）。这是上游行为——`DFormerv2.init_weights` 先初始化整个 backbone，再用 `strict=False` 覆盖匹配键，因此 `extra_norms.*` 保持新初始化（见 `models/encoders/DFormerv2.py:571-610`）。把 DFormerv2-S 作为第一轮 backbone 时，这是既定的上游设定，不是本轮改动引入的。
+1. **权重放在作者默认路径**：`D:\0Project\pretrained\DFormerv2_Small_pretrained.pth` 已复制到 `D:\0Project\DFormer\checkpoints\pretrained\DFormerv2_Small_pretrained.pth`（两侧 110203103 bytes、sha256 一致）。不建 junction、不在研究配置里写本机绝对路径；`checkpoints/` 由 `.gitignore` 忽略，云端沿用同一相对路径。原 `D:\0Project\pretrained\` 继续作为外部权重库。
+2. **`extra_norms.*` 是 identity 初始化，不是随机初始化**：官方 checkpoint 不包含 `extra_norms.*`；作者代码创建这三个 segmentation-side LayerNorm 后按标准初始化（weight = 1、bias = 0），因此它们等价于恒等变换。`strict=False` 加载时的 `unexpected keys`（`proj.*`、`norm.*`、`head.*`、`aux_head.*`）属于当前 segmentation backbone 不使用的预训练头参数，被忽略。2026-10-07 实测确认：三个 `extra_norms` 的 weight 全为 1、bias 全为 0（numel 128 / 256 / 512），且用配置自身路径即可成功建模型。**不补权重、不人工映射 key、不修改 loader。**
+3. 第一轮实验可如实表述为“使用作者官方 DFormerv2-Small pretrained checkpoint，并严格遵循官方代码的加载方式”。公平性只要求所有基于 DFormerv2-Small 的方法与 baseline 走同一套加载逻辑；这组 missing / unexpected keys 在首次 baseline 验收时记录一次即可，不需要每轮重审。
 
 ## 云端
 
