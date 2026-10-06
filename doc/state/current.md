@@ -13,7 +13,7 @@
 
 - **基线**：`upstream/main` = `e3273009b759b578945483828ff315d560be94c9`，是作者官方 DFormer / DFormerv2 / DFormer++ 代码，含 `models/encoders/DFormerPP.py` 与 `local_configs/NYUDepthv2/DFormerPP_{T,S,B}.py`。2026-10-07 用 `git ls-remote upstream` 复核，作者远端 `main` 仍是该提交，本分支 HEAD 与其一致，未落后。
 - **当前分支**：`research/dformerpp-clean-start`，直接从上述提交建立，未合并任何旧 MMFR 分支；工作区相对基线干净，基线 1037 个跟踪文件，加上本轮提交的 11 个文档与 Cursor 文件共 1048 个。
-- **提交与推送**：本轮 `doc/` 与 `.cursor/` 共 11 个文件已作为该分支的首次提交 `64bc2bd` 推送到 `origin/research/dformerpp-clean-start`，本地 HEAD 与远端一致，工作区无未提交改动。旧 MMFR 历史仍在归档与新分支之外。
+- **提交与推送**：分支 `research/dformerpp-clean-start` 现有 5 个提交：`64bc2bd`（文档与 Cursor Skill 首次提交）、`f26612d` 与 `4425d37`（状态与 Skill 验证记录）、`c85cc11`（裁决执行）、`7d1942f`（权重放置与 `extra_norms` 措辞修正）。最后两个已按用户批准显式推送，远端与本地 HEAD 同为 `7d1942f`；`origin/main` 未改动（`43012ae`），`upstream` push 仍禁用。分支的 tracking 配置来自更早一次 `-u` 推送，本轮未新增。
 - **远端**：`origin` = `https://github.com/Newton-liub/DFormer.git`（你的 fork，`main` 为 `43012ae`，未改写）；`upstream` = `https://github.com/VCIP-RGBD/DFormer.git`，其 push URL 已设为禁用值，防止误推作者仓库。研究分支现已跟踪 `origin/research/dformerpp-clean-start`，后续 push 默认只到 fork。
 - **Cursor 机制**：两个 Rule（`.cursor/rules/project-context.mdc`、`project-safety.mdc`）与四个 Skill（`project-state`、`research-idea`、`subagent-dispatch`、`compshare-cloud`）已随 Cursor 重载被发现，四个描述均正常显示（`compshare-cloud` 原先的冒号缺陷已修复生效）。实际执行验证：`project-state` 已用于读写本文件，`research-idea` 已写入一条真实 idea，`compshare-cloud` 的只读命令已在真实平台跑通，`subagent-dispatch` 已成功启动一次限定范围的只读盘点——但该子代理长时间未返回结果，已按用户决定停止，因此“委派可启动”已验证、“子代理能按时完成”**未验证**。现有子代理模型配置未改动。
 - **运行环境**：本地研究环境是新建立的独立 conda 环境 `dformer`（`D:\2Env\anaconda\envs\dformer`），Python 3.10.20、torch 2.7.0+cu128、torchvision 0.22.0+cu128、scipy 1.15.3、mmcv 1.7.2、mmengine 0.10.7、timm 1.0.30、numpy 2.2.6。本机 GPU 为 RTX 5060 Laptop（compute capability 12.0），因此本地按“先满足 GPU”选择 CUDA 12.8 wheel，而非照搬作者的 torch 2.1.2+cu118；mmcv 2.1.0 没有对应 cu128/torch2.7 的预编译包，故本地用 PyPI lite 版 1.7.2。旧 `df2` 环境已**冻结**，不再修改。最小验证已通过：导入 `mmcv.cnn.ConvModule` 与 `LightHamHead` 成功，导入 `DFormerv2_S` 配置成功，用本机 DFormerv2_Small 权重建模型并前向一次成功（26.7M 参数、输出 `(1,40,480,640)`、全 finite、峰值 366 MiB）。详见 [运行环境](../guides/environment.md)。
@@ -57,4 +57,4 @@
 
 ## 恢复点
 
-新仓库位于 `D:\0Project\DFormer\`，分支 `research/dformerpp-clean-start`（基线 `e3273009`）。本轮裁决执行产生的改动（状态、报告、外部资源与环境入口文档、Rule 微调）已提交到本地该分支，**未推送**；`origin\_index\` 的索引位于 Git 之外。旧项目完整保留在 `D:\0Project\DFormer-archive-20261007\`。中断后从这里继续：确定论文方向 → 评审最小迁移清单 → 需要时才动数据与云端。
+新仓库位于 `D:\0Project\DFormer\`，分支 `research/dformerpp-clean-start`（HEAD `7d1942f`，基线 `e3273009`），本地与 `origin` 一致，工作区干净；`origin\_index\` 的索引位于 Git 之外。旧项目完整保留在 `D:\0Project\DFormer-archive-20261007\`。工程准备到此停止，后续从这里继续：确定论文方向 → 评审最小迁移清单 → 需要时才动数据与云端。
