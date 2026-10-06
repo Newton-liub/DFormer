@@ -1,0 +1,12 @@
+---
+description: Route DFormer project work to the live project state and document conventions. Use when working on DFormer research, source code, data, experiments, cloud runs, reports, or releases in this repository.
+alwaysApply: false
+---
+
+# DFormer 项目上下文
+
+- 这是 DFormer / RGBD 语义分割研究仓库。涉及本项目的研究、源码、数据、实验、云资源、报告或发布任务时，先读取 `doc/state/current.md`；需要目录与产物约定时读 `doc/guides/project.md`；涉及云端时读 `doc/guides/cloud.md`。
+- 与本项目无关的普通问答不要读取项目状态，也不要更新它。
+- `doc/state/current.md` 是当前事实、授权边界与恢复点的唯一入口；`doc/plans/` 与 `doc/reports/` 是详细材料，不替代状态。
+- 作者 upstream 目录尽量保持原样；我们的研究代码放 `research/`，配置放 `local_configs/research/`，正式文档放 `doc/`。
+- 旧项目已完整封存于 `D:\0Project\DFormer-archive-20261007\`；默认不迁回，需要时按需取用。
