@@ -177,3 +177,6 @@ infer*.sh
 
 # temp ignore:
 **/*_temp*
+
+# local-only shortcut: paper index visualisation tool
+/论文库可视化.lnk
