@@ -21,6 +21,7 @@ from utils.engine.logger import get_logger
 from utils.init_func import configure_optimizers, group_weight
 from utils.lr_policy import WarmUpPolyLR
 from utils.pyt_utils import all_reduce_tensor
+from research.tracking import start_tracking, log_epoch
 
 # from eval import evaluate_mid
 
@@ -250,6 +251,7 @@ with Engine(custom_parser=parser) as engine:
         engine.restore_checkpoint()
 
     optimizer.zero_grad()
+    tracking_run = start_tracking(config, args, engine)
 
     logger.info("begin trainning:")
     data_setting = {
@@ -519,6 +521,12 @@ with Engine(custom_parser=parser) as engine:
             logger.info(f"Epoch {epoch} validation result: mIoU {miou}, best mIoU {best_miou}")
             eval_timer.stop()
 
+        log_epoch(
+            tracking_run, epoch, epoch * config.niters_per_epoch,
+            sum_loss / config.niters_per_epoch, lr,
+            miou if is_eval(epoch, config) else None,
+        )
+
         eval_count = 0
         for i in range(engine.state.epoch + 1, config.nepochs + 1):
             if is_eval(i, config):
@@ -528,3 +536,6 @@ with Engine(custom_parser=parser) as engine:
         logger.info(
             f"Avg train time: {train_timer.mean_time:.2f}s, avg eval time: {eval_timer.mean_time:.2f}s, left eval count: {eval_count}, ETA: {eta}"
         )
+
+    if tracking_run is not None:
+        tracking_run.finish()

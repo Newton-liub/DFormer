@@ -13,7 +13,7 @@
 
 ## 1. 实例与有卡/无卡模式
 
-- 无卡（CPU）模式用于准备与回收：`compshare --json instance start <id> --without-gpu A --wait --timeout 600`（`A` / `B` 是平台的无卡规格档位，先按 `--help` 与平台说明核对，不要预设免费或性能）。
+- 无卡（CPU）模式用于准备与回收：`compshare --json instance start <id> --without-gpu A --wait --timeout 600`（`A` / `B` 是平台的无卡规格档位，先按 `--help` 与平台说明核对，不要预设免费或性能）。本项目现有实例实测 A 档为 2 CPU / 4 GiB / GPU=0；平台报价字段 `InstancePrice=0.13`，不能因此声称无卡免费。
 - 有卡模式用于训练，属于计费状态：只在本次授权明确、代码与数据就绪、关机保险设置完成后启动。
 - 启动/停止均显式给超时并回读状态；超时后先查实际状态，不盲目重试：`compshare --json instance stop <id> --yes --wait --timeout 600`。
 - 关机不等于零成本：系统盘可能继续计费，实例保留还是释放需单独决策。`compshare --json instance billing` 是规格价格估算（必须给 `--gpu`），不是当前账单，不能当作实时费用依据。
@@ -28,7 +28,7 @@
 ## 3. 代码同步
 
 - 代码只通过 Git 同步，不用旧目录快照或压缩包覆盖工作区。云端与本地必须指向同一个已确认 commit：`git rev-parse HEAD` 与 `git status --porcelain` 都要核对（目标为同 HEAD、受跟踪文件干净）。
-- 推送由主代理在获得用户确认后执行；云端只做 pull/fetch 到该 commit。
+- 推送由主代理在获得用户确认后执行；云端只做 pull/fetch 到该 commit。若只授权本地提交，使用 Git bundle：本地 `git bundle create <outside-worktree>.bundle <branch> ^<base>`，经 SSH 传到云端，云端 `git fetch <bundle> <branch>` 后 `git checkout -B <branch> FETCH_HEAD`，同步完成删除临时 bundle；仍是 Git 同步，不推送远端。
 - 训练所需的小文件用 `compshare --json instance cp <id> <local> :<remote>`；数据集与权重若已在云端，不要重复上传。
 - 取回：`compshare --json instance cp <id> :<remote> <local>`。
 
@@ -43,7 +43,7 @@
 - 先确认实际安装版本与可用模式（online / offline / local / log-only），以该版本的 `swanlab` 帮助与文档为准，不硬编码未核验的参数名。
 - 凭据只来自环境变量或本机登录配置，绝不写进仓库、Skill 或日志。未登录或模式不明时按 log-only 处理并记录，不长期阻塞训练。
 - 记录本次 run 的 SwanLab 项目名、模式与产物位置，产物取回到 `outputs/<experiment>/<run-id>/swanlab/`。
-- 作者代码当前使用 TensorBoard；如需 SwanLab 集成，另做小范围实现并单独授权，不改作者公共训练入口。
+- 作者代码保留 TensorBoard；新研究配置通过 `research/tracking.py` 的可选调用启用 SwanLab，公共训练入口只增加最小日志调用，不改变训练 / 评价算法。配置与字段见 [新研究配置](research-setup.md)。官方持久登录使用 `swanlab.login(..., save=True)`，凭据保存在用户目录 `~/.swanlab/.netrc`，不得入 Git。
 
 ## 6. 结果回收
 

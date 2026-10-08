@@ -180,3 +180,8 @@ infer*.sh
 
 # local-only shortcut: paper index visualisation tool
 /论文库可视化.lnk
+
+# Local credentials and tool state (never commit)
+/临时/key.txt
+/.serena/
+/swanlog/
