@@ -1,0 +1,38 @@
+---
+description: Paper-library write boundaries. Apply when running paper intake, supplement evidence, index writes, bundle assets, or any change to D:\0Project\origin\_index and D:\0Project\origin\论文.
+alwaysApply: false
+---
+
+# 论文库操作边界
+
+外部论文库、唯一索引与工具在仓库外：`D:\0Project\origin\论文\`（canonical 资产）、`D:\0Project\origin\_index\`（`PAPER_LIBRARY_INDEX.json` 唯一真源）。入口与字段所有权见 `doc/guides/external-resources.md` 与 `_index\README.md`。
+
+## 原资产只读
+
+- 已有 bundle 只读。不覆盖、不改名、不合并、不删除已有论文资产或其附件。
+- 入库只做「复制来源到目标」，来源不移动、不删除。来源清理永远另行授权。
+- 疑似版本、同文异附件、重复来源一律留原处并报告，不自动选优或合并。
+
+## 唯一写入通道
+
+- 索引只能经 `_index\tools\paper_library_store.py` 保存；不直接编辑 JSON，不另写写入器，不整文件覆盖。
+- 保存必须携带审批基线指纹（`expected_fingerprint`）；指纹不一致即停止，不用新指纹绕过审批。
+- 无实际字段变化时不保存、不轮转备份、不增加 revision。
+
+## 人工身份字段保护
+
+- 不覆盖 `human.manual_ids` / `unverified_manual_ids` / `primary_manual_id` / `tags` / `is_core` / `reading_status` / `supplement` / `bibliographic_overrides`。
+- 不手工分配 LIB 编号；编号由现有 `_sync_index` 生成。
+- 局部阅读不自动把阅读状态改为 `full_text_completed`。
+
+## 审批范围与冲突停止
+
+- 默认只出审核材料（审核 JSON + 摘要），拿到明确批准后才执行 apply；跨消息操作要重新显式调用对应 Skill。
+- apply 只执行已批准清单内的对象；出现清单外的新增、旧记录变化、身份警告、目标冲突或并发修改即停止并重新送审。
+- 停止时报告准确阶段、已发生的复制/提交、残留文件与恢复前置条件；不自动回滚、不自动重试提交。
+
+## 证据类型区分
+
+- 区分论文正文事实、官方实现事实、模型判断三类，各自标注来源。
+- 未实际打开的文件不算已读；未核实的字段保留未知，不用预印本年、README 承诺或推测补正式值。
+- 科研判断与最终裁决由上级模型或用户负责，工具不生成科研结论。

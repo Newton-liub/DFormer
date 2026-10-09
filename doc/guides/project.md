@@ -31,7 +31,7 @@ DFormer/
 - 所有正式项目文档进入 `doc/`，不散落在根目录；实验结论进 `doc/reports/`，`doc/state/current.md` 只保留摘要和指针。
 - 产物统一使用 `outputs/<experiment>/<run-id>/`，按需使用 `checkpoints/`、`logs/`、`swanlab/`、`predictions/`、`eval/`、`tmp/`。取回的代码或配置先当待审材料，复核后归位到 `research/` 或 `local_configs/research/`。
 - 数据集、预训练权重、checkpoint、预测、大日志不进 Git；作者的默认 `checkpoints/` 与 `datasets/` 已由作者的 `.gitignore` 忽略。
-- 论文库、索引与外部代码都保持在仓库外，入口见 [外部资源入口](external-resources.md)：论文全文 `D:\0Project\origin\论文\`（37 篇 canonical），索引真源与维护工具 `D:\0Project\origin\_index\`，外部 clone `D:\0Project\origin\<repo>\`。本仓库不复制第二份索引。
+- 论文库、索引与外部代码都保持在仓库外，入口见 [外部资源入口](external-resources.md)：论文全文 `D:\0Project\origin\论文\`（45 篇 canonical），索引真源与维护工具 `D:\0Project\origin\_index\`，外部 clone `D:\0Project\origin\<repo>\`。本仓库不复制第二份索引。
 
 ## 环境
 
