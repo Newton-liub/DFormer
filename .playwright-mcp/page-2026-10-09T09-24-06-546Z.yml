@@ -1,0 +1,1607 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - link "Skip to content" [ref=e4] [cursor=pointer]:
+        - /url: "#start-of-content"
+      - banner [ref=e9]:
+        - heading "Navigation Menu" [level=2] [ref=e10]
+        - generic [ref=e11]:
+          - link "Homepage" [ref=e13] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e16]:
+            - navigation "Global" [ref=e17]:
+              - list [ref=e18]:
+                - listitem [ref=e19]:
+                  - button "Platform" [ref=e21] [cursor=pointer]
+                - listitem [ref=e24]:
+                  - button "Solutions" [ref=e26] [cursor=pointer]
+                - listitem [ref=e29]:
+                  - button "Resources" [ref=e31] [cursor=pointer]
+                - listitem [ref=e34]:
+                  - button "Open Source" [ref=e36] [cursor=pointer]
+                - listitem [ref=e39]:
+                  - button "Enterprise" [ref=e41] [cursor=pointer]
+                - listitem [ref=e44]:
+                  - link "Pricing" [ref=e45] [cursor=pointer]:
+                    - /url: https://github.com/pricing
+            - generic [ref=e46]:
+              - button "Search or jump to, type / to search" [ref=e48] [cursor=pointer]:
+                - generic [ref=e51]:
+                  - generic [ref=e52]: Search
+                  - generic [aria-hidden] [ref=e53]: /
+              - link "Sign in" [ref=e55] [cursor=pointer]:
+                - /url: /login?return_to=https%3A%2F%2Fgithub.com%2FInSAI-Lab%2FDELIVER%2Fblob%2Fmain%2Fsemseg%2Fdatasets%2Fdeliver.py
+              - link "Sign up" [ref=e58] [cursor=pointer]:
+                - /url: /signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E%2Fblob%2Fshow&source=header-repo&source_repo=InSAI-Lab%2FDELIVER
+              - button "Appearance settings" [ref=e61] [cursor=pointer]
+    - main [ref=e68]:
+      - generic "Global navigation menu" [ref=e71]:
+        - navigation "Breadcrumbs" [ref=e74]:
+          - list [ref=e75]:
+            - listitem [ref=e76]:
+              - link "InSAI-Lab" [ref=e77] [cursor=pointer]:
+                - /url: /InSAI-Lab
+            - listitem [ref=e79]:
+              - link "DELIVER" [ref=e80] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER
+        - heading "Repository navigation" [level=2] [ref=e83]
+        - navigation "Repository" [ref=e84]:
+          - list [ref=e85]:
+            - listitem [ref=e86]:
+              - link "Code" [ref=e87] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER
+            - listitem [ref=e92]:
+              - link "Issues (9)" [ref=e93] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER/issues
+                - generic [ref=e98]: Issues
+                - generic [ref=e99]:
+                  - generic [aria-hidden] [ref=e100]: "9"
+                  - generic [ref=e101]: (9)
+            - listitem [ref=e102]:
+              - link "Pull requests (1)" [ref=e103] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER/pulls
+                - generic [ref=e107]: Pull requests
+                - generic [ref=e108]:
+                  - generic [aria-hidden] [ref=e109]: "1"
+                  - generic [ref=e110]: (1)
+            - listitem [ref=e111]:
+              - link "Actions" [ref=e112] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER/actions
+            - listitem [ref=e117]:
+              - link "Projects" [ref=e118] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER/projects
+            - listitem [ref=e123]:
+              - link "Security and quality" [ref=e124] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER/security
+            - listitem [ref=e129]:
+              - link "Insights" [ref=e130] [cursor=pointer]:
+                - /url: /InSAI-Lab/DELIVER/pulse
+      - generic [ref=e142]:
+        - generic [ref=e144]:
+          - generic [ref=e147]:
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - heading "Collapse file tree" [level=2] [ref=e150]:
+                  - button "Collapse file tree" [expanded] [ref=e151] [cursor=pointer]
+                - heading "Files" [level=2] [ref=e155]
+              - generic [ref=e156]:
+                - button "main branch" [ref=e158] [cursor=pointer]:
+                  - generic [ref=e159]: main
+                - button "Search this repository (forward slash)" [ref=e164] [cursor=pointer]
+            - combobox "Go to file" [ref=e172]
+            - navigation "File Tree Navigation" [ref=e178]:
+              - tree "Files" [ref=e180]:
+                - treeitem "configs" [level=1] [ref=e181]
+                - treeitem "figs" [level=1] [ref=e193]
+                - treeitem "semseg" [expanded] [level=1] [ref=e205]:
+                  - group "semseg" [ref=e217]:
+                    - treeitem "datasets" [expanded] [level=2] [ref=e218]:
+                      - group "datasets" [ref=e233]:
+                        - treeitem "__init__.py" [level=3] [ref=e234]
+                        - treeitem "deliver.py" [level=3] [ref=e246]
+                        - treeitem "kitti360.py" [level=3] [ref=e258]
+                        - treeitem "mcubes.py" [level=3] [ref=e270]
+                        - treeitem "mfnet.py" [level=3] [ref=e282]
+                        - treeitem "nyu.py" [level=3] [ref=e294]
+                        - treeitem "unzip.py" [level=3] [ref=e306]
+                        - treeitem "urbanlf.py" [level=3] [ref=e318]
+                    - treeitem "models" [level=2] [ref=e330]
+                    - treeitem "utils" [level=2] [ref=e345]
+                    - treeitem "__init__.py" [level=2] [ref=e360]
+                    - treeitem "augmentations.py" [level=2] [ref=e371]
+                    - treeitem "augmentations_mm.py" [level=2] [ref=e382]
+                    - treeitem "losses.py" [level=2] [ref=e393]
+                    - treeitem "metrics.py" [level=2] [ref=e404]
+                    - treeitem "optimizers.py" [level=2] [ref=e415]
+                    - treeitem "schedulers.py" [level=2] [ref=e426]
+                - treeitem "tools" [level=1] [ref=e437]
+                - treeitem ".gitignore" [level=1] [ref=e449]
+                - treeitem "LICENSE" [level=1] [ref=e457]
+                - treeitem "README.md" [level=1] [ref=e465]
+                - treeitem "environment.yaml" [level=1] [ref=e473]
+                - treeitem "requirements.txt" [level=1] [ref=e481]
+          - slider "Draggable pane splitter" [ref=e490]
+        - generic [ref=e493]:
+          - generic [ref=e497]:
+            - generic [ref=e499]:
+              - navigation [ref=e500]:
+                - heading "Breadcrumbs" [level=2] [ref=e501]
+                - list [ref=e502]:
+                  - listitem [ref=e503]:
+                    - link "DELIVER" [ref=e504] [cursor=pointer]:
+                      - /url: /InSAI-Lab/DELIVER/tree/main
+                  - listitem [ref=e505]:
+                    - text: /
+                    - link "semseg" [ref=e506] [cursor=pointer]:
+                      - /url: /InSAI-Lab/DELIVER/tree/main/semseg
+                  - listitem [ref=e507]:
+                    - text: /
+                    - link "datasets" [ref=e508] [cursor=pointer]:
+                      - /url: /InSAI-Lab/DELIVER/tree/main/semseg/datasets
+              - generic [ref=e509]:
+                - text: /
+                - heading "deliver.py" [level=1] [ref=e510]
+              - button "Copy path" [ref=e511] [cursor=pointer]
+            - button "More file actions" [ref=e518] [cursor=pointer]
+          - generic [ref=e521]:
+            - generic [ref=e523]:
+              - heading "Latest commit" [level=2] [ref=e524]
+              - generic [ref=e527]:
+                - heading "History" [level=2] [ref=e528]
+                - link "History" [ref=e529] [cursor=pointer]:
+                  - /url: /InSAI-Lab/DELIVER/commits/main/semseg/datasets/deliver.py
+            - generic [ref=e533]:
+              - generic [ref=e535]:
+                - heading "File metadata and controls" [level=2] [ref=e536]
+                - generic [ref=e537]:
+                  - list "File view" [ref=e538]:
+                    - listitem [ref=e539]:
+                      - button "Code" [pressed] [ref=e540] [cursor=pointer]
+                    - listitem [ref=e543]:
+                      - button "Blame" [ref=e544] [cursor=pointer]
+                  - generic "4.61 KB" [ref=e549]: 125 lines (112 loc) · 4.61 KB
+                - generic [ref=e550]:
+                  - generic [ref=e551]:
+                    - generic [ref=e552]:
+                      - link "Raw" [ref=e554] [cursor=pointer]:
+                        - /url: https://github.com/InSAI-Lab/DELIVER/raw/refs/heads/main/semseg/datasets/deliver.py
+                      - button "Copy raw file" [ref=e558] [cursor=pointer]
+                      - button "Download raw file" [ref=e563] [cursor=pointer]
+                    - generic [ref=e567]:
+                      - button "You must be signed in to make or propose changes" [disabled] [ref=e569]
+                      - button "More edit options" [ref=e573] [cursor=pointer]
+                  - button "Open symbols panel" [ref=e576] [cursor=pointer]
+              - region "deliver.py" [ref=e580]:
+                - generic [ref=e584]:
+                  - textbox "file content" [ref=e589]: "import os import torch import numpy as np from torch import Tensor from torch.utils.data import Dataset import torchvision.transforms.functional as TF from torchvision import io from pathlib import Path from typing import Tuple import glob import einops from torch.utils.data import DataLoader from torch.utils.data import DistributedSampler, RandomSampler from semseg.augmentations_mm import get_train_augmentation class DELIVER(Dataset): \"\"\" num_classes: 25 \"\"\" CLASSES = [\"Building\", \"Fence\", \"Other\", \"Pedestrian\", \"Pole\", \"RoadLine\", \"Road\", \"SideWalk\", \"Vegetation\", \"Cars\", \"Wall\", \"TrafficSign\", \"Sky\", \"Ground\", \"Bridge\", \"RailTrack\", \"GroundRail\", \"TrafficLight\", \"Static\", \"Dynamic\", \"Water\", \"Terrain\", \"TwoWheeler\", \"Bus\", \"Truck\"] PALETTE = torch.tensor([[70, 70, 70], [100, 40, 40], [55, 90, 80], [220, 20, 60], [153, 153, 153], [157, 234, 50], [128, 64, 128], [244, 35, 232], [107, 142, 35], [0, 0, 142], [102, 102, 156], [220, 220, 0], [70, 130, 180], [81, 0, 81], [150, 100, 100], [230, 150, 140], [180, 165, 180], [250, 170, 30], [110, 190, 160], [170, 120, 50], [45, 60, 150], [145, 170, 100], [ 0, 0, 230], [ 0, 60, 100], [ 0, 0, 70], ]) def __init__(self, root: str = 'data/DELIVER', split: str = 'train', transform = None, modals = ['img'], case = None) -> None: super().__init__() assert split in ['train', 'val', 'test'] self.transform = transform self.n_classes = len(self.CLASSES) self.ignore_label = 255 self.modals = modals self.files = sorted(glob.glob(os.path.join(*[root, 'img', '*', split, '*', '*.png']))) # --- debug # self.files = sorted(glob.glob(os.path.join(*[root, 'img', '*', split, '*', '*.png'])))[:100] # --- split as case if case is not None: assert case in ['cloud', 'fog', 'night', 'rain', 'sun', 'motionblur', 'overexposure', 'underexposure', 'lidarjitter', 'eventlowres'], \"Case name not available.\" _temp_files = [f for f in self.files if case in f] self.files = _temp_files if not self.files: raise Exception(f\"No images found in {img_path}\") print(f\"Found {len(self.files)} {split} {case} images.\") def __len__(self) -> int: return len(self.files) def __getitem__(self, index: int) -> Tuple[Tensor, Tensor]: rgb = str(self.files[index]) x1 = rgb.replace('/img', '/hha').replace('_rgb', '_depth') x2 = rgb.replace('/img', '/lidar').replace('_rgb', '_lidar') x3 = rgb.replace('/img', '/event').replace('_rgb', '_event') lbl_path = rgb.replace('/img', '/semantic').replace('_rgb', '_semantic') sample = {} sample['img'] = io.read_image(rgb)[:3, ...] H, W = sample['img'].shape[1:] if 'depth' in self.modals: sample['depth'] = self._open_img(x1) if 'lidar' in self.modals: sample['lidar'] = self._open_img(x2) if 'event' in self.modals: eimg = self._open_img(x3) sample['event'] = TF.resize(eimg, (H, W), TF.InterpolationMode.NEAREST) label = io.read_image(lbl_path)[0,...].unsqueeze(0) label[label==255] = 0 label -= 1 sample['mask'] = label if self.transform: sample = self.transform(sample) label = sample['mask'] del sample['mask'] label = self.encode(label.squeeze().numpy()).long() sample = [sample[k] for k in self.modals] return sample, label def _open_img(self, file): img = io.read_image(file) C, H, W = img.shape if C == 4: img = img[:3, ...] if C == 1: img = img.repeat(3, 1, 1) return img def encode(self, label: Tensor) -> Tensor: return torch.from_numpy(label) if __name__ == '__main__': cases = ['cloud', 'fog', 'night', 'rain', 'sun', 'motionblur', 'overexposure', 'underexposure', 'lidarjitter', 'eventlowres'] traintransform = get_train_augmentation((1024, 1024), seg_fill=255) for case in cases: trainset = DELIVER(transform=traintransform, split='val', case=case) trainloader = DataLoader(trainset, batch_size=2, num_workers=2, drop_last=False, pin_memory=False) for i, (sample, lbl) in enumerate(trainloader): print(torch.unique(lbl))"
+                  - generic:
+                    - generic:
+                      - generic [aria-hidden]:
+                        - generic [ref=e590]:
+                          - generic [ref=e591] [cursor=pointer]: "1"
+                          - generic [ref=e592] [cursor=pointer]: "2"
+                          - generic [ref=e593] [cursor=pointer]: "3"
+                          - generic [ref=e594] [cursor=pointer]: "4"
+                          - generic [ref=e595] [cursor=pointer]: "5"
+                          - generic [ref=e596] [cursor=pointer]: "6"
+                          - generic [ref=e597] [cursor=pointer]: "7"
+                          - generic [ref=e598] [cursor=pointer]: "8"
+                          - generic [ref=e599] [cursor=pointer]: "9"
+                          - generic [ref=e600] [cursor=pointer]: "10"
+                          - generic [ref=e601] [cursor=pointer]: "11"
+                          - generic [ref=e602] [cursor=pointer]: "12"
+                          - generic [ref=e603] [cursor=pointer]: "13"
+                          - generic [ref=e604] [cursor=pointer]: "14"
+                          - generic [ref=e605] [cursor=pointer]: "15"
+                          - generic [ref=e606] [cursor=pointer]:
+                            - text: "16"
+                            - button [expanded] [ref=e607]
+                          - generic [ref=e610] [cursor=pointer]: "17"
+                          - generic [ref=e611] [cursor=pointer]: "18"
+                          - generic [ref=e612] [cursor=pointer]: "19"
+                          - generic [ref=e613] [cursor=pointer]: "20"
+                          - generic [ref=e614] [cursor=pointer]: "21"
+                          - generic [ref=e615] [cursor=pointer]: "22"
+                          - generic [ref=e616] [cursor=pointer]: "23"
+                          - generic [ref=e617] [cursor=pointer]:
+                            - text: "24"
+                            - button [expanded] [ref=e618]
+                          - generic [ref=e621] [cursor=pointer]: "25"
+                          - generic [ref=e622] [cursor=pointer]: "26"
+                          - generic [ref=e623] [cursor=pointer]: "27"
+                          - generic [ref=e624] [cursor=pointer]: "28"
+                          - generic [ref=e625] [cursor=pointer]: "29"
+                          - generic [ref=e626] [cursor=pointer]: "30"
+                          - generic [ref=e627] [cursor=pointer]: "31"
+                          - generic [ref=e628] [cursor=pointer]: "32"
+                          - generic [ref=e629] [cursor=pointer]: "33"
+                          - generic [ref=e630] [cursor=pointer]: "34"
+                          - generic [ref=e631] [cursor=pointer]: "35"
+                          - generic [ref=e632] [cursor=pointer]: "36"
+                          - generic [ref=e633] [cursor=pointer]: "37"
+                          - generic [ref=e634] [cursor=pointer]: "38"
+                          - generic [ref=e635] [cursor=pointer]: "39"
+                          - generic [ref=e636] [cursor=pointer]: "40"
+                          - generic [ref=e637] [cursor=pointer]: "41"
+                          - generic [ref=e638] [cursor=pointer]: "42"
+                          - generic [ref=e639] [cursor=pointer]: "43"
+                          - generic [ref=e640] [cursor=pointer]: "44"
+                          - generic [ref=e641] [cursor=pointer]: "45"
+                          - generic [ref=e642] [cursor=pointer]: "46"
+                          - generic [ref=e643] [cursor=pointer]: "47"
+                          - generic [ref=e644] [cursor=pointer]: "48"
+                          - generic [ref=e645] [cursor=pointer]: "49"
+                          - generic [ref=e646] [cursor=pointer]: "50"
+                          - generic [ref=e647] [cursor=pointer]:
+                            - text: "51"
+                            - button [expanded] [ref=e648]
+                          - generic [ref=e651] [cursor=pointer]: "52"
+                          - generic [ref=e652] [cursor=pointer]: "53"
+                          - generic [ref=e653] [cursor=pointer]: "54"
+                          - generic [ref=e654] [cursor=pointer]: "55"
+                          - generic [ref=e655] [cursor=pointer]: "56"
+                          - generic [ref=e656] [cursor=pointer]: "57"
+                          - generic [ref=e657] [cursor=pointer]: "58"
+                          - generic [ref=e658] [cursor=pointer]: "59"
+                          - generic [ref=e659] [cursor=pointer]: "60"
+                          - generic [ref=e660] [cursor=pointer]: "61"
+                          - generic [ref=e661] [cursor=pointer]: "62"
+                          - generic [ref=e662] [cursor=pointer]: "63"
+                          - generic [ref=e663] [cursor=pointer]: "64"
+                          - generic [ref=e664] [cursor=pointer]: "65"
+                          - generic [ref=e665] [cursor=pointer]: "66"
+                          - generic [ref=e666] [cursor=pointer]: "67"
+                          - generic [ref=e667] [cursor=pointer]: "68"
+                          - generic [ref=e668] [cursor=pointer]: "69"
+                          - generic [ref=e669] [cursor=pointer]: "70"
+                          - generic [ref=e670] [cursor=pointer]: "71"
+                          - generic [ref=e671] [cursor=pointer]: "72"
+                          - generic [ref=e672] [cursor=pointer]:
+                            - text: "73"
+                            - button [expanded] [ref=e673]
+                          - generic [ref=e676] [cursor=pointer]: "74"
+                          - generic [ref=e677] [cursor=pointer]: "75"
+                          - generic [ref=e678] [cursor=pointer]: "76"
+                          - generic [ref=e679] [cursor=pointer]: "77"
+                          - generic [ref=e680] [cursor=pointer]: "78"
+                          - generic [ref=e681] [cursor=pointer]: "79"
+                          - generic [ref=e682] [cursor=pointer]: "80"
+                          - generic [ref=e683] [cursor=pointer]: "81"
+                          - generic [ref=e684] [cursor=pointer]: "82"
+                          - generic [ref=e685] [cursor=pointer]: "83"
+                          - generic [ref=e686] [cursor=pointer]: "84"
+                          - generic [ref=e687] [cursor=pointer]: "85"
+                          - generic [ref=e688] [cursor=pointer]: "86"
+                          - generic [ref=e689] [cursor=pointer]: "87"
+                          - generic [ref=e690] [cursor=pointer]: "88"
+                          - generic [ref=e691] [cursor=pointer]: "89"
+                          - generic [ref=e692] [cursor=pointer]: "90"
+                          - generic [ref=e693] [cursor=pointer]: "91"
+                          - generic [ref=e694] [cursor=pointer]: "92"
+                          - generic [ref=e695] [cursor=pointer]: "93"
+                          - generic [ref=e696] [cursor=pointer]: "94"
+                          - generic [ref=e697] [cursor=pointer]: "95"
+                          - generic [ref=e698] [cursor=pointer]: "96"
+                          - generic [ref=e699] [cursor=pointer]: "97"
+                          - generic [ref=e700] [cursor=pointer]: "98"
+                          - generic [ref=e701] [cursor=pointer]: "99"
+                          - generic [ref=e702] [cursor=pointer]: "100"
+                          - generic [ref=e703] [cursor=pointer]: "101"
+                          - generic [ref=e704] [cursor=pointer]: "102"
+                          - generic [ref=e705] [cursor=pointer]:
+                            - text: "103"
+                            - button [expanded] [ref=e706]
+                          - generic [ref=e709] [cursor=pointer]: "104"
+                          - generic [ref=e710] [cursor=pointer]: "105"
+                          - generic [ref=e711] [cursor=pointer]: "106"
+                          - generic [ref=e712] [cursor=pointer]: "107"
+                          - generic [ref=e713] [cursor=pointer]: "108"
+                          - generic [ref=e714] [cursor=pointer]: "109"
+                          - generic [ref=e715] [cursor=pointer]: "110"
+                          - generic [ref=e716] [cursor=pointer]: "111"
+                          - generic [ref=e717] [cursor=pointer]: "112"
+                          - generic [ref=e718] [cursor=pointer]: "113"
+                          - generic [ref=e719] [cursor=pointer]: "114"
+                          - generic [ref=e720] [cursor=pointer]: "115"
+                          - generic [ref=e721] [cursor=pointer]: "116"
+                          - generic [ref=e722] [cursor=pointer]: "117"
+                          - generic [ref=e723] [cursor=pointer]: "118"
+                          - generic [ref=e724] [cursor=pointer]: "119"
+                          - generic [ref=e725] [cursor=pointer]: "120"
+                          - generic [ref=e726] [cursor=pointer]: "121"
+                          - generic [ref=e727] [cursor=pointer]: "122"
+                          - generic [ref=e728] [cursor=pointer]: "123"
+                          - generic [ref=e729] [cursor=pointer]: "124"
+                          - generic [ref=e730] [cursor=pointer]: "125"
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: import
+                                - generic: os
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: import
+                                - generic: torch
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: import
+                                - generic: numpy
+                                - generic: as
+                                - generic: np
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: torch
+                                - generic: import
+                                - generic: Tensor
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: torch
+                                - text: .
+                                - generic: utils
+                                - text: .
+                                - generic: data
+                                - generic: import
+                                - generic: Dataset
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: import
+                                - generic: torchvision
+                                - text: .
+                                - generic: transforms
+                                - text: .
+                                - generic: functional
+                                - generic: as
+                                - generic: TF
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: torchvision
+                                - generic: import
+                                - generic: io
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: pathlib
+                                - generic: import
+                                - generic: Path
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: typing
+                                - generic: import
+                                - generic: Tuple
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: import
+                                - generic: glob
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: import
+                                - generic: einops
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: torch
+                                - text: .
+                                - generic: utils
+                                - text: .
+                                - generic: data
+                                - generic: import
+                                - generic: DataLoader
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: torch
+                                - text: .
+                                - generic: utils
+                                - text: .
+                                - generic: data
+                                - generic: import
+                                - generic: DistributedSampler
+                                - text: ","
+                                - generic: RandomSampler
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: from
+                                - generic: semseg
+                                - text: .
+                                - generic: augmentations_mm
+                                - generic: import
+                                - generic: get_train_augmentation
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: class
+                                - generic: DELIVER
+                                - text: (
+                                - generic: Dataset
+                                - text: "):"
+                          - generic: "\"\"\""
+                          - generic: "num_classes: 25"
+                          - generic: "\"\"\""
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: CLASSES
+                                - generic: =
+                                - text: "["
+                                - generic: "\"Building\""
+                                - text: ","
+                                - generic: "\"Fence\""
+                                - text: ","
+                                - generic: "\"Other\""
+                                - text: ","
+                                - generic: "\"Pedestrian\""
+                                - text: ","
+                                - generic: "\"Pole\""
+                                - text: ","
+                                - generic: "\"RoadLine\""
+                                - text: ","
+                                - generic: "\"Road\""
+                                - text: ","
+                                - generic: "\"SideWalk\""
+                                - text: ","
+                                - generic: "\"Vegetation\""
+                                - text: ","
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: "\"Cars\""
+                                - text: ","
+                                - generic: "\"Wall\""
+                                - text: ","
+                                - generic: "\"TrafficSign\""
+                                - text: ","
+                                - generic: "\"Sky\""
+                                - text: ","
+                                - generic: "\"Ground\""
+                                - text: ","
+                                - generic: "\"Bridge\""
+                                - text: ","
+                                - generic: "\"RailTrack\""
+                                - text: ","
+                                - generic: "\"GroundRail\""
+                                - text: ","
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: "\"TrafficLight\""
+                                - text: ","
+                                - generic: "\"Static\""
+                                - text: ","
+                                - generic: "\"Dynamic\""
+                                - text: ","
+                                - generic: "\"Water\""
+                                - text: ","
+                                - generic: "\"Terrain\""
+                                - text: ","
+                                - generic: "\"TwoWheeler\""
+                                - text: ","
+                                - generic: "\"Bus\""
+                                - text: ","
+                                - generic: "\"Truck\""
+                                - text: "]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: PALETTE
+                                - generic: =
+                                - generic: torch
+                                - text: .
+                                - generic: tensor
+                                - text: ([[
+                                - generic: "70"
+                                - text: ","
+                                - generic: "70"
+                                - text: ","
+                                - generic: "70"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "100"
+                                - text: ","
+                                - generic: "40"
+                                - text: ","
+                                - generic: "40"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "55"
+                                - text: ","
+                                - generic: "90"
+                                - text: ","
+                                - generic: "80"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "220"
+                                - text: ","
+                                - generic: "20"
+                                - text: ","
+                                - generic: "60"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "153"
+                                - text: ","
+                                - generic: "153"
+                                - text: ","
+                                - generic: "153"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "157"
+                                - text: ","
+                                - generic: "234"
+                                - text: ","
+                                - generic: "50"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "128"
+                                - text: ","
+                                - generic: "64"
+                                - text: ","
+                                - generic: "128"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "244"
+                                - text: ","
+                                - generic: "35"
+                                - text: ","
+                                - generic: "232"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "107"
+                                - text: ","
+                                - generic: "142"
+                                - text: ","
+                                - generic: "35"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "0"
+                                - text: ","
+                                - generic: "0"
+                                - text: ","
+                                - generic: "142"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "102"
+                                - text: ","
+                                - generic: "102"
+                                - text: ","
+                                - generic: "156"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "220"
+                                - text: ","
+                                - generic: "220"
+                                - text: ","
+                                - generic: "0"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "70"
+                                - text: ","
+                                - generic: "130"
+                                - text: ","
+                                - generic: "180"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "81"
+                                - text: ","
+                                - generic: "0"
+                                - text: ","
+                                - generic: "81"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "150"
+                                - text: ","
+                                - generic: "100"
+                                - text: ","
+                                - generic: "100"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "230"
+                                - text: ","
+                                - generic: "150"
+                                - text: ","
+                                - generic: "140"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "180"
+                                - text: ","
+                                - generic: "165"
+                                - text: ","
+                                - generic: "180"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "250"
+                                - text: ","
+                                - generic: "170"
+                                - text: ","
+                                - generic: "30"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "110"
+                                - text: ","
+                                - generic: "190"
+                                - text: ","
+                                - generic: "160"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "170"
+                                - text: ","
+                                - generic: "120"
+                                - text: ","
+                                - generic: "50"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "45"
+                                - text: ","
+                                - generic: "60"
+                                - text: ","
+                                - generic: "150"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "145"
+                                - text: ","
+                                - generic: "170"
+                                - text: ","
+                                - generic: "100"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "0"
+                                - text: ","
+                                - generic: "0"
+                                - text: ","
+                                - generic: "230"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "0"
+                                - text: ","
+                                - generic: "60"
+                                - text: ","
+                                - generic: "100"
+                                - text: "],"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - text: "["
+                                - generic: "0"
+                                - text: ","
+                                - generic: "0"
+                                - text: ","
+                                - generic: "70"
+                                - text: "],"
+                          - generic: "])"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: def
+                                - generic: __init__
+                                - text: (
+                                - generic: self
+                                - text: ","
+                                - generic: root
+                                - text: ":"
+                                - generic: str
+                                - generic: =
+                                - generic: "'data/DELIVER'"
+                                - text: ","
+                                - generic: split
+                                - text: ":"
+                                - generic: str
+                                - generic: =
+                                - generic: "'train'"
+                                - text: ","
+                                - generic: transform
+                                - generic: =
+                                - generic: None
+                                - text: ","
+                                - generic: modals
+                                - generic: =
+                                - text: "["
+                                - generic: "'img'"
+                                - text: "],"
+                                - generic: case
+                                - generic: =
+                                - generic: None
+                                - text: )
+                                - generic: "->"
+                                - generic: None
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: super
+                                - text: ().
+                                - generic: __init__
+                                - text: ()
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: assert
+                                - generic: split
+                                - generic: in
+                                - text: "["
+                                - generic: "'train'"
+                                - text: ","
+                                - generic: "'val'"
+                                - text: ","
+                                - generic: "'test'"
+                                - text: "]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: self
+                                - text: .
+                                - generic: transform
+                                - generic: =
+                                - generic: transform
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: self
+                                - text: .
+                                - generic: n_classes
+                                - generic: =
+                                - generic: len
+                                - text: (
+                                - generic: self
+                                - text: .
+                                - generic: CLASSES
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: self
+                                - text: .
+                                - generic: ignore_label
+                                - generic: =
+                                - generic: "255"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: self
+                                - text: .
+                                - generic: modals
+                                - generic: =
+                                - generic: modals
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: self
+                                - text: .
+                                - generic: files
+                                - generic: =
+                                - generic: sorted
+                                - text: (
+                                - generic: glob
+                                - text: .
+                                - generic: glob
+                                - text: (
+                                - generic: os
+                                - text: .
+                                - generic: path
+                                - text: .
+                                - generic: join
+                                - text: (
+                                - generic: "*"
+                                - text: "["
+                                - generic: root
+                                - text: ","
+                                - generic: "'img'"
+                                - text: ","
+                                - generic: "'*'"
+                                - text: ","
+                                - generic: split
+                                - text: ","
+                                - generic: "'*'"
+                                - text: ","
+                                - generic: "'*.png'"
+                                - text: "])))"
+                          - generic: "# --- debug"
+                          - generic: "# self.files = sorted(glob.glob(os.path.join(*[root, 'img', '*', split, '*', '*.png'])))[:100]"
+                          - generic: "# --- split as case"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: case
+                                - generic:
+                                  - generic: is
+                                  - generic: not
+                                - generic: None
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: assert
+                                - generic: case
+                                - generic: in
+                                - text: "["
+                                - generic: "'cloud'"
+                                - text: ","
+                                - generic: "'fog'"
+                                - text: ","
+                                - generic: "'night'"
+                                - text: ","
+                                - generic: "'rain'"
+                                - text: ","
+                                - generic: "'sun'"
+                                - text: ","
+                                - generic: "'motionblur'"
+                                - text: ","
+                                - generic: "'overexposure'"
+                                - text: ","
+                                - generic: "'underexposure'"
+                                - text: ","
+                                - generic: "'lidarjitter'"
+                                - text: ","
+                                - generic: "'eventlowres'"
+                                - text: "],"
+                                - generic: "\"Case name not available.\""
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: _temp_files
+                                - generic: =
+                                - text: "["
+                                - generic: f
+                                - generic: for
+                                - generic: f
+                                - generic: in
+                                - generic: self
+                                - text: .
+                                - generic: files
+                                - generic: if
+                                - generic: case
+                                - generic: in
+                                - generic: f
+                                - text: "]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: self
+                                - text: .
+                                - generic: files
+                                - generic: =
+                                - generic: _temp_files
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: not
+                                - generic: self
+                                - text: .
+                                - generic: files
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: raise
+                                - generic: Exception
+                                - text: (
+                                - generic:
+                                  - text: f"No images found in
+                                  - generic:
+                                    - generic: "{"
+                                    - generic: img_path
+                                    - generic: "}"
+                                  - text: "\""
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: print
+                                - text: (
+                                - generic:
+                                  - text: f"Found
+                                  - generic:
+                                    - generic: "{"
+                                    - generic: len
+                                    - text: (
+                                    - generic: self
+                                    - text: .
+                                    - generic: files
+                                    - text: )
+                                    - generic: "}"
+                                  - generic:
+                                    - generic: "{"
+                                    - generic: split
+                                    - generic: "}"
+                                  - generic:
+                                    - generic: "{"
+                                    - generic: case
+                                    - generic: "}"
+                                  - text: images."
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: def
+                                - generic: __len__
+                                - text: (
+                                - generic: self
+                                - text: )
+                                - generic: "->"
+                                - generic: int
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: return
+                                - generic: len
+                                - text: (
+                                - generic: self
+                                - text: .
+                                - generic: files
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: def
+                                - generic: __getitem__
+                                - text: (
+                                - generic: self
+                                - text: ","
+                                - generic: index
+                                - text: ":"
+                                - generic: int
+                                - text: )
+                                - generic: "->"
+                                - generic: Tuple
+                                - text: "["
+                                - generic: Tensor
+                                - text: ","
+                                - generic: Tensor
+                                - text: "]:"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: rgb
+                                - generic: =
+                                - generic: str
+                                - text: (
+                                - generic: self
+                                - text: .
+                                - generic: files
+                                - text: "["
+                                - generic: index
+                                - text: "])"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: x1
+                                - generic: =
+                                - generic: rgb
+                                - text: .
+                                - generic: replace
+                                - text: (
+                                - generic: "'/img'"
+                                - text: ","
+                                - generic: "'/hha'"
+                                - text: ).
+                                - generic: replace
+                                - text: (
+                                - generic: "'_rgb'"
+                                - text: ","
+                                - generic: "'_depth'"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: x2
+                                - generic: =
+                                - generic: rgb
+                                - text: .
+                                - generic: replace
+                                - text: (
+                                - generic: "'/img'"
+                                - text: ","
+                                - generic: "'/lidar'"
+                                - text: ).
+                                - generic: replace
+                                - text: (
+                                - generic: "'_rgb'"
+                                - text: ","
+                                - generic: "'_lidar'"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: x3
+                                - generic: =
+                                - generic: rgb
+                                - text: .
+                                - generic: replace
+                                - text: (
+                                - generic: "'/img'"
+                                - text: ","
+                                - generic: "'/event'"
+                                - text: ).
+                                - generic: replace
+                                - text: (
+                                - generic: "'_rgb'"
+                                - text: ","
+                                - generic: "'_event'"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: lbl_path
+                                - generic: =
+                                - generic: rgb
+                                - text: .
+                                - generic: replace
+                                - text: (
+                                - generic: "'/img'"
+                                - text: ","
+                                - generic: "'/semantic'"
+                                - text: ).
+                                - generic: replace
+                                - text: (
+                                - generic: "'_rgb'"
+                                - text: ","
+                                - generic: "'_semantic'"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - generic: =
+                                - text: "{}"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - text: "["
+                                - generic: "'img'"
+                                - text: "]"
+                                - generic: =
+                                - generic: io
+                                - text: .
+                                - generic: read_image
+                                - text: (
+                                - generic: rgb
+                                - text: ")[:"
+                                - generic: "3"
+                                - text: ", ...]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: H
+                                - text: ","
+                                - generic: W
+                                - generic: =
+                                - generic: sample
+                                - text: "["
+                                - generic: "'img'"
+                                - text: "]."
+                                - generic: shape
+                                - text: "["
+                                - generic: "1"
+                                - text: :]
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: "'depth'"
+                                - generic: in
+                                - generic: self
+                                - text: .
+                                - generic: modals
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - text: "["
+                                - generic: "'depth'"
+                                - text: "]"
+                                - generic: =
+                                - generic: self
+                                - text: .
+                                - generic: _open_img
+                                - text: (
+                                - generic: x1
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: "'lidar'"
+                                - generic: in
+                                - generic: self
+                                - text: .
+                                - generic: modals
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - text: "["
+                                - generic: "'lidar'"
+                                - text: "]"
+                                - generic: =
+                                - generic: self
+                                - text: .
+                                - generic: _open_img
+                                - text: (
+                                - generic: x2
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: "'event'"
+                                - generic: in
+                                - generic: self
+                                - text: .
+                                - generic: modals
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: eimg
+                                - generic: =
+                                - generic: self
+                                - text: .
+                                - generic: _open_img
+                                - text: (
+                                - generic: x3
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - text: "["
+                                - generic: "'event'"
+                                - text: "]"
+                                - generic: =
+                                - generic: TF
+                                - text: .
+                                - generic: resize
+                                - text: (
+                                - generic: eimg
+                                - text: ", ("
+                                - generic: H
+                                - text: ","
+                                - generic: W
+                                - text: ),
+                                - generic: TF
+                                - text: .
+                                - generic: InterpolationMode
+                                - text: .
+                                - generic: NEAREST
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: label
+                                - generic: =
+                                - generic: io
+                                - text: .
+                                - generic: read_image
+                                - text: (
+                                - generic: lbl_path
+                                - text: )[
+                                - generic: "0"
+                                - text: ",...]."
+                                - generic: unsqueeze
+                                - text: (
+                                - generic: "0"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: label
+                                - text: "["
+                                - generic: label
+                                - generic: ==
+                                - generic: "255"
+                                - text: "]"
+                                - generic: =
+                                - generic: "0"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: label
+                                - generic: "-="
+                                - generic: "1"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - text: "["
+                                - generic: "'mask'"
+                                - text: "]"
+                                - generic: =
+                                - generic: label
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: self
+                                - text: .
+                                - generic: transform
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - generic: =
+                                - generic: self
+                                - text: .
+                                - generic: transform
+                                - text: (
+                                - generic: sample
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: label
+                                - generic: =
+                                - generic: sample
+                                - text: "["
+                                - generic: "'mask'"
+                                - text: "]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: del
+                                - generic: sample
+                                - text: "["
+                                - generic: "'mask'"
+                                - text: "]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: label
+                                - generic: =
+                                - generic: self
+                                - text: .
+                                - generic: encode
+                                - text: (
+                                - generic: label
+                                - text: .
+                                - generic: squeeze
+                                - text: ().
+                                - generic: numpy
+                                - text: ()).
+                                - generic: long
+                                - text: ()
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: sample
+                                - generic: =
+                                - text: "["
+                                - generic: sample
+                                - text: "["
+                                - generic: k
+                                - text: "]"
+                                - generic: for
+                                - generic: k
+                                - generic: in
+                                - generic: self
+                                - text: .
+                                - generic: modals
+                                - text: "]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: return
+                                - generic: sample
+                                - text: ","
+                                - generic: label
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: def
+                                - generic: _open_img
+                                - text: (
+                                - generic: self
+                                - text: ","
+                                - generic: file
+                                - text: "):"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: img
+                                - generic: =
+                                - generic: io
+                                - text: .
+                                - generic: read_image
+                                - text: (
+                                - generic: file
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: C
+                                - text: ","
+                                - generic: H
+                                - text: ","
+                                - generic: W
+                                - generic: =
+                                - generic: img
+                                - text: .
+                                - generic: shape
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: C
+                                - generic: ==
+                                - generic: "4"
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: img
+                                - generic: =
+                                - generic: img
+                                - text: "[:"
+                                - generic: "3"
+                                - text: ", ...]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: C
+                                - generic: ==
+                                - generic: "1"
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: img
+                                - generic: =
+                                - generic: img
+                                - text: .
+                                - generic: repeat
+                                - text: (
+                                - generic: "3"
+                                - text: ","
+                                - generic: "1"
+                                - text: ","
+                                - generic: "1"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: return
+                                - generic: img
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: def
+                                - generic: encode
+                                - text: (
+                                - generic: self
+                                - text: ","
+                                - generic: label
+                                - text: ":"
+                                - generic: Tensor
+                                - text: )
+                                - generic: "->"
+                                - generic: Tensor
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: return
+                                - generic: torch
+                                - text: .
+                                - generic: from_numpy
+                                - text: (
+                                - generic: label
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: if
+                                - generic: __name__
+                                - generic: ==
+                                - generic: "'__main__'"
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: cases
+                                - generic: =
+                                - text: "["
+                                - generic: "'cloud'"
+                                - text: ","
+                                - generic: "'fog'"
+                                - text: ","
+                                - generic: "'night'"
+                                - text: ","
+                                - generic: "'rain'"
+                                - text: ","
+                                - generic: "'sun'"
+                                - text: ","
+                                - generic: "'motionblur'"
+                                - text: ","
+                                - generic: "'overexposure'"
+                                - text: ","
+                                - generic: "'underexposure'"
+                                - text: ","
+                                - generic: "'lidarjitter'"
+                                - text: ","
+                                - generic: "'eventlowres'"
+                                - text: "]"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: traintransform
+                                - generic: =
+                                - generic: get_train_augmentation
+                                - text: ((
+                                - generic: "1024"
+                                - text: ","
+                                - generic: "1024"
+                                - text: ),
+                                - generic: seg_fill
+                                - generic: =
+                                - generic: "255"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: for
+                                - generic: case
+                                - generic: in
+                                - generic: cases
+                                - text: ":"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: trainset
+                                - generic: =
+                                - generic: DELIVER
+                                - text: (
+                                - generic: transform
+                                - generic: =
+                                - generic: traintransform
+                                - text: ","
+                                - generic: split
+                                - generic: =
+                                - generic: "'val'"
+                                - text: ","
+                                - generic: case
+                                - generic: =
+                                - generic: case
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: trainloader
+                                - generic: =
+                                - generic: DataLoader
+                                - text: (
+                                - generic: trainset
+                                - text: ","
+                                - generic: batch_size
+                                - generic: =
+                                - generic: "2"
+                                - text: ","
+                                - generic: num_workers
+                                - generic: =
+                                - generic: "2"
+                                - text: ","
+                                - generic: drop_last
+                                - generic: =
+                                - generic: "False"
+                                - text: ","
+                                - generic: pin_memory
+                                - generic: =
+                                - generic: "False"
+                                - text: )
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: for
+                                - generic: i
+                                - text: ", ("
+                                - generic: sample
+                                - text: ","
+                                - generic: lbl
+                                - text: )
+                                - generic: in
+                                - generic: enumerate
+                                - text: (
+                                - generic: trainloader
+                                - text: "):"
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: print
+                                - text: (
+                                - generic: torch
+                                - text: .
+                                - generic: unique
+                                - text: (
+                                - generic: lbl
+                                - text: ))
+  - alert [ref=e734]
