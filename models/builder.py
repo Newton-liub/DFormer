@@ -121,6 +121,9 @@ class EncoderDecoder(nn.Module):
             norm_cfg = dict(type="BN", requires_grad=True)
 
         backbone_kwargs = dict(norm_cfg=norm_cfg)
+        if cfg.backbone.startswith("DFormerv2"):
+            backbone_kwargs["geometry_mode"] = getattr(cfg, "geometry_mode", "original")
+            backbone_kwargs["norm_eval"] = getattr(cfg, "norm_eval", True)
         if cfg.backbone in ("DFormer++-T", "DFormer++-S", "DFormer++-B", "DFormerPP-T", "DFormerPP-S", "DFormerPP-B"):
             import numpy as np
 
@@ -133,6 +136,10 @@ class EncoderDecoder(nn.Module):
 
         drop_path_rate = cfg.drop_path_rate if cfg.drop_path_rate is not None else 0.1
         self.backbone = backbone(drop_path_rate=drop_path_rate, **backbone_kwargs)
+        if cfg.backbone.startswith("DFormerv2") and not syncbn:
+            # The author encoder hard-codes SyncBN internally; honor single-GPU BN.
+            from research.normalization import replace_sync_batchnorm
+            replace_sync_batchnorm(self.backbone)
 
         self.aux_head = None
 
@@ -245,12 +252,17 @@ class EncoderDecoder(nn.Module):
                 nonlinearity="relu",
             )
 
-    def encode_decode(self, rgb, modal_x):
+    def encode_decode(self, rgb, modal_x, depth_support=None):
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
         orisize = rgb.shape
         # print('builder',rgb.shape,modal_x.shape)
-        x = self.backbone(rgb, modal_x)
+        if self.cfg.backbone.startswith("DFormerv2"):
+            x = self.backbone(rgb, modal_x, depth_support=depth_support)
+        else:
+            if depth_support is not None:
+                raise ValueError("Explicit depth support is only supported by DFormerv2")
+            x = self.backbone(rgb, modal_x)
         if len(x) == 2:  # if output is (rgb, depth) only use rgb features
             x = x[0]
         out = self.decode_head.forward(x)
@@ -261,12 +273,12 @@ class EncoderDecoder(nn.Module):
             return out, aux_fm
         return out
 
-    def forward(self, rgb, modal_x=None, label=None):
+    def forward(self, rgb, modal_x=None, label=None, depth_support=None):
         # print('builder',rgb.shape,modal_x.shape)
         if self.aux_head:
-            out, aux_fm = self.encode_decode(rgb, modal_x)
+            out, aux_fm = self.encode_decode(rgb, modal_x, depth_support=depth_support)
         else:
-            out = self.encode_decode(rgb, modal_x)
+            out = self.encode_decode(rgb, modal_x, depth_support=depth_support)
         if label is not None:
             loss = self.criterion(out, label.long())[label.long() != self.cfg.background].mean()
             if self.aux_head:

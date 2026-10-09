@@ -17,6 +17,8 @@ def start_tracking(config, args, engine):
         "nepochs", "niters_per_epoch", "warm_up_epoch", "train_scale_array",
         "image_height", "image_width", "eval_scale_array", "eval_flip",
         "train_source", "eval_source", "gt_transform", "x_is_single_channel",
+        "geometry_mode", "norm_eval", "schedule_epochs", "effective_batch",
+        "micro_batch", "accum_steps", "val_every",
     )
     core = {key: config[key] for key in core_keys if key in config}
     core["cli"] = vars(args).copy()

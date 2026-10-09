@@ -37,7 +37,7 @@ class _MatrixDecomposition2DBase(nn.Module):
         print("eta", self.eta)
         print("rand_init", self.rand_init)
 
-    def _build_bases(self, B, S, D, R, cuda=False):
+    def _build_bases(self, B, S, D, R, cuda=False, device=None):
         raise NotImplementedError
 
     def local_step(self, x, bases, coef):
@@ -72,12 +72,12 @@ class _MatrixDecomposition2DBase(nn.Module):
             x = x.view(B * self.S, N, D).transpose(1, 2)
 
         if not self.rand_init and not hasattr(self, "bases"):
-            bases = self._build_bases(1, self.S, D, self.R, cuda=True)
+            bases = self._build_bases(1, self.S, D, self.R, device=x.device)
             self.register_buffer("bases", bases)
 
         # (S, D, R) -> (B * S, D, R)
         if self.rand_init:
-            bases = self._build_bases(B, self.S, D, self.R, cuda=True)
+            bases = self._build_bases(B, self.S, D, self.R, device=x.device)
         else:
             bases = self.bases.repeat(B, 1, 1)
 
@@ -107,11 +107,10 @@ class NMF2D(_MatrixDecomposition2DBase):
 
         self.inv_t = 1
 
-    def _build_bases(self, B, S, D, R, cuda=False):
-        if cuda:
-            bases = torch.rand((B * S, D, R)).cuda()
-        else:
-            bases = torch.rand((B * S, D, R))
+    def _build_bases(self, B, S, D, R, cuda=False, device=None):
+        # Keep the author's CPU random draw, but move to the actual input device.
+        target = device if device is not None else ("cuda" if cuda else "cpu")
+        bases = torch.rand((B * S, D, R)).to(target)
 
         bases = F.normalize(bases, dim=1)
 

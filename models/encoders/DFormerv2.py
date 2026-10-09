@@ -170,13 +170,15 @@ class GeoPriorGen(nn.Module):
         mask = mask * self.decay[:, None, None]
         return mask
 
-    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False):
+    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False, depth_relation=None):
         """
         depth_map: depth patches
         HW_tuple: (H, W)
         H * W == l
         """
-        depth_map = F.interpolate(depth_map, size=HW_tuple, mode="bilinear", align_corners=False)
+        if depth_relation is None:
+            # Original mode preserves the author's interpolation and depth-difference path.
+            depth_map = F.interpolate(depth_map, size=HW_tuple, mode="bilinear", align_corners=False)
 
         if split_or_not:
             index = torch.arange(HW_tuple[0] * HW_tuple[1]).to(self.decay)
@@ -185,8 +187,11 @@ class GeoPriorGen(nn.Module):
             cos = torch.cos(index[:, None] * self.angle[None, :])
             cos = cos.reshape(HW_tuple[0], HW_tuple[1], -1)
 
-            mask_d_h = self.generate_1d_depth_decay(HW_tuple[0], HW_tuple[1], depth_map.transpose(-2, -1))
-            mask_d_w = self.generate_1d_depth_decay(HW_tuple[1], HW_tuple[0], depth_map)
+            if depth_relation is None:
+                mask_d_h = self.generate_1d_depth_decay(HW_tuple[0], HW_tuple[1], depth_map.transpose(-2, -1))
+                mask_d_w = self.generate_1d_depth_decay(HW_tuple[1], HW_tuple[0], depth_map)
+            else:
+                mask_d_h, mask_d_w = depth_relation
 
             mask_h = self.generate_1d_decay(HW_tuple[0])
             mask_w = self.generate_1d_decay(HW_tuple[1])
@@ -204,7 +209,7 @@ class GeoPriorGen(nn.Module):
             cos = cos.reshape(HW_tuple[0], HW_tuple[1], -1)
             mask = self.generate_pos_decay(HW_tuple[0], HW_tuple[1])
 
-            mask_d = self.generate_depth_decay(HW_tuple[0], HW_tuple[1], depth_map)
+            mask_d = self.generate_depth_decay(HW_tuple[0], HW_tuple[1], depth_map) if depth_relation is None else depth_relation
             mask = self.weight[0] * mask + self.weight[1] * mask_d
 
             geo_prior = ((sin, cos), mask)
@@ -250,7 +255,10 @@ class Decomposed_GSA(nn.Module):
         v = v.reshape(bsz, h, w, self.num_heads, -1).permute(0, 1, 3, 2, 4)
 
         qk_mat_w = qr_w @ kr_w.transpose(-1, -2)
-        qk_mat_w = qk_mat_w + mask_w.transpose(1, 2)
+        bias_w = mask_w.transpose(1, 2)
+        if getattr(self, "match_bias_dtype", False):
+            bias_w = bias_w.to(qk_mat_w.dtype)
+        qk_mat_w = qk_mat_w + bias_w
         qk_mat_w = torch.softmax(qk_mat_w, -1)
         v = torch.matmul(qk_mat_w, v)
 
@@ -259,7 +267,10 @@ class Decomposed_GSA(nn.Module):
         v = v.permute(0, 3, 2, 1, 4)
 
         qk_mat_h = qr_h @ kr_h.transpose(-1, -2)
-        qk_mat_h = qk_mat_h + mask_h.transpose(1, 2)
+        bias_h = mask_h.transpose(1, 2)
+        if getattr(self, "match_bias_dtype", False):
+            bias_h = bias_h.to(qk_mat_h.dtype)
+        qk_mat_h = qk_mat_h + bias_h
         qk_mat_h = torch.softmax(qk_mat_h, -1)
         output = torch.matmul(qk_mat_h, v)
 
@@ -316,7 +327,8 @@ class Full_GSA(nn.Module):
         vr = v.reshape(bsz, h, w, self.num_heads, -1).permute(0, 3, 1, 2, 4)
         vr = vr.flatten(2, 3)
         qk_mat = qr @ kr.transpose(-1, -2)
-        qk_mat = qk_mat + mask
+        bias = mask.to(qk_mat.dtype) if getattr(self, "match_bias_dtype", False) else mask
+        qk_mat = qk_mat + bias
         qk_mat = torch.softmax(qk_mat, -1)
         output = torch.matmul(qk_mat, vr)
         output = output.transpose(1, 2).reshape(bsz, h, w, -1)
@@ -411,11 +423,11 @@ class RGBD_Block(nn.Module):
             self.gamma_1 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
             self.gamma_2 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
 
-    def forward(self, x: torch.Tensor, x_e: torch.Tensor, split_or_not=False):
+    def forward(self, x: torch.Tensor, x_e: torch.Tensor, split_or_not=False, depth_relation=None):
         x = x + self.cnn_pos_encode(x)
         b, h, w, d = x.size()
 
-        geo_prior = self.Geo((h, w), x_e, split_or_not=split_or_not)
+        geo_prior = self.Geo((h, w), x_e, split_or_not=split_or_not, depth_relation=depth_relation)
         if self.layerscale:
             x = x + self.drop_path(self.gamma_1 * self.Attention(self.layer_norm1(x), geo_prior, split_or_not))
             x = x + self.drop_path(self.gamma_2 * self.ffn(self.layer_norm2(x)))
@@ -477,13 +489,15 @@ class BasicLayer(nn.Module):
         else:
             self.downsample = None
 
-    def forward(self, x, x_e):
+    def forward(self, x, x_e, observations=None):
         b, h, w, d = x.size()
+        # All blocks in this stage share fixed head decay; weights remain per-block.
+        relation = None if observations is None else observations.relation((h, w), self.blocks[0].Geo.decay, self.split_or_not)
         for blk in self.blocks:
             if self.use_checkpoint:
-                x = checkpoint.checkpoint(blk, x=x, x_e=x_e, split_or_not=self.split_or_not)
+                x = checkpoint.checkpoint(blk, x, x_e, self.split_or_not, relation, use_reentrant=False)
             else:
-                x = blk(x, x_e, split_or_not=self.split_or_not)
+                x = blk(x, x_e, split_or_not=self.split_or_not, depth_relation=relation)
         if self.downsample is not None:
             x_down = self.downsample(x)
             return x, x_down
@@ -510,6 +524,7 @@ class dformerv2(nn.Module):
         layerscales=[False, False, False, False],
         layer_init_values=1e-6,
         norm_eval=True,
+        geometry_mode="original",
     ):
         super().__init__()
         self.out_indices = out_indices
@@ -519,6 +534,9 @@ class dformerv2(nn.Module):
         self.num_features = embed_dims[-1]
         self.mlp_ratios = mlp_ratios
         self.norm_eval = norm_eval
+        if geometry_mode not in ("original", "mean", "odg"):
+            raise ValueError("geometry_mode must be original, mean or odg")
+        self.geometry_mode = geometry_mode
 
         # patch embedding
         self.patch_embed = PatchEmbed(
@@ -548,6 +566,8 @@ class dformerv2(nn.Module):
                 layerscale=layerscales[i_layer],
                 layer_init_values=layer_init_values,
             )
+            for block in layer.blocks:
+                block.Attention.match_bias_dtype = geometry_mode != "original"
             self.layers.append(layer)
 
         self.extra_norms = nn.ModuleList()
@@ -617,23 +637,23 @@ class dformerv2(nn.Module):
     def no_weight_decay_keywords(self):
         return {"relative_position_bias_table"}
 
-    def forward(self, x, x_e):
-        # rgb input
+    def forward(self, x, x_e, depth_support=None):
+        # Construct distributions from transformed INPUT observations, not stage scalars.
+        x_e = x_e[:, 0:1, :, :]
+        observations = None
+        if self.geometry_mode != "original":
+            from research.geometry import ObservationGeometry
+            observations = ObservationGeometry(x_e, depth_support, mode=self.geometry_mode)
         x = self.patch_embed(x)
-        # depth input
-        x_e = x_e[:, 0, :, :].unsqueeze(1)
-
         outs = []
-
         for i in range(self.num_layers):
             layer = self.layers[i]
-            x_out, x = layer(x, x_e)
+            x_out, x = layer(x, x_e, observations)
             if i in self.out_indices:
                 if i != 0:
                     x_out = self.extra_norms[i - 1](x_out)
                 out = x_out.permute(0, 3, 1, 2).contiguous()
                 outs.append(out)
-
         return tuple(outs)
 
     def train(self, mode=True):
