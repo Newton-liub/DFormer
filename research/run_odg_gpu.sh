@@ -27,7 +27,7 @@ case "${1:-}" in
     ;;
   resume)
     : "${2:?Specify the experiment last.pth or stage-epoch checkpoint}"
-    : "${GEOMETRY_MODE:?Set the checkpoint's original or odg mode}"
+    : "${GEOMETRY_MODE:?Set the matching original or odg checkpoint mode}"
     "$PYTHON" -m research.train_odg "${common[@]}" --geometry-mode "$GEOMETRY_MODE" \
       --resume "$2" --stop-after-epoch 100 --save-predictions 3
     ;;
