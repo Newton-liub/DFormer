@@ -1,0 +1,162 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "Skip to main content" [ref=e3] [cursor=pointer]:
+      - /url: "#main-container"
+    - region "Announcement" [ref=e4]:
+      - generic [ref=e6]: arXiv is now an independent nonprofit!
+      - link "Learn more" [ref=e7] [cursor=pointer]:
+        - /url: https://info.arxiv.org/about
+      - button "Dismiss announcement" [ref=e8] [cursor=pointer]: ×
+    - banner [ref=e9]:
+      - link "archive home" [ref=e10] [cursor=pointer]:
+        - /url: https://arxiv.org/
+        - img "archive" [ref=e11]
+      - navigation "Main navigation" [ref=e12]:
+        - link "Search" [ref=e13] [cursor=pointer]:
+          - /url: /search
+        - link "Submit" [ref=e17] [cursor=pointer]:
+          - /url: https://arxiv.org/user/create
+        - link "Donate" [ref=e18] [cursor=pointer]:
+          - /url: https://info.arxiv.org/about/donate.html
+        - link "Log in" [ref=e20] [cursor=pointer]:
+          - /url: https://arxiv.org/login
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - 'heading "Showing 1–1 of 1 results for title: MV3DIS Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation" [level=1] [ref=e24]'
+      - link "Search v0.5.6 released 2020-02-24" [ref=e27] [cursor=pointer]:
+        - /url: https://github.com/arXiv/arxiv-search/releases
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic: Search term or terms
+            - textbox "Search term or terms" [ref=e32]:
+              - /placeholder: Search term...
+              - text: MV3DIS Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation
+          - combobox "Field" [ref=e34] [cursor=pointer]:
+            - option "All fields"
+            - option "Title" [selected]
+            - option "Author(s)"
+            - option "Abstract"
+            - option "Comments"
+            - option "Journal reference"
+            - option "ACM classification"
+            - option "MSC classification"
+            - option "Report number"
+            - option "arXiv identifier"
+            - option "DOI"
+            - option "ORCID"
+            - option "License (URI)"
+            - option "arXiv author ID"
+            - option "Help pages"
+            - option "Full text"
+          - button "Search" [ref=e36] [cursor=pointer]
+        - generic [ref=e38]:
+          - generic [ref=e39] [cursor=pointer]:
+            - radio "Show abstracts Show abstracts" [checked] [ref=e40]
+            - text: Show abstracts
+          - generic [ref=e41] [cursor=pointer]:
+            - radio "Hide abstracts Hide abstracts" [ref=e42]
+            - text: Hide abstracts
+        - link "Advanced Search" [ref=e45] [cursor=pointer]:
+          - /url: /search/advanced?terms-0-term=MV3DIS+Multi-View+Mask+Matching+via+3D+Guides+for+Zero-Shot+3D+Instance+Segmentation&terms-0-field=title&size=50&order=-announced_date_first
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - combobox "results per page" [ref=e52] [cursor=pointer]:
+            - option "25"
+            - option "50" [selected]
+            - option "100"
+            - option "200"
+          - text: results per page.
+        - generic [ref=e53]:
+          - text: Sort results by
+          - combobox "Sort results by" [ref=e55] [cursor=pointer]:
+            - option "Announcement date (newest first)" [selected]
+            - option "Announcement date (oldest first)"
+            - option "Submission date (newest first)"
+            - option "Submission date (oldest first)"
+            - option "Relevance"
+        - button "Go" [ref=e57] [cursor=pointer]
+      - list [ref=e58]:
+        - listitem [ref=e59]:
+          - generic [ref=e60]:
+            - paragraph [ref=e61]:
+              - link "arXiv:2604.08916" [ref=e62] [cursor=pointer]:
+                - /url: https://arxiv.org/abs/2604.08916
+              - generic [ref=e63]:
+                - text: "["
+                - link "pdf" [ref=e64] [cursor=pointer]:
+                  - /url: https://arxiv.org/pdf/2604.08916
+                - text: ","
+                - link "ps" [ref=e65] [cursor=pointer]:
+                  - /url: https://arxiv.org/ps/2604.08916
+                - text: ","
+                - link "other" [ref=e66] [cursor=pointer]:
+                  - /url: https://arxiv.org/format/2604.08916
+                - text: "]"
+            - generic [ref=e67]: cs.CV
+          - paragraph [ref=e69]: "MV3DIS: Multi-View Mask Matching via 3D Guides for Zero-Shot 3D Instance Segmentation"
+          - paragraph [ref=e70]:
+            - text: "Authors:"
+            - link "Yibo Zhao" [ref=e71] [cursor=pointer]:
+              - /url: /search/?searchtype=author&query=Zhao%2C+Y
+            - text: ","
+            - link "Yigong Zhang" [ref=e72] [cursor=pointer]:
+              - /url: /search/?searchtype=author&query=Zhang%2C+Y
+            - text: ","
+            - link "Jin Xie" [ref=e73] [cursor=pointer]:
+              - /url: /search/?searchtype=author&query=Xie%2C+J
+          - paragraph [ref=e74]:
+            - text: "Abstract:"
+            - generic [ref=e75]: Conventional 3D instance segmentation methods rely on labor-intensive 3D annotations for supervised training, which limits their scalability and generalization to novel objects. Recent approaches leverage multi-view 2D masks from the Segment Anything Model (SAM) to guide the merging of 3D geometric primitives, thereby enabling zero-shot 3D instance segmentation. However, these methods typically pr… ▽ More
+          - paragraph [ref=e76]: Submitted 9 April, 2026; originally announced April 2026.
+  - contentinfo [ref=e77]:
+    - contentinfo [ref=e78]:
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - generic [ref=e81]:
+            - text: We gratefully acknowledge support from our
+            - strong [ref=e82]: major funders
+            - text: ","
+            - link [ref=e83] [cursor=pointer]:
+              - /url: https://info.arxiv.org/about/ourmembers.html
+              - strong [ref=e84]: member institutions
+            - text: ", and all contributors."
+          - navigation "Site navigation" [ref=e85]:
+            - link "About" [ref=e86] [cursor=pointer]:
+              - /url: https://info.arxiv.org/about
+            - generic [aria-hidden] [ref=e87]: ·
+            - link "Help" [ref=e88] [cursor=pointer]:
+              - /url: https://info.arxiv.org/help
+            - generic [aria-hidden] [ref=e89]: ·
+            - link "Contact" [ref=e90] [cursor=pointer]:
+              - /url: https://info.arxiv.org/help/contact.html
+            - generic [aria-hidden] [ref=e91]: ·
+            - link "Subscribe" [ref=e92] [cursor=pointer]:
+              - /url: https://info.arxiv.org/help/subscribe
+            - generic [aria-hidden] [ref=e93]: ·
+            - link "Copyright" [ref=e94] [cursor=pointer]:
+              - /url: https://info.arxiv.org/help/license/index.html
+            - generic [aria-hidden] [ref=e95]: ·
+            - link "Privacy" [ref=e96] [cursor=pointer]:
+              - /url: https://info.arxiv.org/help/policies/privacy_policy.html
+            - generic [aria-hidden] [ref=e97]: ·
+            - link "Accessibility" [ref=e98] [cursor=pointer]:
+              - /url: https://info.arxiv.org/help/web_accessibility.html
+            - generic [aria-hidden] [ref=e99]: ·
+            - link "Operational Status (opens in new tab)" [ref=e100] [cursor=pointer]:
+              - /url: https://status.arxiv.org
+              - text: Operational Status
+              - generic [ref=e101]: (opens in new tab)
+        - generic "Major funders" [ref=e102]:
+          - generic [ref=e103]: Major funding support from
+          - generic [ref=e104]:
+            - link [ref=e105] [cursor=pointer]:
+              - /url: https://www.simonsfoundation.org/
+              - img "Simons Foundation" [ref=e106]
+            - link [ref=e107] [cursor=pointer]:
+              - /url: https://www.sfi.org.bm/
+              - img "Simons Foundation International" [ref=e108]
+            - link [ref=e109] [cursor=pointer]:
+              - /url: https://www.schmidtsciences.org/
+              - img "Schmidt Sciences" [ref=e110]

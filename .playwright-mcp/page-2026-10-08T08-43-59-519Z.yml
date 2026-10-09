@@ -1,0 +1,108 @@
+- generic [ref=e2]:
+  - generic [ref=e7]:
+    - button "keyboard_double_arrow_left" [ref=e582] [cursor=pointer]
+    - generic [ref=e11]:
+      - heading "视图" [level=3] [ref=e15]
+      - generic [ref=e17]:
+        - paragraph [ref=e20]: 视图
+        - radiogroup "视图" [ref=e21] [cursor=pointer]:
+          - generic [ref=e22]:
+            - radio "论文库"
+            - paragraph [ref=e27]: 论文库
+          - generic [ref=e28]:
+            - radio "核心论文"
+            - paragraph [ref=e33]: 核心论文
+          - generic [ref=e34]:
+            - radio "待全文补充"
+            - paragraph [ref=e39]: 待全文补充
+          - generic [ref=e40]:
+            - radio "书目信息候选"
+            - paragraph [ref=e45]: 书目信息候选
+          - generic [ref=e46]:
+            - radio "AI 阅读导出" [checked] [active]
+            - paragraph [ref=e51]: AI 阅读导出
+      - separator [ref=e55]
+      - heading "筛选" [level=3] [ref=e59]
+      - generic [ref=e61]:
+        - paragraph [ref=e64]: 搜索（LIB / 人工编号 / 标题 / 标签）
+        - textbox "搜索（LIB / 人工编号 / 标题 / 标签）" [ref=e67]:
+          - /placeholder: ""
+      - paragraph [ref=e588]: 导出范围与目录在页面内设置；导出只读已保存的索引。
+      - separator [ref=e592]
+      - heading "高级" [level=3] [ref=e596]
+      - paragraph [ref=e600]: 下列操作只作用于索引文件，不扫描论文库、不移动或删除论文。
+      - button [ref=e134] [cursor=pointer]:
+        - paragraph [ref=e136]: 重建 Markdown 视图
+      - paragraph [ref=e601]:
+        - text: 索引文件：
+        - code [ref=e602]: D:\0Project\origin\_index\PAPER_LIBRARY_INDEX.json
+      - paragraph [ref=e131]:
+        - text: Markdown 视图：
+        - code [ref=e603]: D:\0Project\origin\_index\PAPER_LIBRARY_INDEX.md
+      - paragraph [ref=e607]:
+        - text: AI 阅读导出：
+        - code [ref=e608]: D:\0Project\origin\_index\exports
+      - paragraph [ref=e140]:
+        - text: 备份目录：
+        - code [ref=e141]: D:\0Project\origin\_index\backups
+  - generic [ref=e3]:
+    - banner [ref=e159]:
+      - generic [ref=e162]:
+        - button "Deploy" [ref=e610] [cursor=pointer]
+        - button [ref=e168] [cursor=pointer]
+    - generic [ref=e172]:
+      - generic [ref=e174]:
+        - heading "论文索引" [level=2] [ref=e181]
+        - generic [ref=e187]:
+          - paragraph [ref=e191]: 论文数
+          - generic [ref=e192]: "44"
+        - generic [ref=e198]:
+          - paragraph [ref=e202]: 磁盘版本
+          - generic [ref=e203]: "11"
+        - generic [ref=e209]:
+          - paragraph [ref=e213]: 未保存修改
+          - generic [ref=e214]: "0"
+        - button [ref=e220] [cursor=pointer]:
+          - paragraph [ref=e222]: 刷新索引（只重读磁盘）
+      - paragraph [ref=e226]: 磁盘最近更新时间：2026-10-08T16:16:09+08:00 · 未保存内容只保留在当前浏览器会话中，不会自动落盘。
+      - heading "AI 阅读导出" [level=3] [ref=e613]
+      - paragraph [ref=e236]: 导出为单向只读产物：只含书目、完整已存摘要与人工补充，不附带论文正文，不修改索引、revision 或备份，也不替代“下载未保存草稿”。
+      - generic [ref=e615]:
+        - paragraph [ref=e618]: 导出范围
+        - generic [ref=e620]:
+          - generic [ref=e621]:
+            - generic [ref=e622]: 全部论文
+            - combobox "Selected 全部论文. 导出范围" [ref=e624]
+          - img "open" [ref=e626]
+      - paragraph [ref=e631]:
+        - text: 预计导出：
+        - strong [ref=e632]: "44"
+        - text: 篇 →
+        - code [ref=e633]: PAPER_LIBRARY_FOR_AI.md
+      - paragraph [ref=e634]: 将覆盖该范围的最新版本文件；当前磁盘 revision 11。
+      - generic [ref=e636]:
+        - paragraph [ref=e639]: 导出目录（本机绝对路径）
+        - textbox "导出目录（本机绝对路径）" [ref=e642]:
+          - /placeholder: ""
+          - text: D:\0Project\origin\_index\exports
+      - paragraph [ref=e302]:
+        - text: 当前目录：
+        - code [ref=e643]: D:\0Project\origin\_index\exports
+      - generic [ref=e645]:
+        - button [ref=e650] [cursor=pointer]:
+          - paragraph [ref=e652]: 设为默认目录
+        - button [ref=e657] [cursor=pointer]:
+          - paragraph [ref=e659]: 恢复默认目录
+        - button [ref=e664] [cursor=pointer]:
+          - paragraph [ref=e666]: 打开导出目录
+        - button [ref=e671] [cursor=pointer]:
+          - paragraph [ref=e673]: 导出 AI 阅读论文集
+      - separator [ref=e344]
+      - generic [ref=e675]:
+        - button [disabled] [ref=e680]:
+          - paragraph [ref=e682]: 保存全部修改
+        - button [disabled] [ref=e687]:
+          - paragraph [ref=e689]: 重置未保存修改
+        - button [disabled] [ref=e694]:
+          - paragraph [ref=e696]: 下载未保存草稿
+        - paragraph [ref=e702]: 保存前会校验 LIB 唯一性与人工编号冲突；磁盘被其他程序改动时会拒绝覆盖。
