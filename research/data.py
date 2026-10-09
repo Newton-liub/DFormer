@@ -826,6 +826,7 @@ def cmd_check_samples(args):
             assert np.all(sup_np[0][~finite] == 0), "support where depth not finite"
             assert rgb.dtype == torch.float32 and dep.dtype == torch.float32
             assert sup.dtype == torch.float32 and gt.dtype == torch.int64
+            assert bool((((gt >= 0) & (gt < 37)) | (gt == 255)).all()), torch.unique(gt)
             assert bool(torch.isfinite(rgb).all()) and bool(torch.isfinite(dep).all())
             centers, prob, valid = soft_depth_histogram(dep_np[0], sup_np[0], DEFAULT_NUM_BINS)
             assert abs(prob.sum() - 1.0) < 1e-9 or valid == 0

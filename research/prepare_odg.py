@@ -105,6 +105,7 @@ def main():
     parser.add_argument("--probe-output", default="outputs/odg-preparation/tmp/odg-transfer-probe-20261010.bin")
     parser.add_argument("--unpack-sun", metavar="SUN_ARCHIVE")
     parser.add_argument("--discard-probe", default=False, action="store_true")
+    parser.add_argument("--discard-sync-bundles", default=False, action="store_true")
     args = parser.parse_args()
     if args.transfer_probe:
         print(json.dumps(transfer_probe(args.transfer_probe, args.probe_output), indent=2))
@@ -115,6 +116,12 @@ def main():
         if probe.name != "odg-transfer-probe-20261010.bin":
             raise ValueError("Only the named transfer probe may be discarded")
         probe.unlink(missing_ok=True)
+    if args.discard_sync_bundles:
+        root = Path("/root/rivermind-data")
+        if not root.is_dir():
+            raise ValueError("Sync-bundle cleanup is restricted to the project cloud data root")
+        for name in ("odg-71aa4e4.bundle", "odg-2b2d754.bundle", "odg-launch-fix.bundle", "odg-final-20261010.bundle"):
+            (root / name).unlink(missing_ok=True)
     print(json.dumps(inspect_assets(args.data_root), ensure_ascii=False, indent=2))
     if args.monitor:
         print(json.dumps({"monitoring": monitoring_check(args.monitor)}, ensure_ascii=False, indent=2))
