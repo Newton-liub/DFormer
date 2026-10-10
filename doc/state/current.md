@@ -24,7 +24,7 @@
 
 ### 研究合同与实现
 
-- 主数据集SUN RGB-D，NYUv2第二验证集；MUSeg仅可选应用扩展，DeLiVER本轮不适配。DFormerv2-S + 当前HAM宽度1024、37类，只实施ODG，不叠加教师/补偿/新损失。
+- 主数据集SUN RGB-D，NYUv2第二验证集；MUSeg仅可选应用扩展，DeLiVER工程接入已完成（25类，尚未正式实验），不替换SUN主线。DFormerv2-S + 当前HAM宽度1024、37类，只实施ODG，不叠加教师/补偿/新损失。
 - `research/geometry.py`构造输入观测16区间软分布→实际stage面积池化→归一化核log bias；固定区间覆盖作者归一化深度域。空观测只中性化depth项，原spatial/QKV/RoPE/FFN/可学习权重符号保留。无新增可学习参数；前三stage轴向、最后full，同forward复用stage关系，不跨batch缓存。
 - `geometry_mode=original|mean|odg`：original复用作者双线性stage深度差；mean先求同支持域均值再走相同分箱核，是正结果后的关键消融。区间中心点质量可退化，off-grid仅近似，不声称已证明创新或收益。
 - 研究层为`research/{data,train_odg,evaluate_odg,odg_schedule,prepare_odg}.py`；独立配置`local_configs.research.ODG_SUNRGBD`及`ODG_NYUv2`。作者`utils/train.py`未改；模型只改必要接口、几何切换、单卡BN与HAM设备分配。
@@ -42,7 +42,7 @@
 - 三模式各26966591参数，均成功加载官方encoder。missing为extra_norms标准LayerNorm初值，unexpected为不用的预训练头；没有补key、没有重哈希权重。
 - 小张量常量/自关系/全空/部分空、轴向/full尺寸与有限性、FP32 autocast隔离、分块一致性均通过。ODG一次CPU batch2、64×64完整前后向loss4.1066256，714个可训练参数张量均有有限梯度。实际没有GPU或正式训练验收。
 - 人工25%/50%孔洞会同时填共同depth输入与删mask，按矩形图像支持域精确取整计数；padding不改。非矩形支持域先拒绝并要求单独协议，不以错误严重度评价。五张数据示例在`outputs/odg-preparation/data-preview/`，只是输入对齐检查，不是收益图。
-- NYUv2数据本地/云端均缺，已准备作者40类入口，不把test伪作dev；不阻塞SUN。本轮未下载NYU或适配DeLiVER。可信整理版入口和目标结构见准备报告。
+- NYUv2数据本地/云端均缺，已准备作者40类入口，不把test伪作dev；不阻塞SUN。SUN准备阶段未下载NYU；DeLiVER已于后续独立任务完成接入，正式实验未运行。可信整理版入口和目标结构见准备报告。
 
 ### Git、环境、监控与云端
 
@@ -64,7 +64,7 @@
 
 ## 本轮授权与边界
 
-- **DeLiVER独立规划（2026-10-10）：** 已生成[待审接入计划](../plans/2026-10-10-deliver-integration.md)，建议本地原位使用RGB+单通道Depth、独立Dataset/25类配置并复用研究入口；本轮只读代表样本与接口、写计划，未改工程或运行模型/训练。仅此规划任务替代此前“暂不适配”的准备限制；接入实施、GPU与正式实验仍待审核/另行授权，不改变SUN主线诊断及停止续训结论。
+- **DeLiVER最终验收（2026-10-10，已完成）：** 按批准计划接入RGB+原始单通道Depth、25类/ignore255及官方train3983/val2005/test1897，主力复核已有CPU smoke（29/29几何权重更新）与数据产物后验收通过；`72ec726`已合入最新主线`da0cace`，合并提交`5d61a8c`，保留BN评价配置与eval模式验证。冲突处复用主线完整优化器分组，合并后CPU入口核验714/714唯一入组、含29个Geo.weight，未重复模型前后向。详见[最终验收报告与命令](../reports/2026-10-10-deliver-integration-acceptance.md)。未运行DeLiVER GPU训练/全量val/test、未推送，正式GPU能力和实验预算待另行授权；不改变SUN研究裁决。
 
 - **训练代码修复与第二轮准备（2026-10-10，已执行）：** 上级批准只做本地训练代码修复与准备、暂不启动 GPU：周期验证改为 `model.eval()` 并恢复训练模式；修复优化器参数分组遗漏 29 个 `Geo.weight`；保留现有 ODG 设计、超参数、数据划分与 300 epoch 日程；只做最小 CPU 检查。本轮改动限于 `research/{train_odg,odg_schedule}.py` 与 `research/run_odg_gpu.sh`（运行目录后缀默认 `r2`，改动 1 处 experiment 名），未启动云端 GPU、未重训、未新增消融、未改模型结构与作者代码。
 
