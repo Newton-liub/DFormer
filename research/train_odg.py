@@ -118,8 +118,10 @@ def resolve_data_plan(config, args, resolved, require_ready):
     return train_source, eval_source, periodic_eval, plan
 
 
-def print_schedule(config, resolved, plan, schedule, policy):
+def print_schedule(config, resolved, plan, schedule, policy, train_source=None, eval_source=None):
     print("[schedule] dataset=%s geometry=%s" % (config.dataset_name, resolved["geometry_mode"]))
+    print("[schedule] train_source=%s" % train_source)
+    print("[schedule] eval_source=%s (periodic validation target)" % eval_source)
     print("[schedule] samples/epoch=%d micro_batch=%d accum_steps=%d effective_batch=%d"
           % (plan["num_samples"], plan["micro_batch"], plan["accum_steps"], plan["effective_batch"]))
     print("[schedule] micro_batches/epoch=%d updates/epoch=%d repeated_samples=%d file_length=%d"
@@ -193,7 +195,7 @@ def main(argv=None):
         policy, schedule = sched.build_schedule(
             plan["updates_per_epoch"], resolved["schedule_epochs"], resolved["warmup_epochs"],
             float(config.lr), float(config.lr_power), resolved["stop_after_epoch"])
-        return print_schedule(config, resolved, plan, schedule, policy)
+        return print_schedule(config, resolved, plan, schedule, policy, _train, _eval)
 
     # This training entry is CUDA-only.  There is deliberately no CPU-training
     # switch: on CPU, only --print-schedule / --help are supported.
@@ -262,6 +264,18 @@ def main(argv=None):
     base_lr = float(config.lr)
     from utils.init_func import group_weight
     params_list = group_weight([], model, nn.BatchNorm2d, base_lr)
+    if str(config.dataset_name) == "DeLiVER":
+        # The author grouping walks ``module.modules()`` and therefore never sees
+        # an ``nn.Parameter`` owned directly by a module (every ``Geo.weight``), so
+        # those tensors would silently stay frozen.  Complete the groups for
+        # DeLiVER only, grouped by parameter object identity, as a no-decay group;
+        # the helper also asserts exact once-only coverage of every trainable
+        # tensor.  SUN/NYU behaviour is deliberately left untouched.
+        from research.deliver import complete_optimizer_groups
+
+        params_list, added_names = complete_optimizer_groups(model, params_list, base_lr)
+        logger.info("DeLiVER optimizer group completion: %d previously ungrouped trainable tensors "
+                    "added as a no-decay group: %s" % (len(added_names), added_names[:8]))
     if config.optimizer == "AdamW":
         optimizer = torch.optim.AdamW(params_list, lr=base_lr, betas=(0.9, 0.999),
                                       weight_decay=float(config.weight_decay))
