@@ -4,7 +4,14 @@
 
 ## 当前阶段
 
-用户已批准[首轮GPU实验计划](../../临时/ODG_GPU_实验计划_20261010.md)，并确认本地SUN包来自DFormer作者入口；当前进入首轮GPU实验阶段。**ODG实现、三模式构建、CPU梯度验收、独立训练/评价入口、SUN云端数据准备均已完成，主无卡窗口此前已回读Stopped。** 本阶段预算上限为¥40且20 GPU小时：最小GPU检查后按计划串行训练original与odg各30 epoch（300 epoch日程与两组条件不变）。有卡启动由用户手动执行；实例`cpod-1vbh7faqcauq`现为Stopped、GPU0、未计费。尚无任何GPU实测吞吐、显存或分割指标；30 epoch只作工程与趋势判断，不宣称方法有效。
+用户已批准[首轮GPU实验计划](../../临时/ODG_GPU_实验计划_20261010.md)，并确认本地SUN包来自DFormer作者入口。**2026-10-10上午用户手动启动有卡实例，最小GPU检查与一次限时性能诊断已完成，两组30 epoch正式训练正在云端并行运行。** 组合定为`MICRO_BATCH=4 ACCUM_STEPS=4`（有效batch16），original与odg同组合；预期两组均在约13:30（UTC+8）前完成。平台关机保险已回读为2026-10-10 16:18:40（UTC+8）。尚无任何分割指标；30 epoch只作工程与趋势判断，不宣称方法有效。
+
+### 本轮GPU执行事实（2026-10-10）
+
+- 有卡实读：RTX 4090 24GB、14CPU/32GiB、Postpay、`InstancePrice=1.88`；`py310`（Python3.10.16、torch2.1.2+cu118、mmcv2.1.0、timm1.0.28、SwanLab0.10.1）、SUN数据与官方预训练在位、磁盘约21GiB空闲、云端HEAD`7abf51d`工作区干净（与本机代码同源，本机仅多一个文档提交`af0548a`）。
+- smoke（`bash research/run_odg_gpu.sh smoke`，200次真实optimizer尝试/模式）：`2×8` original 1.745s/attempt、odg 1.834s/attempt；`4×4` original 0.955、odg 1.099，峰值显存2.9–5.2GB。loss有限、无参数缺梯度、探针参数均更新；AMP跳步仅集中在前约12–30次尝试（scaler预热，末段188–173次零跳步），无持续跳步、无OOM。smoke快照不可续正式训练。
+- 限时性能诊断（SIGSTOP挂起训练、保留进度，脚本`/root/odg_probe_diag.sh`，trap保证恢复；50次尝试/组合）：`4×4`15.82 samples/s（5.9GB）、`8×2`22.11（11.1GB）、`16×1`因CUDA OOM未测（另一次运行占6.3GB时该进程需>17.2GB，仅独占整卡可行）、两进程并行`4×4`合计24.46 samples/s（单进程各降约20%，总吞吐+55%）。诊断为数据加载与CPU均未饱和（8个worker各7–24%、总CPU约17%），瓶颈是每次迭代约0.116s固定开销加每次optimizer尝试约0.5s的固定开销；未改任何代码。
+- 已实施：original（run `outputs/sun-dev-original-seed12345/20261010-013324/`）与odg（`outputs/sun-dev-odg-seed12345/20261010-020527/`）**并行**执行，实测1.17/1.35s per attempt、GPU利用87–96%、显存12.2GB；预计比串行方案少约1.4小时。自动串行启动脚本`stage1`已挂起（bash进程SIGSTOP），避免重复启动odg；训练每epoch保存`last.pth`，当前可作为恢复点。
 
 ## 已确认事实
 
@@ -58,10 +65,10 @@
 
 ## 下一步、阻塞与恢复点
 
-- 2026-10-10首轮GPU实验计划已获用户批准（[临时计划](../../临时/ODG_GPU_实验计划_20261010.md)），SUN包来源已由用户确认为作者入口。第一步为最小GPU检查，随后original/odg各30 epoch；当前等待用户手动启动有卡实例。
+- 2026-10-10首轮GPU实验计划已获用户批准（[临时计划](../../临时/ODG_GPU_实验计划_20261010.md)），SUN包来源已由用户确认为作者入口。最小GPU检查与限时性能诊断已完成，两组30 epoch正在并行训练，等待其结束并汇报。
 
 1. SUN传输与云端无卡验收已完成，原zip与本地来源保留，旧云端资产不覆盖；不继续下载或转换。
-2. 有卡启动后先回读规格并设置+回读平台关机保险（约90分钟），再从`7abf51d`同一commit执行`bash research/run_odg_gpu.sh smoke`（起点`MICRO_BATCH=2 ACCUM_STEPS=8`，两组同组合），确认loss有限、存在实际成功更新、无显存溢出并记录峰值显存与稳定吞吐；随后串行`baseline`、`odg`各30 epoch。
+2. 两组30 epoch结束后：取回`loss_lr.csv`/`validation.csv`/阶段checkpoint与少量预测，比较dev单尺度mIoU、逐类IoU与loss趋势，记录实际耗时与费用，判断是否申请续至100 epoch；未经授权不续训。并主动停下实例并回读`Stopped`，挂起的`stage1`链与诊断脚本一并清理。
 3. 预算上限¥40且20 GPU小时；实际吞吐明显超出预期或任一上限触顶即暂停报告，不自行扩预算。100 epoch续训、正式test、300 epoch与消融均需另行授权。
-4. 本阶段仍待实测：micro-batch显存余量、AMP稳定更新、吞吐与时长、resume后设备一致性。NYU缺失不是SUN阻塞。
+4. 诊断结论：数据加载与CPU未饱和；每次迭代约0.116s固定开销加每次optimizer尝试约0.5s固定开销为主要限制。若后续100/300 epoch仍需提速，首选经审批后削减每次尝试的逐张量梯度有限性扫描（714个张量、逐个同步，属监测开销，不改变优化与公平性）；`16×1`仅在整卡独占时可行。诊断证据见`/root/odg_probe_diag.sh`与`outputs/odg-gpu-20261010/probe-*.log`，尚未整理为仓库报告。
 5. 没有新科研裁决或匹配SUN baseline分数。30epoch只看工程/趋势；100epoch后才按上级预算作实质判断；有正结果再mean消融、正式fulltrain/test和NYU验证。所有test结果与开发/全train训练口径分开记账。
