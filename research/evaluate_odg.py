@@ -5,6 +5,10 @@ Defaults match the study protocol:
 * single scale, no flip;
 * the fixed dev split (``--split dev``);
 * the dataset's explicit ``depth_support`` mask is forwarded to the model;
+* the decoder BatchNorm numerics (``C.bn_eps`` / ``C.bn_momentum``) that the
+  author init writes at training time are restored before the checkpoint is
+  loaded, so evaluation runs with the trained norm config rather than PyTorch's
+  defaults;
 * ``--msf`` is the only way to run the five-scale + flip protocol, and
   ``--split test`` is the only way to read the official test list.
 
@@ -120,6 +124,16 @@ def main(argv=None):
 
     from models.builder import EncoderDecoder as segmodel
     model = segmodel(cfg=config, criterion=None, norm_layer=nn.BatchNorm2d, syncbn=False)
+    # A state dict carries tensors only.  The decoder BatchNorm eps/momentum are
+    # plain attributes that the author init writes from C.bn_eps/C.bn_momentum at
+    # *training* time, so they must be restored explicitly or the evaluation model
+    # would run with PyTorch's defaults (eps 1e-5) instead of the trained config.
+    restored_norm = sched.restore_decoder_norm_config(model, config, norm_layer=nn.BatchNorm2d)
+    if not restored_norm:
+        raise SystemExit("no decoder norm layer found; refusing to evaluate with unknown norm config")
+    print("[evaluate] restored decoder norm config (bn_eps=%g bn_momentum=%g) on %d layers: %s"
+          % (float(config.bn_eps), float(config.bn_momentum), len(restored_norm),
+             ", ".join(restored_norm)))
     use_support = sched.supports_depth_support(model)
     if geometry_mode != "original" and not use_support:
         raise SystemExit("geometry_mode=%s but the model does not accept depth_support" % geometry_mode)
@@ -174,6 +188,10 @@ def main(argv=None):
                  else ("five_scale" if args.msf else "single_scale_no_flip")),
         "scales": list(scales) if args.msf else [1.0],
         "flip": (not args.no_msf_flip) if args.msf else False,
+        "model_mode": "eval",
+        "decoder_bn_eps": float(config.bn_eps),
+        "decoder_bn_momentum": float(config.bn_momentum),
+        "decoder_norm_layers": list(restored_norm),
         "fusion": "sum of per-view softmax probabilities, then argmax",
         "hole_ratio": float(args.hole_ratio),
         "hole_seed": int(args.hole_seed) if args.hole_ratio > 0 else None,

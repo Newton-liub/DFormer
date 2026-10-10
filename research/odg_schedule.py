@@ -520,6 +520,42 @@ def supports_depth_support(model):
     return any(p.kind == inspect.Parameter.VAR_KEYWORD for p in signature.parameters.values())
 
 
+def decoder_norm_layers(model, norm_layer=torch.nn.BatchNorm2d):
+    """Yield ``(name, module)`` for the decoder norm layers the author init writes to."""
+    heads = [("decode_head", getattr(model, "decode_head", None)),
+             ("aux_head", getattr(model, "aux_head", None))]
+    for head_name, head in heads:
+        if head is None:
+            continue
+        for name, module in head.named_modules():
+            if isinstance(module, norm_layer):
+                yield ("%s.%s" % (head_name, name) if name else head_name, module)
+
+
+def restore_decoder_norm_config(model, config, norm_layer=torch.nn.BatchNorm2d):
+    """Restore the decoder norm numerics that a ``state_dict`` cannot carry.
+
+    ``EncoderDecoder`` only calls ``init_weights`` when a criterion is passed, and
+    that call is what writes ``cfg.bn_eps`` / ``cfg.bn_momentum`` into the decoder
+    norm layers (``utils/init_func.__init_weight``).  Training therefore trained
+    and validated with those values, while ``state_dict`` restores tensors only:
+    a fresh evaluation model would silently keep PyTorch's defaults.
+
+    This mirrors *only* the numeric part of the author init, on exactly the same
+    modules (``decode_head`` and, when present, ``aux_head``).  It never
+    re-initialises weights or affine parameters, never touches running statistics
+    and never loads the backbone, so the checkpoint stays authoritative.
+
+    Returns one ``"name: eps=<e> momentum=<m>"`` string per layer for the record.
+    """
+    restored = []
+    for name, module in decoder_norm_layers(model, norm_layer):
+        module.eps = float(config.bn_eps)
+        module.momentum = float(config.bn_momentum)
+        restored.append("%s: eps=%g momentum=%g" % (name, module.eps, module.momentum))
+    return restored
+
+
 def forward_logits(model, rgb, modal_x, depth_support=None, use_support=False):
     if use_support and depth_support is not None:
         return model(rgb, modal_x, depth_support=depth_support)

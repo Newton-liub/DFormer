@@ -4,7 +4,11 @@
 
 ## 当前阶段
 
-用户已批准[首轮GPU实验计划](../plans/2026-10-10-odg-gpu-experiment.md)并确认SUN包来自作者入口。**2026-10-10首轮GPU实验已完成：original与odg各30 epoch（300 epoch日程的暂停点）在云端并行跑完，实例已主动停止并回读`Stopped`，产物已在无卡A窗口取回本地。** dev单尺度无翻转mIoU：original 26.01/36.82/**39.39**、odg 24.92/34.83/**36.97**（epoch 10/20/30），ODG落后1.09/1.99/2.42点且差距扩大。按计划30epoch停止条件，**不自动续训100epoch**，等下一轮科研决策；正式test、mean消融、300epoch均未授权、未运行。
+用户已批准[首轮GPU实验计划](../plans/2026-10-10-odg-gpu-experiment.md)并确认SUN包来自作者入口。**2026-10-10首轮GPU实验已完成：original与odg各30 epoch（300 epoch日程的暂停点）在云端并行跑完，实例已主动停止并回读`Stopped`，产物已在无卡A窗口取回本地。** dev单尺度无翻转mIoU：original 26.01/36.82/**39.39**、odg 24.92/34.83/**36.97**（epoch 10/20/30），ODG落后1.09/1.99/2.42点且差距扩大。**这三个验证点是在 train 模式下取得的（见下一段），不是标准 eval 结果。** 按计划30epoch停止条件，**不自动续训100epoch**，等下一轮科研决策；正式test、mean消融、300epoch均未授权、未运行。
+
+2026-10-10[科研诊断报告](../reports/2026-10-10-odg-research-diagnosis.md)已获上级审核通过。CPU直接核验发现两组29个`Geo.weight`均遗漏于优化器（714个可训练参数张量，仅685个入组），30epoch与预训练逐元素相同；此前“几何权重已更新/所有可训练层更新”的描述已更正。三张dev深度关系抽样显示ODG bias较原关系减弱，天然零值语义仍未知。
+
+**2026-10-10评价配置对齐与孔洞复测已完成，等待上级科研裁决**（[复测报告](../reports/2026-10-10-odg-bn-align-reevaluation.md)；此前未对齐的孔洞结果见[孔洞评价](../reports/2026-10-10-odg-holes25-evaluation.md)）：独立评价入口已恢复训练时的解码器 BatchNorm 数值（`eps=0.001`，CPU 三路径定点核对，792 个浮点张量不变），但四组结果只变化 ≤0.01 点——**`eps` 不是 clean 与训练内不一致的原因**。修复后 clean 为 Original **41.32**、ODG **42.77**，**仍不能复现**训练内 39.39/36.97；定点诊断（同权重、同 528 图、仅令模型保持 train 模式）得 39.09/37.22，并复现训练记录中 `floor_mat`/`shower_curtain`/`night_stand` 三类 IoU 为 0 的特征，证实 `research/train_odg.py` 的周期验证从未调用 `model.eval()`（作者的 `utils/train.py` 在验证前调用了）。25% 孔洞下 ODG 仍 **+2.96** 点、退化改善 1.51 点，正向信号保留；但“ODG 落后 2.42 点”属 train 模式数值，是否改变停止续训结论需上级裁决。本轮未修优化器、未重训、未新增消融、未启动云端。
 
 ### 首轮30 epoch结果与执行事实（2026-10-10，详见报告）
 
@@ -21,7 +25,7 @@
 - `research/geometry.py`构造输入观测16区间软分布→实际stage面积池化→归一化核log bias；固定区间覆盖作者归一化深度域。空观测只中性化depth项，原spatial/QKV/RoPE/FFN/可学习权重符号保留。无新增可学习参数；前三stage轴向、最后full，同forward复用stage关系，不跨batch缓存。
 - `geometry_mode=original|mean|odg`：original复用作者双线性stage深度差；mean先求同支持域均值再走相同分箱核，是正结果后的关键消融。区间中心点质量可退化，off-grid仅近似，不声称已证明创新或收益。
 - 研究层为`research/{data,train_odg,evaluate_odg,odg_schedule,prepare_odg}.py`；独立配置`local_configs.research.ODG_SUNRGBD`及`ODG_NYUv2`。作者`utils/train.py`未改；模型只改必要接口、几何切换、单卡BN与HAM设备分配。
-- 新baseline/candidate都只加载`checkpoints/pretrained/DFormerv2_Small_pretrained.pth`，新头、新optimizer/scaler，从头训练；不使用旧MUSeg/MMFR完整分割权重。所有可训练层更新，单卡关闭SyncBN且`norm_eval=False`。
+- 新baseline/candidate都只加载`checkpoints/pretrained/DFormerv2_Small_pretrained.pth`，新头、新optimizer/scaler，从头训练；不使用旧MUSeg/MMFR完整分割权重。常规编码器/分割头参数参与优化，但29个`Geo.weight`因作者分组函数遗漏而实际未更新（两组一致，2026-10-10诊断直接核验）；单卡关闭SyncBN且`norm_eval=False`。
 - SUN：AdamW8e-5、wd.01、betas.9/.999、有效batch16、480×480、seed12345、warmup10、poly.9、总300epoch，继承尺度/翻转，不新增损坏增强、不compile。micro-batch/累积须GPU授权后确认并在两模型一致。
 - LR在optimizer尝试之前写入真实param-group；AMP成功/跳过分别计数。`stop_after_epoch=30/100`只是暂停，不压缩300epoch。保存last、best-dev、30/100阶段点与optimizer/scaler/RNG/合同；resume限同实验epoch边界，smoke快照不可恢复正式训练。
 
@@ -57,8 +61,15 @@
 
 ## 本轮授权与边界
 
+- **DeLiVER独立规划（2026-10-10）：** 已生成[待审接入计划](../plans/2026-10-10-deliver-integration.md)，建议本地原位使用RGB+单通道Depth、独立Dataset/25类配置并复用研究入口；本轮只读代表样本与接口、写计划，未改工程或运行模型/训练。仅此规划任务替代此前“暂不适配”的准备限制；接入实施、GPU与正式实验仍待审核/另行授权，不改变SUN主线诊断及停止续训结论。
+
+- **评价修复与复测授权（2026-10-10，已执行）：** 上级批准修复独立评价入口未恢复训练时 BatchNorm 数值配置的问题，并用现有两个 epoch30 checkpoint 在本地 RTX 5060 重做 Original/ODG 的 clean 与 25% 孔洞四组；优先确认修复后 clean 能否复现训练内 39.39/36.97，仍不一致时只针对实际差异排查。本轮实现限于研究层 `evaluate_odg.py` / `odg_schedule.py`，另做一次 train 模式定点诊断定位差异（同权重、同 528 图，仅改变模型模式）；未修优化器、未重训、未新增消融、未启动云端 GPU。
+
+- **上一轮孔洞评价授权（2026-10-10，已执行）：** 现有Original/ODG epoch30、同528图dev、同seed/config的25%孔洞评价在本地5060完成；因与历史clean不一致，仅补两次同入口clean基准，未添加故障/seed/消融。禁止新训练、修改模型/优化器；付费云GPU未授权且未启动。该轮的“评价BN配置恢复及重复配对仍需批准”已由本轮修复复测替代；没有提交或推送。
+- **已结束诊断任务（2026-10-10）：** 只读科研诊断及CPU定点取证、写报告；资料本地齐备，未使用无卡云取证，未修改代码或启动GPU。优化器修正重验仍需另行授权。
+
 - 2026-10-10指令授权本任务代码/配置/简短文档、限定CPU检查、现有实例无卡启动和关停、数据传输/必要下载、一次最小在线日志验证、Git提交及推送用户远端。此授权替代已结束论文库任务的工程限制，但没有扩展论文库写入权。
-- **GPU阶段授权范围（2026-10-10用户批准）：** 现有实例有卡运行、最小GPU检查、original与odg各30 epoch正式训练（用户事后明确批准双模型并行4×4方案）、必要的最小代码修复与提交；预算上限¥40且20 GPU小时。**该额度只用掉4.31小时/约¥8.1。** 续至100 epoch、正式test、300 epoch、mean消融与人工孔洞评价仍需另行授权；未经批准不启动100 epoch训练。
+- **GPU阶段授权范围（2026-10-10用户批准）：** 现有实例有卡运行、最小GPU检查、original与odg各30 epoch正式训练（用户事后明确批准双模型并行4×4方案）、必要的最小代码修复与提交；预算上限¥40且20 GPU小时。**该额度只用掉4.31小时/约¥8.1。** 续至100 epoch、正式test、300 epoch、mean消融与云端GPU孔洞评价仍需另行授权；本轮本地孔洞评价已按最新授权完成，未经批准不启动100 epoch训练。
 - 有卡启动、付费规格切换与云资源生命周期由用户手动执行或明确授权；不新建实例、不扩容、不删除磁盘/实例、不覆盖旧实验。GPU检查通过前不开始长训练；训练前必须设置并回读平台关机保险。
 - 不跑完整旧测试、全量模型推理、长CPU训练或权重全量重哈希。异常与未运行检查必须如实记录；正式GPU能力不能由CPU验收替代。
 - 验证范围曾有偏差：首次CPU检查遇到作者硬编码CUDA基向量分配后在设备一致性检查处终止，已修复并屏蔽CUDA重检；数据整理曾全清单头部尺寸扫描（15620条含重复），超出约5组抽样，已停止并移除全量入口。细节见报告，不隐瞒或继续扩展。
@@ -71,6 +82,6 @@
 
 1. 云端工程与数据保留不覆盖；旧云端资产、原zip与本地来源均不动，不继续下载或转换。
 2. 本地产物：`outputs/sun-dev-original-seed12345/20261010-013324/`与`outputs/sun-dev-odg-seed12345/20261010-020527/`（CSV、逐类IoU、预测、配置、`last.pth`、`best-dev.pth`、swanlab），诊断与训练日志在`outputs/odg-gpu-20261010/`；4个checkpoint已用本地torch2.7.0 CPU实际加载核对字段。云端保留全部文件含未取回的`stage-epoch-30.pth`。
-3. 续训100 epoch、正式test、300 epoch、mean消融仍未授权、未运行；30 epoch差距持续扩大（-1.09→-1.99→-2.42），按计划停止条件不改动该结论。
-4. 建议下一轮优先做的不是训练，而是用现有30 epoch checkpoint做计划中已有的25%人工孔洞dev评价（纯评价、成本小），以检验ODG的预期收益方向；若仍无优势，回到方法与实现层面复核（核bias量级与$w_d$相互作用、`mean`消融位置）。若要直接看100 epoch趋势，按实测速率估计再需约8.4小时/约¥16，须另行授权。
+3. 续训100 epoch、正式test、300 epoch、mean消融仍未授权、未运行；30 epoch差距持续扩大（-1.09→-1.99→-2.42），按计划停止条件不改动该结论。**但该趋势为 train 模式验证数值，其有效性与处置待上级裁决（见第4条）。**
+4. [评价对齐复测](../reports/2026-10-10-odg-bn-align-reevaluation.md)已完成：解码器BN数值已与训练对齐，但对结果影响≤0.01点；修复后clean为41.32/42.77，孔洞为39.78/42.74，ODG孔洞仍+2.96、退化改善1.51点。产物在`outputs/odg-holes25-bnfix-20261010/{original-clean,original-holes25,odg-clean,odg-holes25}/`，诊断证据在其`diagnostic-trainmode.json`。**新阻塞且不属本轮授权：`research/train_odg.py`周期验证未切eval模式**，故训练内39.39/36.97与“落后2.42点”为train模式数值，同权重eval模式clean为41.32/42.77（ODG领先1.45）。修正训练入口验证模式、重取验证点、`mean`消融、续训、正式test、云端GPU均需另行授权；mask处理与分布贡献仍未分离。
 5. 性能诊断结论（若后续续训仍需提速）：数据加载与CPU未饱和；每次迭代约0.116s加每次optimizer尝试约0.5s固定开销是主要限制；可选优化是经审批后削减每次尝试的逐张量梯度有限性扫描（714张量逐个同步，属监测开销，不改变优化与公平性）；`16×1`仅在整卡独占时可行。
