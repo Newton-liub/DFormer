@@ -4,7 +4,7 @@
 
 ## 当前阶段
 
-用户已批准[首轮GPU实验计划](../../临时/ODG_GPU_实验计划_20261010.md)并确认SUN包来自作者入口。**2026-10-10首轮GPU实验已完成：original与odg各30 epoch（300 epoch日程的暂停点）在云端并行跑完，实例已主动停止并回读`Stopped`，产物已在无卡A窗口取回本地。** dev单尺度无翻转mIoU：original 26.01/36.82/**39.39**、odg 24.92/34.83/**36.97**（epoch 10/20/30），ODG落后1.09/1.99/2.42点且差距扩大。按计划30epoch停止条件，**不自动续训100epoch**，等下一轮科研决策；正式test、mean消融、300epoch均未授权、未运行。
+用户已批准[首轮GPU实验计划](../plans/2026-10-10-odg-gpu-experiment.md)并确认SUN包来自作者入口。**2026-10-10首轮GPU实验已完成：original与odg各30 epoch（300 epoch日程的暂停点）在云端并行跑完，实例已主动停止并回读`Stopped`，产物已在无卡A窗口取回本地。** dev单尺度无翻转mIoU：original 26.01/36.82/**39.39**、odg 24.92/34.83/**36.97**（epoch 10/20/30），ODG落后1.09/1.99/2.42点且差距扩大。按计划30epoch停止条件，**不自动续训100epoch**，等下一轮科研决策；正式test、mean消融、300epoch均未授权、未运行。
 
 ### 首轮30 epoch结果与执行事实（2026-10-10，详见报告）
 
@@ -47,7 +47,7 @@
 - 云端GitHub fetch发生TLS握手中止，已按许可用Git bundle fetch/fast-forward同步正常提交关系，不手工覆盖源码、不留云端未记录补丁。手动启动脚本`bash -n`及CPU日程已通过；未创建训练session、cron/start.d或将来自动GPU任务。
 - SUN现成zip已上传至`/root/rivermind-data/dataset/SUNRGBD-odg-20261010.zip`并解压到相邻`SUNRGBD/`，原包保留。三模态各10335、train5285/test5050；云端四清单路径配对0缺失、少量train/dev样本CPU可读及padding通过，磁盘空闲约20GiB。8MiB短传5.513秒、保守预计26.86分钟才启动；实际1089.322秒（18分09秒），低于3小时。编码来源仍待确认，不把工程可读性冒称作者来源已闭环。
 - 本地在线SwanLab init/log/finish实际上传完成16records：[CPU准备run](https://swanlab.cn/@Newton_liub/dformer-research/runs/bwmgfa13)。GBK错误后只针对性改`-X utf8`重试一次成功。云端登录存储存在，disabled和offline生命周期成功；云端online本轮未新测。key未打印、纳入Git或配置，未直接读取`临时/key.txt`。
-- 旧云端工程`/root/rivermind-data/DFormer-archive-20261008`、旧cloud结果/MUSeg/pretrained库，以及本地`D:\0Project\DFormer-archive-20261007\`均保留，不迁回或覆盖。旧实验结论仍以[交接报告](../../临时/RESEARCH_HANDOFF.md)为准。
+- 旧云端工程`/root/rivermind-data/DFormer-archive-20261008`、旧cloud结果/MUSeg/pretrained库，以及本地`D:\0Project\DFormer-archive-20261007\`均保留，不迁回或覆盖。旧实验结论仍以[交接报告](../reports/2026-10-09-research-handoff.md)为准。
 
 ### 已结束的论文库工作
 
@@ -65,7 +65,9 @@
 
 ## 下一步、阻塞与恢复点
 
-- 2026-10-10首轮GPU实验计划已执行完毕（[临时计划](../../临时/ODG_GPU_实验计划_20261010.md)）：最小GPU检查、限时性能诊断、两组30 epoch均已结束，实例已停机。结果与产物位置见[30epoch报告](../reports/2026-10-10-odg-sunrgbd-30epoch.md)。
+- 文档归档（2026-10-10）：`临时/`中4份Markdown已留档至`doc/`：交接报告进`reports/`，数据下载指南进`guides/`，ODG无卡指令与GPU计划进`plans/`；相关链接已更新，历史材料已标注时效与授权边界。临时原件保留供用户自行清理，本次不改变实验事实或授权。
+
+- 2026-10-10首轮GPU实验计划已执行完毕（[归档计划](../plans/2026-10-10-odg-gpu-experiment.md)）：最小GPU检查、限时性能诊断、两组30 epoch均已结束，实例已停机。结果与产物位置见[30epoch报告](../reports/2026-10-10-odg-sunrgbd-30epoch.md)。
 
 1. 云端工程与数据保留不覆盖；旧云端资产、原zip与本地来源均不动，不继续下载或转换。
 2. 本地产物：`outputs/sun-dev-original-seed12345/20261010-013324/`与`outputs/sun-dev-odg-seed12345/20261010-020527/`（CSV、逐类IoU、预测、配置、`last.pth`、`best-dev.pth`、swanlab），诊断与训练日志在`outputs/odg-gpu-20261010/`；4个checkpoint已用本地torch2.7.0 CPU实际加载核对字段。云端保留全部文件含未取回的`stage-epoch-30.pth`。

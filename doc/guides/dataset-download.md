@@ -1,5 +1,7 @@
 # 数据集下载与配置指南
 
+> 迁移说明（2026-10-10）：原文从 `临时/DATASET_DOWNLOAD_GUIDE.md` 迁入，保留2026-10-08的来源核实记录与操作示例。以下研究顺序、未下载表述和配置名属于当时背景；当前路线为SUN主集、NYUv2第二验证集、DeLiVER暂不适配、MUSeg可选扩展。当前数据与配置以[项目状态](../state/current.md)和[ODG入口](odg.md)为准；本地后续落盘记录见[交接报告](../reports/2026-10-09-research-handoff.md)。本指南不是下载或云端操作授权。
+
 核实日期：2026-10-08。本文件只记录下载和配置方法；**本轮没有执行任何数据集下载、解压、转换、训练或评价**。下列命令均为以后获得数据下载授权时的操作示例。
 
 第一阶段使用 SUN RGB-D 快速开发；DeLiVER 用作正式 robustness benchmark；NYU Depth V2 为第二阶段可选；MUSeg 用作最终 underground real-world validation。

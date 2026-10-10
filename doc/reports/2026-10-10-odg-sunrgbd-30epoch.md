@@ -1,6 +1,6 @@
 # ODG 首轮 SUN RGB-D 30 epoch 实验结果（2026-10-10）
 
-本报告记录 2026-10-10 首轮 GPU 实验：DFormerv2-S + HAM 在 SUN RGB-D 开发划分上，`original`（作者几何路径）与 `odg`（局部观测分布几何先验）各训练 30 epoch 的对照结果、性能诊断与实际费用。执行依据为用户批准的[首轮 GPU 实验计划](../../临时/ODG_GPU_实验计划_20261010.md)；协议与命令见 [ODG 入口](../guides/odg.md)，实时状态见[项目状态](../state/current.md)。
+本报告记录 2026-10-10 首轮 GPU 实验：DFormerv2-S + HAM 在 SUN RGB-D 开发划分上，`original`（作者几何路径）与 `odg`（局部观测分布几何先验）各训练 30 epoch 的对照结果、性能诊断与实际费用。执行依据为用户批准的[首轮 GPU 实验计划](../plans/2026-10-10-odg-gpu-experiment.md)；协议与命令见 [ODG 入口](../guides/odg.md)，实时状态见[项目状态](../state/current.md)。
 
 **结论摘要：** 两组均正常完成 30 epoch（各 8940 次 optimizer 更新，无失败、无显存溢出、无持续 AMP 跳步）。dev 单尺度无翻转 mIoU 上，`original` 为 26.01 / 36.82 / **39.39**（epoch 10/20/30），`odg` 为 24.92 / 34.83 / **36.97**，ODG 分别落后 1.09 / 1.99 / **2.42** 个点，且差距在三个验证点上持续扩大；训练 loss 也始终略高。按计划的 30 epoch 停止条件（20、30 epoch 均落后约 2 点以上、差距未收窄、伴随类别退化），**不建议未经复核直接续训到 100 epoch**。
 

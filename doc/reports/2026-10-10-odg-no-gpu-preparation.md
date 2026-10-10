@@ -2,7 +2,7 @@
 
 ## 当前结论
 
-已实现 ODG（局部观测分布几何先验）及 `original / mean / odg` 三模式，完成限定 CPU 数值与梯度验收，独立训练/评价入口已准备。**没有新分割指标或方法增益结论；GPU 未获授权。** 本记录遵循[上级指令](../../临时/DFormer_ODG_Cursor_NoGPU_Instructions_20261010.md)，方法和后续命令见[ODG 入口](../guides/odg.md)。
+已实现 ODG（局部观测分布几何先验）及 `original / mean / odg` 三模式，完成限定 CPU 数值与梯度验收，独立训练/评价入口已准备。**没有新分割指标或方法增益结论；GPU 未获授权。** 本记录遵循[上级指令](../plans/2026-10-10-odg-no-gpu-instructions.md)，方法和后续命令见[ODG 入口](../guides/odg.md)。
 
 ## 实现与 Git
 
@@ -28,7 +28,7 @@
 - 五组dev样本已生成RGB/深度/标签/16区间示例：`outputs/odg-preparation/data-preview/`。主代理实际打开`preview_train_2651.png`，图像、深度及标签结构可对应；没有把它作为方法收益图。
 - 现成`D:\0Project\dataset\SUNRGBD.zip`为2,452,204,576 bytes，单顶层SUNRGBD；抽查3个Depth成员及两张清单与落盘文件大小/CRC一致。来源一致性仅闭环到这个本地压缩包，**没有直接绑定作者下载源的记录**；包大小/布局匹配此前作者入口记录只是旁证。
 - 深度保留作者灰度8位读取与0.48/0.28归一化。天然0未认作物理缺失，米制单位未知；不擅自改16位输入或发明映射。正式GPU运行前应由用户确认下载来源或替换为明确作者来源的整理包。
-- 云端SUN已落盘于`/root/rivermind-data/dataset/SUNRGBD`：三模态各10335、train5285/test5050；四清单路径配对0缺失，5个train及5个dev样本CPU预处理可读、支持域与padding正常。解压按zip原结构进行，不覆盖已有SUN目录；空闲约20.00GiB。NYUv2本地/云端暂无数据，已准备作者40类入口；不阻塞SUN，也没有为了第二数据集发起长下载。可信整理版入口见[已有下载指南](../../临时/DATASET_DOWNLOAD_GUIDE.md#3-nyu-depth-v2第二阶段可选不立即下载)，目标`/root/rivermind-data/dataset/NYUDepthv2/{RGB,Depth,Label,train.txt,test.txt}`。DeLiVER不适配。
+- 云端SUN已落盘于`/root/rivermind-data/dataset/SUNRGBD`：三模态各10335、train5285/test5050；四清单路径配对0缺失，5个train及5个dev样本CPU预处理可读、支持域与padding正常。解压按zip原结构进行，不覆盖已有SUN目录；空闲约20.00GiB。NYUv2本地/云端暂无数据，已准备作者40类入口；不阻塞SUN，也没有为了第二数据集发起长下载。可信整理版入口见[已有下载指南](../guides/dataset-download.md#3-nyu-depth-v2第二阶段可选不立即下载)，目标`/root/rivermind-data/dataset/NYUDepthv2/{RGB,Depth,Label,train.txt,test.txt}`。DeLiVER不适配。
 
 ## 云端、监控与费用
 

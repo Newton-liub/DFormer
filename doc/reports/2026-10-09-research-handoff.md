@@ -1,5 +1,7 @@
 # DFormer 新研究阶段交接报告
 
+> 归档说明（2026-10-10）：原文从 `临时/RESEARCH_HANDOFF.md` 迁入，保留旧实验与工程证据。正文是2026-10-09的历史快照，其中“当前”“尚未训练”“待授权”等表述不代表今天的状态；最新事实及授权以[项目状态](../state/current.md)为准。
+
 > 核实日期：2026-10-09。用途：为高级模型设计、审核两套新研究方案提供工程与历史实验背景；本报告不提出新方法，不包含新的性能实验。
 > 路径约定：普通相对路径以当前仓库根目录为基准；`归档/` 指 `../DFormer-archive-20261007/`，`数据/` 指 `../dataset/`。历史实验数字来自已打开的最终报告，本轮未重跑；“未核实”不等于存在工程故障。
 
@@ -115,7 +117,7 @@
 - 原始官方传感器数据及 toolbox 不能直接等同当前整理目录；本地未核验原始传感器编码/物理单位、作者转换来源及当前包的完整数值一致性。按现有实现跑 baseline 与改用 metric Depth 是两个不同输入协议，需在训练前明确。
 - **验证/test 边界尚未冻结。** 当前 `eval_source=test.txt`，且训练入口在多个 epoch 自动评价；原样启动会反复使用正式 test 选方法。研究开发需要从官方 train 内预先固定开发训练/验证，正式 test 留作方案与参数冻结后的最终评价；具体划分规则、是否最终重训及使用次数由高级模型决定，本轮不创建 split。SUNRGBD 的 `--pad_SUNRGBD` 会在验证前补至 531×730；训练与验证 Depth 归一化一致，但 padding 顺序不同，应如实保留并固定。
 
-依据：本轮本地清点与训练样本抽查；`local_configs/_base_/datasets/SUNRGBD.py`；`utils/dataloader/RGBXDataset.py::__getitem__/_open_image`；`utils/dataloader/dataloader.py::TrainPre/ValPre`；`README.md` Datasets；`临时/DATASET_DOWNLOAD_GUIDE.md`（下载状态部分已过时）。
+依据：本轮本地清点与训练样本抽查；`local_configs/_base_/datasets/SUNRGBD.py`；`utils/dataloader/RGBXDataset.py::__getitem__/_open_image`；`utils/dataloader/dataloader.py::TrainPre/ValPre`；`README.md` Datasets；[数据集下载指南](../guides/dataset-download.md)（下载状态部分已过时）。
 
 ### 3. DeLiVER
 
@@ -127,7 +129,7 @@
 - 官方评价默认 **val**，test 构造仅为注释替代项；保留官方 train/val/test，val 用于开发，test 不反复调参。天气子项为 `cloud/fog/night/rain/sun`；failure 子项为 `motionblur/overexposure/underexposure/lidarjitter/eventlowres`，按完整路径包含字符串筛选，all-cases 用 `case=None`。后两项不是 Depth 失效标签；不能把它们当成真实深度故障监督。
 - 评价尺度、flip、输入 resize、融合和计分必须固定。官方多尺度评价累加 softmax 概率；旧 MUSeg 主 evaluator 平均 pre-softmax logits，二者不能悄然混用。官方公开包曾只发布 front-view，本地目录存在不证明已获得六视角完整数据。
 
-官方实现本轮直接读取：<https://github.com/InSAI-Lab/DELIVER/blob/main/semseg/datasets/deliver.py>、<https://github.com/InSAI-Lab/DELIVER/blob/main/tools/val_mm.py>（可变 main，读取日期 2026-10-09）；本地入口和既有来源记录：`临时/DATASET_DOWNLOAD_GUIDE.md`。本轮没有下载数据或安装官方模型。
+官方实现本轮直接读取：<https://github.com/InSAI-Lab/DELIVER/blob/main/semseg/datasets/deliver.py>、<https://github.com/InSAI-Lab/DELIVER/blob/main/tools/val_mm.py>（可变 main，读取日期 2026-10-09）；本地入口和既有来源记录：[数据集下载指南](../guides/dataset-download.md)。本轮没有下载数据或安装官方模型。
 
 ### 4. NYUv2
 
@@ -230,4 +232,3 @@ CPU直接读取现有 `checkpoints/pretrained/DFormerv2_Small_pretrained.pth` �
 - 最新 `D:\0Project\origin\_index\exports\PAPER_LIBRARY_FOR_AI.md` 为 **revision18 / schema4 / format1.0.2 / 49篇，实际header时间2026-10-09T14:51:59+08:00**。11份批准草稿与对应条目仅归一Markdown标题层级后，11/11完整包含：LIB1/2/14/24/37/42/45/46/47/48/49。CORE/SUPPLEMENTED同为revision18、15/21篇，header仍为14:43:23；CORE不含非核心LIB47，不能代替全部版。本轮只核身份和已存笔记包含关系，不重新阅读论文正文、不保存索引。
 
 本次追加及状态更正已做内容/差异复核；没有GPU、训练、新性能验证、数据转换、代码改动、测试框架、commit或push。来源/编码未知项继续保留，任务至此停止。
-

@@ -1,5 +1,7 @@
 # Cursor 执行指令：ODG 新研究实现与无卡云端准备
 
+> 归档说明（2026-10-10）：原文从 `临时/DFormer_ODG_Cursor_NoGPU_Instructions_20261010.md` 迁入。本阶段已完成；保留原始方法设计与授权边界供追溯，不作为新的执行授权。当前事实及后续权限见[项目状态](../state/current.md)，实现记录见[无卡准备报告](../reports/2026-10-10-odg-no-gpu-preparation.md)。
+
 ## 0. 目标与本轮授权
 
 目标：在 DFormer 当前干净工程中实现 ODG（局部观测分布几何先验），以 SUN RGB-D 为主数据集，准备从官方编码器预训练开始的端到端实验。尽快取得真实实验结果，不重启旧 MMFR 审计流程。
@@ -19,7 +21,7 @@
 ## 1. 输入与已决定的路线
 
 按需阅读，不重新梳理整个项目：
-- `D:\0Project\DFormer\临时\RESEARCH_HANDOFF.md`，以及仓库现有 environment/research-setup/cloud 指南。
+- [研究阶段交接报告](../reports/2026-10-09-research-handoff.md)，以及仓库现有 environment/research-setup/cloud 指南。
 - `D:\0Project\origin\_index\exports\PAPER_LIBRARY_FOR_AI.md`：重点 LIB000002，及需要说明近邻时的相关条目；不重新全文阅读49篇。
 - 当前 `doc/state/current.md` 和本指令。
 

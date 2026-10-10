@@ -1,6 +1,6 @@
 # ODG 研究入口与固定协议
 
-ODG（局部观测分布几何先验）是本项目待验证设计，没有已取得的分割增益。依据为用户执行的[上级指令](../../临时/DFormer_ODG_Cursor_NoGPU_Instructions_20261010.md)。本轮仅 CPU 实现验收与无卡准备；实时结果见[项目状态](../state/current.md)。
+ODG（局部观测分布几何先验）是本项目待验证设计，没有已取得的分割增益。依据为用户执行的[上级指令](../plans/2026-10-10-odg-no-gpu-instructions.md)。本轮仅 CPU 实现验收与无卡准备；实时结果见[项目状态](../state/current.md)。
 
 ## 方法与输入
 
