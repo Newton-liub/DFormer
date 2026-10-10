@@ -25,11 +25,11 @@ $$
 
 - SUN 主配置：`local_configs.research.ODG_SUNRGBD`。DFormerv2-S / HAM 宽度 1024 / 37 类 / 480×480。
 - 从官方 train 5285 行按 `random.Random(12345)` 固定抽 528 图作 dev，其余 4757 图训练；保留原行顺序。清单在 `research/splits/sunrgbd_seed12345/`。这是图像级划分，不声称场景隔离；原 `train.txt` / `test.txt` 不改。
-- 默认周期评价每 10 epoch 只读 dev，单尺度、无 flip。显式 `--fulltrain` 用全 train 并关闭周期评价；官方 test 仅经独立评价入口显式选取，不用于反复挑 checkpoint。
-- AdamW：lr8e-5、wd0.01、betas0.9/0.999；有效 batch16、300 epoch、warmup10、poly0.9。继承作者尺度/翻转，不新增损坏训练。单 GPU 使用普通 BN、`norm_eval=False`，全部可训练层正常更新；不 compile。
+- 默认周期评价每 10 epoch 只读 dev，单尺度、无 flip，且**在 `model.eval()` 下进行**（2026-10-10 修复）：验证期间使用训练得到的 running 统计量，不更新 BatchNorm 统计量，验证结束后恢复训练模式；若验证改变了 running 统计量则直接报错停止。显式 `--fulltrain` 用全 train 并关闭周期评价；官方 test 仅经独立评价入口显式选取，不用于反复挑 checkpoint。
+- AdamW：lr8e-5、wd0.01、betas0.9/0.999；有效 batch16、300 epoch、warmup10、poly0.9。继承作者尺度/翻转，不新增损坏训练。单 GPU 使用普通 BN、`norm_eval=False`。**优化器参数分组由研究层实现（2026-10-10 修复）**：作者的 `group_weight` 会把裸 `nn.Parameter` 属性漏掉（29 个 `GeoPriorGen.weight`），现在要求全部 714 个可训练参数张量恰好各入组一次，缺失/重复即报错；不 compile。
 - `--micro-batch × --accum-steps = 16`。开发集每 epoch 298 次 optimizer 尝试，补齐 11 张样本到 4768；完整日程 89400 次，warmup2980次。全 train 则每 epoch331次。AMP 实际成功与跳过更新分别计数。
 - `--stop-after-epoch 30/100` 只是暂停，不压缩 300 epoch 日程。LR 在 optimizer 更新之前设置，记录实际 param-group LR。只有 encoder pretrained 初始化；新分割头、新 optimizer/scaler。不用旧 MUSeg 权重。
-- `last.pth`、`best-dev.pth`、30/100阶段点包含模型/optimizer/scaler/RNG/计数与训练合同；resume 仅限同实验 epoch 边界，不能从 smoke 的半 epoch 快照续正式实验。
+- `last.pth`、`best-dev.pth`、30/100阶段点包含模型/optimizer/scaler/RNG/计数与训练合同；resume 仅限同实验 epoch 边界，不能从 smoke 的半 epoch 快照续正式实验。合同含 `validation_mode=eval` 与 `optimizer_param_scope=all_trainable`：2026-10-10 修复前跑出的 checkpoint 无法被修复后的代码 resume，旧结果只作历史探索保留。
 - 产物为 resolved 配置、参数、loss/LR CSV、验证总/逐类结果及少量预测，位于 `outputs/<experiment>/<run-id>/`，不进 Git。
 - 五尺度+flip 只由 `research/evaluate_odg.py --msf` 显式执行，尺度0.5/0.75/1/1.25/1.5，共同累加每视图 softmax 概率。人工连通孔洞25%/50%（矩形主体加可选末行，按真实图像支持域精确取整计数；非矩形支持域先拒绝并要求单独协议）同时改变输入深度和显式支持 mask，所有模型同输入/seed，不能称天然故障。
 - NYU 第二入口 `local_configs.research.ODG_NYUv2` 保留作者40类配置；数据与开发划分未就绪不阻塞 SUN。DeLiVER 本轮不适配。
@@ -60,12 +60,26 @@ export ODG_GPU_AUTHORIZED=1 ODG_PLATFORM_STOP_CONFIRMED=1
 # 命令1：原始与ODG各200次真实optimizer尝试，检查数值、更新和吞吐。
 bash research/run_odg_gpu.sh smoke
 # 命令2：首轮ODG到30epoch，日程仍为300epoch。
+# RUN_TAG 只用于给运行目录加后缀，默认 r2（2026-10-10 修复后的语义）。
 bash research/run_odg_gpu.sh odg
 
 # 匹配baseline，随后同实验从epoch边界继续到100。
 bash research/run_odg_gpu.sh baseline
 GEOMETRY_MODE=odg bash research/run_odg_gpu.sh resume \
-  outputs/sun-dev-odg-seed12345/<run-id>/last.pth
+  outputs/sun-dev-odg-seed12345-r2/<run-id>/last.pth
 ```
 
-真实训练时间需授权后由正常前100–200步估算；费用用当前规格价格×实际有卡时长计算，并单列存储/无卡准备。历史 MUSeg 用时不作为 SUN 估时依据。
+真实训练时间需授权后由正常前100–200步估算；费用用当前规格价格×实际有卡时长计算，并单列存储/无卡准备。历史 MUSeg 用时不作为 SUN 估时依据。运行目录为 `outputs/sun-dev-{original,odg}-seed12345-r2/<run-id>/`；round-1 的 `...-seed12345/`（修复前、train 模式验证）只作历史探索结果保留，不再 resume。
+
+修复后评价比对（等两组 30 epoch 跑完，本地或云端任一环境，同一入口）：
+
+```bash
+for mode in original odg; do
+  for ratio in 0 0.25; do
+    python -X utf8 -m research.evaluate_odg --config local_configs.research.ODG_SUNRGBD \
+      --checkpoint outputs/sun-dev-${mode}-seed12345-r2/<run-id>/last.pth \
+      --pad_SUNRGBD --hole-ratio $ratio --hole-seed 12345 --num-workers 2 \
+      --out outputs/odg-r2-eval/${mode}-holes${ratio}
+  done
+done
+```

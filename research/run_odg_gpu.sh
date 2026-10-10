@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 # Manual launch only. This script NEVER starts a cloud instance or schedules training.
+#
+# Round-2 semantics (2026-10-10 fix): periodic dev validation runs in eval mode
+# and the optimizer holds every trainable tensor (including the 29
+# GeoPriorGen.weight geometry kernels).  The contract carries
+# validation_mode/optimizer_param_scope, so a checkpoint from the earlier
+# round-1 runs cannot be resumed here by accident; round-1 checkpoints stay as
+# historical results and are never resumed.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 : "${DFORMER_DATASET_ROOT:?Set the parent directory containing SUNRGBD}"
@@ -12,6 +19,8 @@ PYTHON="${PYTHON:-/usr/local/miniconda3/envs/py310/bin/python}"
 common=(--config local_configs.research.ODG_SUNRGBD --gpus 1
         --micro-batch "$MICRO_BATCH" --accum-steps "$ACCUM_STEPS"
         --schedule-epochs 300 --warmup-epochs 10 --pad_SUNRGBD)
+# Round-2 run directories: same protocol, fixed validation/optimizer semantics.
+: "${RUN_TAG:=r2}"
 case "${1:-}" in
   smoke)
     # Real batches for each mode, no dev/test inference; no smoke resume.
@@ -22,7 +31,7 @@ case "${1:-}" in
     ;;
   odg|baseline)
     mode=odg; [[ "$1" != baseline ]] || mode=original
-    DFORMER_EXPERIMENT_NAME="sun-dev-$mode-seed12345" "$PYTHON" -m research.train_odg \
+    DFORMER_EXPERIMENT_NAME="sun-dev-$mode-seed12345-$RUN_TAG" "$PYTHON" -m research.train_odg \
       "${common[@]}" --geometry-mode "$mode" --stop-after-epoch 30 --save-predictions 3
     ;;
   resume)

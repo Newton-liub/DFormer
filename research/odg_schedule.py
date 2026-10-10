@@ -46,6 +46,23 @@ DEFAULT_EFFECTIVE_BATCH = 16
 CHECKPOINT_FORMAT = "odg-research-checkpoint-v1"
 EPS = 1e-12
 
+# Fixed semantics of the research training entry (recorded in the contract).
+# ``eval``: periodic dev validation runs with ``model.eval()`` and must not touch
+# BatchNorm running statistics.  ``all_trainable``: the optimizer receives every
+# trainable tensor exactly once.
+VALIDATION_MODE = "eval"
+OPTIMIZER_PARAM_SCOPE = "all_trainable"
+
+# Modules whose parameters are never weight-decayed (author convention).
+NORM_MODULE_TYPES = (
+    torch.nn.BatchNorm1d,
+    torch.nn.BatchNorm2d,
+    torch.nn.BatchNorm3d,
+    torch.nn.SyncBatchNorm,
+    torch.nn.GroupNorm,
+    torch.nn.LayerNorm,
+)
+
 # Canonical author depth normalisation (``(D8/255 - 0.48) / 0.28``), so a raw
 # depth zero maps to ``-0.48 / 0.28`` in the normalised domain.  This is the
 # value the author ``ValPre`` writes into the padded band; artificial holes use
@@ -87,6 +104,12 @@ CONTRACT_FIELDS = (
     "eval_source",
     "train_fingerprint",
     "eval_fingerprint",
+    # Semantics fixed after the 2026-10-10 review.  These two fields exist so a
+    # checkpoint trained before the fix can never be resumed by the fixed code:
+    # the old runs validated in train mode and left 29 ``GeoPriorGen.weight``
+    # tensors out of the optimizer, so their optimizer state is not comparable.
+    "validation_mode",
+    "optimizer_param_scope",
 )
 
 
@@ -274,6 +297,9 @@ def make_contract(config, geometry_mode, train_source, eval_source, micro_batch,
         "eval_fingerprint": eval_fp["sha1"] if eval_fp else "missing",
         "train_source_path": str(train_source),
         "eval_source_path": str(eval_source),
+        # Fixed validation and optimizer semantics (see CONTRACT_FIELDS).
+        "validation_mode": VALIDATION_MODE,
+        "optimizer_param_scope": OPTIMIZER_PARAM_SCOPE,
     }
 
 
@@ -560,6 +586,102 @@ def forward_logits(model, rgb, modal_x, depth_support=None, use_support=False):
     if use_support and depth_support is not None:
         return model(rgb, modal_x, depth_support=depth_support)
     return model(rgb, modal_x)
+
+
+@contextlib.contextmanager
+def evaluation_mode(model):
+    """Run the block with the model in eval mode, always restoring train mode.
+
+    Periodic dev validation must use the trained running statistics and must not
+    update them, so the validation phase is switched to ``model.eval()`` and the
+    previous mode is restored afterwards (training mode for the training loop).
+    """
+    was_training = bool(model.training)
+    model.eval()
+    try:
+        yield
+    finally:
+        model.train(was_training)
+
+
+def batchnorm_running_state(model):
+    """Fingerprint of the BatchNorm running statistics of the whole model.
+
+    Used to prove that a validation pass did not update them: with the model in
+    eval mode the digest must be identical before and after the pass.
+    """
+    modules = [m for m in model.modules() if isinstance(m, torch.nn.modules.batchnorm._BatchNorm)]
+    return {
+        "layers": len(modules),
+        "batches": sum(int(m.num_batches_tracked.item()) for m in modules
+                       if m.num_batches_tracked is not None),
+        "running_mean_sum": round(sum(float(m.running_mean.sum()) for m in modules
+                                      if m.running_mean is not None), 4),
+        "running_var_sum": round(sum(float(m.running_var.sum()) for m in modules
+                                     if m.running_var is not None), 4),
+    }
+
+
+def classify_trainable_parameters(model):
+    """Split every trainable tensor into ``(decay, no_decay)`` lists of pairs.
+
+    The author's ``utils/init_func.group_weight`` walks ``module.modules()`` and
+    tests ``isinstance(m, nn.Parameter)``, which can never match: bare
+    ``nn.Parameter`` attributes were therefore silently dropped from the
+    optimizer (the 29 ``GeoPriorGen.weight`` geometry kernels).  This classifies
+    by name and module type instead, keeping the author's split (biases and
+    parameters of norm layers are not decayed, other weights are) while no
+    trainable tensor can be left out.
+    """
+    decay, no_decay = [], []
+    for module_name, module in model.named_modules():
+        for param_name, param in module.named_parameters(recurse=False):
+            if not param.requires_grad:
+                continue
+            full_name = "%s.%s" % (module_name, param_name) if module_name else param_name
+            if param_name.endswith("bias") or isinstance(module, NORM_MODULE_TYPES):
+                no_decay.append((full_name, param))
+            else:
+                decay.append((full_name, param))
+    return decay, no_decay
+
+
+def build_optimizer_param_groups(model, lr, weight_decay=None):
+    """AdamW parameter groups that contain every trainable tensor exactly once."""
+    decay, no_decay = classify_trainable_parameters(model)
+    groups = [
+        {"params": [p for _, p in decay], "lr": float(lr)},
+        {"params": [p for _, p in no_decay], "weight_decay": 0.0, "lr": float(lr)},
+    ]
+    if weight_decay is not None:
+        groups[0]["weight_decay"] = float(weight_decay)
+    return groups
+
+
+def optimizer_parameter_report(model, optimizer):
+    """Verify the optimizer holds exactly the trainable tensors, once each.
+
+    Raises instead of returning a report when a tensor is missing, duplicated or
+    not trainable, so a silent grouping regression can never start a long run.
+    """
+    optimizer_params = [p for group in optimizer.param_groups for p in group["params"]]
+    optimizer_ids = [id(p) for p in optimizer_params]
+    unique_ids = set(optimizer_ids)
+    trainable = {name: p for name, p in model.named_parameters() if p.requires_grad}
+    trainable_ids = {id(p) for p in trainable.values()}
+    report = {
+        "trainable_tensors": len(trainable),
+        "optimizer_tensors": len(optimizer_params),
+        "unique_optimizer_tensors": len(unique_ids),
+        "duplicates": len(optimizer_ids) - len(unique_ids),
+        "missing": sorted(name for name, p in trainable.items() if id(p) not in unique_ids),
+        "not_trainable": len(unique_ids - trainable_ids),
+        "group_sizes": [len(group["params"]) for group in optimizer.param_groups],
+    }
+    if (report["missing"] or report["duplicates"] or report["not_trainable"]
+            or report["trainable_tensors"] != len(unique_ids)):
+        raise RuntimeError("optimizer parameter grouping is not exact: %s" % report)
+    return report
 
 
 def forward_loss(model, rgb, modal_x, label, depth_support=None, use_support=False):

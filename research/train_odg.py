@@ -5,7 +5,13 @@ the ODG study needs:
 
 * explicit ``--micro-batch`` / ``--accum-steps``; the optimizer always sees
   exactly ``effective_batch`` (default 16) samples per attempt;
-* periodic validation reads only the fixed dev split, single scale, no flip;
+* every trainable tensor reaches the optimizer exactly once: the author's
+  ``group_weight`` never matches bare ``nn.Parameter`` attributes, so the decay /
+  no-decay groups are built here and verified before the run starts;
+* periodic validation reads only the fixed dev split, single scale, no flip, and
+  runs in **eval mode**: the model is switched to ``model.eval()`` for the pass,
+  back to training mode afterwards, and the pass is rejected if it changed any
+  BatchNorm running statistic;
 * ``--fulltrain`` is opt-in and disables in-training validation entirely, so the
   official test list can never select the best checkpoint;
 * every epoch writes a full checkpoint (model / optimizer / scaler / counters /
@@ -157,26 +163,43 @@ def rebind_run_dir(config, checkpoint_path):
 
 
 def run_validation(model, val_loader, config, device, use_support, amp, out_dir, epoch, args):
+    """Periodic dev validation in eval mode.
+
+    Validation must use the trained running statistics, so the model is switched
+    to ``model.eval()`` for the pass and back to training mode afterwards.  The
+    BatchNorm running statistics are fingerprinted before and after: if the pass
+    changed them the run stops instead of silently reporting train-mode numbers.
+    """
     hole_ratio = float(getattr(config, "artificial_hole_ratio", 0.0) or 0.0)
     hole_seed = int(getattr(config, "artificial_hole_seed", 12345))
-    result = sched.evaluate_loader(
-        model, val_loader, config, device, use_support, msf=False, flip=False,
-        hole_ratio=hole_ratio, hole_seed=hole_seed,
-        amp=amp, log_every=max(1, len(val_loader) // 4),
-        prediction_dir=(os.path.join(out_dir, "predictions", "epoch-%03d" % epoch)
-                        if int(args.save_predictions) > 0 else None),
-        prediction_limit=int(args.save_predictions),
-    )
+    bn_before = sched.batchnorm_running_state(model)
+    with sched.evaluation_mode(model):
+        result = sched.evaluate_loader(
+            model, val_loader, config, device, use_support, msf=False, flip=False,
+            hole_ratio=hole_ratio, hole_seed=hole_seed,
+            amp=amp, log_every=max(1, len(val_loader) // 4),
+            prediction_dir=(os.path.join(out_dir, "predictions", "epoch-%03d" % epoch)
+                            if int(args.save_predictions) > 0 else None),
+            prediction_limit=int(args.save_predictions),
+        )
+    bn_after = sched.batchnorm_running_state(model)
+    if bn_after != bn_before:
+        raise RuntimeError(
+            "dev validation changed BatchNorm running statistics, so it did not run in eval mode: "
+            "%s -> %s" % (bn_before, bn_after))
     holes = result.get("artificial_holes", {})
     mode = ("single_scale_no_flip_holes" if hole_ratio > 0.0 else "single_scale_no_flip")
     sched.write_json(os.path.join(out_dir, "val_per_class", "epoch-%03d.json" % epoch), {
-        "epoch": epoch, "split": "dev", "mode": mode,
+        "epoch": epoch, "split": "dev", "mode": mode, "model_mode": sched.VALIDATION_MODE,
+        "batchnorm_running_state": bn_after,
         "miou": result["miou"], "macc": result["macc"], "mf1": result["mf1"],
         "num_samples": result["num_samples"], "class_names": list(config.class_names),
         "iou": result["iou"], "acc": result["acc"], "f1": result["f1"],
         "artificial_holes": holes,
     })
     result["mode"] = mode
+    result["model_mode"] = sched.VALIDATION_MODE
+    result["batchnorm_running_state"] = bn_after
     return result
 
 
@@ -260,13 +283,18 @@ def main(argv=None):
         raise SystemExit("geometry_mode=%s but the model does not accept depth_support" % config.geometry_mode)
 
     base_lr = float(config.lr)
-    from utils.init_func import group_weight
-    params_list = group_weight([], model, nn.BatchNorm2d, base_lr)
+    # Every trainable tensor must reach the optimizer exactly once.  The author's
+    # group_weight() drops bare nn.Parameter attributes (the 29 GeoPriorGen.weight
+    # geometry kernels), so the research entry builds the decay / no-decay groups
+    # itself and verifies the result before the run starts.
+    params_list = sched.build_optimizer_param_groups(model, base_lr, float(config.weight_decay))
     if config.optimizer == "AdamW":
         optimizer = torch.optim.AdamW(params_list, lr=base_lr, betas=(0.9, 0.999),
                                       weight_decay=float(config.weight_decay))
     else:
         raise SystemExit("this entry only supports AdamW; got %s" % config.optimizer)
+    param_report = sched.optimizer_parameter_report(model, optimizer)
+    logger.info("optimizer parameter groups: %s" % param_report)
     scaler = torch.cuda.amp.GradScaler() if args.amp else None
 
     policy, schedule = sched.build_schedule(
@@ -293,6 +321,7 @@ def main(argv=None):
         "best_dev_miou": 0.0,
         "geometry_mode": config.geometry_mode,
         "num_train_samples": plan["num_samples"],
+        "optimizer_param_report": param_report,
     }
 
     if args.resume:
@@ -341,7 +370,7 @@ def main(argv=None):
                                ["epoch", "attempt_update", "applied_update", "amp_skipped", "lr",
                                 "param_group_lr", "loss", "micro_batches", "epoch_seconds"])
     val_csv = sched.CsvWriter(os.path.join(config.log_dir, "validation.csv"),
-                              ["epoch", "mode", "miou", "macc", "mf1", "num_samples",
+                              ["epoch", "mode", "model_mode", "miou", "macc", "mf1", "num_samples",
                                "hole_ratio_requested", "hole_ratio_actual"])
 
     tracking_run = None
@@ -486,6 +515,7 @@ def main(argv=None):
                                         config.log_dir, state["completed_epochs"], args)
                 holes = result.get("artificial_holes", {})
                 val_csv.write([state["completed_epochs"], result.get("mode", "single_scale_no_flip"),
+                               result.get("model_mode", sched.VALIDATION_MODE),
                                result["miou"], result["macc"], result["mf1"], result["num_samples"],
                                holes.get("requested_ratio", 0.0), holes.get("actual_ratio", 0.0)])
                 logger.info("dev epoch %d: mIoU=%.2f mAcc=%.2f mF1=%.2f (best=%.2f)"
