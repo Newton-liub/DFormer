@@ -124,8 +124,10 @@ def resolve_data_plan(config, args, resolved, require_ready):
     return train_source, eval_source, periodic_eval, plan
 
 
-def print_schedule(config, resolved, plan, schedule, policy):
+def print_schedule(config, resolved, plan, schedule, policy, train_source=None, eval_source=None):
     print("[schedule] dataset=%s geometry=%s" % (config.dataset_name, resolved["geometry_mode"]))
+    print("[schedule] train_source=%s" % train_source)
+    print("[schedule] eval_source=%s (periodic validation target)" % eval_source)
     print("[schedule] samples/epoch=%d micro_batch=%d accum_steps=%d effective_batch=%d"
           % (plan["num_samples"], plan["micro_batch"], plan["accum_steps"], plan["effective_batch"]))
     print("[schedule] micro_batches/epoch=%d updates/epoch=%d repeated_samples=%d file_length=%d"
@@ -216,7 +218,7 @@ def main(argv=None):
         policy, schedule = sched.build_schedule(
             plan["updates_per_epoch"], resolved["schedule_epochs"], resolved["warmup_epochs"],
             float(config.lr), float(config.lr_power), resolved["stop_after_epoch"])
-        return print_schedule(config, resolved, plan, schedule, policy)
+        return print_schedule(config, resolved, plan, schedule, policy, _train, _eval)
 
     # This training entry is CUDA-only.  There is deliberately no CPU-training
     # switch: on CPU, only --print-schedule / --help are supported.

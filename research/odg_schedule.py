@@ -439,10 +439,19 @@ class CsvWriter:
 # --------------------------------------------------------------------------- #
 # 3. Runtime helpers (torch + research/data.py)
 # --------------------------------------------------------------------------- #
-def import_data_module():
+def import_data_module(config=None):
+    """Import the data module selected by ``config.data_module``.
+
+    A config without ``data_module`` keeps resolving to ``research.data``, so the
+    SUN/NYU behaviour is unchanged.  ``local_configs.research.DFormerv2_S_DeLiVER``
+    sets ``data_module = "research.deliver"``, which exposes the same
+    ``ObservationDataset`` / ``ObservationTrainPre`` / ``ObservationValPre`` names
+    the factories below use.
+    """
     from importlib import import_module
 
-    return import_module("research.data")
+    module_name = str(getattr(config, "data_module", "research.data") or "research.data")
+    return import_module(module_name)
 
 
 def resolve_sources(config, fulltrain):
@@ -474,7 +483,7 @@ def dataset_setting(config, train_source, eval_source):
 
 
 def build_train_loader(config, train_source, eval_source, micro_batch, accum_steps, effective_batch, num_workers, seed):
-    data = import_data_module()
+    data = import_data_module(config)
     setting = dataset_setting(config, train_source, eval_source)
     num_samples = manifest_lines(train_source, fallback=getattr(config, "num_train_imgs", None))
     plan = plan_epoch(num_samples, micro_batch, accum_steps, effective_batch)
@@ -500,7 +509,7 @@ def build_train_loader(config, train_source, eval_source, micro_batch, accum_ste
 
 
 def build_eval_loader(config, eval_source, train_source, batch_size, num_workers):
-    data = import_data_module()
+    data = import_data_module(config)
     setting = dataset_setting(config, train_source, eval_source)
     preprocess = data.ObservationValPre(
         config.norm_mean, config.norm_std, bool(config.x_is_single_channel), config
