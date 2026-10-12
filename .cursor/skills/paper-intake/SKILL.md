@@ -1,66 +1,28 @@
 ---
 name: paper-intake
-description: Intake processed paper bundles into the external library under an explicit approval. Use when the user asks to 入库/接入/新增论文 bundle, or to pre-check a 处理后论文 source before anything is copied. Produces a review plan only by default; copying and index writes need a separately approved plan.
+description: Intake processed paper bundles into the external library. When the user explicitly authorizes intake, complete the supported plan/apply flow in the same session; preflight-only requests stop after planning. Source cleanup requires separate explicit authorization.
 disable-model-invocation: true
 ---
 
-# 论文入库（paper-intake）
+# paper-intake：批量入库
 
-把用户指定的「处理后 bundle」接入外部论文库 `D:\0Project\origin\论文\`。默认只产出审核计划并停止；复制与索引写入必须另有一次明确批准。
+工具：`D:\2Env\anaconda\python.exe D:\0Project\origin\_index\tools\paper_workflow.py`。遵守 `.cursor/rules/paper-library.mdc`；命令或参数变化时先看对应子命令 `--help`。
 
-## 先读
+## 必要上下文
 
-1. 本 Skill 所在仓库的 `doc/state/current.md`（当前授权边界与恢复点）。
-2. 共享 Rule `.cursor/rules/paper-library.mdc`（原资产只读、唯一 store 写入、人工字段保护、审批与冲突停止）。
-3. 需要目录与字段约定时读 `D:\0Project\origin\_index\README.md`。
-
-## 边界（默认行为）
-
-- 只接受用户明确给出的来源目录；不做全盘搜索，不自动解压压缩包。
-- 只复制全新论文；完全重复、正文同附件异、疑似版本、异常 bundle 一律留原处并报告。
-- 来源不移动、不删除；不清理来源目录；不手工分配 LIB 编号。
-- 索引只经 `_index\tools\paper_workflow.py` → `paper_library_store.py` 保存一次；不直接改 JSON。
-
-## 命令
-
-工具：`D:\2Env\anaconda\python.exe D:\0Project\origin\_index\tools\paper_workflow.py`
-
-```text
-# 1) 预检：只读索引与来源，写一份审核计划，不改索引、不复制
-intake-plan --source <bundle 或一层父目录> [--source <...>] --plan <审核计划 JSON>
-
-# 2) 执行：仅在用户/上级明确批准后
-intake-apply --plan <审核计划 JSON> --approved-plan-sha256 <该文件的 SHA-256>
-```
-
-隔离或非默认索引时追加 `--index <JSON>`；需要时追加 `--root <资产根>`（必须与索引的 `library_root` 一致，否则停止）。
-
-计算批准指纹：
-
-```powershell
-(Get-FileHash -Algorithm SHA256 -LiteralPath "<审核计划 JSON>").Hash.ToLower()
-```
+- 本轮尚未读取 `doc/state/current.md` 时先读取一次，确认授权边界与恢复点；同一会话、同一任务范围已读取则复用，不重复通读。
+- 索引位置、字段所有权或冲突边界不清楚时，再查 `doc/guides/external-resources.md` 或 `D:\0Project\origin\_index\README.md` 的相关段落。
 
 ## 流程
 
-1. **预检**：运行 `intake-plan`。它枚举来源、检查正文、递归清点全部普通文件的相对路径/大小/SHA-256，并完成索引内 canonical/alternate 与同批互比。
-2. **分类**：每项标为 `new`、`full_duplicate`、`body_same_attachments_differ`、`suspected_version`、`anomaly` 之一并给出理由。只有 `new` 且 `approved=true` 会被复制。
-3. **送审并停止**：把计划路径、来源、分类计数、每项理由与目标目录名提交给用户/上级。不要自行把疑似版本变成新 LIB、alternate 或 duplicate-review。
-4. **获批后执行**：确认批准，运行 `intake-apply`。审核子集时先编辑计划文件（把不批准项的 `approved` 改为 `false` 或删除该项）再计算新的 SHA-256。
-5. **报告**：来源→目标→实际 LIB 对照、提交指纹、dry-run 结论；若出现残留目录或失败，报告已复制目标与实际索引提交状态。
+1. **输入为用户指定的处理后 bundle 目录**：论文正文 Markdown 及相关图、表、公式等资产。按题名、DOI、arXiv、别名及必要指纹与正式索引查重；已有论文不重新下载、转换或入库。可同批指定多个来源。
+2. 执行 `intake-plan --source <目录> --plan <plan.json>`；`--source` 可重复。依据真实计划分类 `new`、`full_duplicate`、`body_same_attachments_differ`、`suspected_version`、`anomaly`。完整重复记录对应 LIB；争议项不自动合并。
+3. 用户明确要求入库时，只对授权范围内无争议的 `new` 项按真实计划执行 `intake-apply --plan <plan.json> --approved-plan-sha256 <sha>`。用户只要求“预检”时，plan 后停止。审批子集只能用工具支持的计划字段调整；计划有任何修改都重新计算 SHA-256。
+4. apply 成功后核对来源→目标 bundle、实际 LIB 与索引结果；需要时统一重建视图。若 JSON 已提交而派生视图失败，单独报告该阶段，不重复 apply 或二次保存。
+5. **临时来源清理另需明确授权**：仅对确认成功入库且目标存在的来源，或已核实为活动库完整重复的来源，才可送 Windows 回收站；无法安全回收时放受控恢复目录并报告。疑似版本、附件差异、异常、未入库及其他文件留在原处；全部清空后才可移除来源目录本身。
 
-再次审批、再次保存都需要在新消息里重新显式调用本 Skill；Skill 不会跨消息自动继续。
+## 停止条件与简报
 
-## 计划的判定要点（供审核阅读）
+来源在 plan 后变化、索引并发修改、身份警告、目标冲突、校验/store 失败或结果超出批准范围时立即停止。报告准确阶段、已复制目标、索引实际提交状态、残留文件与恢复前置条件；不自动回滚、不自动重试提交。
 
-- 全资产比较只看「正文角色 + 其余按原相对路径」；文件数相同但某个附件 hash 不同即属「正文同、附件异」。
-- 候选的实际目录缺失、不可读或正文 hash 与索引不符时，不做等同判断，归入疑似版本。
-- 目标目录撞名不自动加后缀选版本；目标已被占用即停止。
-
-## 停止条件
-
-审批缺失或指纹不符、来源在审批后变化、索引并发修改、候选不明确、目标冲突、复制/资产校验失败、dry-run 超出批准范围、store 拒绝或验收失败。停止时保留来源，报告残留文件与已发生的复制/提交；不自动回滚或重试提交。若索引 JSON 已保存而派生 Markdown 重建失败，按「JSON 已提交、视图失败」报告：不重跑 `intake-apply`、不二次保存，管理视图另行单独重建。
-
-## 不做
-
-不调用模型 API、不生成科研结论、不清理来源、不合并版本、不执行 Git 提交或推送、不新建测试框架或常驻服务。
+简报新 LIB、完整重复对应 LIB、少数冲突、来源清理去向及最终库数量。不改已有论文内容或人工编号；不下载或转换论文，不做科研精读，不推送 Git。

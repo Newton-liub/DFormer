@@ -28,6 +28,7 @@
 - 查实体用 `PAPER_LIBRARY_INDEX.json`：`auto.*` 是扫描字段；`human.*`（人工编号、核心标记、标签、阅读状态、补充、外部确认书目）由人工维护，自动工具不得覆盖。
 - 需要整篇论文的书目 + 摘要 + 补充给外部 AI 阅读时，用 `_index\tools\paper_library_ui.cmd` 的“AI 阅读导出”（结果写到 `_index\exports\`，只含最新版本，不改索引）。
 - 需要新增论文或更新索引时用 `_index\tools\paper_library.cmd`，先跑 `--dry-run` 看计划再执行；改索引必须经过 `_index\tools\paper_library_store.py`，不要直接手改 JSON。
-- 需要接入新论文 bundle 时用 `/paper-intake`，需要为某一篇追加阅读证据时用 `/paper-supplement`（两者都是显式调用的项目 Skill，见 `.cursor/skills/`）。默认只产出审核计划并停止；获批后才执行 apply，索引写入仍只经共享 store。
-- 需要人工浏览和编辑编号 / 补充时启动 `_index\tools\paper_library_ui.cmd`（本机页面，保存前有差异确认与冲突校验）。
+- 入库、证据补充的同轮授权方式与来源清理边界见 `paper-library.md`；通过 `/paper-intake` 和 `/paper-supplement` 显式调用相应 Skill。用户明确授权入库或保存证据时，可在同一会话完成受支持的 plan→apply；用户只要求预检时在 plan 后停止。真实计划 SHA-256、补充基线指纹和 store 并发校验仍必须按 CLI 执行。
+- `paper_workflow.py` 目前只支持入库与证据补充。指定书目字段修改走索引 UI 的受支持字段编辑、差异确认与冲突检查；退库没有该工作流子命令，不假设存在 CLI。精确指定后仍须使用已核实的维护入口。
+- 需要人工浏览和编辑编号、补充或指定书目 override 字段时启动 `_index\tools\paper_library_ui.cmd`（本机页面，保存前有差异确认与冲突校验）；只编辑用户明确指定的字段。
 - 索引只在 `_index\` 维护；需要编号历史依据时去归档 `D:\0Project\DFormer-archive-20261007\MMFR\03_reference\`。
