@@ -1,0 +1,27 @@
+---
+description: Authorization gate for side-effecting skills and tools (paper-intake, paper-supplement writes, compshare-cloud, browser automation, external paper library writes). Apply whenever an action would change state outside this repository or consume paid/quota resources.
+alwaysApply: true
+---
+
+# 副作用操作的授权门槛
+
+本规则是 CodeBuddy 侧补充（`.cursor/` 无对应来源，同步脚本不会改动或删除它）。
+
+## 需要用户在本轮明确授权
+
+- **论文入库**（`paper-intake`）：需用户点名要入库的来源目录。只要求“预检”时，`intake-plan` 后即停止，不执行 `intake-apply`。临时来源清理是另一项独立授权，不得顺带执行。
+- **论文库写入**（`paper-supplement` 的保存路径）：默认只产出科研笔记，不写索引。只有用户明确要求“保存/写入论文库”时，才执行 `supplement-plan` + `supplement-apply`。
+- **任何对 `D:\0Project\origin\_` 下资产的写入或删除**：按 `paper-library.mdc` 执行，无授权即停止并报告。
+- **云端与算力**（`compshare-cloud`）：启动/停止实例、创建或销毁资源、`--yes`、任何产生费用的操作，都要用户明确授权；准备与回收优先无卡模式。
+- **GPU、训练、长耗时评价**：需用户明确要求或已批准计划包含。
+- **浏览器自动化与其他有外部副作用的工具调用**（playwright MCP 的点击、填表、提交类操作；graphastra 等外部服务的额度消耗）：先说明将要执行的动作，得到确认后再执行；只读性质的查询与本地导航不需要额外确认。
+
+## 授权判定
+
+- 授权只对“本轮、该任务范围、该对象”有效；跨消息继续执行时重新确认，不沿用旧批准。
+- “顺便做掉”“已经开始了”不构成授权。
+- 未经授权时：只做只读准备（查状态、列清单、出计划），并明确告知还缺哪一步授权。
+
+## 执行失败与停止
+
+- 出现清单外对象、并发修改、身份冲突、目标冲突、校验失败或结果超出批准范围：立即停止，报告准确阶段与残留状态，不自动回滚、不自动重试、不扩大范围。
