@@ -1,5 +1,5 @@
 ---
-description: Paper-library write boundaries. Apply when running paper intake, supplement evidence, index writes, bundle assets, or any change to D:\0Project\origin\_index and D:\0Project\origin\论文.
+description: Paper-library write boundaries. Apply when running paper intake, supplement evidence, authorized bibliography/rating maintenance or retirement, index writes, bundle assets, or any change to D:\0Project\origin\_index and D:\0Project\origin\论文.
 alwaysApply: false
 ---
 
@@ -9,7 +9,7 @@ alwaysApply: false
 
 ## 原资产只读
 
-- 已有 bundle 只读。不覆盖、不改名、不合并、不删除已有论文资产或其附件。
+- 已有 bundle 默认只读。不覆盖、不改名、不合并、不删除已有论文资产或其附件；例外只有用户精确指定 LIB 的可恢复整 bundle 移出/移回（见下文退库条款）。
 - 入库只做「复制来源到目标」，来源不移动、不删除。来源清理永远另行授权。
 - 疑似版本、同文异附件、重复来源一律留原处并报告，不自动选优或合并。
 
@@ -18,28 +18,34 @@ alwaysApply: false
 - 索引只能经 `_index\tools\paper_library_store.py` 保存；不直接编辑 JSON，不另写写入器，不整文件覆盖。
 - 保存必须携带审批基线指纹（`expected_fingerprint`）；指纹不一致即停止，不用新指纹绕过审批。
 - 无实际字段变化时不保存、不轮转备份、不增加 revision。
+- 书目与等级、退库与恢复只能走受支持的维护入口：`tools\paper_workflow.py` 的 `maintenance-plan` / `maintenance-apply` / `views-refresh`，或索引 UI 的字段编辑、差异确认与冲突检查。不臆造 CLI、不手改 JSON。
 
-## 人工身份字段保护
+## 人工身份与字段保护
 
-- 默认不覆盖 `human.manual_ids` / `unverified_manual_ids` / `primary_manual_id` / `tags` / `is_core` / `reading_status` / `supplement` / `bibliographic_overrides`；仅可按用户本轮精确指定的字段，通过受支持的受控入口更新，未指定字段全部保留。
-- 不手工分配 LIB 编号；编号由现有 `_sync_index` 生成。
+- 默认不覆盖 `human.manual_ids` / `unverified_manual_ids` / `primary_manual_id` / `tags` / `is_core` / `reading_status` / `supplement` / `bibliographic_overrides`；仅可按用户本轮精确指定的 LIB 与字段，通过受支持的受控入口更新，未指定字段全部保留。
+- 受控维护字段只有 `year` / `venue`（出版物）/ `rating`（论文等级）/ `doi`（DOI）。`rating` 是独立字段，未记录时显示「未记录」；不从刊名、会议名或正文猜等级，不新增并行的 `publication` 键。`doi` 只在用户点名 LIB 并给出依据的定点纠错时写入人工确认值，`auto.doi`（扫描值，如数据集 DOI）原样保留，两者不得混用或互相覆盖。
+- 年份沿用现有 `year_kind`：`preprint_date` / `arxiv_v1` 只表示预印本首发年，不得当作正式发表年；接收年不冒充发表年。UI 原有的候选批量接受限制继续保留。
+- 不手工分配 LIB 编号；编号由现有 `_sync_index` 生成。不得重排、回收或复用 LIB，不得降低 `next_lib_number`。
 - 局部阅读不自动把阅读状态改为 `full_text_completed`。
+
+## 退库与恢复
+
+- `status=retired` 采用保留记录的可恢复退库：不删除记录，人工编号仍占用，恢复信息写在 `human.retirement`（`retired_at` / `reason` / `previous_status` / `bundles`）。`missing` 仍只表示资源缺失，不是退库。
+- `human.retirement` 只允许经精确授权的 retire/restore 入口更新；续办必须原样保留既有恢复映射、原状态、退库时间与原因，不重写、不重新分配目录。
+- 目录只做批准对象的同卷、可定位恢复移动（默认恢复到 `论文_retired\<LIB>\<原目录名>\`）；不改文件内容，不跨卷复制后删除，不覆盖、不合并、不永久删除，不自行清理恢复目录，也不自动改用回收站。
+- 退库身份不再导入：扫描或导入命中已退库记录的路径或身份时，必须在目录动作前终止，不重新导入、不合并身份、不另发 LIB。恢复完成后该 LIB 回到活动集合。
+- 退库与任务 01 式临时来源清理是两种不同授权，不得混用；`论文_duplicates_review`、Pending 与其他 LIB 一律不动。
 
 ## 同轮授权与冲突停止
 
-- 用户明确授权的普通新 bundle 批量入库或指定论文证据补充，可在同一会话完成现有 CLI 的 plan→apply；只要求预检时，plan 后停止。仍必须按工具接口提交真实计划 SHA-256、基线指纹和并发校验，不得以同轮授权绕过。
-- apply 只执行授权范围内的对象；出现清单外新增、旧记录变化、身份警告、目标冲突或并发修改即停止并报告，不扩大范围。
-- 跨消息继续时重新显式调用对应 Skill；新一轮操作不得把旧计划或旧批准当作自动授权。
-- `paper_workflow.py` 当前只有入库与证据补充子命令。书目字段修改走现有索引 UI 的字段编辑、差异确认与冲突检查；退库若没有可核实的受支持维护入口，停止确认，不臆造 CLI 或直接改 JSON。
-- 停止时报告准确阶段、已发生的复制/索引提交、残留文件与恢复前置条件；不自动回滚、不自动重试提交。JSON 已提交而派生视图失败时，不重复 apply 或二次保存。
-
-## 临时来源清理与旧库退库
-
-- 临时来源清理是独立且需要明确授权的步骤：只清理已确认成功入库且目标文件存在的来源，或已核实为活动库完整重复的来源；送 Windows 回收站，无法安全回收时放受控恢复目录。疑似版本、附件有差异、异常、未入库或任务范围外文件留在原处。
-- 旧库退库必须由用户精确指定 LIB 与完整题名，并核对对应资产目录；它与新论文来源清理不是同一授权，不得以来源清理权限退库或删除其他旧资产。不可将退库权限扩展到未点名论文，也不得重排 LIB 编号。
+- 用户明确授权的普通新 bundle 批量入库、指定论文证据补充，以及已明确指定的书目/等级维护或精确退库，可在同一会话完成受支持入口的 plan→apply；只要求预检时，plan 后停止。仍必须按工具接口提交真实计划 SHA-256、基线指纹和并发校验，不得以同轮授权绕过。
+- apply 只执行授权范围内的对象；出现清单外新增、**未授权**的旧记录或字段变化、身份警告、目标冲突或并发修改即停止并报告，不扩大范围。
+- 跨消息继续时重新显式调用对应 Skill；新一轮操作不得把旧计划或旧批准当作自动授权。旧计划在提交后按旧指纹拒绝。
+- 停止时报告准确阶段、已发生的复制/索引提交、已移动与未移动目录、残留文件与恢复前置条件；不自动回滚、不自动重试提交、不悄悄更新指纹。JSON 已提交而目录动作或派生视图失败时分别报告，只重跑 `views-refresh`，不重复 apply 或二次保存。
 
 ## 证据类型区分
 
 - 区分论文正文事实、官方实现事实、模型判断三类，各自标注来源。
 - 未实际打开的文件不算已读；未核实的字段保留未知，不用预印本年、README 承诺或推测补正式值。
+- 中科院分区等第三方转录必须标版本与来源，不得写成官方订阅库正式认定；期刊、主会、Workshop、论文集、预印本分别标注，不互相升格。
 - 科研判断与最终裁决由上级模型或用户负责，工具不生成科研结论。

@@ -23,3 +23,9 @@ description_zh: 对指定 LIB 论文做证据补充，默认只读阅读
 4. 报告实际保存状态、更新后的指纹、阅读状态与验收摘要。若重复追加为 no-op，不保存、不增加 revision。
 
 阅读状态默认保持不变；局部阅读不自动标为全文完成。只有用户明确指定且全文范围记录符合 CLI 要求时才调整为 `full_text_completed`（需使用 `--full-text-scope`）；未核实内容写“待核”，不虚构公式、未读资产清单或新目录。只在用户明确要求保存论文库笔记时使用 plan/apply。
+
+## 与其他 Skill 的分工
+
+- 书目字段（`year` / `venue`）、论文等级（`rating`）、退库与恢复交给 `/paper-maintenance`，不在本 Skill 内改这些字段。
+- 已退库记录默认只读：`supplement-plan` / `supplement-apply` 会拒绝写笔记；需要时只读查看，或先走明确授权的恢复。
+- 本 Skill 仍保持阅读与笔记职责，不改变入库的 SHA 协议，也不因退库或恢复自动调整阅读状态。
