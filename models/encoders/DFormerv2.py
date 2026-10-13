@@ -170,11 +170,20 @@ class GeoPriorGen(nn.Module):
         mask = mask * self.decay[:, None, None]
         return mask
 
-    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False, depth_relation=None):
+    def forward(self, HW_tuple: Tuple[int], depth_map, split_or_not=False, depth_relation=None,
+                return_components=False):
         """
         depth_map: depth patches
         HW_tuple: (H, W)
         H * W == l
+
+        ``return_components`` is an opt-in research hook used by the direction-A
+        attention control: when true the already-weighted spatial (``bs*``) and
+        signed depth (``bd*``) parts are returned in addition to the author's
+        merged prior, so the control can rebuild the spatial-only reference
+        ``p0 = softmax(qk + bs)`` without touching the merged prior.  The default
+        return value, dtype, the ``weight`` parameter and the float addition
+        order of the merged prior are all unchanged.
         """
         if depth_relation is None:
             # Original mode preserves the author's interpolation and depth-difference path.
@@ -193,13 +202,16 @@ class GeoPriorGen(nn.Module):
             else:
                 mask_d_h, mask_d_w = depth_relation
 
-            mask_h = self.generate_1d_decay(HW_tuple[0])
-            mask_w = self.generate_1d_decay(HW_tuple[1])
+            mask_h_spatial = self.generate_1d_decay(HW_tuple[0])
+            mask_w_spatial = self.generate_1d_decay(HW_tuple[1])
 
-            mask_h = self.weight[0] * mask_h.unsqueeze(0).unsqueeze(2) + self.weight[1] * mask_d_h
-            mask_w = self.weight[0] * mask_w.unsqueeze(0).unsqueeze(2) + self.weight[1] * mask_d_w
+            bs_h = self.weight[0] * mask_h_spatial.unsqueeze(0).unsqueeze(2)
+            bd_h = self.weight[1] * mask_d_h
+            bs_w = self.weight[0] * mask_w_spatial.unsqueeze(0).unsqueeze(2)
+            bd_w = self.weight[1] * mask_d_w
 
-            geo_prior = ((sin, cos), (mask_h, mask_w))
+            geo_prior = ((sin, cos), (bs_h + bd_h, bs_w + bd_w))
+            parts = {"bs_h": bs_h, "bd_h": bd_h, "bs_w": bs_w, "bd_w": bd_w}
 
         else:
             index = torch.arange(HW_tuple[0] * HW_tuple[1]).to(self.decay)
@@ -207,13 +219,17 @@ class GeoPriorGen(nn.Module):
             sin = sin.reshape(HW_tuple[0], HW_tuple[1], -1)
             cos = torch.cos(index[:, None] * self.angle[None, :])
             cos = cos.reshape(HW_tuple[0], HW_tuple[1], -1)
-            mask = self.generate_pos_decay(HW_tuple[0], HW_tuple[1])
+            mask_spatial = self.generate_pos_decay(HW_tuple[0], HW_tuple[1])
 
             mask_d = self.generate_depth_decay(HW_tuple[0], HW_tuple[1], depth_map) if depth_relation is None else depth_relation
-            mask = self.weight[0] * mask + self.weight[1] * mask_d
+            bs = self.weight[0] * mask_spatial
+            bd = self.weight[1] * mask_d
 
-            geo_prior = ((sin, cos), mask)
+            geo_prior = ((sin, cos), bs + bd)
+            parts = {"bs": bs, "bd": bd}
 
+        if return_components:
+            return geo_prior, parts
         return geo_prior
 
 
@@ -234,7 +250,7 @@ class Decomposed_GSA(nn.Module):
         self.out_proj = nn.Linear(embed_dim * self.factor, embed_dim, bias=True)
         self.reset_parameters()
 
-    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False):
+    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False, bias_parts=None):
         bsz, h, w, _ = x.size()
 
         (sin, cos), (mask_h, mask_w) = rel_pos
@@ -255,26 +271,51 @@ class Decomposed_GSA(nn.Module):
         v = v.reshape(bsz, h, w, self.num_heads, -1).permute(0, 1, 3, 2, 4)
 
         qk_mat_w = qr_w @ kr_w.transpose(-1, -2)
-        bias_w = mask_w.transpose(1, 2)
-        if getattr(self, "match_bias_dtype", False):
-            bias_w = bias_w.to(qk_mat_w.dtype)
-        qk_mat_w = qk_mat_w + bias_w
-        qk_mat_w = torch.softmax(qk_mat_w, -1)
-        v = torch.matmul(qk_mat_w, v)
+        if bias_parts is None:
+            bias_w = mask_w.transpose(1, 2)
+            if getattr(self, "match_bias_dtype", False):
+                bias_w = bias_w.to(qk_mat_w.dtype)
+            qk_mat_w = qk_mat_w + bias_w
+            qk_mat_w = torch.softmax(qk_mat_w, -1)
+            v = torch.matmul(qk_mat_w, v)
+        else:
+            # Direction-A research path for the W axis.  The softmax is replaced
+            # by the FP32 projection/control and the V aggregation stays FP32, so
+            # the probability-ratio budget survives the subsequent H path.
+            control = getattr(self, "influence_control", None)
+            if control is None:
+                raise RuntimeError("bias_parts was supplied without an installed influence control")
+            p_w = control.attend(qk_mat_w, bias_parts["bs_w"].transpose(1, 2),
+                                 bias_parts["bd_w"].transpose(1, 2), axis="w")
+            with torch.autocast(device_type=qk_mat_w.device.type, enabled=False):
+                v = torch.matmul(p_w, v.float())
 
         qr_h = qr.permute(0, 3, 1, 2, 4)
         kr_h = kr.permute(0, 3, 1, 2, 4)
         v = v.permute(0, 3, 2, 1, 4)
 
         qk_mat_h = qr_h @ kr_h.transpose(-1, -2)
-        bias_h = mask_h.transpose(1, 2)
-        if getattr(self, "match_bias_dtype", False):
-            bias_h = bias_h.to(qk_mat_h.dtype)
-        qk_mat_h = qk_mat_h + bias_h
-        qk_mat_h = torch.softmax(qk_mat_h, -1)
-        output = torch.matmul(qk_mat_h, v)
+        if bias_parts is None:
+            bias_h = mask_h.transpose(1, 2)
+            if getattr(self, "match_bias_dtype", False):
+                bias_h = bias_h.to(qk_mat_h.dtype)
+            qk_mat_h = qk_mat_h + bias_h
+            qk_mat_h = torch.softmax(qk_mat_h, -1)
+            output = torch.matmul(qk_mat_h, v)
+        else:
+            control = getattr(self, "influence_control", None)
+            if control is None:
+                raise RuntimeError("bias_parts was supplied without an installed influence control")
+            p_h = control.attend(qk_mat_h, bias_parts["bs_h"].transpose(1, 2),
+                                 bias_parts["bd_h"].transpose(1, 2), axis="h")
+            with torch.autocast(device_type=qk_mat_h.device.type, enabled=False):
+                output = torch.matmul(p_h, v.float())
 
         output = output.permute(0, 3, 1, 2, 4).flatten(-2, -1)
+        if bias_parts is not None:
+            # H aggregation is FP32 by protocol; rejoin the module dtype before
+            # the unchanged "+ lepe / out_proj" tail.
+            output = output.to(lepe.dtype)
         output = output + lepe
         output = self.out_proj(output)
         return output
@@ -303,7 +344,7 @@ class Full_GSA(nn.Module):
         self.out_proj = nn.Linear(embed_dim * self.factor, embed_dim, bias=True)
         self.reset_parameters()
 
-    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False):
+    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False, bias_parts=None):
         """
         x: (b h w c)
         rel_pos: mask: (n l l)
@@ -327,11 +368,31 @@ class Full_GSA(nn.Module):
         vr = v.reshape(bsz, h, w, self.num_heads, -1).permute(0, 3, 1, 2, 4)
         vr = vr.flatten(2, 3)
         qk_mat = qr @ kr.transpose(-1, -2)
-        bias = mask.to(qk_mat.dtype) if getattr(self, "match_bias_dtype", False) else mask
-        qk_mat = qk_mat + bias
-        qk_mat = torch.softmax(qk_mat, -1)
-        output = torch.matmul(qk_mat, vr)
+        if bias_parts is None:
+            bias = mask.to(qk_mat.dtype) if getattr(self, "match_bias_dtype", False) else mask
+            qk_mat = qk_mat + bias
+            qk_mat = torch.softmax(qk_mat, -1)
+            output = torch.matmul(qk_mat, vr)
+        else:
+            # Direction-A research path for the full axis: the FP32 projection
+            # replaces the softmax; Q/K generation, flatten order and output
+            # reshape are unchanged.
+            control = getattr(self, "influence_control", None)
+            if control is None:
+                raise RuntimeError("bias_parts was supplied without an installed influence control")
+            bs_full = bias_parts["bs"]
+            bd_full = bias_parts["bd"]
+            if bs_full.dim() == qk_mat.dim() - 1:
+                bs_full = bs_full.unsqueeze(0)
+            if bd_full.dim() == qk_mat.dim() - 1:
+                bd_full = bd_full.unsqueeze(0)
+            p_full = control.attend(qk_mat, bs_full, bd_full, axis="full")
+            with torch.autocast(device_type=qk_mat.device.type, enabled=False):
+                output = torch.matmul(p_full, vr.float())
+
         output = output.transpose(1, 2).reshape(bsz, h, w, -1)
+        if bias_parts is not None:
+            output = output.to(lepe.dtype)
         output = output + lepe
         output = self.out_proj(output)
         return output
@@ -427,12 +488,36 @@ class RGBD_Block(nn.Module):
         x = x + self.cnn_pos_encode(x)
         b, h, w, d = x.size()
 
-        geo_prior = self.Geo((h, w), x_e, split_or_not=split_or_not, depth_relation=depth_relation)
+        control = getattr(self, "influence_control", None)
+        if control is None:
+            geo_prior = self.Geo((h, w), x_e, split_or_not=split_or_not, depth_relation=depth_relation)
+            if self.layerscale:
+                x = x + self.drop_path(self.gamma_1 * self.Attention(self.layer_norm1(x), geo_prior, split_or_not))
+                x = x + self.drop_path(self.gamma_2 * self.ffn(self.layer_norm2(x)))
+            else:
+                x = x + self.drop_path(self.Attention(self.layer_norm1(x), geo_prior, split_or_not))
+                x = x + self.drop_path(self.ffn(self.layer_norm2(x)))
+            return x
+
+        # Direction-A frozen research branch.  It asks GeoPriorGen for the
+        # already-weighted spatial/depth parts instead of the merged prior.  It is
+        # inference-only by design: the projection has no validated backward yet,
+        # so running it in training mode or with gradients enabled is refused
+        # rather than silently turning it into an unvalidated training mechanism.
+        if self.training or torch.is_grad_enabled():
+            raise RuntimeError(
+                "direction-A influence control is frozen inference only "
+                "(training=%s grad_enabled=%s)" % (self.training, torch.is_grad_enabled())
+            )
+        geo_prior, parts = self.Geo((h, w), x_e, split_or_not=split_or_not,
+                                    depth_relation=depth_relation, return_components=True)
         if self.layerscale:
-            x = x + self.drop_path(self.gamma_1 * self.Attention(self.layer_norm1(x), geo_prior, split_or_not))
+            x = x + self.drop_path(self.gamma_1 * self.Attention(self.layer_norm1(x), geo_prior, split_or_not,
+                                                                 bias_parts=parts))
             x = x + self.drop_path(self.gamma_2 * self.ffn(self.layer_norm2(x)))
         else:
-            x = x + self.drop_path(self.Attention(self.layer_norm1(x), geo_prior, split_or_not))
+            x = x + self.drop_path(self.Attention(self.layer_norm1(x), geo_prior, split_or_not,
+                                                  bias_parts=parts))
             x = x + self.drop_path(self.ffn(self.layer_norm2(x)))
         return x
 
