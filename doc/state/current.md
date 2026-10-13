@@ -61,6 +61,7 @@
 ### Git、环境、监控与云端
 
 - 作者基线仍为`e3273009b759b578945483828ff315d560be94c9`。任务从实际HEAD`08d5940`建立`research/odg-sunrgbd`。核心`71aa4e4`、训练入口`2b2d754`、启动脚本修正`4f3e405`均已推送用户origin；upstream push继续禁用。主体实现提交`4f3e40529399aff91d7af9fc9eb2450a1d752498`已在两端；收尾提交包含状态/报告和数据检查断言/同步临时文件清理入口，其身份用`git rev-parse HEAD`获取，不在文件内自指尚未生成的hash。
+- 2026-10-13论文库收尾：`5cdc26d`（论文库 Rule、三个 Skill 与两份指南）与`e439c5a`（六份正式报告）先后提交到`research/odg-sunrgbd`并正常推送`origin`（`a11b835..e439c5a`快进，未 force push）；本文件随后单独更新一次。提交前工作区干净、远端无新增提交；六份报告均被本文件或阶段一报告引用，无删除。upstream、其他分支与 DeLiVER worktree 未动。
 - 本机继续用`D:\2Env\anaconda\envs\dformer`：Python3.10.22、torch2.7.0+cu128、mmcv1.7.2、timm1.0.30、SwanLab0.10.1；旧df2冻结，未升级依赖栈。
 - 当前会话未发现CompShare MCP工具，已改用既有官方CLI0.3.6与配置，没要求新密钥。实例`cpod-1vbh7faqcauq`、cn-bj2-03、Postpay、50GB系统盘；启动前Stopped且无其它screen/训练任务。
 - 2026-10-10有卡会话（用户手动启动）：09:04:34开始、13:23:02主动停止并回读`Stopped`，平台计15508秒=4.31 GPU小时、约¥8.1。保险先设10:48:43、扩容到16:18:40、按实际进度调整为14:45:00并回读确认。随后以无卡A档（2CPU/4GiB/GPU0、`InstancePrice=0.13`，非免费）短窗取回产物，取回校验后再次主动停止并回读`Stopped`。挂起的`stage1`串行链与其screen、`odgpar` screen、诊断脚本进程均已清理，无遗留训练或自动任务。
@@ -73,7 +74,7 @@
 ### 已结束的论文库工作
 
 - 2026-10-09论文库保存结果为历史基线：schema4/revision18、49篇、核心15、supplement21；当时三范围AI导出和回执就绪，旧revision17/F0审核计划已失效，保存回执与历史授权见[归档摘要](../archive/2026-10-10-odg-start/paper-library-state.md)。
-- 2026-10-12任务00/01已完成：论文库规则与Skill简化提交为本地提交`85f228e`（未推送）；23篇处理后bundle按批准计划成功新增23条、原有匹配0条。外部索引当前schema4/revision19、72条记录、`next_lib_number=73`，`PAPER_LIBRARY_INDEX.md`已重建一次；23个已确认来源目录已送Windows回收站，空的`临时论文`父目录已移除。详细N→LIB映射以正式索引题名为准（当时入库报告为临时文件，已随 2026-10-13 清理删除）。原有资产与既有人工字段未改；AI阅读导出未生成，需手动操作UI。
+- 2026-10-12任务00/01已完成：论文库规则与Skill简化提交为本地提交`85f228e`（已于 2026-10-13 随本轮收尾推送 origin）；23篇处理后bundle按批准计划成功新增23条、原有匹配0条。外部索引当前schema4/revision19、72条记录、`next_lib_number=73`，`PAPER_LIBRARY_INDEX.md`已重建一次；23个已确认来源目录已送Windows回收站，空的`临时论文`父目录已移除。详细N→LIB映射以正式索引题名为准（当时入库报告为临时文件，已随 2026-10-13 清理删除）。原有资产与既有人工字段未改；AI阅读导出未生成，需手动操作UI。
 - 2026-10-12论文库维护能力阶段一已实施并**通过最终独立验收**：四个工具 + Rule + 三个Skill（新增`paper-maintenance`）+ 两份正式指南 + `_index/README.md` + 原任务03同步完成；`.codebuddy` 侧经仓库自带单向同步脚本补齐同一 Rule 与三个论文库 Skill。最终代码版本已在隔离环境实测通过 plan→写入→退库移动→续办幂等→恢复→导出（见[最终验收报告](../reports/2026-10-12-paper-library-maintenance-stage1-acceptance-final.md)）。阶段一第一次演练因父进程控制台编码错误留下了隔离根 `%TEMP%\paper-maintenance-drill-50652`（状态只到 plan 阶段），**经 2026-10-13 复核该目录已不存在**。
 - 任务01的LIB写入前置条件现已满足，**任务03已执行完毕并通过独立验收**，**任务04已完成**（交付研究准备包，该包已交云端高级模型消费）。外部索引仍只允许经受支持入口写入；**磁盘索引现为 schema5，旧版本工具不得再写**。该轮未推送Git。
 
