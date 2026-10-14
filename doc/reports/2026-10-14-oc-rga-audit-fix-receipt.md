@@ -29,7 +29,8 @@
 | 模型自检 | `python -m research.oc_rga_model --self-check --device cpu --size 128` | **24/24 通过，1 项未运行（CPU 无 CUDA，AMP 边界留给 GPU）** |
 | 评价协议自检 | `python -m research.evaluate_oc_rga --self-check --device cuda --limit 2` | **14/14 通过**（真实 DeLiVER 1042→640→pad，7 条件，故障确定性，R3 矩形主导性，R4 替换语义与别名，R7 padding） |
 | 留出泄漏检查（真实 480） | `python -m research.train_oc_rga --leak-check --device cuda` | **全部通过**，正控 `max\|Δmu_post\|=3.554e-02` |
-| 完整链路检查（CPU 小网格） | `--check --check-size 128 --accum-steps 4 --device cpu` | **PASS，退出码 0** |
+| 完整链路检查（CPU 小网格，OC） | `--check --check-size 128 --accum-steps 4 --device cpu` | **PASS，退出码 0** |
+| 完整链路检查（CPU 小网格，基线） | `--check --check-size 128 --accum-steps 2 --model-mode masked_baseline` | **PASS，退出码 0**；`Geo.weight` 与主干探针非零梯度、30/30 更新 |
 | 完整链路检查（真实 480 + AMP + 4 累积） | `--check --micro-batch 1 --accum-steps 4 --device cuda` | **PASS，退出码 0**；attempts=8、AMP 预热跳步 7 次后真实更新 |
 | 日程检查 | `--print-schedule --stop-after-epoch 30` | `total_updates=29880`、`warmup_updates=1245`，与 120 epoch 日程一致；暂停不压缩曲线 |
 | 数据协议抽查 | `python -m research.oc_rga_data --inspect --limit 10` | 10 张真实 crop：`O≤S`、`Vref≤S`、缺失位置为 raw0 归一化值、编码范围内 |
@@ -86,18 +87,28 @@ positive_control_non_target_...     PASS  max|d mu_post|=3.554e-02
 
 ## 3. 关键梯度与参数更新证据
 
-真实 480、AMP、`micro_batch=1, accum_steps=4`：
+探针集合覆盖两臂共同的几何系数与主干注意力：`GeoPriorGen.weight`（基线 signed 空间/深度系数）或复制后的 `OCSpatialPrior.weight`（OC 臂）、`base.backbone.layers.0.blocks.0.Attention.q_proj.weight`，以及 OC 独有的 U 因子头、精度头输出、每 stage 核长度 `a_ell`、每 block 注入 logit `a_beta`。
+
+真实 480、AMP、`micro_batch=1, accum_steps=4`（OC 臂）：
 
 ```
 grads finite=True
 key grads max = {oc_injection.a_beta: 7e-06, head_factor.weight: 4.97e-04,
                  head_factor.bias: 1.39e-04, precision.out.weight: 3.6e-05,
                  precision.out.bias: 1.6e-05, a_ell.0: 3e-06}
-updated 34/34 key parameters with weight decay disabled (attempts=8, AMP skipped=7)
+updated 64/64 key parameters with weight decay disabled (attempts=8, AMP skipped=7)
 ```
 
-- 34 个探针参数覆盖：U 因子头权重/偏置、精度头输出权重/偏置、每 stage 的核长度 `a_ell`、每个 block 的注入 logit `a_beta`。
-- 每条 `|grad|max > 0`，**不是**仅有参数变化；随后的有效更新在**关闭 weight decay** 的条件下完成，因此参数变化不能由 weight decay 解释。
+CPU 小网格、`masked_baseline`：
+
+```
+grads finite=True
+key grads max = {q_proj.weight: 7.64e-03, Geo.weight: 3.12e-04}
+updated 30/30 key parameters with weight decay disabled (attempts=1, AMP skipped=0)
+```
+
+- 每条探针 `|grad|max > 0`，**不是**仅有参数变化；随后的有效更新在**关闭 weight decay** 的条件下完成，因此参数变化不能由 weight decay 解释。
+- 基线臂的 `Geo.weight` 探针直接覆盖 R1 修改过的路径（signed 空间/深度系数），并确认它仍获得非零梯度与真实更新。
 - 优化器覆盖：835 个可训练张量、groups `[369, 466]`、`duplicates=0`、`missing=[]`。
 - AMP 预热跳步 7 次属于正常现象（与既有 SUN 运行记录的 8 次同量级），随后真实应用。
 

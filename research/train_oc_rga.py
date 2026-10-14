@@ -102,6 +102,24 @@ GEOMETRY_PROBE_NAMES = (
     "geometry.precision.out.bias",
     "geometry.evidence.a_ell.0",
 )
+# Probes that must exist in *both* arms: the per-block geometry coefficient
+# (``GeoPriorGen.weight`` for the baseline, the copied ``OCSpatialPrior.weight``
+# for the OC arm) and one shared-trunk attention projection.
+COMMON_PROBE_NAMES = (
+    "base.backbone.layers.0.blocks.0.Attention.q_proj.weight",
+)
+
+
+def probe_parameters(model):
+    """Key parameters whose gradient must be finite and non-zero in either mode."""
+    probes = {}
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if (name in GEOMETRY_PROBE_NAMES or name in COMMON_PROBE_NAMES
+                or name.endswith("oc_injection.a_beta") or name.endswith("Geo.weight")):
+            probes[name] = param
+    return probes
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -373,8 +391,10 @@ def run_check(config, resolved, device, train_source, eval_source, amp=True, che
             raise SystemExit("[check] FAIL: non-finite gradients without AMP %s"
                              % (grads["nonfinite"][:5],))
 
-        probes = {name: param for name, param in model.named_parameters()
-                  if name in GEOMETRY_PROBE_NAMES or name.endswith("oc_injection.a_beta")}
+        probes = probe_parameters(model)
+        if not probes:
+            raise SystemExit("[check] FAIL: no key parameter probe was found for mode %r"
+                             % (resolved["model_mode"],))
         before = {name: param.detach().clone() for name, param in probes.items()}
         zero_grad = [name for name, param in probes.items()
                      if param.grad is None or float(param.grad.abs().max()) == 0.0]
