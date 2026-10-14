@@ -72,7 +72,7 @@ python -m research.train_oc_rga --config local_configs.research.OC_RGA_DeLiVER -
 - 云端磁盘：50 G，已用 37 G，**可用 14 G**（74%）。
 - 云端 `dataset/` 合计 11 G：`DELIVER/`（三模态各 5988）、`MUSeg_DFormer/` 1.5 G、`SUNRGBD/` 2.4 G。
 - 本地 D 盘可用约 86.7 GB。
-- Git：本轮文档改动提交后推送 `origin`，云端 `research/observation-relational-geometry` 同步到同一 commit（提交清单见 `doc/state/current.md`）。
+- Git：本轮文档改动已提交并推送 `origin`（`ce24e10..4599a8b`）。云端 `research/observation-relational-geometry` 停在 `ce24e10`：**代码同步完成，但本轮文档提交未同步到云端** —— 云端 `git fetch` 连续三次报 `gnutls_handshake() failed: The TLS connection was non-properly terminated.`（此前记录过的间歇性 TLS 问题），按要求未改用 Git bundle，留待后续重试；该滞后不影响云端代码可用性。
 
 ## 6. 下一阶段代码审核所需文件
 
