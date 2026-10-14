@@ -24,6 +24,23 @@ import os
 from collections import OrderedDict
 
 
+_RESEARCH_ATTENTION_PROBS = None
+
+
+def _research_attention_probs(qk, bias, valid):
+    """Lazy bridge to :func:`research.oc_rga.research_attention_probs`.
+
+    Imported on first use so ``models/`` keeps working for callers that never
+    touch the OC-RGA research path.
+    """
+    global _RESEARCH_ATTENTION_PROBS
+    if _RESEARCH_ATTENTION_PROBS is None:
+        from research.oc_rga import research_attention_probs as _fn
+
+        _RESEARCH_ATTENTION_PROBS = _fn
+    return _RESEARCH_ATTENTION_PROBS(qk, bias, valid)
+
+
 class LayerNorm2d(nn.Module):
     def __init__(self, dim):
         super().__init__()
@@ -250,7 +267,16 @@ class Decomposed_GSA(nn.Module):
         self.out_proj = nn.Linear(embed_dim * self.factor, embed_dim, bias=True)
         self.reset_parameters()
 
-    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False, bias_parts=None):
+    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False, bias_parts=None, research=None):
+        """
+        ``research`` is the OC-RGA / mask-aware-baseline path: a dict holding the
+        already assembled ``bias_w``/``bias_h`` and the optional ``valid_w`` /
+        ``valid_h`` token masks.  It replaces only the softmax probability
+        operator with the shared FP32 branch; Q/K/V generation, RoPE, the W -> H
+        wiring, the V aggregation layout and the LePE/out_proj tail are the
+        author's.  ``bias_parts`` (direction A, inference only) and the default
+        author path are untouched.
+        """
         bsz, h, w, _ = x.size()
 
         (sin, cos), (mask_h, mask_w) = rel_pos
@@ -271,7 +297,11 @@ class Decomposed_GSA(nn.Module):
         v = v.reshape(bsz, h, w, self.num_heads, -1).permute(0, 1, 3, 2, 4)
 
         qk_mat_w = qr_w @ kr_w.transpose(-1, -2)
-        if bias_parts is None:
+        if research is not None:
+            p_w = _research_attention_probs(qk_mat_w, research["bias_w"], research.get("valid_w"))
+            with torch.autocast(device_type=qk_mat_w.device.type, enabled=False):
+                v = torch.matmul(p_w, v.float())
+        elif bias_parts is None:
             bias_w = mask_w.transpose(1, 2)
             if getattr(self, "match_bias_dtype", False):
                 bias_w = bias_w.to(qk_mat_w.dtype)
@@ -295,7 +325,11 @@ class Decomposed_GSA(nn.Module):
         v = v.permute(0, 3, 2, 1, 4)
 
         qk_mat_h = qr_h @ kr_h.transpose(-1, -2)
-        if bias_parts is None:
+        if research is not None:
+            p_h = _research_attention_probs(qk_mat_h, research["bias_h"], research.get("valid_h"))
+            with torch.autocast(device_type=qk_mat_h.device.type, enabled=False):
+                output = torch.matmul(p_h, v.float())
+        elif bias_parts is None:
             bias_h = mask_h.transpose(1, 2)
             if getattr(self, "match_bias_dtype", False):
                 bias_h = bias_h.to(qk_mat_h.dtype)
@@ -312,7 +346,7 @@ class Decomposed_GSA(nn.Module):
                 output = torch.matmul(p_h, v.float())
 
         output = output.permute(0, 3, 1, 2, 4).flatten(-2, -1)
-        if bias_parts is not None:
+        if bias_parts is not None or research is not None:
             # H aggregation is FP32 by protocol; rejoin the module dtype before
             # the unchanged "+ lepe / out_proj" tail.
             output = output.to(lepe.dtype)
@@ -344,10 +378,12 @@ class Full_GSA(nn.Module):
         self.out_proj = nn.Linear(embed_dim * self.factor, embed_dim, bias=True)
         self.reset_parameters()
 
-    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False, bias_parts=None):
+    def forward(self, x: torch.Tensor, rel_pos, split_or_not=False, bias_parts=None, research=None):
         """
         x: (b h w c)
         rel_pos: mask: (n l l)
+        ``research``: OC-RGA / mask-aware-baseline path (``bias_full`` plus an
+        optional ``valid_full`` token mask).  Only the softmax operator changes.
         """
         bsz, h, w, _ = x.size()
         (sin, cos), mask = rel_pos
@@ -368,7 +404,11 @@ class Full_GSA(nn.Module):
         vr = v.reshape(bsz, h, w, self.num_heads, -1).permute(0, 3, 1, 2, 4)
         vr = vr.flatten(2, 3)
         qk_mat = qr @ kr.transpose(-1, -2)
-        if bias_parts is None:
+        if research is not None:
+            p_full = _research_attention_probs(qk_mat, research["bias_full"], research.get("valid_full"))
+            with torch.autocast(device_type=qk_mat.device.type, enabled=False):
+                output = torch.matmul(p_full, vr.float())
+        elif bias_parts is None:
             bias = mask.to(qk_mat.dtype) if getattr(self, "match_bias_dtype", False) else mask
             qk_mat = qk_mat + bias
             qk_mat = torch.softmax(qk_mat, -1)
@@ -391,7 +431,7 @@ class Full_GSA(nn.Module):
                 output = torch.matmul(p_full, vr.float())
 
         output = output.transpose(1, 2).reshape(bsz, h, w, -1)
-        if bias_parts is not None:
+        if bias_parts is not None or research is not None:
             output = output.to(lepe.dtype)
         output = output + lepe
         output = self.out_proj(output)
@@ -463,6 +503,7 @@ class RGBD_Block(nn.Module):
         layer_init_values=1e-5,
         init_value=2,
         heads_range=4,
+        oc_geometry=False,
     ):
         super().__init__()
         self.layerscale = layerscale
@@ -479,14 +520,80 @@ class RGBD_Block(nn.Module):
         self.cnn_pos_encode = DWConv2d(embed_dim, 3, 1, 1)
         # the function to generate the geometry prior for the current block
         self.Geo = GeoPriorGen(embed_dim, num_heads, init_value, heads_range)
+        # OC-RGA turns this block into an observational-geometry block.  The OC
+        # model replaces ``self.Geo`` with ``OCSpatialPrior``; the mask-aware
+        # baseline keeps the author ``GeoPriorGen`` and only replaces its signed
+        # depth relation.  Only the OC model owns an injection scale, so the
+        # baseline carries no unused trainable parameter.
+        self.oc_geometry = bool(oc_geometry)
+        if self.oc_geometry:
+            from research.oc_rga import OCInjectionScale
+
+            self.oc_injection = OCInjectionScale(num_heads)
 
         if layerscale:
             self.gamma_1 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
             self.gamma_2 = nn.Parameter(layer_init_values * torch.ones(1, 1, 1, embed_dim), requires_grad=True)
 
-    def forward(self, x: torch.Tensor, x_e: torch.Tensor, split_or_not=False, depth_relation=None):
+    def observational_research(self, h: int, w: int, split_or_not: bool, stage):
+        """Assemble ``(rel_pos, research)`` for the OC-RGA / baseline path.
+
+        ``rel_pos`` keeps the author RoPE/SDPA contract; ``research`` carries the
+        fully assembled per-axis bias and the valid-token masks.  Everything the
+        attention needs is built here, so neither attention module has to know
+        which arm it serves.
+        """
+        if split_or_not:
+            if "Ehat_w" in stage:
+                rel_pos, (bs_h, bs_w) = self.Geo((h, w), split_or_not=True)
+                beta = self.oc_injection().view(1, -1, 1, 1, 1)
+                bias_w = (bs_w + beta * stage["Ehat_w"].transpose(1, 2)).transpose(1, 2)
+                bias_h = (bs_h + beta * stage["Ehat_h"].transpose(1, 2)).transpose(1, 2)
+            else:
+                rel_pos, parts = self.Geo(
+                    (h, w), None, split_or_not=True,
+                    depth_relation=(stage["base_h"], stage["base_w"]), return_components=True,
+                )
+                bias_w = (parts["bs_w"] + parts["bd_w"]).transpose(1, 2)
+                bias_h = (parts["bs_h"] + parts["bd_h"]).transpose(1, 2)
+            valid = stage["valid"]
+            return rel_pos, {
+                "bias_w": bias_w,
+                "bias_h": bias_h,
+                "valid_w": valid,
+                "valid_h": valid.transpose(1, 2),
+            }
+
+        if "Ehat_full" in stage:
+            rel_pos, bs = self.Geo((h, w), split_or_not=False)
+            beta = self.oc_injection().view(1, -1, 1, 1)
+            bias = bs + beta * stage["Ehat_full"]
+        else:
+            rel_pos, parts = self.Geo(
+                (h, w), None, split_or_not=False,
+                depth_relation=stage["base_full"], return_components=True,
+            )
+            bias = parts["bs"] + parts["bd"]
+        valid = stage["valid"].reshape(stage["valid"].shape[0], -1)
+        return rel_pos, {"bias_full": bias, "valid_full": valid}
+
+    def forward(self, x: torch.Tensor, x_e: torch.Tensor, split_or_not=False, depth_relation=None,
+                oc_stage=None):
         x = x + self.cnn_pos_encode(x)
         b, h, w, d = x.size()
+
+        if oc_stage is not None:
+            # OC-RGA / mask-aware-baseline path.  Q/K/V, RoPE, LePE, the
+            # residual/drop-path composition and the FFN are the author's; only
+            # the attention probability operator is the shared FP32 one.
+            rel_pos, research = self.observational_research(h, w, split_or_not, oc_stage)
+            attended = self.Attention(self.layer_norm1(x), rel_pos, split_or_not, research=research)
+            if self.layerscale:
+                x = x + self.drop_path(self.gamma_1 * attended)
+            else:
+                x = x + self.drop_path(attended)
+            x = x + self.drop_path(self.ffn(self.layer_norm2(x)))
+            return x
 
         control = getattr(self, "influence_control", None)
         if control is None:
@@ -543,6 +650,7 @@ class BasicLayer(nn.Module):
         use_checkpoint=False,
         layerscale=False,
         layer_init_values=1e-5,
+        oc_geometry=False,
     ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -563,6 +671,7 @@ class BasicLayer(nn.Module):
                     layer_init_values,
                     init_value=init_value,
                     heads_range=heads_range,
+                    oc_geometry=oc_geometry,
                 )
                 for i in range(depth)
             ]
@@ -574,15 +683,15 @@ class BasicLayer(nn.Module):
         else:
             self.downsample = None
 
-    def forward(self, x, x_e, observations=None):
+    def forward(self, x, x_e, observations=None, oc_stage=None):
         b, h, w, d = x.size()
         # All blocks in this stage share fixed head decay; weights remain per-block.
         relation = None if observations is None else observations.relation((h, w), self.blocks[0].Geo.decay, self.split_or_not)
         for blk in self.blocks:
             if self.use_checkpoint:
-                x = checkpoint.checkpoint(blk, x, x_e, self.split_or_not, relation, use_reentrant=False)
+                x = checkpoint.checkpoint(blk, x, x_e, self.split_or_not, relation, oc_stage, use_reentrant=False)
             else:
-                x = blk(x, x_e, split_or_not=self.split_or_not, depth_relation=relation)
+                x = blk(x, x_e, split_or_not=self.split_or_not, depth_relation=relation, oc_stage=oc_stage)
         if self.downsample is not None:
             x_down = self.downsample(x)
             return x, x_down
@@ -610,6 +719,7 @@ class dformerv2(nn.Module):
         layer_init_values=1e-6,
         norm_eval=True,
         geometry_mode="original",
+        oc_geometry=False,
     ):
         super().__init__()
         self.out_indices = out_indices
@@ -650,6 +760,7 @@ class dformerv2(nn.Module):
                 use_checkpoint=use_checkpoint,
                 layerscale=layerscales[i_layer],
                 layer_init_values=layer_init_values,
+                oc_geometry=oc_geometry,
             )
             for block in layer.blocks:
                 block.Attention.match_bias_dtype = geometry_mode != "original"
@@ -722,7 +833,7 @@ class dformerv2(nn.Module):
     def no_weight_decay_keywords(self):
         return {"relative_position_bias_table"}
 
-    def forward(self, x, x_e, depth_support=None):
+    def forward(self, x, x_e, depth_support=None, image_support=None, geometry_builder=None):
         # Construct distributions from transformed INPUT observations, not stage scalars.
         x_e = x_e[:, 0:1, :, :]
         observations = None
@@ -730,15 +841,25 @@ class dformerv2(nn.Module):
             from research.geometry import ObservationGeometry
             observations = ObservationGeometry(x_e, depth_support, mode=self.geometry_mode)
         x = self.patch_embed(x)
+        # OC-RGA builds its whole geometry package once, right after the shared RGB
+        # stem and before any stage-0 attention.  The builder is a registered
+        # module supplied by the research wrapper; it never sees labels or
+        # reference depth.  Without a builder the author path is unchanged.
+        bundle = None
+        if geometry_builder is not None:
+            bundle = geometry_builder(x, x_e, depth_support, image_support)
         outs = []
         for i in range(self.num_layers):
             layer = self.layers[i]
-            x_out, x = layer(x, x_e, observations)
+            oc_stage = None if bundle is None else bundle.stage(i)
+            x_out, x = layer(x, x_e, observations, oc_stage=oc_stage)
             if i in self.out_indices:
                 if i != 0:
                     x_out = self.extra_norms[i - 1](x_out)
                 out = x_out.permute(0, 3, 1, 2).contiguous()
                 outs.append(out)
+        if bundle is not None:
+            return tuple(outs), bundle
         return tuple(outs)
 
     def train(self, mode=True):
