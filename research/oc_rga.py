@@ -111,6 +111,11 @@ PAD_LOGIT = -1.0e4
 S_TYPES = ("S", "O", "VREF")
 EPS = 1e-12
 
+# Pre-registered read-out contrasts (design 12.2).  Every one of them keeps the
+# same geometry network, conditioning, supervision, kernel lengths, S/O, budget
+# and initialisation; only the read-out of the relation distribution changes.
+READOUTS = ("delta", "mean", "diag", "direct")
+
 
 # --------------------------------------------------------------------------- #
 # Bounded positive parameterisation (design 4.4)
@@ -456,6 +461,7 @@ def joint_low_rank_nll(
     mu: torch.Tensor,
     diag_var: torch.Tensor,
     factor: torch.Tensor,
+    mask: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     """Stable low-rank Gaussian NLL ``-log N(t; mu, diag(d) + F F^T)``.
 
@@ -463,16 +469,25 @@ def joint_low_rank_nll(
     ``[B,K,r]``.  Uses the positive-form quadratic of design 10.3 so the large
     dense expression ``e^T V^{-1} e - b^T J^{-1} b`` is never formed.  Returns
     ``[B]`` per-image NLL.
+
+    ``mask`` ``[B,K]`` (optional) marks the real entries of a padded batch: padded
+    entries are neutralised (``d = 1``, ``e = 0``, ``F = 0``) and the ``log 2pi``
+    constant counts only the masked-in targets, so per-image normalisation by the
+    true target count stays exact.
     """
     if target.ndim != 2:
         raise ValueError("joint_low_rank_nll expects [B,K] tensors")
-    d = diag_var
+    if mask is None:
+        mask = torch.ones_like(diag_var, dtype=torch.bool)
+    elif mask.shape != diag_var.shape:
+        raise ValueError("mask must match the [B,K] target shape")
+    d = torch.where(mask, diag_var, torch.ones_like(diag_var))
     if bool((d <= 0).any()):
         raise RuntimeError("joint_low_rank_nll requires a strictly positive diagonal")
-    e = target - mu
+    e = torch.where(mask, target - mu, torch.zeros_like(target))
     inv_sqrt = d.rsqrt()
     e_scaled = e * inv_sqrt
-    f_scaled = factor * inv_sqrt.unsqueeze(-1)
+    f_scaled = factor * inv_sqrt.unsqueeze(-1) * mask.unsqueeze(-1).to(factor.dtype)
     r = factor.shape[-1]
     eye = torch.eye(r, device=factor.device, dtype=factor.dtype).unsqueeze(0)
     j_mat = eye + f_scaled.transpose(-2, -1) @ f_scaled
@@ -483,8 +498,22 @@ def joint_low_rank_nll(
     quad = residual.pow(2).sum(-1) + h_star.pow(2).sum(-1)
     chol = torch.linalg.cholesky(j_mat)
     log_det = d.log().sum(-1) + 2.0 * torch.log(torch.diagonal(chol, dim1=-2, dim2=-1)).sum(-1)
-    n = target.shape[-1]
-    return 0.5 * (quad + log_det + float(n) * math.log(2.0 * math.pi))
+    n = mask.sum(dim=-1).to(diag_var.dtype)
+    return 0.5 * (quad + log_det + n * math.log(2.0 * math.pi))
+
+
+def _marginal_relation(var: torch.Tensor, factor: torch.Tensor) -> torch.Tensor:
+    """``v_ij = Sigma_ii + Sigma_jj`` from the marginals only, ``v_ii = 0``.
+
+    This is the ``diag`` read-out of design 12.2: the correlated term
+    ``-2 Sigma_ij`` is dropped but the marginal variances are kept, so it is not
+    the same intervention as setting ``F = 0``.
+    """
+    marginal = var + factor.pow(2).sum(-1, keepdim=True)
+    v = marginal + marginal.transpose(-1, -2)
+    length = v.shape[-1]
+    eye = torch.eye(length, device=v.device, dtype=v.dtype)
+    return v * (1.0 - eye)
 
 
 def axis_relation_variance(
@@ -806,10 +835,14 @@ class RelationalEvidencePyramid(nn.Module):
 
     def __init__(self, heads_per_stage: Sequence[int] = (4, 4, 8, 16),
                  ell_min: float = ELL_MIN, ell_max: float = ELL_MAX,
-                 init_range: Tuple[float, float] = ELL_INIT_RANGE, tau: float = TAU_SAT):
+                 init_range: Tuple[float, float] = ELL_INIT_RANGE, tau: float = TAU_SAT,
+                 readout: str = "delta"):
         super().__init__()
         if len(heads_per_stage) != 4:
             raise ValueError("exactly four stages are supported")
+        if readout not in READOUTS:
+            raise ValueError("readout must be one of %s" % (READOUTS,))
+        self.readout = str(readout)
         self.heads_per_stage = tuple(int(h) for h in heads_per_stage)
         self.tau = float(tau)
         self.a_ell = nn.ParameterList()
@@ -846,16 +879,33 @@ class RelationalEvidencePyramid(nn.Module):
         f1: torch.Tensor,
         ell: torch.Tensor,
     ) -> torch.Tensor:
-        """``Ehat`` of shape ``[B, heads, L, L]`` for one axis/grid layout."""
+        """``Ehat`` of shape ``[B, heads, L, L]`` for one axis/grid layout.
+
+        ``readout`` selects the pre-registered mechanism contrast: ``delta`` is
+        the implementation version (full relative variance, posterior minus
+        prior), ``mean`` sets ``v = 0`` on both read-outs, ``diag`` keeps the
+        marginal variances but drops the correlated term, and ``direct``
+        saturates the posterior log kernel without the prior subtraction.
+        """
         m0 = mu0 - mu0.transpose(-1, -2)
         m1 = mu1 - mu1.transpose(-1, -2)
-        v0 = axis_relation_variance(var0, var0, f0, f0)
-        v1 = axis_relation_variance(var1, var1, f1, f1)
+        zeros = torch.zeros_like(m0)
+        if self.readout == "mean":
+            v0, v1 = zeros, torch.zeros_like(m1)
+        elif self.readout == "diag":
+            v0 = _marginal_relation(var0, f0)
+            v1 = _marginal_relation(var1, f1)
+        else:
+            v0 = axis_relation_variance(var0, var0, f0, f0)
+            v1 = axis_relation_variance(var1, var1, f1, f1)
         out: List[torch.Tensor] = []
         for head in range(ell.numel()):
             length = ell[head]
-            delta = self.log_kernel(m1, v1, length) - self.log_kernel(m0, v0, length)
-            out.append(self.saturate(delta))
+            posterior = self.log_kernel(m1, v1, length)
+            if self.readout == "direct":
+                out.append(self.saturate(posterior))
+            else:
+                out.append(self.saturate(posterior - self.log_kernel(m0, v0, length)))
         return torch.stack(out, dim=1)
 
     def evidence(self, stage: int, pooled: Dict[str, torch.Tensor],
@@ -931,7 +981,8 @@ class OCGeometryBundle:
     def _build_stage(self, index: int) -> Dict[str, torch.Tensor]:
         pooled = self.pooled[index]
         n = pooled["n"]
-        valid = n > 0
+        # ``n`` is [B,H,W,1]; the token validity mask the attention consumes is [B,H,W].
+        valid = n.squeeze(-1) > 0
         out: Dict[str, torch.Tensor] = {
             "index": index,
             "grid": (int(n.shape[1]), int(n.shape[2])),
@@ -987,14 +1038,21 @@ class OCGeometryBuilder(nn.Module):
     """
 
     def __init__(self, heads_per_stage: Sequence[int] = (4, 4, 8, 16),
-                 uses_evidence: bool = True, uses_baseline: bool = False,
-                 cell: int = BASE_CELL, rank: int = RANK):
+                 uses_prior: bool = True, uses_evidence: bool = True,
+                 uses_baseline: bool = False,
+                 cell: int = BASE_CELL, rank: int = RANK, readout: str = "delta"):
         super().__init__()
-        self.prior = RGBGeometryPrior(in_dim=64, out_dim=64, rank=rank)
-        self.precision = ObservationPrecisionHead()
-        self.evidence = RelationalEvidencePyramid(heads_per_stage)
+        self.uses_prior = bool(uses_prior)
         self.uses_evidence = bool(uses_evidence)
         self.uses_baseline = bool(uses_baseline)
+        # The mask-aware baseline must not carry a single unused geometry-branch
+        # parameter, so the RGB prior / precision head are only ever created when
+        # the OC read-out actually consumes them.
+        if self.uses_prior:
+            self.prior = RGBGeometryPrior(in_dim=64, out_dim=64, rank=rank)
+            self.precision = ObservationPrecisionHead()
+        if self.uses_evidence:
+            self.evidence = RelationalEvidencePyramid(heads_per_stage, readout=readout)
         self.cell = int(cell)
         self.rank = int(rank)
 
@@ -1034,105 +1092,102 @@ class OCGeometryBuilder(nn.Module):
     # -- main forward ------------------------------------------------------ #
     def forward(self, stem_feat: torch.Tensor, depth: torch.Tensor,
                 observation: torch.Tensor, image_support: torch.Tensor) -> OCGeometryBundle:
-        g, a_mean, a_factor, a_scale, windows, cx, cy = self.prior(stem_feat, image_support)
         summary = cell_summaries(depth, observation, image_support, self.cell)
         n = summary["n"].unsqueeze(-1)  # [B,H0,W0,1]
 
-        geometry = {
-            "context": g,
-            "a_mean": a_mean.permute(0, 2, 3, 1),
-            "a_factor": a_factor.permute(0, 2, 3, 1),
-            "a_scale": a_scale.permute(0, 2, 3, 1),
-            "windows": windows,
-            "n": n,
-            "cx": cx,
-            "cy": cy,
-            "summary": summary,
-        }
-        params = self.prior_parameters(geometry)
-        mu, factor, s2 = params["mu"], params["U"], params["s2"]
-
-        y = summary["y"].unsqueeze(-1)
-        m = summary["m"].unsqueeze(-1)
-        f = summary["f"].unsqueeze(-1)
-        a_obs = summary["a_obs"].unsqueeze(-1)
-
+        geometry: Dict[str, torch.Tensor] = {}
         stats: Dict[str, int] = {}
-        # The precision head is a conv stack (NCHW); the geometry keeps NHWC.
-        omega = self.precision(
-            self.precision_inputs(g, y, m, f, a_obs, mu)
-        ).permute(0, 2, 3, 1)
-        omega2 = omega.pow(2)
-
-        # The conditioning and the joint likelihood work on the flat base grid
-        # [B, N, .]; the scale propagation and the relational read-out work on the
-        # [B, H0, W0, .] grid so the axial layouts stay explicit.
-        b, h0, w0 = mu.shape[0], mu.shape[1], mu.shape[2]
-
-        def flatten(t: torch.Tensor) -> torch.Tensor:
-            return t.reshape(b, h0 * w0, t.shape[-1])
-
-        mu_post_f, delta_f, f_post_f = condition_low_rank(
-            flatten(mu), flatten(factor), flatten(s2),
-            flatten(y), flatten(m), flatten(f), flatten(omega2), stats=stats,
-        )
-        mu_post = mu_post_f.reshape(b, h0, w0, 1)
-        delta = delta_f.reshape(b, h0, w0, 1)
-        f_post = f_post_f.reshape(b, h0, w0, factor.shape[-1])
-
-        base = {
-            "mu": mu,
-            "U": factor,
-            "s2": s2,
-            "y": y,
-            "m": m,
-            "f": f,
-            "a_obs": a_obs,
-            "omega": omega,
-            "omega2": omega2,
-            "mu_post": mu_post,
-            "delta": delta,
-            "F": f_post,
+        base: Dict[str, torch.Tensor] = {
             "n": n,
-            "zbar": summary["zbar"].unsqueeze(-1),
             "k": summary["k"].unsqueeze(-1),
+            "zbar": summary["zbar"].unsqueeze(-1),
             "grid": summary["grid"],
             "cell": summary["cell"],
         }
+        cum: Dict[str, torch.Tensor] = {"n": n}
+
+        if self.uses_prior:
+            g, a_mean, a_factor, a_scale, windows, cx, cy = self.prior(stem_feat, image_support)
+            geometry = {
+                "context": g,
+                "a_mean": a_mean.permute(0, 2, 3, 1),
+                "a_factor": a_factor.permute(0, 2, 3, 1),
+                "a_scale": a_scale.permute(0, 2, 3, 1),
+                "windows": windows,
+                "n": n,
+                "cx": cx,
+                "cy": cy,
+                "summary": summary,
+            }
+            params = self.prior_parameters(geometry)
+            mu, factor, s2 = params["mu"], params["U"], params["s2"]
+
+            y = summary["y"].unsqueeze(-1)
+            m = summary["m"].unsqueeze(-1)
+            f = summary["f"].unsqueeze(-1)
+            a_obs = summary["a_obs"].unsqueeze(-1)
+
+            # The precision head is a conv stack (NCHW); the geometry keeps NHWC.
+            omega = self.precision(
+                self.precision_inputs(g, y, m, f, a_obs, mu)
+            ).permute(0, 2, 3, 1)
+            omega2 = omega.pow(2)
+
+            # The conditioning works on the flat base grid [B, N, .]; the scale
+            # propagation and the relational read-out keep the explicit
+            # [B, H0, W0, .] grid so the axial layouts stay readable.
+            b, h0, w0 = mu.shape[0], mu.shape[1], mu.shape[2]
+
+            def flatten(t: torch.Tensor) -> torch.Tensor:
+                return t.reshape(b, h0 * w0, t.shape[-1])
+
+            mu_post_f, delta_f, f_post_f = condition_low_rank(
+                flatten(mu), flatten(factor), flatten(s2),
+                flatten(y), flatten(m), flatten(f), flatten(omega2), stats=stats,
+            )
+            mu_post = mu_post_f.reshape(b, h0, w0, 1)
+            delta = delta_f.reshape(b, h0, w0, 1)
+            f_post = f_post_f.reshape(b, h0, w0, factor.shape[-1])
+
+            base.update({
+                "mu": mu, "U": factor, "s2": s2, "y": y, "m": m, "f": f,
+                "a_obs": a_obs, "omega": omega, "omega2": omega2,
+                "mu_post": mu_post, "delta": delta, "F": f_post,
+            })
+            cum.update({
+                "mu0": mu, "s20": s2, "U0": factor,
+                "mu1": mu_post, "delta1": delta, "F1": f_post,
+            })
 
         pooled: List[Dict[str, torch.Tensor]] = []
         baseline_pooled: List[Dict[str, torch.Tensor]] = []
-        cum = {
-            "n": n,
-            "mu0": mu,
-            "s20": s2,
-            "U0": factor,
-            "mu1": mu_post,
-            "delta1": delta,
-            "F1": f_post,
-        }
         # Mask-aware baseline summary: an exact non-overlapping masked mean of the
         # observations, obtained by carrying the observation count as the weight.
         y_bar = summary["y"].unsqueeze(-1)
         k_bar = summary["k"]
         m_bar = (k_bar > 0).to(y_bar.dtype)
+        n_cum = n
         for stage in range(4):
             if stage > 0:
-                mu_p, var_p, fac_p, n_p = merge_2x2(
-                    cum["mu0"], cum["s20"], cum["U0"], cum["n"].squeeze(-1)
-                )
-                muq_p, varq_p, facq_p, _ = merge_2x2(
-                    cum["mu1"], cum["delta1"], cum["F1"], cum["n"].squeeze(-1)
-                )
-                cum = {
-                    "n": n_p.unsqueeze(-1),
-                    "mu0": mu_p,
-                    "s20": var_p,
-                    "U0": fac_p,
-                    "mu1": muq_p,
-                    "delta1": varq_p,
-                    "F1": facq_p,
-                }
+                if self.uses_prior:
+                    mu_p, var_p, fac_p, n_p = merge_2x2(
+                        cum["mu0"], cum["s20"], cum["U0"], n_cum.squeeze(-1)
+                    )
+                    muq_p, varq_p, facq_p, _ = merge_2x2(
+                        cum["mu1"], cum["delta1"], cum["F1"], n_cum.squeeze(-1)
+                    )
+                    cum = {
+                        "mu0": mu_p, "s20": var_p, "U0": fac_p,
+                        "mu1": muq_p, "delta1": varq_p, "F1": facq_p,
+                    }
+                    n_cum = n_p.unsqueeze(-1)
+                else:
+                    # Baseline-only: only the geometry counts are pooled, and the
+                    # average pooling times 4 is the exact 2x2 sum.
+                    n_cum = torch.nn.functional.avg_pool2d(
+                        n_cum.permute(0, 3, 1, 2), 2
+                    ).permute(0, 2, 3, 1) * 4.0
+                cum["n"] = n_cum
                 y_bar, k_bar, m_bar = merge_2x2_stats(y_bar, k_bar)
             pooled.append(dict(cum))
             if self.uses_baseline:

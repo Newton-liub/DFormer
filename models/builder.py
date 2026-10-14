@@ -124,6 +124,11 @@ class EncoderDecoder(nn.Module):
         if cfg.backbone.startswith("DFormerv2"):
             backbone_kwargs["geometry_mode"] = getattr(cfg, "geometry_mode", "original")
             backbone_kwargs["norm_eval"] = getattr(cfg, "norm_eval", True)
+            # OC-RGA research options.  Both default off, so the author path, the
+            # ODG path and the frozen direction-A control are byte-identical.
+            backbone_kwargs["oc_geometry"] = bool(getattr(cfg, "oc_geometry", False))
+            backbone_kwargs["checkpoint_stages"] = getattr(cfg, "checkpoint_stages", None)
+            backbone_kwargs["use_checkpoint"] = bool(getattr(cfg, "use_checkpoint", False))
         if cfg.backbone in ("DFormer++-T", "DFormer++-S", "DFormer++-B", "DFormerPP-T", "DFormerPP-S", "DFormerPP-B"):
             import numpy as np
 

@@ -545,7 +545,8 @@ class RGBD_Block(nn.Module):
         """
         if split_or_not:
             if "Ehat_w" in stage:
-                rel_pos, (bs_h, bs_w) = self.Geo((h, w), split_or_not=True)
+                rel_pos = self.Geo((h, w), split_or_not=True)
+                bs_h, bs_w = rel_pos[1]
                 beta = self.oc_injection().view(1, -1, 1, 1, 1)
                 bias_w = (bs_w + beta * stage["Ehat_w"].transpose(1, 2)).transpose(1, 2)
                 bias_h = (bs_h + beta * stage["Ehat_h"].transpose(1, 2)).transpose(1, 2)
@@ -565,7 +566,8 @@ class RGBD_Block(nn.Module):
             }
 
         if "Ehat_full" in stage:
-            rel_pos, bs = self.Geo((h, w), split_or_not=False)
+            rel_pos = self.Geo((h, w), split_or_not=False)
+            bs = rel_pos[1]
             beta = self.oc_injection().view(1, -1, 1, 1)
             bias = bs + beta * stage["Ehat_full"]
         else:
@@ -720,6 +722,7 @@ class dformerv2(nn.Module):
         norm_eval=True,
         geometry_mode="original",
         oc_geometry=False,
+        checkpoint_stages=None,
     ):
         super().__init__()
         self.out_indices = out_indices
@@ -757,7 +760,10 @@ class dformerv2(nn.Module):
                 norm_layer=norm_layer,
                 split_or_not=(i_layer != 3),
                 downsample=PatchMerging if (i_layer < self.num_layers - 1) else None,
-                use_checkpoint=use_checkpoint,
+                # Per-stage control is opt-in: the default keeps the author's
+                # single global ``use_checkpoint`` for every stage.
+                use_checkpoint=(use_checkpoint if checkpoint_stages is None
+                                else (i_layer in tuple(checkpoint_stages))),
                 layerscale=layerscales[i_layer],
                 layer_init_values=layer_init_values,
                 oc_geometry=oc_geometry,
