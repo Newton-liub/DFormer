@@ -43,6 +43,7 @@ __all__ = [
     "compute_oc_losses",
     "loss_scales",
     "geometry_statistics",
+    "OC_BASE_FIELDS",
     "evidence_sample_stats",
     "merge_evidence_stats",
     "holdout_leak_check",
@@ -598,32 +599,33 @@ def _quantiles(tensor: torch.Tensor, points: Sequence[float], limit: int = 2048)
 
 @torch.no_grad()
 def evidence_sample_stats(bundle, model) -> Optional[Dict[str, object]]:
-    """Per-micro-batch evidence summary that costs nothing extra.
+    """Per-micro-batch evidence summary that never touches the host.
 
     Only values the evidence path already produced are read: the small *detached*
-    raw-``E`` sample (before the ``tau*tanh`` saturation) and the pre-registered
-    saturation counts with the ``|E| > tau`` threshold.  No pair tensor is
-    summarised here and nothing is reduced over the full pair grid.
+    pre-saturation raw-``E`` sample (one strided block per head) and the matching
+    ``|E| > tau`` counts.  Everything stays on the device, so this call does not
+    synchronise the GPU; the caller accumulates and resolves once per epoch.  No
+    full pair tensor is summarised here.
     """
     if not getattr(model.geometry, "uses_evidence", False):
         return None
     samples: List[torch.Tensor] = []
-    saturated = 0.0
-    entries = 0.0
+    saturated = None
+    entries = None
     threshold = float(getattr(model.geometry.evidence, "tau", 4.0))
     for index in range(4):
         stage = bundle.stage(index)
         sample = stage.get("raw_E_sample")
         if sample is None:
             continue
-        samples.append(sample.detach().float().cpu())
+        samples.append(sample)
         counts = stage.get("saturation", {})
-        saturated += float(counts.get("saturated", 0.0))
-        entries += float(counts.get("entries", 0.0))
-    if not samples:
+        saturated = counts["saturated"] if saturated is None else saturated + counts["saturated"]
+        entries = counts["entries"] if entries is None else entries + counts["entries"]
+    if not samples or saturated is None:
         return None
     return {
-        "raw_E_sample": torch.cat(samples),
+        "raw_E_sample": torch.cat(samples, dim=0),
         "saturated": saturated,
         "entries": entries,
         "threshold": threshold,
@@ -631,32 +633,53 @@ def evidence_sample_stats(bundle, model) -> Optional[Dict[str, object]]:
 
 
 def merge_evidence_stats(accumulated: Dict[str, object]) -> Dict[str, object]:
-    """Turn an epoch's accumulated evidence samples into one epoch-level summary."""
+    """Resolve one epoch's accumulated evidence figures; the only host transfer.
+
+    ``raw_E_sample`` / ``saturated`` / ``entries`` may be device tensors (the
+    normal path) or already-resolved Python values.  The quantiles and the
+    saturation rate are computed on the *same* sampled entries and cover every
+    head, so the reported rate and the reported quantiles share one definition.
+    """
     samples = accumulated.get("raw_E_sample")
-    entries = float(accumulated.get("entries", 0.0) or 0.0)
-    saturated = float(accumulated.get("saturated", 0.0) or 0.0)
+    entries = accumulated.get("entries")
+    saturated = accumulated.get("saturated")
+    entries_value = float(entries) if entries is not None else 0.0
+    saturated_value = float(saturated) if saturated is not None else 0.0
     summary: Dict[str, object] = {
         "raw_E_quantiles": [],
-        "saturation": {"saturated": saturated, "entries": entries,
-                       "rate": (saturated / entries) if entries else 0.0,
-                       "threshold": float(accumulated.get("threshold", 4.0)),
-                       "definition": "fraction of sampled raw E with |E| > tau"},
+        "saturation": {
+            "saturated": saturated_value,
+            "entries": entries_value,
+            "rate": (saturated_value / entries_value) if entries_value else 0.0,
+            "threshold": float(accumulated.get("threshold", 4.0)),
+            "definition": "share of the logged pre-saturation raw-E sample with |E| > tau, "
+                          "all heads, same entries as raw_E_quantiles",
+        },
     }
     if samples is not None and samples.numel():
         summary["raw_E_quantiles"] = _quantiles(samples, (0.01, 0.5, 0.99), limit=4096)
     return summary
 
 
+# Fields only the OC conditioning produces; the mask-aware baseline has none of them.
+OC_BASE_FIELDS = ("s2", "omega", "f", "m", "delta", "F", "U")
+
+
 @torch.no_grad()
 def geometry_statistics(bundle, model) -> Dict[str, object]:
-    """Compact epoch-level geometry summary of one bundle; never scans pairs.
+    """Compact epoch-level geometry summary of one OC bundle; never scans pairs.
 
-    Called at a few pre-registered log points (not per micro-batch) and always on
-    a bounded sample, so it neither copies a full pair tensor nor synchronises the
-    GPU repeatedly.  The raw-``E`` and saturation figures come from
-    :func:`merge_evidence_stats` over the whole epoch, not from this bundle.
+    Only the OC arm owns these probability fields.  Calling this on a
+    mask-aware-baseline bundle raises a named error instead of fabricating values,
+    so a wrong call site is caught immediately (audit F1).
     """
     base = bundle.base
+    missing = [key for key in OC_BASE_FIELDS if key not in base]
+    if missing:
+        raise ValueError(
+            "geometry_statistics needs the OC probability fields %s but this bundle only has %s; "
+            "gate the call on model.geometry.uses_prior instead of fabricating fields"
+            % (missing, sorted(base)))
     stats: Dict[str, object] = {}
     stats["s_quantiles"] = _quantiles(base["s2"].clamp_min(0).sqrt(), (0.1, 0.5, 0.9))
     stats["omega_quantiles"] = _quantiles(base["omega"], (0.1, 0.5, 0.9))

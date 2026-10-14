@@ -922,6 +922,12 @@ def relational_log_kernel(m: torch.Tensor, v: torch.Tensor, ell: torch.Tensor) -
         return -0.5 * torch.log1p(v / l2) - 0.5 * m * m / (l2 + v)
 
 
+# Bounded per-head read-out sample.  Both the logged quantiles and the saturation
+# rate are computed on exactly these entries, and *every* head of the stage is
+# covered, so the reported "sampled" figures and the reported counts agree.
+SATURATION_SAMPLES_PER_HEAD = 64
+
+
 def _axis_evidence_fn(
     mu0: torch.Tensor,
     var0: torch.Tensor,
@@ -935,9 +941,10 @@ def _axis_evidence_fn(
 ):
     """Pure relation read-out, checkpointed for stages 0/1 (design 8.3).
 
-    Returns ``(Ehat, raw_sample, saturated, entries)``.  ``raw_sample`` is a small
-    *detached* sample of the true raw ``E`` (before ``tau*tanh`` saturation) and
-    ``saturated``/``entries`` count how many sampled entries have ``|E| > tau``.
+    Returns ``(Ehat, raw_sample, saturated, entries)``.  ``raw_sample`` concatenates
+    one small strided sample of the true raw ``E`` (before ``tau*tanh`` saturation)
+    from *each* head, and ``saturated``/``entries`` count ``|E| > tau`` over exactly
+    those sampled entries -- never over a full pair tensor.
     """
     with autocast_off(mu0.device):
         dt = probability_dtype(mu0, var0, f0, mu1, var1, f1, ell)
@@ -957,7 +964,7 @@ def _axis_evidence_fn(
             v1 = axis_relation_variance(var1, var1, f1, f1)
 
         out: List[torch.Tensor] = []
-        raw_sample = None
+        samples: List[torch.Tensor] = []
         saturated = torch.zeros((), device=mu0.device, dtype=dt)
         entries = torch.zeros((), device=mu0.device, dtype=dt)
         for head in range(ell.numel()):
@@ -967,16 +974,16 @@ def _axis_evidence_fn(
             else:
                 raw = posterior - relational_log_kernel(m0, v0, ell[head])
             out.append(float(tau) * torch.tanh(raw / float(tau)))
-            if head == 0:
-                flat = raw.detach().reshape(-1)
-                step = max(1, int(flat.numel()) // 1024)
-                raw_sample = flat[::step][:1024].clone()
-                saturated = saturated + (flat.abs() > float(tau)).sum().to(dt)
-                entries = entries + float(flat.numel())
+            # One bounded strided sample per head: the reduction below touches only
+            # these entries, and the counts stay on the device (no host sync here).
+            flat = raw.detach().reshape(-1)
+            step = max(1, int(flat.numel()) // int(SATURATION_SAMPLES_PER_HEAD))
+            picked = flat[::step][: int(SATURATION_SAMPLES_PER_HEAD)].clone()
+            samples.append(picked)
+            saturated = saturated + (picked.abs() > float(tau)).sum().to(dt)
+            entries = entries + float(picked.numel())
         evidence = torch.stack(out, dim=1)
-        if raw_sample is None:
-            raw_sample = torch.zeros(1024, device=mu0.device, dtype=dt)
-        return evidence, raw_sample, saturated, entries
+        return evidence, torch.cat(samples, dim=0), saturated, entries
 
 
 class RelationalEvidencePyramid(nn.Module):
@@ -1124,26 +1131,28 @@ class OCGeometryBundle:
         }
         if self._builder.uses_evidence:
             samples: List[torch.Tensor] = []
-            saturated = entries = 0.0
+            saturated = None
+            entries = None
             if index == 3:
                 out["Ehat_full"], stats = self._builder.evidence.evidence(3, pooled, "full")
                 samples.append(stats["raw_E_sample"])
-                saturated += float(stats["saturated"])
-                entries += float(stats["entries"])
+                saturated, entries = stats["saturated"], stats["entries"]
             else:
                 out["Ehat_w"], stats_w = self._builder.evidence.evidence(index, pooled, "w")
                 out["Ehat_h"], stats_h = self._builder.evidence.evidence(index, pooled, "h")
                 for stats in (stats_w, stats_h):
                     samples.append(stats["raw_E_sample"])
-                    saturated += float(stats["saturated"])
-                    entries += float(stats["entries"])
-            # Detached small sample only: no full pair tensor is retained for logging.
+                    saturated = stats["saturated"] if saturated is None else saturated + stats["saturated"]
+                    entries = stats["entries"] if entries is None else entries + stats["entries"]
+            # Detached small sample only, and the counts stay as device scalars: this
+            # method must not force a GPU -> CPU synchronisation per stage (audit R6).
             out["raw_E_sample"] = torch.cat(samples, dim=0).detach()
             out["saturation"] = {
                 "saturated": saturated,
                 "entries": entries,
-                "rate": (saturated / entries) if entries else 0.0,
                 "threshold": float(self._builder.evidence.tau),
+                "scope": "all heads, %d strided pre-saturation raw-E entries per head"
+                         % SATURATION_SAMPLES_PER_HEAD,
             }
         if self._builder.uses_baseline:
             if index == 3:

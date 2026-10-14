@@ -45,6 +45,11 @@ from research.oc_rga_model import ALL_MODES, build_model_for_mode, build_oc_opti
 
 CHECKPOINT_FORMAT = "oc-rga-checkpoint-v1"
 
+# Upper bound on the per-epoch raw-E sample rows kept for the geometry summary.
+# The epoch's micro-batches are strided so the retained rows stay a uniform sample
+# of the epoch; the saturation counts meanwhile accumulate over every micro-batch.
+EVIDENCE_SAMPLE_ROWS = 256
+
 # Fields that must match on resume in addition to the shared contract fields.
 # Every knob that changes the *effective* augmentation, degradation or hold-out
 # protocol is listed here, so editing one and resuming is refused instead of
@@ -155,6 +160,9 @@ def build_parser() -> argparse.ArgumentParser:
                              "dataset sample (CPU-runnable small-grid check)")
     parser.add_argument("--leak-check", default=False, action="store_true",
                         help="prove the hold-out targets cannot reach the auxiliary conditioning")
+    parser.add_argument("--check-epoch-end", default=False, action="store_true",
+                        help="run the real epoch-end branch (geometry logs, validation, checkpoint) "
+                             "for both modes with a small synthetic batch")
     parser.add_argument("--device", default="cuda")
     return parser
 
@@ -263,6 +271,58 @@ def print_schedule(config, resolved, plan, schedule, policy, train_source, eval_
     return 0
 
 
+def epoch_geometry_summary(model, bundle, resolved, state, epoch_evidence):
+    """The epoch-end geometry block, exactly as the training loop runs it.
+
+    The OC statistics need prior/precision/posterior fields that the mask-aware
+    baseline does not own at all, so they are gated on the *actual* mode
+    (``model.geometry.uses_prior``).  The baseline records an explicit "skipped"
+    entry rather than fabricating probability fields, and the caller continues with
+    validation, logging and checkpointing either way (audit F1).
+    """
+    from research.oc_rga_losses import geometry_statistics, merge_evidence_stats
+
+    if bool(getattr(model.geometry, "uses_prior", False)):
+        evidence = merge_evidence_stats({
+            "raw_E_sample": (torch.cat(epoch_evidence["samples"], dim=0)
+                             if epoch_evidence.get("samples") else None),
+            "saturated": epoch_evidence.get("saturated"),
+            "entries": epoch_evidence.get("entries"),
+            "threshold": epoch_evidence.get("threshold", 4.0),
+        })
+        geometry = geometry_statistics(bundle, model)
+        geometry.update(evidence)
+    else:
+        geometry = {
+            "model_mode": str(resolved["model_mode"]),
+            "skipped": "the mask-aware baseline has no OC probability geometry",
+            "raw_E_quantiles": [],
+            "saturation": None,
+        }
+    geometry["epoch"] = state["completed_epochs"]
+    geometry["attempt_updates"] = state["attempt_updates"]
+    geometry["micro_batches_seen"] = state["micro_batches_seen"]
+    return geometry
+
+
+def write_geometry_logs(config, stats_csv, geometry, state):
+    """Write one epoch-level geometry JSON plus its compact CSV row."""
+    raw_q = geometry.get("raw_E_quantiles") or []
+    saturation = geometry.get("saturation") or {}
+    sched.write_json(os.path.join(config.log_dir, "geometry_stats",
+                                  "epoch-%03d.json" % state["completed_epochs"]), geometry)
+    stats_csv.write([
+        state["completed_epochs"], state["attempt_updates"],
+        saturation.get("rate"),
+        raw_q[1] if len(raw_q) > 1 else None,
+        geometry.get("m_fraction"), geometry.get("cholesky_fallback"),
+        ";".join("%.4f" % v for v in (geometry.get("omega_quantiles") or [])),
+        ";".join("%.4f" % v for v in (geometry.get("s_quantiles") or [])),
+        json.dumps(sched.jsonable(geometry.get("ell_quantiles") or [])),
+        json.dumps(sched.jsonable(geometry.get("beta_quantiles") or [])),
+    ])
+
+
 def _synthetic_batch(config, size: int, device, seed: int):
     """Small synthetic batch for a CPU-only chain check (no dataset access)."""
     from research.oc_rga import Z_MAX, Z_MIN, ZERO_FILL
@@ -285,6 +345,9 @@ def _synthetic_batch(config, size: int, device, seed: int):
         "reference_depth": depth.to(device),
         "reference_valid": reference_valid.to(device),
         "label": label.to(device),
+        "original_size": torch.tensor([[size, size]], dtype=torch.long),
+        "scaled_size": torch.tensor([[size, size]], dtype=torch.long),
+        "padded_size": torch.tensor([[size, size]], dtype=torch.long),
         "fn": "synthetic",
         # Metadata stays tensor-shaped so it matches what the collated loader
         # batch provides.
@@ -351,6 +414,7 @@ def run_check(config, resolved, device, train_source, eval_source, amp=True, che
     # scaler actually applies.
     attempts = 0
     amp_skipped = 0
+    scaler_applied = 0
     last = None
     logits = None
     max_attempts = 16 if amp else 1
@@ -406,9 +470,23 @@ def run_check(config, resolved, device, train_source, eval_source, amp=True, che
         for group in optimizer.param_groups:
             group["weight_decay"] = 0.0
         torch.nn.utils.clip_grad_norm_(all_params, 1.0)
-        optimizer.step()
+        if scaler is not None:
+            # The *successful* attempt must go through the same GradScaler calls as
+            # the real training loop (the branch that produced the previous PASS
+            # used a plain optimizer.step and therefore never covered a successful
+            # scaler application -- audit R8).
+            scale_before = scaler.get_scale()
+            scaler.step(optimizer)
+            scaler.update()
+            applied = bool(scaler.get_scale() >= scale_before)
+        else:
+            optimizer.step()
+            applied = True
         for group, wd in zip(optimizer.param_groups, saved_wd):
             group["weight_decay"] = wd
+        if not applied:
+            raise SystemExit("[check] FAIL: the successful GradScaler path skipped the update")
+        scaler_applied += int(applied)
 
         deltas, changed = sched.parameter_delta_report(probes, before)
         unmoved = sorted(name for name, row in deltas.items() if not row["changed"])
@@ -431,6 +509,7 @@ def run_check(config, resolved, device, train_source, eval_source, amp=True, che
         "accum_steps": accum,
         "attempts": int(attempts),
         "amp_skipped_attempts": int(amp_skipped),
+        "scaler_applied_attempts": int(scaler_applied),
         "num_samples": int(num_samples),
         "batch_shapes": {k: list(v.shape) for k, v in batch.items() if torch.is_tensor(v)},
         "logits_shape": list(logits.shape),
@@ -454,9 +533,137 @@ def run_check(config, resolved, device, train_source, eval_source, amp=True, che
           % (grads["all_finite"],
              {n.split(".")[-2] + "." + n.split(".")[-1]: round(v, 6)
               for n, v in report["key_parameter_grad_max"].items()}))
-    print("[check] updated %d/%d key parameters with weight decay disabled (attempts=%d, AMP skipped=%d)"
-          % (changed, len(before), attempts, amp_skipped))
+    print("[check] updated %d/%d key parameters with weight decay disabled "
+          "(attempts=%d, scaler applied=%d, AMP skipped=%d)"
+          % (changed, len(before), attempts, scaler_applied, amp_skipped))
     report["passed"] = True
+    return report
+
+
+class _CheckArgs:
+    """Minimal stand-in for the CLI namespace used by the shared helpers."""
+
+    def __init__(self, amp=False):
+        self.amp = bool(amp)
+        self.smoke_steps = 0
+        self.device = "cpu"
+
+
+def run_epoch_end_check(config, resolved, device, train_source, eval_source, plan,
+                        check_size=64, amp=False) -> Dict[str, object]:
+    """Minimal acceptance for the F1 fix: the real epoch-end branch for both modes.
+
+    For each mode it runs one accumulation group, then executes the *actual*
+    epoch-end code path -- geometry summary, geometry logs, periodic validation and
+    a checkpoint save -- and asserts the audit's two conditions: the mask-aware
+    baseline skips the OC-only statistics, and the OC arm still produces them.
+    """
+    from research.oc_rga_losses import compute_oc_losses, evidence_sample_stats
+
+    dev = torch.device(device)
+    amp = bool(amp) and dev.type == "cuda"
+    size = int(check_size) if int(check_size) > 0 else 64
+    os.makedirs(os.path.join(config.log_dir, "epoch-end-check"), exist_ok=True)
+    check_config = deepcopy(config)
+    check_config.log_dir = os.path.join(config.log_dir, "epoch-end-check")
+    check_config.checkpoint_dir = check_config.log_dir
+    check_config.val_log_file = os.path.join(check_config.log_dir, "validation.log")
+    args = _CheckArgs(amp=amp)
+    logger = type("_Logger", (), {"info": staticmethod(lambda message: print("[epoch-end-check] %s" % message))})()
+    report: Dict[str, object] = {"device": str(dev), "amp": bool(amp), "check_size": size,
+                                 "modes": {}, "failures": []}
+
+    def fail(message: str) -> None:
+        report["failures"].append(message)
+        print("[epoch-end-check] FAIL  %s" % message)
+
+    for mode in ("masked_baseline", "oc_rga"):
+        sched.seed_everything(resolved["seed"])
+        criterion = nn.CrossEntropyLoss(reduction="none", ignore_index=int(config.background))
+        model = build_model_for_mode(config, mode, criterion=criterion).to(dev)
+        model.train()
+        optimizer = torch.optim.AdamW(
+            build_oc_optimizer_param_groups(model, float(config.lr), float(config.weight_decay),
+                                            float(getattr(config, "oc_geometry_lr_multiplier", 2.0))),
+            lr=float(config.lr), betas=(0.9, 0.999), weight_decay=float(config.weight_decay))
+        batch = _synthetic_batch(config, size, dev, resolved["seed"])
+        optimizer.zero_grad(set_to_none=True)
+        autocast = (torch.autocast(device_type="cuda", dtype=torch.float16)
+                    if amp else contextlib.nullcontext())
+        with autocast:
+            logits, bundle = model(batch["data"], batch["modal_x"],
+                                   depth_support=batch["depth_support"],
+                                   image_support=batch["image_support"], return_geometry=True)
+        losses = compute_oc_losses(model, logits, bundle, batch, 0.0)
+        if losses["total"].requires_grad:
+            losses["total"].backward()
+        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)
+
+        # Accumulate exactly like the training loop: device tensors, no per-batch sync.
+        state = {"completed_epochs": 1, "attempt_updates": 1, "micro_batches_seen": 1,
+                 "model_mode": mode, "num_train_samples": 1, "applied_updates": 1,
+                 "amp_skipped_updates": 0, "best_dev_miou": 0.0}
+        evidence = {"samples": [], "saturated": None, "entries": None, "threshold": 4.0}
+        sample = evidence_sample_stats(bundle, model)
+        if sample is not None:
+            evidence["samples"].append(sample["raw_E_sample"])
+            evidence["saturated"] = sample["saturated"]
+            evidence["entries"] = sample["entries"]
+            evidence["threshold"] = float(sample["threshold"])
+
+        stats_csv = sched.CsvWriter(os.path.join(check_config.log_dir, "geometry_stats.csv"), [
+            "epoch", "attempt_update", "saturation_rate", "raw_E_p50", "m_fraction",
+            "cholesky_fallback", "omega_quantiles", "s_quantiles", "ell_quantiles", "beta_quantiles"])
+        val_csv = sched.CsvWriter(os.path.join(check_config.log_dir, "validation.csv"), [
+            "epoch", "condition", "miou", "macc", "mf1", "num_samples", "realised_ratio",
+            "ham_seed", "corruption_seed", "seconds"])
+
+        try:
+            geometry = epoch_geometry_summary(model, bundle, resolved, state, evidence)
+        except Exception as exc:  # a raise here is exactly the F1 failure mode
+            fail("%s: the epoch-end geometry summary raised %s: %s"
+                 % (mode, type(exc).__name__, exc))
+            continue
+        write_geometry_logs(check_config, stats_csv, geometry, state)
+
+        uses_prior = bool(getattr(model.geometry, "uses_prior", False))
+        if uses_prior:
+            ok = bool(geometry.get("omega_quantiles")) and isinstance(geometry.get("saturation"), dict) \
+                and geometry["saturation"].get("entries", 0) > 0
+            if not ok:
+                fail("oc_rga: the OC geometry statistics are missing/incomplete: %s"
+                     % sorted(geometry))
+        else:
+            ok = ("skipped" in geometry and not geometry.get("omega_quantiles")
+                  and geometry.get("saturation") is None)
+            if not ok:
+                fail("masked_baseline: expected an explicit skip without OC fields, got %s"
+                     % sorted(geometry))
+
+        # The validation and checkpoint branches must stay reachable afterwards.
+        results = _run_validation(model, [batch], check_config, dev, args, resolved, ["clean"], 1,
+                                  logger, val_csv)
+        saved = _save(check_config, model, optimizer, None, state, args, {"check": "epoch-end"},
+                      "epoch-end-%s.pth" % mode, "last")
+        report["modes"][mode] = {
+            "uses_prior": uses_prior,
+            "geometry_keys": sorted(geometry),
+            "geometry_skipped": "skipped" in geometry,
+            "saturation": (None if geometry.get("saturation") is None
+                           else {"rate": geometry["saturation"].get("rate"),
+                                 "entries": geometry["saturation"].get("entries")}),
+            "validation_conditions": sorted(results),
+            "validation_miou": {k: v["miou"] for k, v in results.items()},
+            "checkpoint": os.path.basename(saved),
+            "ok": bool(ok),
+        }
+        print("[epoch-end-check] %-16s geometry=%s validation=%s checkpoint=%s"
+              % (mode, "skipped(OC-only)" if "skipped" in geometry else "OC statistics",
+                 sorted(results), os.path.basename(saved)))
+
+    report["passed"] = not report["failures"]
+    print("[epoch-end-check] %s" % ("ALL PASS" if report["passed"] else "FAILURES"))
     return report
 
 
@@ -540,6 +747,15 @@ def main(argv=None) -> int:
         print("[check] PASS; wrote %s" % target)
         return 0
 
+    if args.check_epoch_end:
+        report = run_epoch_end_check(config, resolved, args.device, train_source, eval_source, plan,
+                                     check_size=int(args.check_size) or 64, amp=bool(args.amp))
+        target = os.path.join(config.log_dir, "epoch-end-check.json")
+        sched.write_json(target, report)
+        print("[epoch-end-check] %s; wrote %s"
+              % ("ALL PASS" if report["passed"] else "FAILURES", target))
+        return 0 if report["passed"] else 1
+
     if args.leak_check:
         report = run_leak_check(config, resolved, args.device, train_source, eval_source,
                                 check_size=int(args.check_size))
@@ -560,7 +776,7 @@ def main(argv=None) -> int:
 
 
 def train(config, resolved, plan, schedule, policy, train_source, eval_source, args) -> int:
-    from research.oc_rga_losses import compute_oc_losses, geometry_statistics, merge_evidence_stats
+    from research.oc_rga_losses import compute_oc_losses
     from utils.engine.logger import get_logger
 
     os.makedirs(config.log_dir, exist_ok=True)
@@ -713,9 +929,14 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
             group_sum: Dict[str, float] = {}
             group_n: Dict[str, int] = {}
             group_counts: Dict[str, int] = {}
-            epoch_evidence = {"samples": [], "saturated": 0.0, "entries": 0.0, "threshold": 4.0}
+            # Evidence accumulation stays on the device: counts are summed as CUDA
+            # scalars and only a bounded, uniformly strided subset of the per
+            # micro-batch raw-E samples is retained, so an epoch performs no
+            # per-micro-batch host synchronisation.
+            evidence_stride = max(1, int(total_micro) // int(EVIDENCE_SAMPLE_ROWS))
+            epoch_evidence = {"samples": [], "saturated": None, "entries": None, "threshold": 4.0}
 
-            def accumulate(entry) -> None:
+            def accumulate(entry, step_index: int = 0) -> None:
                 for key in ("seg", "cond", "cond_post", "cond_prior", "cond_huber", "obs", "total"):
                     value = entry.get(key)
                     if value is None:
@@ -726,9 +947,16 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                     group_counts[key] = group_counts.get(key, 0) + int(value)
                 sample = entry.get("geometry") or {}
                 if "raw_E_sample" in sample:
-                    epoch_evidence["samples"].append(sample["raw_E_sample"])
-                    epoch_evidence["saturated"] += float(sample.get("saturated", 0.0))
-                    epoch_evidence["entries"] += float(sample.get("entries", 0.0))
+                    if step_index % evidence_stride == 0 and len(epoch_evidence["samples"]) < EVIDENCE_SAMPLE_ROWS:
+                        epoch_evidence["samples"].append(sample["raw_E_sample"])
+                    saturated = sample.get("saturated")
+                    if saturated is not None:
+                        epoch_evidence["saturated"] = (saturated if epoch_evidence["saturated"] is None
+                                                       else epoch_evidence["saturated"] + saturated)
+                    entries = sample.get("entries")
+                    if entries is not None:
+                        epoch_evidence["entries"] = (entries if epoch_evidence["entries"] is None
+                                                     else epoch_evidence["entries"] + entries)
                     epoch_evidence["threshold"] = float(sample.get("threshold", 4.0))
 
             def group_mean(key: str):
@@ -763,7 +991,7 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                     # legally unused) contributes a constant.  It must never reach
                     # the GradScaler: an unscaled step would assert.  The whole
                     # accumulation group is dropped in that case.
-                    accumulate(losses)
+                    accumulate(losses, step)
                     micro_in_group += 1
                     state["micro_batches_seen"] += 1
                     smoke_samples += int(batch["data"].shape[0])
@@ -781,7 +1009,7 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                     scaler.scale(scaled_loss).backward()
                 else:
                     scaled_loss.backward()
-                accumulate(losses)
+                accumulate(losses, step)
                 micro_in_group += 1
                 state["micro_batches_seen"] += 1
                 smoke_samples += int(batch["data"].shape[0])
@@ -857,35 +1085,17 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
 
             state["completed_epochs"] = epoch if stopped else epoch + 1
             if last:
-                # One epoch-level geometry summary: the quantiles come from a
-                # bounded sample of the last bundle, while the raw-E and saturation
-                # figures accumulate the small detached samples of every
-                # micro-batch (audit R6.3/R6.4).
-                geometry = geometry_statistics(bundle, model)
-                geometry.update(merge_evidence_stats({
-                    "raw_E_sample": (torch.cat(epoch_evidence["samples"])
-                                     if epoch_evidence["samples"] else None),
-                    "saturated": epoch_evidence["saturated"],
-                    "entries": epoch_evidence["entries"],
-                    "threshold": epoch_evidence["threshold"],
-                }))
-                geometry["epoch"] = state["completed_epochs"]
-                geometry["attempt_updates"] = state["attempt_updates"]
-                geometry["micro_batches_seen"] = state["micro_batches_seen"]
-                sched.write_json(os.path.join(config.log_dir, "geometry_stats",
-                                              "epoch-%03d.json" % state["completed_epochs"]), geometry)
-                raw_q = geometry.get("raw_E_quantiles") or []
-                stats_csv.write([
-                    state["completed_epochs"], state["attempt_updates"],
-                    geometry.get("saturation", {}).get("rate"),
-                    raw_q[1] if len(raw_q) > 1 else None,
-                    geometry.get("m_fraction"), geometry.get("cholesky_fallback"),
-                    ";".join("%.4f" % v for v in (geometry.get("omega_quantiles") or [])),
-                    ";".join("%.4f" % v for v in (geometry.get("s_quantiles") or [])),
-                    json.dumps(sched.jsonable(geometry.get("ell_quantiles") or [])),
-                    json.dumps(sched.jsonable(geometry.get("beta_quantiles") or [])),
-                ])
+                # One epoch-level geometry summary: the OC-specific quantiles come
+                # from a bounded sample of the last bundle, while the raw-E and
+                # saturation figures accumulated on the device across the epoch and
+                # are resolved exactly once (audit R6.3/R6.4).  The block is
+                # OC-only and gated on the actual mode (audit F1); the baseline
+                # continues to validation, logging and checkpointing unchanged.
+                geometry = epoch_geometry_summary(model, bundle, resolved, state, epoch_evidence)
+                write_geometry_logs(config, stats_csv, geometry, state)
                 epoch_evidence["samples"] = []
+                epoch_evidence["saturated"] = None
+                epoch_evidence["entries"] = None
 
             # ---- periodic validation (clean, shared 640 protocol) ---------- #
             val_miou = None
