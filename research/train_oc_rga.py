@@ -46,9 +46,28 @@ from research.oc_rga_model import ALL_MODES, build_model_for_mode, build_oc_opti
 CHECKPOINT_FORMAT = "oc-rga-checkpoint-v1"
 
 # Upper bound on the per-epoch raw-E sample rows kept for the geometry summary.
-# The epoch's micro-batches are strided so the retained rows stay a uniform sample
-# of the epoch; the saturation counts meanwhile accumulate over every micro-batch.
+# The retained rows are a uniform subset of the whole epoch (first and last
+# micro-batch included); the saturation counts meanwhile accumulate over every
+# micro-batch.
 EVIDENCE_SAMPLE_ROWS = 256
+
+
+def epoch_evidence_steps(total_micro: int, rows: int = EVIDENCE_SAMPLE_ROWS) -> set:
+    """Micro-batch indices whose raw-E sample is retained for the epoch summary.
+
+    The indices are spread uniformly over ``range(total_micro)`` and always include
+    both the first and the last micro-batch, so the retained rows cover the whole
+    epoch instead of stopping early at ``total_micro // rows * rows``.  At most
+    ``rows`` indices are produced and they are distinct by construction.
+    """
+    total = int(total_micro)
+    if total <= 0:
+        return set()
+    keep = int(rows)
+    if total <= keep:
+        return set(range(total))
+    span = keep - 1
+    return {index * (total - 1) // span for index in range(keep)}
 
 # Fields that must match on resume in addition to the shared contract fields.
 # Every knob that changes the *effective* augmentation, degradation or hold-out
@@ -930,10 +949,10 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
             group_n: Dict[str, int] = {}
             group_counts: Dict[str, int] = {}
             # Evidence accumulation stays on the device: counts are summed as CUDA
-            # scalars and only a bounded, uniformly strided subset of the per
+            # scalars and only a bounded, uniformly spread subset of the per
             # micro-batch raw-E samples is retained, so an epoch performs no
             # per-micro-batch host synchronisation.
-            evidence_stride = max(1, int(total_micro) // int(EVIDENCE_SAMPLE_ROWS))
+            evidence_steps = epoch_evidence_steps(total_micro)
             epoch_evidence = {"samples": [], "saturated": None, "entries": None, "threshold": 4.0}
 
             def accumulate(entry, step_index: int = 0) -> None:
@@ -947,7 +966,7 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                     group_counts[key] = group_counts.get(key, 0) + int(value)
                 sample = entry.get("geometry") or {}
                 if "raw_E_sample" in sample:
-                    if step_index % evidence_stride == 0 and len(epoch_evidence["samples"]) < EVIDENCE_SAMPLE_ROWS:
+                    if step_index in evidence_steps:
                         epoch_evidence["samples"].append(sample["raw_E_sample"])
                     saturated = sample.get("saturated")
                     if saturated is not None:
@@ -1086,9 +1105,10 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
             state["completed_epochs"] = epoch if stopped else epoch + 1
             if last:
                 # One epoch-level geometry summary: the OC-specific quantiles come
-                # from a bounded sample of the last bundle, while the raw-E and
-                # saturation figures accumulated on the device across the epoch and
-                # are resolved exactly once (audit R6.3/R6.4).  The block is
+                # from a bounded sample of the last bundle, while the raw-E sample
+                # (uniform across the epoch) and the saturation counts accumulated
+                # on the device across every micro-batch are resolved exactly once
+                # (audit R6.3/R6.4).  The block is
                 # OC-only and gated on the actual mode (audit F1); the baseline
                 # continues to validation, logging and checkpointing unchanged.
                 geometry = epoch_geometry_summary(model, bundle, resolved, state, epoch_evidence)

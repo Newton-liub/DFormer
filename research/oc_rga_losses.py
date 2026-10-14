@@ -588,6 +588,29 @@ def _sample_tensor(tensor: torch.Tensor, limit: int = 2048) -> torch.Tensor:
     return out.reshape(-1).float().cpu()
 
 
+# Upper bound on the raw-E values that enter the epoch quantile estimate.  The
+# retained per-micro-batch rows may be far larger, so the raw-E path uses the
+# uniform sampler below rather than ``_sample_tensor``'s front-narrowing (audit R6).
+RAW_E_QUANTILE_LIMIT = 4096
+
+
+def _uniform_bounded_sample(tensor: torch.Tensor, limit: int = RAW_E_QUANTILE_LIMIT) -> torch.Tensor:
+    """Uniform, bounded device-side sample of *all* retained raw-E values.
+
+    One strided pass over the whole flattened pool replaces the repeated front
+    narrowing, so the late micro-batches of the epoch really enter the sample; the
+    whole pool stays on the device and only the final small sample goes to the host.
+    """
+    flat = tensor.detach().reshape(-1)
+    total = int(flat.numel())
+    bound = max(2, int(limit))
+    if total <= bound:
+        return flat.float().cpu()
+    index = torch.arange(bound, device=flat.device, dtype=torch.long)
+    index = index * (total - 1) // (bound - 1)
+    return flat.index_select(0, index).float().cpu()
+
+
 def _quantiles(tensor: torch.Tensor, points: Sequence[float], limit: int = 2048) -> List[float]:
     """Quantiles of a small FP32 sample; dtype is unified so FP16/BF16 cannot break it."""
     flat = _sample_tensor(tensor, limit)
@@ -635,10 +658,19 @@ def evidence_sample_stats(bundle, model) -> Optional[Dict[str, object]]:
 def merge_evidence_stats(accumulated: Dict[str, object]) -> Dict[str, object]:
     """Resolve one epoch's accumulated evidence figures; the only host transfer.
 
-    ``raw_E_sample`` / ``saturated`` / ``entries`` may be device tensors (the
-    normal path) or already-resolved Python values.  The quantiles and the
-    saturation rate are computed on the *same* sampled entries and cover every
-    head, so the reported rate and the reported quantiles share one definition.
+    Two populations with different sizes are summarised, and the log says so:
+
+    * ``saturation`` covers **every** per-head raw-E sample of the epoch: the device
+      scalars accumulated over all micro-batches are summed, ``entries`` is that
+      epoch total and ``rate`` is the share of those entries with ``|E| > tau``;
+    * ``raw_E_quantiles`` is a bounded *uniform sub-sample* of the retained
+      per-micro-batch raw-E rows (at most ``RAW_E_QUANTILE_LIMIT`` values), so it is
+      an estimate of the epoch's pre-saturation raw-E distribution rather than the
+      same rows as the saturation counts; ``raw_E_quantile_sample_count`` records
+      how many values actually entered it.
+
+    ``raw_E_sample`` / ``saturated`` / ``entries`` may be device tensors (the normal
+    path) or already-resolved Python values.
     """
     samples = accumulated.get("raw_E_sample")
     entries = accumulated.get("entries")
@@ -647,17 +679,22 @@ def merge_evidence_stats(accumulated: Dict[str, object]) -> Dict[str, object]:
     saturated_value = float(saturated) if saturated is not None else 0.0
     summary: Dict[str, object] = {
         "raw_E_quantiles": [],
+        "raw_E_quantile_sample_count": 0,
         "saturation": {
             "saturated": saturated_value,
             "entries": entries_value,
             "rate": (saturated_value / entries_value) if entries_value else 0.0,
             "threshold": float(accumulated.get("threshold", 4.0)),
-            "definition": "share of the logged pre-saturation raw-E sample with |E| > tau, "
-                          "all heads, same entries as raw_E_quantiles",
+            "definition": "share of every per-head pre-saturation raw-E sample of the epoch "
+                          "with |E| > tau; counted on the device for all micro-batches, "
+                          "denominator = entries",
         },
     }
     if samples is not None and samples.numel():
-        summary["raw_E_quantiles"] = _quantiles(samples, (0.01, 0.5, 0.99), limit=4096)
+        pooled = _uniform_bounded_sample(samples, RAW_E_QUANTILE_LIMIT)
+        summary["raw_E_quantile_sample_count"] = int(pooled.numel())
+        summary["raw_E_quantiles"] = _quantiles(pooled, (0.01, 0.5, 0.99),
+                                                limit=RAW_E_QUANTILE_LIMIT)
     return summary
 
 
