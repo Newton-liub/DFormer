@@ -39,8 +39,13 @@ geometry package; the backbone itself never runs the author/ODG depth relation.
 C.oc_study = True
 C.model_mode = "oc_rga"
 C.num_heads_per_stage = (4, 4, 8, 16)
+# The first version fixes the geometry cell and rank.  Both are read by the
+# wrapper and compared with the constructed module; a different value is refused
+# rather than silently ignored (audit R5).
 C.oc_geometry_cell = 4
 C.oc_rank = 20
+C.oc_supported_cells = (4,)
+C.oc_supported_ranks = (20,)
 # Only stage 2 blocks are checkpointed, identically for both arms (design 8.3).
 C.use_checkpoint = False
 C.checkpoint_stages = (2,)
@@ -109,7 +114,7 @@ C.eval_long_side = 640
 # Extra robustness conditions evaluated only at the pre-registered epochs.
 C.robust_conditions_epoch40 = ("holes50", "noise020")
 C.robust_conditions_epoch50 = (
-    "clean", "holes25", "holes50", "holes75", "noise020", "localshift", "entire_missing",
+    "clean", "holes25", "holes50", "holes75", "noise020", "local_value_shift", "entire_missing",
 )
 
 """Evaluation defaults."""

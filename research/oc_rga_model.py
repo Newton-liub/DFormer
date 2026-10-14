@@ -34,8 +34,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from research.oc_rga import (
+    BASE_CELL,
     OCGeometryBuilder,
     OCSpatialPrior,
+    RANK,
     ZERO_FILL,
 )
 
@@ -170,17 +172,47 @@ class OCRGAEncoderDecoder(nn.Module):
             cfg=resolved, criterion=criterion, norm_layer=norm_layer, syncbn=syncbn
         )
 
+        # The geometry cell and rank are consumed from the config and passed into
+        # the builder, so the recorded contract always describes the module that
+        # was actually constructed.  v0.3 fixes cell=4 / rank=20; any other value
+        # is refused instead of silently falling back to the module default.
+        cell = int(getattr(resolved, "oc_geometry_cell", BASE_CELL))
+        rank = int(getattr(resolved, "oc_rank", RANK))
+        supported_cells = tuple(int(v) for v in getattr(resolved, "oc_supported_cells", (BASE_CELL,)))
+        supported_ranks = tuple(int(v) for v in getattr(resolved, "oc_supported_ranks", (RANK,)))
+        if cell not in supported_cells:
+            raise ValueError(
+                "oc_geometry_cell=%d is not supported by this version (supported %s); "
+                "a variable-cell geometry network is out of scope for v0.3"
+                % (cell, supported_cells))
+        if rank not in supported_ranks:
+            raise ValueError(
+                "oc_rank=%d is not supported by this version (supported %s); "
+                "a variable-rank network is out of scope for v0.3" % (rank, supported_ranks))
+
         heads = tuple(int(h) for h in getattr(resolved, "num_heads_per_stage", STAGE_HEADS))
+        # The head counts must come from the model that was actually built, not
+        # from a config value that could have drifted away from it.
+        actual_heads = tuple(int(layer.blocks[0].Attention.num_heads)
+                             for layer in self.base.backbone.layers)
+        if tuple(heads) != actual_heads:
+            raise ValueError("num_heads_per_stage=%s does not match the constructed backbone %s"
+                             % (heads, actual_heads))
+        self.oc_geometry_cell = cell
+        self.oc_rank = rank
+        self.oc_heads_per_stage = actual_heads
+
         if self.baseline_enabled:
             # No prior branch and no precision head exist at all: the baseline must
             # not carry a single unused geometry parameter.
             self.geometry = OCGeometryBuilder(
-                heads, uses_prior=False, uses_evidence=False, uses_baseline=True
+                heads, uses_prior=False, uses_evidence=False, uses_baseline=True,
+                cell=cell, rank=rank,
             )
         else:
             self.geometry = OCGeometryBuilder(
                 heads, uses_prior=True, uses_evidence=True, uses_baseline=False,
-                readout=READOUT_FOR_MODE[self.mode],
+                cell=cell, rank=rank, readout=READOUT_FOR_MODE[self.mode],
             )
             self.replaced_spatial_prior = install_oc_spatial_prior(self.base.backbone)
 
@@ -308,6 +340,163 @@ _OC_KEY_PARAMS = (
     "geometry.precision.out.weight",
     "geometry.evidence.a_ell.0",
 )
+
+
+def _check_baseline_depth_decay(record) -> Dict[str, object]:
+    """R1: the baseline depth bias must be ``w_d * decay_h * |dy| * m_i m_j`` exactly.
+
+    Two tokens with a unit masked-mean difference, signed ``weight[1] = 1`` and
+    ``weight[0] = 0`` isolate the depth term.  The check compares the assembled
+    W/H/full biases against the analytic per-head decay, so a missing (or doubled)
+    decay cannot pass.
+    """
+    from models.encoders.DFormerv2 import GeoPriorGen
+    from research.oc_rga import _baseline_relation
+
+    heads = 4
+    geo = GeoPriorGen(embed_dim=64, num_heads=heads, initial_value=2, heads_range=4)
+    with torch.no_grad():
+        geo.weight[0].zero_()
+        geo.weight[1].fill_(1.0)
+    decay = geo.decay.detach().clone()
+
+    y = torch.zeros(1, 1, 2, 1)
+    y[0, 0, 1, 0] = 1.0
+    m = torch.ones(1, 1, 2)
+    pooled = {"ybar": y, "mbar": m}
+
+    base_w = _baseline_relation(pooled, "w")   # [1,1,1,2,2]
+    base_h = _baseline_relation(pooled, "h")   # [1,1,2,1,1]
+    base_full = _baseline_relation(pooled, "full")  # [1,1,2,2]
+
+    def assembled(base, split, base_h_arg=None, base_w_arg=None):
+        if split:
+            return geo((1, 2), None, split_or_not=True,
+                       depth_relation=(base_h_arg, base_w_arg), return_components=True)[1]
+        return geo((1, 2), None, split_or_not=False,
+                   depth_relation=base, return_components=True)[1]
+
+    decay5 = decay.reshape(1, -1, 1, 1, 1)
+    parts_w = assembled(None, True, base_h * decay5, base_w * decay5)
+    parts_full = assembled(base_full.reshape(1, 1, 2, 2) * decay.reshape(1, -1, 1, 1), False)
+
+    # The analytic contract: signed w_d (=1) times the per-head decay times the
+    # pooled absolute difference with the self-relation zeroed.
+    expected_w = decay.reshape(1, heads, 1, 1, 1) * base_w.reshape(1, 1, 1, 2, 2)
+    expected_full = decay.reshape(1, heads, 1, 1) * base_full.reshape(1, 1, 2, 2)
+    err_w = float((parts_w["bd_w"] - expected_w).abs().max())
+    err_full = float((parts_full["bd"] - expected_full).abs().max())
+    record("r1_baseline_depth_bias_per_head",
+           err_w < 1e-6 and err_full < 1e-6,
+           "max|dW|=%.2e max|dFull|=%.2e; head values=%s"
+           % (err_w, err_full, [round(float(v), 6) for v in decay]))
+    return {"decay": [float(v) for v in decay], "err_w": err_w, "err_full": err_full}
+
+
+def _check_probability_precision(record) -> Dict[str, object]:
+    """R2: the probability operators must stay FP32 even under an active autocast."""
+    from research.oc_rga import (
+        axis_relation_variance,
+        bounded_mean,
+        bounded_std,
+        joint_low_rank_nll,
+        relational_log_kernel,
+    )
+
+    device = torch.device("cpu")
+    dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float16
+    generator = torch.Generator().manual_seed(7)
+    n, r = 6, 4
+    half = lambda *shape: torch.randn(*shape, generator=generator).to(dtype).requires_grad_(True)
+
+    def positive(*shape):
+        value = (torch.rand(*shape, generator=generator) * 0.5 + 0.05).to(dtype)
+        return value.requires_grad_(True)
+
+    detail: Dict[str, object] = {}
+    with torch.autocast(device_type=device.type, dtype=dtype):
+        var = positive(n, 1)
+        factor = half(n, r)
+        gram = axis_relation_variance(var, var, factor, factor)
+        mean = bounded_mean(half(n, 1))
+        scale = bounded_std(half(n, 1), 0.03, 1.0)
+        kernel = relational_log_kernel(half(n, n), (torch.zeros(n, n) + 0.5).to(dtype),
+                                       torch.tensor(0.3, dtype=dtype))
+        nll = joint_low_rank_nll(half(2, n), half(2, n), torch.full((2, n), 0.1, dtype=dtype),
+                                 half(2, n, r))
+    detail["gram_dtype"] = str(gram.dtype)
+    detail["mean_dtype"] = str(mean.dtype)
+    detail["scale_dtype"] = str(scale.dtype)
+    detail["kernel_dtype"] = str(kernel.dtype)
+    detail["nll_dtype"] = str(nll.dtype)
+    ok = all(value == "torch.float32" for value in detail.values())
+    record("r2_probability_path_stays_fp32_under_autocast", ok, str(detail))
+    return detail
+
+
+def _check_relation_checkpoint(record) -> Dict[str, object]:
+    """R6.2: stages 0/1 build their relation evidence through a non-reentrant checkpoint."""
+    import torch.utils.checkpoint as cp
+
+    builder = OCGeometryBuilder((4, 4, 8, 16), uses_prior=True, uses_evidence=True, uses_baseline=False,
+                                cell=BASE_CELL, rank=RANK)
+    builder.eval()
+    calls: List[bool] = []
+    original = cp.checkpoint
+
+    def spy(function, *args, **kwargs):
+        # ``use_reentrant=False`` is the requirement; a missing keyword is a failure.
+        calls.append("use_reentrant" in kwargs and kwargs["use_reentrant"] is False)
+        return original(function, *args, **kwargs)
+
+    # 32x32 is the smallest input whose four stage grids (8, 4, 2, 1) all support
+    # the non-overlapping 2x2 merges.
+    cp.checkpoint = spy
+    try:
+        generator = torch.Generator().manual_seed(11)
+        stem = torch.randn(1, 8, 8, 64, generator=generator)
+        depth = torch.rand(1, 1, 32, 32, generator=generator)
+        obs = torch.ones(1, 1, 32, 32)
+        support = torch.ones(1, 1, 32, 32)
+        bundle = builder(stem, depth, obs, support)
+        for index in range(4):
+            bundle.stage(index)
+    finally:
+        cp.checkpoint = original
+    ok = len(calls) >= 4 and all(calls)
+    record("r6_stage01_relation_checkpointed", ok,
+           "%d relation checkpoint calls, all use_reentrant=False: %s" % (len(calls), calls[:6]))
+    return {"checkpoint_calls": len(calls), "use_reentrant_flags": calls}
+
+
+def _check_quantiles_dtype(record) -> Dict[str, object]:
+    """R2 addendum: the statistics entry must not break on a half-precision tensor."""
+    from research.oc_rga_losses import _quantiles
+
+    values = _quantiles(torch.rand(8, 8, dtype=torch.float16), (0.1, 0.5, 0.9))
+    ok = isinstance(values, list) and len(values) == 3 and all(isinstance(v, float) for v in values)
+    record("r2_quantiles_accept_half_precision_input", ok,
+           "quantiles=%s" % [round(v, 4) for v in values])
+    return {"quantiles": values}
+
+
+def _check_padded_centroids(record) -> Dict[str, object]:
+    """R7: centroids normalise by the real un-padded pixel extent."""
+    from research.oc_rga import _support_centroids
+
+    height, width = 17, 19
+    support = torch.zeros(1, 1, 32, 32)
+    support[..., :height, :width] = 1.0
+    cx, cy = _support_centroids(support, 4)
+    # Last valid cell covers rows 16..16 and columns 16..18 of a 17x19 image.
+    last_cx = (16.5 + 17.5 + 18.5) / 3.0 / width
+    last_cy = 16.5 / height
+    got_cx = float(cx[0, 4, 4].item())
+    got_cy = float(cy[0, 4, 4].item())
+    ok = abs(got_cx - last_cx) < 1e-6 and abs(got_cy - last_cy) < 1e-6
+    record("r7_centroids_use_real_pixel_extent", ok,
+           "cx=%.5f (expected %.5f) cy=%.5f (expected %.5f)" % (got_cx, last_cx, got_cy, last_cy))
+    return {"cx": got_cx, "cy": got_cy, "expected_cx": last_cx, "expected_cy": last_cy}
 
 
 def run_model_self_check(
@@ -484,6 +673,13 @@ def run_model_self_check(
     record("legacy_author_entry_forward",
            tuple(legacy_out.shape) == (1, int(config.num_classes), batch, batch),
            "EncoderDecoder(geometry_mode=original) still forwards: %s" % (tuple(legacy_out.shape),))
+
+    # --- the audit-specific point checks (R1 / R2 / R7) ------------------ #
+    report["r1"] = _check_baseline_depth_decay(record)
+    report["r2"] = _check_probability_precision(record)
+    report["r2_quantiles"] = _check_quantiles_dtype(record)
+    report["r6_checkpoint"] = _check_relation_checkpoint(record)
+    report["r7"] = _check_padded_centroids(record)
 
     # --- AMP boundary ---------------------------------------------------- #
     if dev.type == "cuda":

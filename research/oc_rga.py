@@ -38,6 +38,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.utils.checkpoint as checkpoint
 
 __all__ = [
     "DEPTH_NORM_MEAN",
@@ -111,6 +112,36 @@ PAD_LOGIT = -1.0e4
 S_TYPES = ("S", "O", "VREF")
 EPS = 1e-12
 
+
+# --------------------------------------------------------------------------- #
+# Probability-precision boundary (design 8.2 / audit R2)
+# --------------------------------------------------------------------------- #
+# Normal training keeps the geometry convolutions under AMP but runs every
+# probability quantity in FP32: the bounded parameterisation, the conditioning,
+# the covariance Gram, the scale propagation, the relational kernel and the joint
+# NLL.  A tiny micro check that deliberately feeds FP64 (dense reference,
+# gradcheck) keeps FP64 instead of being forced back to FP32.
+PROBABILITY_DTYPES = (torch.float32, torch.float64)
+
+
+def probability_dtype(*tensors: torch.Tensor) -> torch.dtype:
+    """FP64 when an explicit micro check asked for it, FP32 otherwise."""
+    for tensor in tensors:
+        if tensor is not None and tensor.dtype == torch.float64:
+            return torch.float64
+    return torch.float32
+
+
+def autocast_off(device) -> "torch.autocast":
+    """``torch.autocast`` disabled for the device of ``device``.
+
+    A tensor already in FP32 can still be downcast by CUDA autocast inside a
+    ``matmul``/``einsum``, so a dtype assertion on the *inputs* does not prove the
+    operation itself ran in FP32; the probability path therefore disables
+    autocast explicitly around every such operator.
+    """
+    return torch.autocast(device_type=torch.device(device).type, enabled=False)
+
 # Pre-registered read-out contrasts (design 12.2).  Every one of them keeps the
 # same geometry network, conditioning, supervision, kernel lengths, S/O, budget
 # and initialisation; only the read-out of the relation distribution changes.
@@ -121,11 +152,18 @@ READOUTS = ("delta", "mean", "diag", "direct")
 # Bounded positive parameterisation (design 4.4)
 # --------------------------------------------------------------------------- #
 def bounded_std(a: torch.Tensor, lower: float, upper: float) -> torch.Tensor:
-    """``BStd(a; l, u) = exp(log l + sigmoid(a) log(u/l))`` (strictly positive)."""
+    """``BStd(a; l, u) = exp(log l + sigmoid(a) log(u/l))`` (strictly positive).
+
+    Always evaluated in the probability dtype (FP32, or FP64 for an explicit
+    micro check) with autocast disabled, so an AMP head activation cannot leave a
+    half-precision standard deviation on the path into the solver.
+    """
     if not 0.0 < float(lower) < float(upper):
         raise ValueError("bounded_std needs 0 < lower < upper, got %r" % ((lower, upper),))
     ratio = math.log(float(upper) / float(lower))
-    return torch.exp(math.log(float(lower)) + torch.sigmoid(a) * ratio)
+    with autocast_off(a.device):
+        value = a.to(probability_dtype(a))
+        return torch.exp(math.log(float(lower)) + torch.sigmoid(value) * ratio)
 
 
 def inverse_bounded_std(value, lower: float, upper: float) -> torch.Tensor:
@@ -139,8 +177,9 @@ def inverse_bounded_std(value, lower: float, upper: float) -> torch.Tensor:
 
 
 def bounded_mean(a: torch.Tensor) -> torch.Tensor:
-    """``mu = z_c + (z_max - z_min)/2 * tanh(a)`` (bounded prior mean)."""
-    return Z_CENTER + Z_HALF_SPAN * torch.tanh(a)
+    """``mu = z_c + (z_max - z_min)/2 * tanh(a)`` (bounded prior mean, FP32)."""
+    with autocast_off(a.device):
+        return Z_CENTER + Z_HALF_SPAN * torch.tanh(a.to(probability_dtype(a)))
 
 
 def _logit(p: float) -> float:
@@ -174,9 +213,10 @@ def cell_summaries(
     if h % cell or w % cell:
         raise ValueError("H and W must be multiples of the base cell (%d)" % cell)
 
-    z = depth.float()
-    o = observation.float()
-    s = image_support.float()
+    dt = probability_dtype(depth)
+    z = depth.to(dt)
+    o = observation.to(dt)
+    s = image_support.to(dt)
     finite = torch.isfinite(z)
     if not bool(finite.all()):
         z = torch.where(finite, z, torch.zeros_like(z))
@@ -236,36 +276,49 @@ def _support_centroids(image_support: torch.Tensor, cell: int = BASE_CELL) -> Tu
     where ``S`` is non-zero), never by the padded grid.  An axis whose support
     degenerates to a single row/column is set to ``0.5``.
     """
-    s = image_support.float()
+    with autocast_off(image_support.device):
+        return _support_centroids_fp32(image_support, cell)
+
+
+def _support_centroids_fp32(image_support: torch.Tensor, cell: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    s = image_support.to(probability_dtype(image_support))
     b, _, h, w = s.shape
     h0, w0 = h // cell, w // cell
     sv = (s[:, 0] > 0).reshape(b, h0, cell, w0, cell)
     n = s[:, 0].reshape(b, h0, cell, w0, cell).sum(dim=(2, 4))
 
-    # Un-padded extent of the current input domain, resolved per image so a padded
-    # member of the batch cannot shrink another member's normalisation.
-    rows = sv.any(dim=4).any(dim=3).any(dim=2)  # [B,H0] -- support in that cell row
-    cols = sv.any(dim=4).any(dim=2).any(dim=1)  # [B,W0] -- support in that cell column
-    row_idx = torch.arange(1, h0 + 1, device=s.device, dtype=torch.float32).view(1, h0)
-    col_idx = torch.arange(1, w0 + 1, device=s.device, dtype=torch.float32).view(1, w0)
-    h_cells = torch.where(rows.any(dim=1, keepdim=True), (rows.float() * row_idx).max(dim=1, keepdim=True).values,
-                          torch.full((b, 1), float(h0), device=s.device))
-    w_cells = torch.where(cols.any(dim=1, keepdim=True), (cols.float() * col_idx).max(dim=1, keepdim=True).values,
-                          torch.full((b, 1), float(w0), device=s.device))
+    # The normalisation extent must be the *real* un-padded image domain of this
+    # sample, not the padded grid and not a cell-rounded extent.  A padded member
+    # of the batch must not shrink another member's normalisation.
+    per_image = (s[:, 0] > 0)
+    row_any = per_image.any(dim=2)  # [B,H] pixel rows with support
+    col_any = per_image.any(dim=1)  # [B,W] pixel columns with support
+    row_index = (torch.arange(h, device=s.device, dtype=s.dtype) + 1.0).view(1, h)
+    col_index = (torch.arange(w, device=s.device, dtype=s.dtype) + 1.0).view(1, w)
+    real_h = (row_any.to(s.dtype) * row_index).max(dim=1).values
+    real_w = (col_any.to(s.dtype) * col_index).max(dim=1).values
+    real_h = torch.where(row_any.any(dim=1), real_h, torch.full_like(real_h, float(h)))
+    real_w = torch.where(col_any.any(dim=1), real_w, torch.full_like(real_w, float(w)))
+    # Normalise the pixel centre coordinate by the real extent; only an axis that
+    # really is a single pixel degenerates to 0.5.
+    h_denom = torch.where(real_h > 1.0, real_h, torch.ones_like(real_h))
+    w_denom = torch.where(real_w > 1.0, real_w, torch.ones_like(real_w))
+    xs = ((torch.arange(w, device=s.device, dtype=s.dtype) + 0.5) / w_denom.view(b, 1))
+    ys = ((torch.arange(h, device=s.device, dtype=s.dtype) + 0.5) / h_denom.view(b, 1))
+    xs = torch.clamp(xs, 0.0, 1.0)
+    ys = torch.clamp(ys, 0.0, 1.0)
 
-    xs = (torch.arange(w, device=s.device, dtype=torch.float32) + 0.5) / (w_cells * cell)  # [B,W]
-    ys = (torch.arange(h, device=s.device, dtype=torch.float32) + 0.5) / (h_cells * cell)  # [B,H]
-
-    sum_x = (sv * xs.reshape(b, 1, 1, w0, cell)).sum(dim=(2, 4))
-    sum_y = (sv.float() * ys.reshape(b, h0, cell, 1, 1)).sum(dim=(2, 4))
+    sum_x = (sv.to(s.dtype) * xs.reshape(b, 1, 1, w0, cell)).sum(dim=(2, 4))
+    sum_y = (sv.to(s.dtype) * ys.reshape(b, h0, cell, 1, 1)).sum(dim=(2, 4))
     cx = sum_x / n.clamp_min(1.0)
     cy = sum_y / n.clamp_min(1.0)
 
-    cols_any = (sv > 0).any(dim=2).sum(dim=-1)  # [B,H0,W0] columns with support
-    rows_any = (sv > 0).any(dim=4).sum(dim=2)  # [B,H0,W0] rows with support
-    half = torch.full_like(cx, 0.5)
-    cx = torch.where((n > 0) & (cols_any > 1), cx, half)
-    cy = torch.where((n > 0) & (rows_any > 1), cy, half)
+    # A degenerate *image axis* (one pixel wide/tall) has no meaningful centroid;
+    # a cell that merely touches a boundary keeps its real centroid.
+    degenerate_w = (real_w <= 1.0).view(b, 1, 1)
+    degenerate_h = (real_h <= 1.0).view(b, 1, 1)
+    cx = torch.where((n > 0) & (~degenerate_w), cx, torch.full_like(cx, 0.5))
+    cy = torch.where((n > 0) & (~degenerate_h), cy, torch.full_like(cy, 0.5))
     return cx, cy
 
 
@@ -276,15 +329,18 @@ def window_basis(cx: torch.Tensor, cy: torch.Tensor) -> torch.Tensor:
     ``[B,H0,W0,9]``.  All-padding cells contribute a finite basis but are zeroed
     by the caller through ``n > 0``.
     """
-    basis = []
-    for cy_k in WINDOW_CENTERS:
-        for cx_k in WINDOW_CENTERS:
-            gx = torch.clamp(1.0 - 3.0 * (cx - cx_k).abs(), min=0.0)
-            gy = torch.clamp(1.0 - 3.0 * (cy - cy_k).abs(), min=0.0)
-            basis.append(gx * gy)
-    g = torch.stack(basis, dim=-1)
-    norm = g.pow(2).sum(dim=-1, keepdim=True).clamp_min(EPS).sqrt()
-    return g / norm
+    with autocast_off(cx.device):
+        dt = probability_dtype(cx, cy)
+        cx, cy = cx.to(dt), cy.to(dt)
+        basis = []
+        for cy_k in WINDOW_CENTERS:
+            for cx_k in WINDOW_CENTERS:
+                gx = torch.clamp(1.0 - 3.0 * (cx - cx_k).abs(), min=0.0)
+                gy = torch.clamp(1.0 - 3.0 * (cy - cy_k).abs(), min=0.0)
+                basis.append(gx * gy)
+        g = torch.stack(basis, dim=-1)
+        norm = g.pow(2).sum(dim=-1, keepdim=True).clamp_min(EPS).sqrt()
+        return g / norm
 
 
 # --------------------------------------------------------------------------- #
@@ -293,7 +349,9 @@ def window_basis(cx: torch.Tensor, cy: torch.Tensor) -> torch.Tensor:
 def _merge_2x2_weighted(x: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
     """Weighted 2x2 merge of ``x`` ``[B,H,W,C]`` with per-cell ``weight`` ``[B,H,W]``."""
     b, h, w, c = x.shape
-    wv = weight.reshape(b, h // 2, 2, w // 2, 2)
+    dt = probability_dtype(x, weight)
+    x = x.to(dt)
+    wv = weight.to(dt).reshape(b, h // 2, 2, w // 2, 2)
     xv = x.reshape(b, h // 2, 2, w // 2, 2, c)
     num = (xv * wv.unsqueeze(-1)).sum(dim=(2, 4))
     den = wv.sum(dim=(2, 4))
@@ -316,6 +374,8 @@ def merge_2x2(
     b, h, w, _ = mu.shape
     if h % 2 or w % 2:
         raise ValueError("merge_2x2 needs even H and W")
+    dt = probability_dtype(mu, var, factor, n)
+    mu, var, factor, n = mu.to(dt), var.to(dt), factor.to(dt), n.to(dt)
     h2, w2 = h // 2, w // 2
     n_cell = n.reshape(b, h2, 2, w2, 2)
     n_parent = n_cell.sum(dim=(2, 4))
@@ -424,12 +484,14 @@ def condition_low_rank(
     FP64 (outputs cast back to FP32, gradients preserved) and the event is
     counted; an FP64 failure raises instead of being papered over.
     """
-    out_dtype = mu.dtype
     device = mu.device
-    # Training runs the probabilities in FP32; a micro FP64 call (dense reference,
-    # gradcheck) keeps its own precision instead of being forced back to FP32.
-    work = torch.float64 if out_dtype == torch.float64 else torch.float32
-    with torch.autocast(device_type=device.type, enabled=False):
+    # Training runs the probabilities in FP32 even when the incoming head output
+    # arrived as a half-precision autocast tensor; a micro FP64 call (dense
+    # reference, gradcheck) keeps its own precision instead of being forced back
+    # to FP32.  The solve is never left in the AMP dtype.
+    work = probability_dtype(mu, factor, s2, y, m, f, omega2)
+    out_dtype = work
+    with autocast_off(device):
         mu_post, delta, f_post, ok = _solve_in_dtype(
             mu, factor, s2, y, m, f, omega2, work
         )
@@ -450,9 +512,9 @@ def condition_low_rank(
         f_post = f_post.to(out_dtype)
         # Exact all-missing endpoint: q_+ == q_0 for an image without observations.
         any_obs = (m.sum(dim=1, keepdim=True) > 0)
-        mu_post = torch.where(any_obs, mu_post, mu)
-        delta = torch.where(any_obs, delta, s2)
-        f_post = torch.where(any_obs, f_post, factor)
+        mu_post = torch.where(any_obs, mu_post, mu.to(out_dtype))
+        delta = torch.where(any_obs, delta, s2.to(out_dtype))
+        f_post = torch.where(any_obs, f_post, factor.to(out_dtype))
     return mu_post, delta, f_post
 
 
@@ -481,25 +543,33 @@ def joint_low_rank_nll(
         mask = torch.ones_like(diag_var, dtype=torch.bool)
     elif mask.shape != diag_var.shape:
         raise ValueError("mask must match the [B,K] target shape")
-    d = torch.where(mask, diag_var, torch.ones_like(diag_var))
-    if bool((d <= 0).any()):
-        raise RuntimeError("joint_low_rank_nll requires a strictly positive diagonal")
-    e = torch.where(mask, target - mu, torch.zeros_like(target))
-    inv_sqrt = d.rsqrt()
-    e_scaled = e * inv_sqrt
-    f_scaled = factor * inv_sqrt.unsqueeze(-1) * mask.unsqueeze(-1).to(factor.dtype)
-    r = factor.shape[-1]
-    eye = torch.eye(r, device=factor.device, dtype=factor.dtype).unsqueeze(0)
-    j_mat = eye + f_scaled.transpose(-2, -1) @ f_scaled
-    j_mat = 0.5 * (j_mat + j_mat.transpose(-2, -1))
-    rhs = torch.einsum("bkr,bk->br", f_scaled, e_scaled)
-    h_star = torch.linalg.solve(j_mat, rhs.unsqueeze(-1)).squeeze(-1)
-    residual = e_scaled - torch.einsum("bkr,br->bk", f_scaled, h_star)
-    quad = residual.pow(2).sum(-1) + h_star.pow(2).sum(-1)
-    chol = torch.linalg.cholesky(j_mat)
-    log_det = d.log().sum(-1) + 2.0 * torch.log(torch.diagonal(chol, dim1=-2, dim2=-1)).sum(-1)
-    n = mask.sum(dim=-1).to(diag_var.dtype)
-    return 0.5 * (quad + log_det + n * math.log(2.0 * math.pi))
+    # The whole NLL is a probability quantity: FP32 (or FP64 for a micro check)
+    # with autocast disabled, never a half-precision small linear algebra.
+    with autocast_off(target.device):
+        dt = probability_dtype(target, mu, diag_var, factor)
+        target = target.to(dt)
+        mu = mu.to(dt)
+        diag_var = diag_var.to(dt)
+        factor = factor.to(dt)
+        d = torch.where(mask, diag_var, torch.ones_like(diag_var))
+        if bool((d <= 0).any()):
+            raise RuntimeError("joint_low_rank_nll requires a strictly positive diagonal")
+        e = torch.where(mask, target - mu, torch.zeros_like(target))
+        inv_sqrt = d.rsqrt()
+        e_scaled = e * inv_sqrt
+        f_scaled = factor * inv_sqrt.unsqueeze(-1) * mask.unsqueeze(-1).to(dt)
+        r = factor.shape[-1]
+        eye = torch.eye(r, device=factor.device, dtype=dt).unsqueeze(0)
+        j_mat = eye + f_scaled.transpose(-2, -1) @ f_scaled
+        j_mat = 0.5 * (j_mat + j_mat.transpose(-2, -1))
+        rhs = torch.einsum("bkr,bk->br", f_scaled, e_scaled)
+        h_star = torch.linalg.solve(j_mat, rhs.unsqueeze(-1)).squeeze(-1)
+        residual = e_scaled - torch.einsum("bkr,br->bk", f_scaled, h_star)
+        quad = residual.pow(2).sum(-1) + h_star.pow(2).sum(-1)
+        chol = torch.linalg.cholesky(j_mat)
+        log_det = d.log().sum(-1) + 2.0 * torch.log(torch.diagonal(chol, dim1=-2, dim2=-1)).sum(-1)
+        n = mask.sum(dim=-1).to(dt)
+        return 0.5 * (quad + log_det + n * math.log(2.0 * math.pi))
 
 
 def _marginal_relation(var: torch.Tensor, factor: torch.Tensor) -> torch.Tensor:
@@ -509,11 +579,14 @@ def _marginal_relation(var: torch.Tensor, factor: torch.Tensor) -> torch.Tensor:
     ``-2 Sigma_ij`` is dropped but the marginal variances are kept, so it is not
     the same intervention as setting ``F = 0``.
     """
-    marginal = var + factor.pow(2).sum(-1, keepdim=True)
-    v = marginal + marginal.transpose(-1, -2)
-    length = v.shape[-1]
-    eye = torch.eye(length, device=v.device, dtype=v.dtype)
-    return v * (1.0 - eye)
+    with autocast_off(var.device):
+        dt = probability_dtype(var, factor)
+        var, factor = var.to(dt), factor.to(dt)
+        marginal = var + factor.pow(2).sum(-1, keepdim=True)
+        v = marginal + marginal.transpose(-1, -2)
+        length = v.shape[-1]
+        eye = torch.eye(length, device=v.device, dtype=dt)
+        return v * (1.0 - eye)
 
 
 def axis_relation_variance(
@@ -530,24 +603,32 @@ def axis_relation_variance(
     in-place overwriting of a tensor needed for the backward pass.  A rounding
     level of negative variance is clamped; anything clearly negative raises.
     """
-    sq_a = factor_a.pow(2).sum(-1)
-    sq_b = factor_b.pow(2).sum(-1)
-    gram = factor_a @ factor_b.transpose(-1, -2)
-    v = (
-        var_a
-        + var_b.transpose(-1, -2)
-        + sq_a.unsqueeze(-1)
-        + sq_b.unsqueeze(-2)
-        - 2.0 * gram
-    )
-    if bool((v < -1e-3).any()):
-        raise RuntimeError("relative variance went clearly negative; Gram rounding is not the cause")
-    v = v.clamp_min(0.0)
-    if zero_diagonal:
-        length = v.shape[-1]
-        eye = torch.eye(length, device=v.device, dtype=v.dtype)
-        v = v * (1.0 - eye)
-    return v
+    # The Gram is a ``matmul``: CUDA autocast would downcast an FP32 pair to FP16,
+    # so the whole relation covariance is evaluated with autocast disabled in the
+    # probability dtype.  A small residual variance can otherwise be swamped by
+    # the low-precision product.
+    with autocast_off(var_a.device):
+        dt = probability_dtype(var_a, var_b, factor_a, factor_b)
+        var_a, var_b = var_a.to(dt), var_b.to(dt)
+        factor_a, factor_b = factor_a.to(dt), factor_b.to(dt)
+        sq_a = factor_a.pow(2).sum(-1)
+        sq_b = factor_b.pow(2).sum(-1)
+        gram = factor_a @ factor_b.transpose(-1, -2)
+        v = (
+            var_a
+            + var_b.transpose(-1, -2)
+            + sq_a.unsqueeze(-1)
+            + sq_b.unsqueeze(-2)
+            - 2.0 * gram
+        )
+        if bool((v < -1e-3).any()):
+            raise RuntimeError("relative variance went clearly negative; Gram rounding is not the cause")
+        v = v.clamp_min(0.0)
+        if zero_diagonal:
+            length = v.shape[-1]
+            eye = torch.eye(length, device=v.device, dtype=dt)
+            v = v * (1.0 - eye)
+        return v
 
 
 # --------------------------------------------------------------------------- #
@@ -675,15 +756,21 @@ class RGBGeometryPrior(nn.Module):
         agg = torch.cat([f0, up1, up2, ctx, coord], dim=1)
         g = self.fuse_res(self.fuse(agg))
 
-        return (
-            g,
-            self.head_mean(g),
-            self.head_factor(g),
-            self.head_scale(g),
-            windows,
-            cx,
-            cy,
-        )
+        # The geometry convolutions may run under AMP, but the raw head outputs
+        # enter the bounded parameterisation in the probability dtype with
+        # autocast disabled (audit R2).  Casting the outputs does not change how
+        # the convolution itself executed.
+        with autocast_off(g.device):
+            dt = probability_dtype(g, windows)
+            return (
+                g.to(dt),
+                self.head_mean(g).to(dt),
+                self.head_factor(g).to(dt),
+                self.head_scale(g).to(dt),
+                windows.to(dt),
+                cx.to(dt),
+                cy.to(dt),
+            )
 
 
 class ObservationPrecisionHead(nn.Module):
@@ -826,6 +913,72 @@ def research_attention_probs(qk: torch.Tensor, bias: torch.Tensor,
 # --------------------------------------------------------------------------- #
 # Relational evidence pyramid (design 7)
 # --------------------------------------------------------------------------- #
+def relational_log_kernel(m: torch.Tensor, v: torch.Tensor, ell: torch.Tensor) -> torch.Tensor:
+    """``log K_h(m, v)`` for ``Delta ~ N(m, v)`` under an RBF kernel (FP32)."""
+    with autocast_off(m.device):
+        dt = probability_dtype(m, v, ell)
+        m, v, ell = m.to(dt), v.to(dt), ell.to(dt)
+        l2 = ell * ell
+        return -0.5 * torch.log1p(v / l2) - 0.5 * m * m / (l2 + v)
+
+
+def _axis_evidence_fn(
+    mu0: torch.Tensor,
+    var0: torch.Tensor,
+    f0: torch.Tensor,
+    mu1: torch.Tensor,
+    var1: torch.Tensor,
+    f1: torch.Tensor,
+    ell: torch.Tensor,
+    tau: float,
+    readout: str,
+):
+    """Pure relation read-out, checkpointed for stages 0/1 (design 8.3).
+
+    Returns ``(Ehat, raw_sample, saturated, entries)``.  ``raw_sample`` is a small
+    *detached* sample of the true raw ``E`` (before ``tau*tanh`` saturation) and
+    ``saturated``/``entries`` count how many sampled entries have ``|E| > tau``.
+    """
+    with autocast_off(mu0.device):
+        dt = probability_dtype(mu0, var0, f0, mu1, var1, f1, ell)
+        mu0, var0, f0 = mu0.to(dt), var0.to(dt), f0.to(dt)
+        mu1, var1, f1 = mu1.to(dt), var1.to(dt), f1.to(dt)
+        ell = ell.to(dt).reshape(-1)
+
+        m0 = mu0 - mu0.transpose(-1, -2)
+        m1 = mu1 - mu1.transpose(-1, -2)
+        if readout == "mean":
+            v0, v1 = torch.zeros_like(m0), torch.zeros_like(m1)
+        elif readout == "diag":
+            v0 = _marginal_relation(var0, f0)
+            v1 = _marginal_relation(var1, f1)
+        else:
+            v0 = axis_relation_variance(var0, var0, f0, f0)
+            v1 = axis_relation_variance(var1, var1, f1, f1)
+
+        out: List[torch.Tensor] = []
+        raw_sample = None
+        saturated = torch.zeros((), device=mu0.device, dtype=dt)
+        entries = torch.zeros((), device=mu0.device, dtype=dt)
+        for head in range(ell.numel()):
+            posterior = relational_log_kernel(m1, v1, ell[head])
+            if readout == "direct":
+                raw = posterior
+            else:
+                raw = posterior - relational_log_kernel(m0, v0, ell[head])
+            out.append(float(tau) * torch.tanh(raw / float(tau)))
+            if head == 0:
+                flat = raw.detach().reshape(-1)
+                step = max(1, int(flat.numel()) // 1024)
+                raw_sample = flat[::step][:1024].clone()
+                saturated = saturated + (flat.abs() > float(tau)).sum().to(dt)
+                entries = entries + float(flat.numel())
+        evidence = torch.stack(out, dim=1)
+        if raw_sample is None:
+            raw_sample = torch.zeros(1024, device=mu0.device, dtype=dt)
+        return evidence, raw_sample, saturated, entries
+
+
 class RelationalEvidencePyramid(nn.Module):
     """Per-stage/per-head kernel lengths and the bounded evidence read-out.
 
@@ -862,60 +1015,14 @@ class RelationalEvidencePyramid(nn.Module):
 
     @staticmethod
     def log_kernel(m: torch.Tensor, v: torch.Tensor, ell: torch.Tensor) -> torch.Tensor:
-        """``log K_h(m, v)`` for ``Delta ~ N(m, v)`` under an RBF kernel."""
-        l2 = ell * ell
-        return -0.5 * torch.log1p(v / l2) - 0.5 * m * m / (l2 + v)
+        """``log K_h(m, v)`` for ``Delta ~ N(m, v)`` under an RBF kernel (FP32)."""
+        return relational_log_kernel(m, v, ell)
 
     def saturate(self, e: torch.Tensor) -> torch.Tensor:
         return self.tau * torch.tanh(e / self.tau)
 
-    def _axis_evidence(
-        self,
-        mu0: torch.Tensor,
-        var0: torch.Tensor,
-        f0: torch.Tensor,
-        mu1: torch.Tensor,
-        var1: torch.Tensor,
-        f1: torch.Tensor,
-        ell: torch.Tensor,
-    ) -> torch.Tensor:
-        """``Ehat`` of shape ``[B, heads, L, L]`` for one axis/grid layout.
-
-        ``readout`` selects the pre-registered mechanism contrast: ``delta`` is
-        the implementation version (full relative variance, posterior minus
-        prior), ``mean`` sets ``v = 0`` on both read-outs, ``diag`` keeps the
-        marginal variances but drops the correlated term, and ``direct``
-        saturates the posterior log kernel without the prior subtraction.
-        """
-        m0 = mu0 - mu0.transpose(-1, -2)
-        m1 = mu1 - mu1.transpose(-1, -2)
-        zeros = torch.zeros_like(m0)
-        if self.readout == "mean":
-            v0, v1 = zeros, torch.zeros_like(m1)
-        elif self.readout == "diag":
-            v0 = _marginal_relation(var0, f0)
-            v1 = _marginal_relation(var1, f1)
-        else:
-            v0 = axis_relation_variance(var0, var0, f0, f0)
-            v1 = axis_relation_variance(var1, var1, f1, f1)
-        out: List[torch.Tensor] = []
-        for head in range(ell.numel()):
-            length = ell[head]
-            posterior = self.log_kernel(m1, v1, length)
-            if self.readout == "direct":
-                out.append(self.saturate(posterior))
-            else:
-                out.append(self.saturate(posterior - self.log_kernel(m0, v0, length)))
-        return torch.stack(out, dim=1)
-
-    def evidence(self, stage: int, pooled: Dict[str, torch.Tensor],
-                 layout: str) -> torch.Tensor:
-        """Build the saturated evidence for one stage in one axis/full layout.
-
-        ``layout`` is ``"w"`` (``[B,H,W,*]`` -> ``[B,H,heads,W,W]``), ``"h"``
-        (``[B,W,H,*]`` -> ``[B,W,heads,H,H]``) or ``"full"``
-        (``[B,H*W,*]`` -> ``[B,heads,N,N]``).
-        """
+    def _axis_evidence_inputs(self, stage: int, pooled: Dict[str, torch.Tensor],
+                              layout: str):
         ell = self.lengths(stage)
         mu0 = pooled["mu0"]
         var0 = pooled["s20"]
@@ -936,15 +1043,41 @@ class RelationalEvidencePyramid(nn.Module):
                 return t.transpose(1, 2).reshape(b * w, h, t.shape[-1])
         else:
             raise ValueError("unknown layout %r" % (layout,))
+        return (flat(mu0), flat(var0), flat(f0), flat(mu1), flat(var1), flat(f1), ell), (b, h, w)
 
-        evidence = self._axis_evidence(
-            flat(mu0), flat(var0), flat(f0), flat(mu1), flat(var1), flat(f1), ell
-        )
+    def evidence(self, stage: int, pooled: Dict[str, torch.Tensor],
+                 layout: str):
+        """Build the saturated evidence for one stage in one axis/full layout.
+
+        ``layout`` is ``"w"`` (``[B,H,W,*]`` -> ``[B,H,heads,W,W]``), ``"h"``
+        (``[B,W,H,*]`` -> ``[B,W,heads,H,H]``) or ``"full"``
+        (``[B,H*W,*]`` -> ``[B,heads,N,N]``).
+
+        Returns ``(Ehat, stats)``; ``stats`` carries only a small *detached*
+        sample of the true raw ``E`` plus the pre-registered saturation counts, so
+        no full pair tensor is ever kept for logging.  Stages 0 and 1 recompute
+        their relation construction in the backward pass through a non-reentrant
+        checkpoint (design 8.3) instead of holding every intermediate alive.
+        """
+        inputs, (b, h, w) = self._axis_evidence_inputs(stage, pooled, layout)
+        if stage < 2:
+            evidence, raw_sample, saturated, total = checkpoint.checkpoint(
+                _axis_evidence_fn, *inputs, self.tau, self.readout, use_reentrant=False
+            )
+        else:
+            evidence, raw_sample, saturated, total = _axis_evidence_fn(
+                *inputs, self.tau, self.readout
+            )
+        stats = {
+            "raw_E_sample": raw_sample,
+            "saturated": saturated.detach(),
+            "entries": total.detach(),
+        }
         if layout == "full":
-            return evidence
+            return evidence, stats
         if layout == "w":
-            return evidence.reshape(b, h, ell.numel(), w, w)
-        return evidence.reshape(b, w, ell.numel(), h, h)
+            return evidence.reshape(b, h, inputs[-1].numel(), w, w), stats
+        return evidence.reshape(b, w, inputs[-1].numel(), h, h), stats
 
 
 # --------------------------------------------------------------------------- #
@@ -990,11 +1123,28 @@ class OCGeometryBundle:
             "n": n,
         }
         if self._builder.uses_evidence:
+            samples: List[torch.Tensor] = []
+            saturated = entries = 0.0
             if index == 3:
-                out["Ehat_full"] = self._builder.evidence.evidence(3, pooled, "full")
+                out["Ehat_full"], stats = self._builder.evidence.evidence(3, pooled, "full")
+                samples.append(stats["raw_E_sample"])
+                saturated += float(stats["saturated"])
+                entries += float(stats["entries"])
             else:
-                out["Ehat_w"] = self._builder.evidence.evidence(index, pooled, "w")
-                out["Ehat_h"] = self._builder.evidence.evidence(index, pooled, "h")
+                out["Ehat_w"], stats_w = self._builder.evidence.evidence(index, pooled, "w")
+                out["Ehat_h"], stats_h = self._builder.evidence.evidence(index, pooled, "h")
+                for stats in (stats_w, stats_h):
+                    samples.append(stats["raw_E_sample"])
+                    saturated += float(stats["saturated"])
+                    entries += float(stats["entries"])
+            # Detached small sample only: no full pair tensor is retained for logging.
+            out["raw_E_sample"] = torch.cat(samples, dim=0).detach()
+            out["saturation"] = {
+                "saturated": saturated,
+                "entries": entries,
+                "rate": (saturated / entries) if entries else 0.0,
+                "threshold": float(self._builder.evidence.tau),
+            }
         if self._builder.uses_baseline:
             if index == 3:
                 out["base_full"] = _baseline_relation(self.baseline_pooled[index], "full")
@@ -1079,11 +1229,12 @@ class OCGeometryBuilder(nn.Module):
         return torch.cat(planes, dim=1)
 
     def prior_parameters(self, geom: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """Bounded ``mu``, ``U`` and ``s2`` from the RGB head activations."""
-        mu = bounded_mean(geom["a_mean"])
-        s2 = bounded_std(geom["a_scale"], S_MIN, S_MAX).pow(2)
-        factor = _column_basis(geom["a_factor"], geom["windows"], geom["n"])
-        return {"mu": mu, "U": factor, "s2": s2}
+        """Bounded ``mu``, ``U`` and ``s2`` from the RGB head activations (FP32)."""
+        with autocast_off(geom["a_mean"].device):
+            mu = bounded_mean(geom["a_mean"])
+            s2 = bounded_std(geom["a_scale"], S_MIN, S_MAX).pow(2)
+            factor = _column_basis(geom["a_factor"], geom["windows"], geom["n"])
+            return {"mu": mu, "U": factor, "s2": s2}
 
     def summarise(self, depth: torch.Tensor, observation: torch.Tensor,
                   image_support: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -1128,10 +1279,13 @@ class OCGeometryBuilder(nn.Module):
             a_obs = summary["a_obs"].unsqueeze(-1)
 
             # The precision head is a conv stack (NCHW); the geometry keeps NHWC.
-            omega = self.precision(
-                self.precision_inputs(g, y, m, f, a_obs, mu)
-            ).permute(0, 2, 3, 1)
-            omega2 = omega.pow(2)
+            # ``bounded_std`` already returns the probability dtype, and the square
+            # is taken with autocast disabled.
+            with autocast_off(mu.device):
+                omega = self.precision(
+                    self.precision_inputs(g, y, m, f, a_obs, mu)
+                ).permute(0, 2, 3, 1)
+                omega2 = omega.pow(2)
 
             # The conditioning works on the flat base grid [B, N, .]; the scale
             # propagation and the relational read-out keep the explicit
@@ -1208,17 +1362,21 @@ def _column_basis(a_factor: torch.Tensor, windows: torch.Tensor, n: torch.Tensor
     """
     if a_factor.shape[-1] != RANK:
         raise ValueError("factor head must emit %d channels" % RANK)
-    global_part = a_factor[..., :GLOBAL_CHANNELS]
-    local_part = a_factor[..., GLOBAL_CHANNELS:].reshape(*a_factor.shape[:-1], NUM_WINDOWS, GLOBAL_CHANNELS)
+    with autocast_off(a_factor.device):
+        dt = probability_dtype(a_factor, windows)
+        a_factor = a_factor.to(dt)
+        windows = windows.to(dt)
+        global_part = a_factor[..., :GLOBAL_CHANNELS]
+        local_part = a_factor[..., GLOBAL_CHANNELS:].reshape(*a_factor.shape[:-1], NUM_WINDOWS, GLOBAL_CHANNELS)
 
-    scale_g = GLOBAL_ROW_ENERGY / math.sqrt(2.0)
-    scale_l = LOCAL_ROW_ENERGY / math.sqrt(2.0)
-    u_global = scale_g * torch.tanh(global_part)
-    u_local = windows.unsqueeze(-1) * scale_l * torch.tanh(local_part)
-    basis = torch.cat([u_global, u_local.reshape(*u_local.shape[:-2], LOCAL_CHANNELS)], dim=-1)
-    if n is not None:
-        basis = basis * (n > 0).to(basis.dtype)
-    return basis
+        scale_g = GLOBAL_ROW_ENERGY / math.sqrt(2.0)
+        scale_l = LOCAL_ROW_ENERGY / math.sqrt(2.0)
+        u_global = scale_g * torch.tanh(global_part)
+        u_local = windows.unsqueeze(-1) * scale_l * torch.tanh(local_part)
+        basis = torch.cat([u_global, u_local.reshape(*u_local.shape[:-2], LOCAL_CHANNELS)], dim=-1)
+        if n is not None:
+            basis = basis * (n.to(dt) > 0).to(dt)
+        return basis
 
 
 # --------------------------------------------------------------------------- #

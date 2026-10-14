@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import json
 import os
 import sys
 import time
@@ -45,11 +46,19 @@ from research.oc_rga_model import ALL_MODES, build_model_for_mode, build_oc_opti
 CHECKPOINT_FORMAT = "oc-rga-checkpoint-v1"
 
 # Fields that must match on resume in addition to the shared contract fields.
+# Every knob that changes the *effective* augmentation, degradation or hold-out
+# protocol is listed here, so editing one and resuming is refused instead of
+# silently mixing two protocols (audit R5).
 OC_CONTRACT_FIELDS = (
     "model_mode",
+    "oc_geometry_cell",
     "oc_rank",
+    "num_heads_per_stage",
     "oc_tau",
     "oc_sigma_ref",
+    "oc_beta_init",
+    "oc_ell_min",
+    "oc_ell_max",
     "loss_lambda_cond_start",
     "loss_lambda_cond_end",
     "loss_lambda_obs_start",
@@ -58,14 +67,32 @@ OC_CONTRACT_FIELDS = (
     "loss_prior_weight",
     "loss_huber_delta",
     "loss_holdout_targets",
+    "loss_holdout_sparse_prob",
+    "loss_holdout_sparse_low",
+    "loss_holdout_sparse_high",
     "degrade_clean",
     "degrade_local_holes",
     "degrade_pixel_missing",
     "degrade_nonzero",
     "degrade_full_missing",
+    "degrade_hole_ratio_low",
+    "degrade_hole_ratio_high",
+    "degrade_local_window_low",
+    "degrade_local_window_high",
+    "degrade_noise_std_low",
+    "degrade_noise_std_high",
+    "degrade_shift_area_low",
+    "degrade_shift_area_high",
+    "degrade_shift_offset_low",
+    "degrade_shift_offset_high",
+    "degrade_shift_outlier_rate",
     "eval_long_side",
     "oc_geometry_lr_multiplier",
 )
+
+# A resume must carry a complete training state; a payload without the formal
+# optimizer/scaler/RNG is not a resumable artifact.
+RESUME_REQUIRED_FIELDS = ("model", "optimizer", "rng", "contract", "config", "args")
 SHARED_CONTRACT_EXTRA = ("data_protocol", "support_markers")
 
 GEOMETRY_PROBE_NAMES = (
@@ -103,7 +130,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--smoke-steps", default=0, type=int)
     parser.add_argument("--print-schedule", default=False, action="store_true")
     parser.add_argument("--check", default=False, action="store_true",
-                        help="one real micro-batch through the whole chain on CPU or GPU, then exit")
+                        help="one real accumulation group through the whole chain, then exit "
+                             "(non-zero exit status on any failed assertion)")
+    parser.add_argument("--check-size", default=0, type=int,
+                        help="with --check: use a synthetic batch of this size instead of a "
+                             "dataset sample (CPU-runnable small-grid check)")
     parser.add_argument("--leak-check", default=False, action="store_true",
                         help="prove the hold-out targets cannot reach the auxiliary conditioning")
     parser.add_argument("--device", default="cuda")
@@ -214,11 +245,53 @@ def print_schedule(config, resolved, plan, schedule, policy, train_source, eval_
     return 0
 
 
-def run_check(config, resolved, device, train_source, eval_source):
-    """One real micro-batch through data -> model -> joint loss -> optimiser step."""
+def _synthetic_batch(config, size: int, device, seed: int):
+    """Small synthetic batch for a CPU-only chain check (no dataset access)."""
+    from research.oc_rga import Z_MAX, Z_MIN, ZERO_FILL
+
+    generator = torch.Generator().manual_seed(int(seed))
+    classes = int(config.num_classes)
+    rgb = torch.randn(1, 3, size, size, generator=generator)
+    image_support = torch.ones(1, 1, size, size)
+    observed_mask = (torch.rand(1, 1, size, size, generator=generator) > 0.3).float()
+    depth = torch.rand(1, 1, size, size, generator=generator) * (Z_MAX - Z_MIN) + Z_MIN
+    modal_x = torch.where(observed_mask > 0, depth, torch.full_like(depth, float(ZERO_FILL)))
+    reference_valid = (torch.rand(1, 1, size, size, generator=generator) > 0.05).float() * image_support
+    label = torch.randint(0, classes, (1, size, size), generator=generator)
+    label[..., : max(1, size // 8), :] = int(config.background)
+    return {
+        "data": rgb.to(device),
+        "modal_x": modal_x.repeat(1, 3, 1, 1).to(device),
+        "depth_support": observed_mask.to(device),
+        "image_support": image_support.to(device),
+        "reference_depth": depth.to(device),
+        "reference_valid": reference_valid.to(device),
+        "label": label.to(device),
+        "fn": "synthetic",
+        # Metadata stays tensor-shaped so it matches what the collated loader
+        # batch provides.
+        "sample_id": torch.zeros(1, dtype=torch.long, device=device),
+        "epoch": torch.zeros(1, dtype=torch.long, device=device),
+        "repeat_index": torch.zeros(1, dtype=torch.long, device=device),
+    }
+
+
+def run_check(config, resolved, device, train_source, eval_source, amp=True, check_size=0):
+    """One real accumulation group through the whole chain, with hard assertions.
+
+    The check mirrors the training step exactly -- FP16 autocast, ``accum_steps``
+    micro-batches, GradScaler, unscale, global-norm clip 1.0 and a real optimiser
+    step -- and asserts the evidence the audit asks for: finite gradients, a
+    **non-zero** gradient on every key new parameter, and a parameter change after
+    a step performed with weight decay temporarily disabled (so weight decay alone
+    cannot be mistaken for a mechanism gradient).  Any failure raises, and
+    ``main --check`` returns a non-zero exit status.
+    """
+    from research.oc_rga import ZERO_FILL
     from research.oc_rga_losses import compute_oc_losses
 
     dev = torch.device(device)
+    amp = bool(amp) and dev.type == "cuda"
     sched.seed_everything(resolved["seed"])
     criterion = nn.CrossEntropyLoss(reduction="none", ignore_index=int(config.background))
     model = build_model_for_mode(config, resolved["model_mode"], criterion=criterion).to(dev)
@@ -229,49 +302,145 @@ def run_check(config, resolved, device, train_source, eval_source):
     optimizer = torch.optim.AdamW(params_list, lr=float(config.lr), betas=(0.9, 0.999),
                                   weight_decay=float(config.weight_decay))
     coverage = sched.optimizer_parameter_report(model, optimizer)
-    loader, plan, num_samples = ocdata.build_train_loader(
-        config, train_source, eval_source, resolved["micro_batch"], resolved["accum_steps"],
-        resolved["effective_batch"], 0, resolved["seed"], epoch=0,
-    )
-    batch = next(iter(loader))
-    batch = {k: (v.to(dev) if torch.is_tensor(v) else v) for k, v in batch.items()}
+    scaler = torch.cuda.amp.GradScaler() if amp else None
+
+    source = "synthetic"
+    if int(check_size) > 0:
+        batch = _synthetic_batch(config, int(check_size), dev, resolved["seed"])
+        num_samples = 1
+        plan = sched.plan_epoch(1, 1, int(resolved["accum_steps"]), int(resolved["accum_steps"]))
+    else:
+        loader, plan, num_samples = ocdata.build_train_loader(
+            config, train_source, eval_source, resolved["micro_batch"], resolved["accum_steps"],
+            resolved["effective_batch"], 0, resolved["seed"], epoch=0,
+        )
+        batch = next(iter(loader))
+        batch = {k: (v.to(dev) if torch.is_tensor(v) else v) for k, v in batch.items()}
+        source = "dataset"
+
     model.train()
-    optimizer.zero_grad(set_to_none=True)
-    logits, bundle = model(batch["data"], batch["modal_x"], depth_support=batch["depth_support"],
-                           image_support=batch["image_support"], return_geometry=True)
-    losses = compute_oc_losses(model, logits, bundle, batch, 0.0)
-    if losses["total"].requires_grad:
-        losses["total"].backward()
-    grads = sched.grad_finiteness_report(model)
-    before = {name: param.detach().clone() for name, param in model.named_parameters()
-              if name in GEOMETRY_PROBE_NAMES or name.endswith("oc_injection.a_beta")}
-    optimizer.step()
-    deltas, changed = sched.parameter_delta_report(
-        {name: param for name, param in model.named_parameters() if name in before}, before)
+    accum = int(resolved["accum_steps"])
+    all_params = [p for group in optimizer.param_groups for p in group["params"]]
+
+    def next_batch(attempt: int):
+        if int(check_size) > 0:
+            return _synthetic_batch(config, int(check_size), dev, resolved["seed"] + attempt)
+        return batch
+
+    # FP16 AMP legitimately overflows on the first attempts while GradScaler walks
+    # the scale down; the check therefore mirrors the training loop and retries,
+    # and only demands finite gradients plus a real update on an attempt where the
+    # scaler actually applies.
+    attempts = 0
+    amp_skipped = 0
+    last = None
+    logits = None
+    max_attempts = 16 if amp else 1
+    while attempts < max_attempts:
+        attempts += 1
+        current = next_batch(attempts)
+        optimizer.zero_grad(set_to_none=True)
+        for _micro in range(accum):
+            autocast = (torch.autocast(device_type="cuda", dtype=torch.float16)
+                        if amp else contextlib.nullcontext())
+            with autocast:
+                logits, bundle = model(current["data"], current["modal_x"],
+                                       depth_support=current["depth_support"],
+                                       image_support=current["image_support"], return_geometry=True)
+            losses = compute_oc_losses(model, logits, bundle, current, 0.0)
+            total = losses["total"]
+            if not bool(torch.isfinite(total).all()):
+                raise SystemExit("[check] FAIL: non-finite loss %r" % float(total.detach()))
+            if not total.requires_grad:
+                raise SystemExit("[check] FAIL: the joint loss carries no graph")
+            scaled = total / accum
+            if scaler is not None:
+                scaler.scale(scaled).backward()
+            else:
+                scaled.backward()
+            last = losses
+
+        if scaler is not None:
+            scaler.unscale_(optimizer)
+        grads = sched.grad_finiteness_report(model)
+        if scaler is not None and not grads["all_finite"]:
+            scaler.step(optimizer)   # the scaler detects the infs and skips
+            scaler.update()          # and walks the scale down
+            amp_skipped += 1
+            optimizer.zero_grad(set_to_none=True)
+            continue
+        if not grads["all_finite"]:
+            raise SystemExit("[check] FAIL: non-finite gradients without AMP %s"
+                             % (grads["nonfinite"][:5],))
+
+        probes = {name: param for name, param in model.named_parameters()
+                  if name in GEOMETRY_PROBE_NAMES or name.endswith("oc_injection.a_beta")}
+        before = {name: param.detach().clone() for name, param in probes.items()}
+        zero_grad = [name for name, param in probes.items()
+                     if param.grad is None or float(param.grad.abs().max()) == 0.0]
+        if zero_grad:
+            raise SystemExit("[check] FAIL: these key parameters have a zero/absent gradient: %s"
+                             % (zero_grad,))
+
+        saved_wd = [group.get("weight_decay", 0.0) for group in optimizer.param_groups]
+        for group in optimizer.param_groups:
+            group["weight_decay"] = 0.0
+        torch.nn.utils.clip_grad_norm_(all_params, 1.0)
+        optimizer.step()
+        for group, wd in zip(optimizer.param_groups, saved_wd):
+            group["weight_decay"] = wd
+
+        deltas, changed = sched.parameter_delta_report(probes, before)
+        unmoved = sorted(name for name, row in deltas.items() if not row["changed"])
+        if unmoved:
+            raise SystemExit("[check] FAIL: key parameters did not update with weight decay "
+                             "disabled: %s" % (unmoved,))
+        break
+    else:
+        raise SystemExit("[check] FAIL: no attempt produced finite gradients after %d tries "
+                         "(AMP skipped %d)" % (attempts, amp_skipped))
+
+    geometry = dict(last.get("geometry") or {})
+    if "raw_E_sample" in geometry:
+        geometry["raw_E_sample"] = geometry["raw_E_sample"].tolist()[:8]
     report = {
         "model_mode": resolved["model_mode"],
         "device": str(dev),
+        "amp": bool(amp),
+        "batch_source": source,
+        "accum_steps": accum,
+        "attempts": int(attempts),
+        "amp_skipped_attempts": int(amp_skipped),
         "num_samples": int(num_samples),
         "batch_shapes": {k: list(v.shape) for k, v in batch.items() if torch.is_tensor(v)},
         "logits_shape": list(logits.shape),
-        "losses": {k: v for k, v in losses.items() if isinstance(v, float) or v is None},
-        "counts": losses["counts"],
-        "geometry_stats": losses["geometry"],
+        "losses": {k: v for k, v in last.items() if isinstance(v, float) or v is None},
+        "counts": last["counts"],
+        "geometry_sample": geometry,
         "grads_all_finite": bool(grads["all_finite"]),
         "grad_nonfinite": grads["nonfinite"][:5],
-        "probe_changed": int(changed),
+        "key_parameter_grad_max": {name: float(param.grad.abs().max()) for name, param in probes.items()},
+        "probe_changed_without_weight_decay": int(changed),
         "probe_total": len(before),
         "probe_deltas": deltas,
         "optimizer_coverage": coverage,
+        "weight_decay_disabled_for_probe_step": True,
     }
-    print("[check] mode=%s logits=%s" % (resolved["model_mode"], tuple(logits.shape)))
-    print("[check] losses=%s" % {k: losses[k] for k in ("seg", "cond", "obs", "total")})
-    print("[check] counts=%s" % losses["counts"])
-    print("[check] grads_finite=%s probes changed=%d/%d" % (grads["all_finite"], changed, len(before)))
+    print("[check] mode=%s source=%s amp=%s logits=%s" % (resolved["model_mode"], source, amp,
+                                                          tuple(logits.shape)))
+    print("[check] group losses=%s" % {k: last[k] for k in ("seg", "cond", "obs", "total")})
+    print("[check] counts=%s" % last["counts"])
+    print("[check] grads finite=%s; key grads max=%s"
+          % (grads["all_finite"],
+             {n.split(".")[-2] + "." + n.split(".")[-1]: round(v, 6)
+              for n, v in report["key_parameter_grad_max"].items()}))
+    print("[check] updated %d/%d key parameters with weight decay disabled (attempts=%d, AMP skipped=%d)"
+          % (changed, len(before), attempts, amp_skipped))
+    report["passed"] = True
     return report
 
 
-def run_leak_check(config, resolved, device, train_source, eval_source):
+def run_leak_check(config, resolved, device, train_source, eval_source, check_size=0):
     """Design 15.2 item 5: the hold-out targets must vanish from every Depth statistic."""
     from research.oc_rga_losses import holdout_leak_check
 
@@ -280,18 +449,24 @@ def run_leak_check(config, resolved, device, train_source, eval_source):
     criterion = nn.CrossEntropyLoss(reduction="none", ignore_index=int(config.background))
     model = build_model_for_mode(config, resolved["model_mode"], criterion=criterion).to(dev)
     model.eval()
-    loader, _plan, _n = ocdata.build_train_loader(
-        config, train_source, eval_source, resolved["micro_batch"], resolved["accum_steps"],
-        resolved["effective_batch"], 0, resolved["seed"], epoch=0,
-    )
-    batch = next(iter(loader))
-    batch = {k: (v.to(dev) if torch.is_tensor(v) else v) for k, v in batch.items()}
+    source = "synthetic"
+    if int(check_size) > 0:
+        batch = _synthetic_batch(config, int(check_size), dev, resolved["seed"])
+    else:
+        loader, _plan, _n = ocdata.build_train_loader(
+            config, train_source, eval_source, resolved["micro_batch"], resolved["accum_steps"],
+            resolved["effective_batch"], 0, resolved["seed"], epoch=0,
+        )
+        batch = next(iter(loader))
+        batch = {k: (v.to(dev) if torch.is_tensor(v) else v) for k, v in batch.items()}
+        source = "dataset"
     with torch.no_grad():
         _logits, bundle = model(batch["data"], batch["modal_x"], depth_support=batch["depth_support"],
                                 image_support=batch["image_support"], return_geometry=True)
     report = holdout_leak_check(model, bundle, batch, config)
     report["model_mode"] = resolved["model_mode"]
     report["device"] = str(dev)
+    report["batch_source"] = source
     report["degradation"] = batch.get("degradation")
     return report
 
@@ -304,6 +479,12 @@ def main(argv=None) -> int:
     config = deepcopy(getattr(import_module(args.config), "C"))
     resolved = resolve_config(config, args)
     config.model_mode = resolved["model_mode"]
+    # Write the resolved seed back once: the spatial/ degradation/ hold-out streams
+    # and the contract all read ``config.seed``, so a non-default ``--seed`` must
+    # not produce a mixed protocol where part of the pipeline still uses the
+    # config value (audit R5).
+    config.seed = int(resolved["seed"])
+    config.num_workers = int(resolved["num_workers"])
 
     if args.resume:
         run_dir = os.path.dirname(os.path.abspath(str(args.resume)))
@@ -328,14 +509,20 @@ def main(argv=None) -> int:
         return print_schedule(config, resolved, plan, schedule, policy, train_source, eval_source)
 
     if args.check:
-        report = run_check(config, resolved, args.device, train_source, eval_source)
+        try:
+            report = run_check(config, resolved, args.device, train_source, eval_source,
+                               amp=bool(args.amp), check_size=int(args.check_size))
+        except SystemExit as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
         target = os.path.join(config.log_dir, "chain-check.json")
         sched.write_json(target, report)
-        print("[check] wrote %s" % target)
+        print("[check] PASS; wrote %s" % target)
         return 0
 
     if args.leak_check:
-        report = run_leak_check(config, resolved, args.device, train_source, eval_source)
+        report = run_leak_check(config, resolved, args.device, train_source, eval_source,
+                                check_size=int(args.check_size))
         target = os.path.join(config.log_dir, "holdout-leak-check.json")
         sched.write_json(target, report)
         print("[leak-check] %s; wrote %s" % ("ALL PASS" if report["passed"] else "FAILURES", target))
@@ -353,8 +540,7 @@ def main(argv=None) -> int:
 
 
 def train(config, resolved, plan, schedule, policy, train_source, eval_source, args) -> int:
-    from research.oc_rga_losses import compute_oc_losses, geometry_statistics
-    from research import evaluate_oc_rga as oceval
+    from research.oc_rga_losses import compute_oc_losses, geometry_statistics, merge_evidence_stats
     from utils.engine.logger import get_logger
 
     os.makedirs(config.log_dir, exist_ok=True)
@@ -423,6 +609,12 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
         if payload.get("snapshot_kind") not in sched.RESUMABLE_SNAPSHOTS or payload.get("epoch_boundary") is False:
             raise SystemExit("refusing to resume from a non-epoch-boundary snapshot (%r)"
                              % payload.get("snapshot_kind"))
+        missing_state = [k for k in RESUME_REQUIRED_FIELDS if not payload.get(k)]
+        if missing_state:
+            raise SystemExit("refusing to resume: the snapshot lacks the formal training state %s "
+                             "(audit R5)" % missing_state)
+        if args.amp and not payload.get("scaler"):
+            raise SystemExit("refusing to resume with AMP: the snapshot has no GradScaler state")
         diffs = oc_contract_diff(payload.get("contract", {}), contract)
         if diffs:
             raise SystemExit("resume contract mismatch (refusing to continue):\n  " + "\n  ".join(diffs))
@@ -453,8 +645,10 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
         "epoch", "condition", "miou", "macc", "mf1", "num_samples", "realised_ratio",
         "ham_seed", "corruption_seed", "seconds",
     ])
-    stats_csv = sched.CsvWriter(os.path.join(config.log_dir, "geometry_stats.csv"),
-                                ["epoch", "attempt_update", "json"])
+    stats_csv = sched.CsvWriter(os.path.join(config.log_dir, "geometry_stats.csv"), [
+        "epoch", "attempt_update", "saturation_rate", "raw_E_p50", "m_fraction",
+        "cholesky_fallback", "omega_quantiles", "s_quantiles", "ell_quantiles", "beta_quantiles",
+    ])
 
     tracking_run = None
     if bool(getattr(config, "swanlab_enabled", False)) and not args.smoke_steps:
@@ -484,7 +678,6 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
             model.train()
             train_loader.sampler.set_epoch(epoch)
             epoch_start = time.time()
-            micro_loss_sum = 0.0
             epoch_updates = 0
             last = {}
             last_group_lrs = []
@@ -493,6 +686,34 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
             micro_in_group = 0
             stopped = False
             total_micro = plan["micro_batches_per_epoch"]
+            # One update == one accumulation group: the logged loss components are
+            # the mean over the group's micro-batches and the logged counts are the
+            # group's totals, so the curve really is an effective-batch mean rather
+            # than the last micro-batch only (audit R6.5).
+            group_sum: Dict[str, float] = {}
+            group_n: Dict[str, int] = {}
+            group_counts: Dict[str, int] = {}
+            epoch_evidence = {"samples": [], "saturated": 0.0, "entries": 0.0, "threshold": 4.0}
+
+            def accumulate(entry) -> None:
+                for key in ("seg", "cond", "cond_post", "cond_prior", "cond_huber", "obs", "total"):
+                    value = entry.get(key)
+                    if value is None:
+                        continue
+                    group_sum[key] = group_sum.get(key, 0.0) + float(value)
+                    group_n[key] = group_n.get(key, 0) + 1
+                for key, value in (entry.get("counts") or {}).items():
+                    group_counts[key] = group_counts.get(key, 0) + int(value)
+                sample = entry.get("geometry") or {}
+                if "raw_E_sample" in sample:
+                    epoch_evidence["samples"].append(sample["raw_E_sample"])
+                    epoch_evidence["saturated"] += float(sample.get("saturated", 0.0))
+                    epoch_evidence["entries"] += float(sample.get("entries", 0.0))
+                    epoch_evidence["threshold"] = float(sample.get("threshold", 4.0))
+
+            def group_mean(key: str):
+                count = group_n.get(key, 0)
+                return (group_sum.get(key, 0.0) / count) if count else None
 
             for step in range(total_micro):
                 batch = next(loader_iter)
@@ -522,7 +743,7 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                     # legally unused) contributes a constant.  It must never reach
                     # the GradScaler: an unscaled step would assert.  The whole
                     # accumulation group is dropped in that case.
-                    micro_loss_sum += float(total.detach())
+                    accumulate(losses)
                     micro_in_group += 1
                     state["micro_batches_seen"] += 1
                     smoke_samples += int(batch["data"].shape[0])
@@ -530,7 +751,9 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                     smoke_stats["no_graph_micro_batches"] += 1
                     if micro_in_group < plan["accum_steps"]:
                         continue
-                    micro_loss_sum = 0.0
+                    group_sum.clear()
+                    group_n.clear()
+                    group_counts.clear()
                     micro_in_group = 0
                     continue
                 scaled_loss = total / plan["accum_steps"]
@@ -538,7 +761,7 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                     scaler.scale(scaled_loss).backward()
                 else:
                     scaled_loss.backward()
-                micro_loss_sum += float(total.detach())
+                accumulate(losses)
                 micro_in_group += 1
                 state["micro_batches_seen"] += 1
                 smoke_samples += int(batch["data"].shape[0])
@@ -591,19 +814,21 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
                 state["amp_skipped_updates"] += int(not applied)
                 epoch_updates += 1
                 last_group_lrs = group_lrs
-                counts = last.get("counts", {})
                 loss_csv.write([
                     epoch + 1, state["attempt_updates"], state["applied_updates"],
                     state["amp_skipped_updates"], lr, last_group_lrs[0] if last_group_lrs else lr,
-                    last.get("seg"), last.get("cond"), last.get("cond_post"), last.get("cond_prior"),
-                    last.get("cond_huber"), last.get("obs"), last.get("lam_cond"), last.get("lam_obs"),
-                    float(last["total"].detach()) if last else 0.0,
-                    counts.get("images_with_targets", 0), counts.get("targets", 0),
-                    counts.get("images_with_obs", 0), counts.get("obs_cells", 0),
+                    group_mean("seg"), group_mean("cond"), group_mean("cond_post"),
+                    group_mean("cond_prior"), group_mean("cond_huber"), group_mean("obs"),
+                    (last or {}).get("lam_cond"), (last or {}).get("lam_obs"),
+                    group_mean("total"),
+                    group_counts.get("images_with_targets", 0), group_counts.get("targets", 0),
+                    group_counts.get("images_with_obs", 0), group_counts.get("obs_cells", 0),
                     ";".join("%.3e" % v for v in last_group_lrs),
                     "%.3f" % (time.time() - epoch_start),
                 ])
-                micro_loss_sum = 0.0
+                group_sum.clear()
+                group_n.clear()
+                group_counts.clear()
                 micro_in_group = 0
 
                 if args.smoke_steps and state["attempt_updates"] >= int(args.smoke_steps):
@@ -612,8 +837,35 @@ def train(config, resolved, plan, schedule, policy, train_source, eval_source, a
 
             state["completed_epochs"] = epoch if stopped else epoch + 1
             if last:
-                stats_csv.write([state["completed_epochs"], state["attempt_updates"],
-                                 sched.jsonable(last.get("geometry", {}))])
+                # One epoch-level geometry summary: the quantiles come from a
+                # bounded sample of the last bundle, while the raw-E and saturation
+                # figures accumulate the small detached samples of every
+                # micro-batch (audit R6.3/R6.4).
+                geometry = geometry_statistics(bundle, model)
+                geometry.update(merge_evidence_stats({
+                    "raw_E_sample": (torch.cat(epoch_evidence["samples"])
+                                     if epoch_evidence["samples"] else None),
+                    "saturated": epoch_evidence["saturated"],
+                    "entries": epoch_evidence["entries"],
+                    "threshold": epoch_evidence["threshold"],
+                }))
+                geometry["epoch"] = state["completed_epochs"]
+                geometry["attempt_updates"] = state["attempt_updates"]
+                geometry["micro_batches_seen"] = state["micro_batches_seen"]
+                sched.write_json(os.path.join(config.log_dir, "geometry_stats",
+                                              "epoch-%03d.json" % state["completed_epochs"]), geometry)
+                raw_q = geometry.get("raw_E_quantiles") or []
+                stats_csv.write([
+                    state["completed_epochs"], state["attempt_updates"],
+                    geometry.get("saturation", {}).get("rate"),
+                    raw_q[1] if len(raw_q) > 1 else None,
+                    geometry.get("m_fraction"), geometry.get("cholesky_fallback"),
+                    ";".join("%.4f" % v for v in (geometry.get("omega_quantiles") or [])),
+                    ";".join("%.4f" % v for v in (geometry.get("s_quantiles") or [])),
+                    json.dumps(sched.jsonable(geometry.get("ell_quantiles") or [])),
+                    json.dumps(sched.jsonable(geometry.get("beta_quantiles") or [])),
+                ])
+                epoch_evidence["samples"] = []
 
             # ---- periodic validation (clean, shared 640 protocol) ---------- #
             val_miou = None

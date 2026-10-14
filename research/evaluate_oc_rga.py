@@ -16,10 +16,11 @@ same fault realisation because it is a deterministic function of
 ``(corruption_seed, stable sample id, condition)``.
 
 Seven conditions are pre-registered: ``clean``, ``holes25``, ``holes50``,
-``holes75``, ``noise020``, ``localshift``, ``entire_missing``.  ``localshift``
-is a local depth **value** offset (design 12.1 / v0.3 clarification 3), the
-legacy CLI alias ``local_value_shift`` is accepted.  The difficulty mean is the
-equal-weight mean of ``holes25/50/75``, ``noise020`` and ``localshift``.
+``holes75``, ``noise020``, ``local_value_shift``, ``entire_missing``.
+``local_value_shift`` is a local depth **value** offset (design 12.1 / v0.3
+clarification 3); ``localshift`` remains accepted as a legacy CLI alias.  The
+difficulty mean is the equal-weight mean of ``holes25/50/75``, ``noise020`` and
+``local_value_shift``.
 """
 from __future__ import annotations
 
@@ -41,7 +42,7 @@ from research.oc_rga import Z_MAX, Z_MIN, ZERO_FILL
 from research.oc_rga_data import (
     _delete_exactly,
     _local_rectangle,
-    _local_windows,
+    _rectangle_holes,
     stream_seed,
 )
 
@@ -55,10 +56,13 @@ __all__ = [
     "evaluate_checkpoint",
 ]
 
-CONDITIONS = ("clean", "holes25", "holes50", "holes75", "noise020", "localshift", "entire_missing")
-HARD_CONDITIONS = ("holes25", "holes50", "holes75", "noise020", "localshift")
+CONDITIONS = ("clean", "holes25", "holes50", "holes75", "noise020", "local_value_shift",
+              "entire_missing")
+HARD_CONDITIONS = ("holes25", "holes50", "holes75", "noise020", "local_value_shift")
 DIFFICULTY_MEAN = HARD_CONDITIONS
-CONDITION_ALIASES = {"local_value_shift": "localshift", "entiremissing": "entire_missing"}
+# ``localshift`` was the earlier CLI spelling; ``local_value_shift`` is canonical
+# because the corruption is a local depth *value* offset, not a spatial shift.
+CONDITION_ALIASES = {"localshift": "local_value_shift", "entiremissing": "entire_missing"}
 HOLE_RATIOS = {"holes25": 0.25, "holes50": 0.50, "holes75": 0.75}
 NOISE_STD = {"noise020": 0.20}
 LOCAL_SHIFT_AREA = 0.25
@@ -112,8 +116,8 @@ def apply_condition(name: str, modal_x: torch.Tensor, image_support: torch.Tenso
         obs = image_support.clone()
         return depth, obs, info
 
-    if condition == "localshift":
-        rng = np.random.default_rng(stream_seed(corruption_seed, 0, sample_id, 0, "localshift"))
+    if condition == "local_value_shift":
+        rng = np.random.default_rng(stream_seed(corruption_seed, 0, sample_id, 0, condition))
         support = (_hw_plane(image_support) > 0)
         height, width = support.shape
         region = _local_rectangle(height, width, LOCAL_SHIFT_AREA, rng) & support
@@ -121,18 +125,28 @@ def apply_condition(name: str, modal_x: torch.Tensor, image_support: torch.Tenso
         offset = sign * LOCAL_SHIFT_MAGNITUDE
         shift = np.zeros(support.shape, dtype=np.float32)
         shift[region] = offset
+        shift_t = torch.from_numpy(shift).to(depth.device).view(1, 1, height, width)
+        depth = torch.clamp(depth + shift_t, float(Z_MIN), float(Z_MAX))
+
+        # The 10% anomalies in the shifted region *replace* the depth value on their
+        # own mask (the same convention as the training corruption), instead of
+        # being added on top of the offset and then clipped to an encoded endpoint.
+        outlier_mask = np.zeros(support.shape, dtype=bool)
         flat_idx = np.flatnonzero(region.reshape(-1))
         if flat_idx.size:
             count = max(1, int(round(LOCAL_SHIFT_OUTLIER_RATE * flat_idx.size)))
             picked = rng.choice(flat_idx, size=count, replace=False)
-            flat_shift = shift.reshape(-1)
-            flat_shift[picked] = rng.uniform(Z_MIN, Z_MAX, size=picked.size).astype(np.float32)
-            shift = flat_shift.reshape(support.shape)
-        shift_t = torch.from_numpy(shift).to(depth.device).view(1, 1, *support.shape)
-        depth = torch.clamp(depth + shift_t, float(Z_MIN), float(Z_MAX))
+            outlier_mask.reshape(-1)[picked] = True
+        replacement = rng.uniform(Z_MIN, Z_MAX, size=support.shape).astype(np.float32)
+        mask_t = torch.from_numpy(outlier_mask).to(depth.device).view(1, 1, height, width)
+        replace_t = torch.from_numpy(replacement).to(depth.device).view(1, 1, height, width)
+        # [1,3,H,W] with a [1,1,H,W] mask/value pair: all three Depth channels change
+        # consistently, and O is untouched because this is non-zero corruption.
+        depth = torch.where(mask_t, replace_t, depth)
         obs = image_support.clone()
         info["shift"] = float(offset)
         info["region_pixels"] = float(region.sum())
+        info["replaced_pixels"] = float(outlier_mask.sum())
         return depth, obs, info
 
     if condition in HOLE_RATIOS:
@@ -140,11 +154,14 @@ def apply_condition(name: str, modal_x: torch.Tensor, image_support: torch.Tenso
         support = (_hw_plane(image_support) > 0).astype(np.float32)
         height, width = support.shape
         target = int(round(HOLE_RATIOS[condition] * float(support.sum())))
-        window_mask = _local_windows(height, width, config, rng) & (support > 0)
-        import cv2
-
-        extend = cv2.dilate(window_mask.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
-        deleted = _delete_exactly(window_mask, support, target, rng, extend=extend)
+        # Rectangle-dominated holes on the 640 input grid: grow local windows until
+        # the count is reachable, then peel the union boundary to the exact count.
+        deleted = _rectangle_holes(
+            support, target, float(min(height, width)),
+            float(getattr(config, "degrade_local_window_low", 0.10)),
+            float(getattr(config, "degrade_local_window_high", 0.40)),
+            rng,
+        )
         deleted_t = torch.from_numpy(deleted).to(depth.device).view(1, 1, height, width)
         depth = torch.where(deleted_t, torch.full_like(depth, float(ZERO_FILL)), depth)
         obs = torch.where(deleted_t, torch.zeros_like(obs), obs)
@@ -153,6 +170,31 @@ def apply_condition(name: str, modal_x: torch.Tensor, image_support: torch.Tenso
         return depth, obs, info
 
     raise ValueError("condition %r has no implementation" % (name,))
+
+
+def rectangle_dominance(deleted: np.ndarray) -> Dict[str, float]:
+    """How rectangle-shaped a deletion mask is (audit R3 spot check).
+
+    Reports the connected-component count and the fill ratio inside the union of
+    each component's bounding box: a rectangle-dominated mask has a fill ratio
+    close to 1, while scattered independent pixels give a small one.
+    """
+    import cv2
+
+    labels_count, labels = cv2.connectedComponents(deleted.astype(np.uint8), connectivity=4)
+    total = int(deleted.sum())
+    boxes_area = 0
+    for label in range(1, labels_count):
+        rows, cols = np.nonzero(labels == label)
+        if rows.size == 0:
+            continue
+        boxes_area += int((rows.max() - rows.min() + 1) * (cols.max() - cols.min() + 1))
+    return {
+        "components": int(labels_count - 1),
+        "deleted_pixels": total,
+        "bbox_area": boxes_area,
+        "fill_ratio": (total / boxes_area) if boxes_area else 0.0,
+    }
 
 
 def condition_report(metrics: Dict[str, object]) -> Dict[str, object]:
@@ -188,6 +230,11 @@ def evaluate_conditions(model, loader, conditions: Sequence[str], config, device
     ignore = int(config.background)
     results: Dict[str, Dict[str, object]] = {}
     was_training = bool(model.training)
+    # The whole validation pass is wrapped in a full RNG save/restore (Python,
+    # NumPy, CPU torch and every CUDA device), and each image reseeds inside a
+    # ``fork_rng`` that covers the target devices.  Evaluating therefore cannot
+    # leave the training DropPath / HAM stream at the last image's seed.
+    outer_rng = sched.capture_rng()
     model.eval()
     try:
         for condition in conditions:
@@ -215,16 +262,13 @@ def evaluate_conditions(model, loader, conditions: Sequence[str], config, device
                 deleted += float(info.get("deleted_pixels", 0.0))
                 support_pixels += float(info.get("support_pixels", 0.0))
 
-                rng_state = torch.get_rng_state()
-                torch.manual_seed(int(ham_seed) + sample_id)
-                try:
+                with torch.random.fork_rng():
+                    sched.seed_everything(int(ham_seed) + sample_id)
                     with torch.no_grad():
                         autocast = (torch.autocast(device_type="cuda", dtype=torch.float16)
                                     if amp and device.type == "cuda" else torch.autocast(device_type="cpu", enabled=False))
                         with autocast:
                             logits = model(data, modal_c, depth_support=obs_c, image_support=image_support)
-                finally:
-                    torch.set_rng_state(rng_state)
 
                 logits = logits[..., : scaled[0], : scaled[1]]
                 if tuple(logits.shape[-2:]) != (original[0], original[1]):
@@ -247,6 +291,7 @@ def evaluate_conditions(model, loader, conditions: Sequence[str], config, device
             log("[evaluate] %-15s mIoU=%.4f mAcc=%.4f mF1=%.4f (n=%d, %.1fs)"
                 % (name, result["miou"], result["macc"], result["mf1"], samples, result["seconds"]))
     finally:
+        sched.restore_rng(outer_rng)
         model.train(was_training)
     return results
 
@@ -407,6 +452,75 @@ def run_self_check(config_name: str = "local_configs.research.OC_RGA_DeLiVER", d
     again_b, _ob, _ib = apply_condition("holes50", modal_x, support, obs, 12345, sample_id, config)
     record("fault_realisation_deterministic", bool(torch.equal(again_a, again_b)),
            "same (seed, sample id, condition) -> identical fault")
+
+    # R3: the holes must be rectangle-dominated at every registered severity (not
+    # a scattered independent-pixel mask), the count must be exact, and the final
+    # boundary adjustment must stay small.
+    support_plane = (_hw_plane(support) > 0).astype(np.float32)
+    dominance = {}
+    for condition, ratio in sorted(HOLE_RATIOS.items()):
+        target = int(round(ratio * float(support_plane.sum())))
+        rng = np.random.default_rng(stream_seed(12345, 0, sample_id, 0, "r3-%s" % condition))
+        window_stats: Dict[str, float] = {}
+        deleted = _rectangle_holes(support_plane, target, float(min(support_plane.shape)),
+                                   0.10, 0.40, rng, stats=window_stats)
+        scattered = _delete_exactly(np.zeros_like(support_plane, dtype=bool),
+                                    support_plane, target, rng)
+        rect = rectangle_dominance(deleted)
+        scat = rectangle_dominance(scattered)
+        dominance[condition] = {
+            "requested_ratio": ratio,
+            "realised_ratio": float(deleted.sum()) / max(1.0, float(support_plane.sum())),
+            "deleted_pixels": int(deleted.sum()),
+            "target_pixels": target,
+            "rect_components": rect["components"],
+            "rect_mean_size": rect["deleted_pixels"] / max(1, rect["components"]),
+            "scatter_components": scat["components"],
+            "scatter_mean_size": scat["deleted_pixels"] / max(1, scat["components"]),
+            "trim_fraction": window_stats.get("trim_fraction", 0.0),
+            "windows": window_stats.get("windows", 0.0),
+        }
+    ok_dominance = all(
+        v["deleted_pixels"] == v["target_pixels"]
+        and v["rect_mean_size"] > 20.0 * max(1.0, v["scatter_mean_size"])
+        and v["trim_fraction"] < 0.05
+        for v in dominance.values())
+    record("holes_are_rectangle_dominated", ok_dominance,
+           "; ".join("%s exact=%d windows=%d rectMean=%.0f vs scatterMean=%.2f trim=%.4f"
+                     % (k, v["target_pixels"], v["windows"], v["rect_mean_size"],
+                        v["scatter_mean_size"], v["trim_fraction"])
+                     for k, v in dominance.items()))
+    report["hole_dominance"] = dominance
+
+    # R4: the local value shift replaces the outlier pixels instead of adding to
+    # them, leaves O untouched and changes all three Depth channels identically.
+    _d, obs_shift, info_shift = apply_condition("local_value_shift", modal_x, support, obs,
+                                               12345, sample_id, config)
+    record("local_value_shift_keeps_observation", bool(torch.equal(obs_shift, support)),
+           "non-zero corruption leaves O = S")
+    record("local_value_shift_reports_replacement",
+           "replaced_pixels" in info_shift and info_shift["replaced_pixels"] > 0,
+           "replaced %d pixels inside the shifted region" % int(info_shift.get("replaced_pixels", 0)))
+    record("localshift_alias_still_accepted",
+           normalise_condition("localshift") == "local_value_shift",
+           "legacy CLI spelling maps to the canonical condition")
+
+    # R7: the evaluation padding band must carry S = 0 (and the RGB padding the
+    # standardised zero), so a finite fill value cannot be read as an observation.
+    from research.oc_rga_data import pad_to_multiple as pad_np
+
+    tiny_support = pad_np(np.ones((20, 30), dtype=np.float32), 32, 0.0)
+    tiny_rgb = pad_np(np.ones((20, 30, 3), dtype=np.float32), 32, 0.0)
+    padding_ok = (
+        tiny_support.shape == (32, 32)
+        and tiny_rgb.shape == (32, 32, 3)
+        and float(tiny_support[:20, :30].min()) == 1.0
+        and float(tiny_support[20:, :].max()) == 0.0
+        and float(tiny_support[:, 30:].max()) == 0.0
+        and float(tiny_rgb[20:, :].max()) == 0.0
+    )
+    record("r7_padding_band_has_zero_support", padding_ok,
+           "20x30 -> %s, real region S=1, band S=0" % (tuple(tiny_support.shape),))
 
     for name, result in results.items():
         confusion = torch.tensor(result["confusion"], dtype=torch.float64)

@@ -551,9 +551,17 @@ class RGBD_Block(nn.Module):
                 bias_w = (bs_w + beta * stage["Ehat_w"].transpose(1, 2)).transpose(1, 2)
                 bias_h = (bs_h + beta * stage["Ehat_h"].transpose(1, 2)).transpose(1, 2)
             else:
+                # Mask-aware baseline (design 11.2).  The pooled relation
+                # ``|ybar_i - ybar_j| m_i m_j`` is premultiplied here by the author
+                # per-head depth decay, because ``GeoPriorGen`` only applies the
+                # signed ``weight[1]`` to a supplied ``depth_relation`` and would
+                # otherwise drop the decay entirely.  The signed coefficient is
+                # therefore still applied exactly once, by the author module.
+                decay5 = self.Geo.decay.reshape(1, -1, 1, 1, 1).to(stage["base_w"].dtype)
                 rel_pos, parts = self.Geo(
                     (h, w), None, split_or_not=True,
-                    depth_relation=(stage["base_h"], stage["base_w"]), return_components=True,
+                    depth_relation=(stage["base_h"] * decay5, stage["base_w"] * decay5),
+                    return_components=True,
                 )
                 bias_w = (parts["bs_w"] + parts["bd_w"]).transpose(1, 2)
                 bias_h = (parts["bs_h"] + parts["bd_h"]).transpose(1, 2)
@@ -571,9 +579,12 @@ class RGBD_Block(nn.Module):
             beta = self.oc_injection().view(1, -1, 1, 1)
             bias = bs + beta * stage["Ehat_full"]
         else:
+            # Full-attention baseline: same premultiplied decay, ``weight[1]``
+            # applied once by ``GeoPriorGen``.
+            decay4 = self.Geo.decay.reshape(1, -1, 1, 1).to(stage["base_full"].dtype)
             rel_pos, parts = self.Geo(
                 (h, w), None, split_or_not=False,
-                depth_relation=stage["base_full"], return_components=True,
+                depth_relation=stage["base_full"] * decay4, return_components=True,
             )
             bias = parts["bs"] + parts["bd"]
         valid = stage["valid"].reshape(stage["valid"].shape[0], -1)

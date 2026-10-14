@@ -67,6 +67,8 @@ __all__ = [
     "VREF_RAW_MAX",
     "stream_seed",
     "degrade_depth",
+    "_rectangle_holes",
+    "_trim_rectangle_boundary",
     "OCRGADataset",
     "OCRGAEvalDataset",
     "EpochPermutationSampler",
@@ -149,22 +151,108 @@ def _delete_exactly(candidate: np.ndarray, support: np.ndarray, target: int,
     return out.reshape(support.shape)
 
 
-def _local_windows(height: int, width: int, config, rng: np.random.Generator) -> np.ndarray:
-    """A union of local windows whose side is 0.1-0.4 of the crop short side."""
-    short = float(min(height, width))
-    low = float(getattr(config, "degrade_local_window_low", 0.10))
-    high = float(getattr(config, "degrade_local_window_high", 0.40))
-    windows = np.zeros((height, width), dtype=bool)
-    for _ in range(6):
-        side = max(2.0, _pick(low, high, rng) * short)
-        h_side = int(max(1, round(side * float(rng.uniform(0.6, 1.4)))))
-        w_side = int(max(1, round(side * float(rng.uniform(0.6, 1.4)))))
-        h_side = min(h_side, height)
-        w_side = min(w_side, width)
+def _trim_rectangle_boundary(mask: np.ndarray, target: int) -> np.ndarray:
+    """Peel a rectangle union down to exactly ``target`` pixels from its boundary."""
+    import cv2
+
+    kernel = np.ones((3, 3), np.uint8)
+    current = mask.copy()
+    while int(current.sum()) > target:
+        excess = int(current.sum()) - target
+        eroded = cv2.erode(current.astype(np.uint8), kernel) > 0
+        boundary = current & (~eroded)
+        count = int(boundary.sum())
+        if count == 0 or count > excess:
+            flat = current.reshape(-1)
+            candidates = np.flatnonzero(boundary.reshape(-1))
+            if candidates.size == 0:
+                candidates = np.flatnonzero(flat)
+            flat[candidates[:excess]] = False
+            current = flat.reshape(current.shape)
+        else:
+            current = eroded
+    return current
+
+
+def _rectangle_holes(support: np.ndarray, target: int, short_side: float,
+                     low: float, high: float, rng: np.random.Generator,
+                     max_windows: int = 64, stats: Optional[Dict[str, float]] = None) -> np.ndarray:
+    """Rectangle-dominated local depletion with exactly ``target`` support pixels.
+
+    Rectangles of side ``0.1-0.4`` of the crop short side are added, and existing
+    rectangles are locally expanded, until the requested count is reached.  Each
+    new rectangle is capped to the remaining budget, so the union lands close to
+    the target and the final adjustment only peels a small part of its boundary.
+    There is deliberately no fallback that scatters independent pixels over the
+    whole support domain: that family is the separate ``pixel_missing`` condition
+    (design 9.2).
+    """
+    height, width = support.shape
+    support_mask = support > 0
+    deleted = np.zeros((height, width), dtype=bool)
+    total_support = int(support_mask.sum())
+    target = int(min(int(target), total_support))
+    windows = 0
+    grown = 0
+    current = 0
+    while current < target and windows < max_windows:
+        remaining = target - current
+        if deleted.any() and float(rng.random()) < 0.5:
+            ys, xs = np.nonzero(deleted)
+            top, bottom = int(ys.min()), int(ys.max()) + 1
+            left, right = int(xs.min()), int(xs.max()) + 1
+            grow = max(1, int(round(0.15 * max(bottom - top, right - left))))
+            ntop, nbottom = max(0, top - grow), min(height, bottom + grow)
+            nleft, nright = max(0, left - grow), min(width, right + grow)
+            rectangle = np.zeros_like(deleted)
+            rectangle[ntop:nbottom, nleft:nright] = True
+            added = int((rectangle & support_mask & (~deleted)).sum())
+            if 0 < added <= remaining + max(1, grow * 4):
+                deleted |= rectangle
+                grown += 1
+                current = int((deleted & support_mask).sum())
+                continue
+        windows += 1
+        side = max(2.0, float(rng.uniform(low, high)) * float(short_side))
+        h_side = min(height, max(1, int(round(side * float(rng.uniform(0.6, 1.4))))))
+        w_side = min(width, max(1, int(round(side * float(rng.uniform(0.6, 1.4))))))
+        # Cap the rectangle so it does not overshoot the remaining budget by much.
+        max_w = max(1, int(min(width, np.ceil(remaining / float(h_side)))))
+        w_side = min(w_side, max_w)
         top = int(rng.integers(0, height - h_side + 1))
         left = int(rng.integers(0, width - w_side + 1))
-        windows[top: top + h_side, left: left + w_side] = True
-    return windows
+        deleted[top: top + h_side, left: left + w_side] = True
+        current = int((deleted & support_mask).sum())
+
+    # Coverage guarantee: keep expanding the local rectangle hull (still one
+    # rectangle) until the target is at least reachable, never by random scatter.
+    guard = 0
+    while current < target and guard <= max(height, width):
+        guard += 1
+        ys, xs = np.nonzero(deleted)
+        if ys.size == 0:
+            deleted[:] = True
+            break
+        top, bottom = int(ys.min()), int(ys.max()) + 1
+        left, right = int(xs.min()), int(xs.max()) + 1
+        deleted[max(0, top - 1): min(height, bottom + 1),
+                max(0, left - 1): min(width, right + 1)] = True
+        current = int((deleted & support_mask).sum())
+
+    deleted &= support_mask
+    union_pixels = int(deleted.sum())
+    target = min(target, union_pixels)
+    trimmed = 0
+    if union_pixels > target:
+        deleted = _trim_rectangle_boundary(deleted, target)
+        trimmed = union_pixels - int(deleted.sum())
+    if stats is not None:
+        stats["windows"] = float(windows)
+        stats["grown"] = float(grown)
+        stats["union_pixels"] = float(union_pixels)
+        stats["trimmed_pixels"] = float(trimmed)
+        stats["trim_fraction"] = float(trimmed) / float(max(union_pixels, 1))
+    return deleted
 
 
 def _local_rectangle(height: int, width: int, area_fraction: float,
@@ -215,9 +303,16 @@ def degrade_depth(reference: np.ndarray, support: np.ndarray, config,
         ratio = _pick(low, high, rng)
         target = int(round(ratio * float(support.sum())))
         if family == 1:
-            seed_mask = _local_windows(height, width, config, rng) & (support > 0)
-            extend = cv2.dilate(seed_mask.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
-            deleted = _delete_exactly(seed_mask, support, target, rng, extend=extend)
+            # Rectangle-dominated local depletion (design 9.2), never independent
+            # pixel scattering: that is the separate ``pixel_missing`` family.
+            deleted = _rectangle_holes(
+                support,
+                target,
+                float(min(height, width)),
+                float(getattr(config, "degrade_local_window_low", 0.10)),
+                float(getattr(config, "degrade_local_window_high", 0.40)),
+                rng,
+            )
             info["mode"] = "local_holes"
         else:
             deleted = _delete_exactly(np.zeros_like(support, dtype=bool), support, target, rng)
@@ -430,10 +525,15 @@ class OCRGAEvalDataset(DeLiVERDataset):
         rgb_s = cv2.resize(rgb, (width, height), interpolation=cv2.INTER_LINEAR)
         depth_s = cv2.resize(depth_raw.astype(np.float32), (width, height), interpolation=cv2.INTER_LINEAR)
 
-        rgb_s = pad_to_multiple(rgb_s, 32, 0)
-        depth_s = pad_to_multiple(depth_s, 32, 0.0)
-        support = np.isfinite(depth_s).astype(np.float32)
+        # The real image support ``S`` is established *before* any padding, so the
+        # added border can never be mistaken for a valid observation just because
+        # its fill value is finite (audit R7).  RGB is normalised first and only
+        # then padded with the standardised zero.
+        support = np.ones((height, width), dtype=np.float32)
         rgb_n = normalize(rgb_s, self.norm_mean, self.norm_std)
+        rgb_n = pad_to_multiple(rgb_n, 32, 0.0)
+        depth_s = pad_to_multiple(depth_s, 32, 0.0)
+        support = pad_to_multiple(support, 32, 0.0)
         encoded = ((depth_s.astype(np.float64) / 255.0) - DEPTH_NORM_MEAN) / DEPTH_NORM_STD
 
         return dict(
@@ -518,6 +618,19 @@ def dataset_setting(config, train_source, eval_source) -> Dict[str, object]:
     }
 
 
+def loader_generator(seed: int, name: str, epoch: int = 0) -> torch.Generator:
+    """Independent base-seed stream for a DataLoader.
+
+    Seeding loader workers from the global RNG would make the CPU HAM basis and
+    the training DropPath depend on how many loader iterators were built, which
+    changes on resume.  This generator comes from the stable stream key instead,
+    so the workers never perturb the training RNG.
+    """
+    generator = torch.Generator()
+    generator.manual_seed(stream_seed(int(seed), int(epoch), 0, 0, "loader-%s" % name))
+    return generator
+
+
 def build_train_loader(config, train_source, eval_source, micro_batch, accum_steps,
                        effective_batch, num_workers, seed, epoch=0):
     from research.odg_schedule import manifest_lines, plan_epoch
@@ -538,12 +651,13 @@ def build_train_loader(config, train_source, eval_source, micro_batch, accum_ste
         drop_last=False,
         pin_memory=True,
         persistent_workers=int(num_workers) > 0,
+        generator=loader_generator(seed, "train", epoch),
     )
     return loader, plan, num_samples
 
 
 def build_eval_loader(config, eval_source, train_source, num_workers=0):
-    setting = dataset_setting(config, train_source, eval_source)
+    setting = dataset_setting(config, eval_source, train_source)
     dataset = OCRGAEvalDataset(setting, "val", config)
     loader = torch.utils.data.DataLoader(
         dataset,
@@ -553,6 +667,7 @@ def build_eval_loader(config, eval_source, train_source, num_workers=0):
         drop_last=False,
         pin_memory=True,
         persistent_workers=int(num_workers) > 0,
+        generator=loader_generator(int(getattr(config, "seed", 12345)), "eval"),
     )
     return loader, len(dataset)
 

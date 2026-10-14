@@ -30,6 +30,7 @@ import torch.nn.functional as F
 from research.oc_rga import (
     SIGMA_REF,
     ZERO_FILL,
+    autocast_off,
     cell_summaries,
     condition_low_rank,
     joint_low_rank_nll,
@@ -42,6 +43,8 @@ __all__ = [
     "compute_oc_losses",
     "loss_scales",
     "geometry_statistics",
+    "evidence_sample_stats",
+    "merge_evidence_stats",
     "holdout_leak_check",
 ]
 
@@ -135,10 +138,9 @@ def build_auxiliary_context(
     training-only sparsification removes 50-95% of the *remaining observed cells*
     for a fraction of the batch; it never touches the main segmentation input.
     """
-    depth_aux = modal_x[:, 0:1].clone()
-    obs_aux = observation.clone()
+    depth = modal_x[:, 0:1]
     support = image_support > 0
-    height, width = depth_aux.shape[-2:]
+    batch, _, height, width = depth.shape
     if height % cell or width % cell:
         raise ValueError("the auxiliary hold-out needs a multiple of the base cell")
     h0, w0 = height // cell, width // cell
@@ -147,15 +149,16 @@ def build_auxiliary_context(
     high = float(getattr(config, "loss_holdout_sparse_high", 0.95))
     info = {"hidden_cells": 0, "sparse_images": 0, "sparse_cells": 0}
 
-    for b in range(depth_aux.shape[0]):
+    # A single cell-resolution boolean mask, expanded once to the pixel grid and
+    # applied with two ``where`` calls.  The earlier per-cell Tensor slice writes
+    # cost thousands of small operations per image on a dense 480 grid.
+    hide = torch.zeros((batch, h0, w0), dtype=torch.bool, device=depth.device)
+    for b in range(batch):
         idx = targets[b]
-        cell_obs = (obs_aux[b, 0] > 0).reshape(h0, cell, w0, cell).any(dim=(1, 3))
+        flat_hide = hide[b].reshape(-1)
+        cell_obs = (observation[b, 0] > 0).reshape(h0, cell, w0, cell).any(dim=(1, 3))
         if idx.numel():
-            rows = torch.div(idx, w0, rounding_mode="floor") * cell
-            cols = (idx % w0) * cell
-            for r, c in zip(rows.tolist(), cols.tolist()):
-                obs_aux[b, 0, r: r + cell, c: c + cell] = 0.0
-                depth_aux[b, 0, r: r + cell, c: c + cell] = float(ZERO_FILL)
+            flat_hide[idx] = True
             info["hidden_cells"] += int(idx.numel())
         if float(rngs[b].random()) < sparse_prob:
             remaining = cell_obs.clone()
@@ -167,13 +170,14 @@ def build_auxiliary_context(
                 count = int(round(ratio * pool.size))
                 if count > 0:
                     chosen = rngs[b].choice(pool, size=count, replace=False)
-                    for flat_index in chosen.tolist():
-                        r = (flat_index // w0) * cell
-                        c = (flat_index % w0) * cell
-                        obs_aux[b, 0, r: r + cell, c: c + cell] = 0.0
-                        depth_aux[b, 0, r: r + cell, c: c + cell] = float(ZERO_FILL)
+                    flat_hide[torch.from_numpy(chosen).to(depth.device)] = True
                     info["sparse_cells"] += int(count)
             info["sparse_images"] += 1
+
+    pixel = hide.repeat_interleave(cell, dim=1).repeat_interleave(cell, dim=2).unsqueeze(1)
+    pixel = pixel & support
+    depth_aux = torch.where(pixel, torch.full_like(depth, float(ZERO_FILL)), depth)
+    obs_aux = torch.where(pixel, torch.zeros_like(observation), observation)
     obs_aux = obs_aux * support.to(obs_aux.dtype)
     return depth_aux, obs_aux, info
 
@@ -392,7 +396,9 @@ def compute_oc_losses(model, logits: torch.Tensor, bundle, batch: Dict[str, torc
             obs_total = per_image.mean()
 
     total = seg + lam_g * cond_total + lam_o * obs_total
-    stats = geometry_statistics(bundle, model)
+    # Only the values the evidence path already produced; the heavier quantile
+    # summary is an epoch-level call (audit R6).
+    stats = evidence_sample_stats(bundle, model) or {}
     return {
         "seg": float(seg.detach()),
         "cond": float(cond_total.detach()),
@@ -411,17 +417,23 @@ def compute_oc_losses(model, logits: torch.Tensor, bundle, batch: Dict[str, torc
 # --------------------------------------------------------------------------- #
 # Hold-out leak check (design 15.2 item 5)
 # --------------------------------------------------------------------------- #
+def _cell_pixel_mask(cell_mask: torch.Tensor, cell: int) -> torch.Tensor:
+    """Expand a ``[B,H0,W0]`` bool cell mask to a ``[B,1,H,W]`` pixel mask."""
+    return cell_mask.repeat_interleave(cell, dim=1).repeat_interleave(cell, dim=2).unsqueeze(1)
+
+
 @torch.no_grad()
 def holdout_leak_check(model, bundle, batch: Dict[str, torch.Tensor], config) -> Dict[str, object]:
     """Prove the hold-out targets cannot reach the auxiliary conditioning.
 
-    Protocol: build the auxiliary context, then change the **reference** depth of
-    the target cells by a large amount.  The target selection, every auxiliary
-    observation summary, the whole precision-head input, the auxiliary precision
-    and the auxiliary posterior must be bit-identical; the reference target value
-    must change.  A positive control perturbs the observed depth of a *non-target*
-    observed cell and requires the auxiliary conditioning to change, so the check
-    can actually fail.
+    Protocol (audit R8): build the auxiliary context for a fixed RGB / S / O /
+    target set and a fixed random stream, then change the **actual observation**
+    (the observed Depth and ``O``) of the whole target cells.  Every auxiliary
+    quantity must be bit-identical: the summaries ``y/m/f/a_obs``, the *complete*
+    precision-head input, the auxiliary precision and the auxiliary posterior.
+    Two controls keep the check falsifiable: perturbing a non-target observed cell
+    must move the auxiliary conditioning, and re-running the model with a changed
+    *reference* must not change the returned geometry bundle.
     """
     from research.oc_rga_data import stream_seed
 
@@ -444,18 +456,15 @@ def holdout_leak_check(model, bundle, batch: Dict[str, torch.Tensor], config) ->
         report["checks"][name] = {"ok": bool(ok), "detail": detail}
         if not ok:
             report["failures"].append(name)
-        print("[leak-check] %-34s %s  %s" % (name, "PASS" if ok else "FAIL", detail))
+        print("[leak-check] %-36s %s  %s" % (name, "PASS" if ok else "FAIL", detail))
 
     seed = int(getattr(config, "seed", 12345))
 
     def fresh_rngs():
         """Identical fresh hold-out streams, so the sparsification is reproducible."""
-        generators = []
-        for b in range(batch_size):
-            generators.append(np.random.default_rng(stream_seed(
-                seed, int(batch["epoch"][b]), int(batch["sample_id"][b]),
-                int(batch["repeat_index"][b]), "holdout")))
-        return generators
+        return [np.random.default_rng(stream_seed(
+            seed, int(batch["epoch"][b]), int(batch["sample_id"][b]),
+            int(batch["repeat_index"][b]), "holdout")) for b in range(batch_size)]
 
     def pick_targets(generators):
         return [torch.from_numpy(select_holdout_targets(
@@ -463,70 +472,80 @@ def holdout_leak_check(model, bundle, batch: Dict[str, torch.Tensor], config) ->
             int(getattr(config, "loss_holdout_targets", 256)))).long().to(device)
             for b in range(batch_size)]
 
+    def aux_of(depth_input, obs_input, targets):
+        depth_aux, obs_aux, _ = build_auxiliary_context(
+            depth_input, obs_input, image_support, targets, cell, config, fresh_rngs())
+        return depth_aux, obs_aux, _auxiliary_conditioning(
+            model, bundle, depth_aux, obs_aux, image_support)
+
+    def _delta(a, b):
+        return float((a - b).abs().max()) if a.shape == b.shape else float("inf")
+
     targets = pick_targets(fresh_rngs())
     total_targets = int(sum(int(t.numel()) for t in targets))
     record("targets_selected", total_targets > 0, "%d target cells" % total_targets)
 
-    depth_aux, obs_aux, _ = build_auxiliary_context(
-        modal_x, observation, image_support, targets, cell, config, fresh_rngs())
-    base_aux = _auxiliary_conditioning(model, bundle, depth_aux, obs_aux, image_support)
-
-    def _compare(a, b):
-        return float((a - b).abs().max()) if a.shape == b.shape else float("inf")
-
-    # --- perturb the reference depth of the target cells ------------------ #
+    depth_aux, obs_aux, base_aux = aux_of(modal_x, observation, targets)
     h0, w0 = legal_cells.shape[1], legal_cells.shape[2]
-    reference_p = reference.clone()
+    target_cells = torch.zeros((batch_size, h0, w0), dtype=torch.bool, device=device)
     for b, picked in enumerate(targets):
-        rows = torch.div(picked, w0, rounding_mode="floor") * cell
-        cols = (picked % w0) * cell
-        for r, c in zip(rows.tolist(), cols.tolist()):
-            reference_p[b, 0, r: r + cell, c: c + cell] += 1.234
-    ref_mean_p = cell_summaries(reference_p, image_support, image_support, cell)
-    legal_p = (ref_mean_p["n"] > 0) & (ref_legal["k"] >= ref_mean_p["n"] - 1e-6)
-    record("target_selection_unchanged",
-           bool(torch.equal(legal_p, legal_cells)),
-           "reference *values* changed; the legal-cell mask from Vref is unchanged")
+        if picked.numel():
+            target_cells[b].reshape(-1)[picked] = True
+    target_pixels = _cell_pixel_mask(target_cells, cell) & (image_support > 0)
 
-    targets2 = pick_targets(fresh_rngs())
-    record("targets_identical_after_reference_change",
-           all(bool(torch.equal(a, b)) for a, b in zip(targets, targets2)),
-           "same targets after changing only the reference values")
+    # --- negative control: change the *observed* value of the targets ------ #
+    modal_target = modal_x.clone()
+    obs_target = observation.clone()
+    modal_target[:, 0:1][target_pixels] += 5.0
+    obs_target[target_pixels] = 0.0
+    record("target_observation_really_changed",
+           float((modal_target - modal_x).abs().max()) > 1.0
+           and bool((obs_target < observation).any()),
+           "observed Depth and O changed on %d pixels" % int(target_pixels.sum()))
 
-    depth_aux2, obs_aux2, _ = build_auxiliary_context(
-        modal_x, observation, image_support, targets2, cell, config, fresh_rngs())
-    aux2 = _auxiliary_conditioning(model, bundle, depth_aux2, obs_aux2, image_support)
-
+    depth_aux2, obs_aux2, aux2 = aux_of(modal_target, obs_target, targets)
     record("auxiliary_input_unchanged",
            bool(torch.equal(depth_aux, depth_aux2)) and bool(torch.equal(obs_aux, obs_aux2)),
-           "auxiliary depth/O identical")
+           "auxiliary depth/O bit-identical after changing the target observation")
     for key in ("y", "m", "f"):
-        record("auxiliary_summary_%s_unchanged" % key,
-               _compare(base_aux[key], aux2[key]) == 0.0,
-               "max|d%s|=%.3e" % (key, _compare(base_aux[key], aux2[key])))
-    for key in ("omega2", "mu_post", "delta", "F"):
-        delta = _compare(base_aux[key], aux2[key])
-        record("auxiliary_%s_unchanged" % key, delta == 0.0, "max|d|=%.3e" % delta)
+        value = _delta(base_aux[key], aux2[key])
+        record("auxiliary_summary_%s_unchanged" % key, value == 0.0, "max|d%s|=%.3e" % (key, value))
 
-    target_shift = float((ref_mean_p["y"] - ref_mean["y"]).abs().max())
-    record("reference_target_value_changed", target_shift > 0.5,
-           "max|d target|=%.4f" % target_shift)
+    def precision_input(aux, depth_plane, obs_plane):
+        """The complete 69-channel input the auxiliary precision head consumes."""
+        a_obs = cell_summaries(depth_plane, obs_plane, image_support, cell)["a_obs"].unsqueeze(-1)
+        return model.geometry.precision_inputs(
+            bundle.geometry["context"], aux["y"], aux["m"], aux["f"], a_obs, bundle.base["mu"])
 
-    # --- main posterior is unchanged (it never sees the reference) -------- #
-    main_mu = bundle.base["mu_post"]
-    record("main_posterior_does_not_see_reference",
-           float(bundle.base["y"].abs().sum()) >= 0.0,
-           "main conditioning is a function of RGB and the observed Depth only")
+    moved_keys = ("y", "m", "f", "omega2", "mu_post", "delta", "F")
+    worst = max(_delta(base_aux[key], aux2[key]) for key in moved_keys)
+    record("auxiliary_tensors_unchanged", worst == 0.0,
+           "y/m/f/omega2/mu_post/delta/F max|d|=%.3e" % worst)
 
-    # --- positive control: perturb the observation of a non-target cell --- #
+    # Compare the complete 69-channel precision-head input explicitly.
+    with autocast_off(bundle.base["mu"].device):
+        ref_input = precision_input(base_aux, depth_aux, obs_aux).float()
+        new_input = precision_input(aux2, depth_aux2, obs_aux2).float()
+    record("precision_head_input_unchanged", _delta(ref_input, new_input) == 0.0,
+           "max|d 69-channel precision input|=%.3e" % _delta(ref_input, new_input))
+
+    # --- the model output does not depend on the reference at all ---------- #
+    batch_alt = dict(batch)
+    batch_alt["reference_depth"] = reference + 1.234
+    with autocast_off(device):
+        _logits_a, bundle_a = model(batch["data"], modal_x, depth_support=observation,
+                                    image_support=image_support, return_geometry=True)
+        _logits_b, bundle_b = model(batch_alt["data"], modal_x, depth_support=observation,
+                                    image_support=image_support, return_geometry=True)
+    same = all(bool(torch.equal(bundle_a.base[key], bundle_b.base[key]))
+               for key in ("mu", "U", "s2", "mu_post", "delta", "F"))
+    record("model_output_independent_of_reference", same,
+           "identical geometry bundle with a changed reference depth")
+
+    # --- positive control: perturb a non-target observed cell -------------- #
     flat_targets = torch.zeros(int(observation[0, 0].numel()), dtype=torch.bool, device=device)
-    for b, picked in enumerate(targets):
-        rows = torch.div(picked, w0, rounding_mode="floor") * cell
-        cols = (picked % w0) * cell
-        mask = torch.zeros_like(observation[b, 0], dtype=torch.bool)
-        for r, c in zip(rows.tolist(), cols.tolist()):
-            mask[r: r + cell, c: c + cell] = True
-        candidate = (~mask) & (observation[b, 0] > 0)
+    for b in range(batch_size):
+        candidate = (~target_pixels[b, 0]) & (observation[b, 0] > 0)
         idx = torch.nonzero(candidate.reshape(-1), as_tuple=False).flatten()
         if idx.numel():
             flat_targets[idx[0]] = True
@@ -535,12 +554,11 @@ def holdout_leak_check(model, bundle, batch: Dict[str, torch.Tensor], config) ->
         modal_probe = modal_x.clone()
         for b in range(batch_size):
             modal_probe[b, 0][probe_mask] += 0.5
-        depth_probe, obs_probe, _ = build_auxiliary_context(
-            modal_probe, observation, image_support, targets, cell, config, fresh_rngs())
-        aux_probe = _auxiliary_conditioning(model, bundle, depth_probe, obs_probe, image_support)
-        moved = _compare(base_aux["mu_post"], aux_probe["mu_post"])
+        _depth_probe, _obs_probe, aux_probe = aux_of(modal_probe, observation, targets)
+        moved = _delta(base_aux["mu_post"], aux_probe["mu_post"])
         record("positive_control_non_target_observation_moves_aux",
-               moved > 1e-6, "max|d mu_post|=%.3e after perturbing one non-target observed cell" % moved)
+               moved > 1e-6,
+               "max|d mu_post|=%.3e after perturbing one non-target observed cell" % moved)
     else:
         report["not_run"] = "positive control skipped (no non-target observed cell)"
 
@@ -552,20 +570,92 @@ def holdout_leak_check(model, bundle, batch: Dict[str, torch.Tensor], config) ->
 # --------------------------------------------------------------------------- #
 # Light per-epoch geometry statistics (design 15.4)
 # --------------------------------------------------------------------------- #
-def _quantiles(tensor: torch.Tensor, points: Sequence[float], limit: int = 4096) -> List[float]:
-    flat = tensor.detach().reshape(-1)
-    if flat.numel() > limit:
-        step = max(1, flat.numel() // limit)
-        flat = flat[::step][:limit]
+def _sample_tensor(tensor: torch.Tensor, limit: int = 2048) -> torch.Tensor:
+    """Cheap representative FP32 sample without copying the whole tensor.
+
+    The largest dimension is repeatedly narrowed (a *view*, not a copy) until the
+    element count fits the budget; only the final small block is materialised on
+    the host.
+    """
+    out = tensor.detach()
+    while out.numel() > limit and out.dim() > 0:
+        dim = int(max(range(out.dim()), key=lambda d: out.shape[d]))
+        if out.shape[dim] <= 1:
+            break
+        keep = max(1, int(out.shape[dim]) // 2)
+        out = out.narrow(dim, 0, keep)
+    return out.reshape(-1).float().cpu()
+
+
+def _quantiles(tensor: torch.Tensor, points: Sequence[float], limit: int = 2048) -> List[float]:
+    """Quantiles of a small FP32 sample; dtype is unified so FP16/BF16 cannot break it."""
+    flat = _sample_tensor(tensor, limit)
     if flat.numel() == 0:
         return [0.0 for _ in points]
-    q = torch.tensor(list(points), device=flat.device, dtype=flat.dtype)
-    return [float(v) for v in torch.quantile(flat.float().cpu(), q.cpu())]
+    q = torch.tensor(list(points), dtype=flat.dtype)
+    return [float(v) for v in torch.quantile(flat, q)]
+
+
+@torch.no_grad()
+def evidence_sample_stats(bundle, model) -> Optional[Dict[str, object]]:
+    """Per-micro-batch evidence summary that costs nothing extra.
+
+    Only values the evidence path already produced are read: the small *detached*
+    raw-``E`` sample (before the ``tau*tanh`` saturation) and the pre-registered
+    saturation counts with the ``|E| > tau`` threshold.  No pair tensor is
+    summarised here and nothing is reduced over the full pair grid.
+    """
+    if not getattr(model.geometry, "uses_evidence", False):
+        return None
+    samples: List[torch.Tensor] = []
+    saturated = 0.0
+    entries = 0.0
+    threshold = float(getattr(model.geometry.evidence, "tau", 4.0))
+    for index in range(4):
+        stage = bundle.stage(index)
+        sample = stage.get("raw_E_sample")
+        if sample is None:
+            continue
+        samples.append(sample.detach().float().cpu())
+        counts = stage.get("saturation", {})
+        saturated += float(counts.get("saturated", 0.0))
+        entries += float(counts.get("entries", 0.0))
+    if not samples:
+        return None
+    return {
+        "raw_E_sample": torch.cat(samples),
+        "saturated": saturated,
+        "entries": entries,
+        "threshold": threshold,
+    }
+
+
+def merge_evidence_stats(accumulated: Dict[str, object]) -> Dict[str, object]:
+    """Turn an epoch's accumulated evidence samples into one epoch-level summary."""
+    samples = accumulated.get("raw_E_sample")
+    entries = float(accumulated.get("entries", 0.0) or 0.0)
+    saturated = float(accumulated.get("saturated", 0.0) or 0.0)
+    summary: Dict[str, object] = {
+        "raw_E_quantiles": [],
+        "saturation": {"saturated": saturated, "entries": entries,
+                       "rate": (saturated / entries) if entries else 0.0,
+                       "threshold": float(accumulated.get("threshold", 4.0)),
+                       "definition": "fraction of sampled raw E with |E| > tau"},
+    }
+    if samples is not None and samples.numel():
+        summary["raw_E_quantiles"] = _quantiles(samples, (0.01, 0.5, 0.99), limit=4096)
+    return summary
 
 
 @torch.no_grad()
 def geometry_statistics(bundle, model) -> Dict[str, object]:
-    """Compact per-batch geometry summary; never iterates over pairs."""
+    """Compact epoch-level geometry summary of one bundle; never scans pairs.
+
+    Called at a few pre-registered log points (not per micro-batch) and always on
+    a bounded sample, so it neither copies a full pair tensor nor synchronises the
+    GPU repeatedly.  The raw-``E`` and saturation figures come from
+    :func:`merge_evidence_stats` over the whole epoch, not from this bundle.
+    """
     base = bundle.base
     stats: Dict[str, object] = {}
     stats["s_quantiles"] = _quantiles(base["s2"].clamp_min(0).sqrt(), (0.1, 0.5, 0.9))
@@ -576,15 +666,6 @@ def geometry_statistics(bundle, model) -> Dict[str, object]:
         base["delta"] + base["F"].pow(2).sum(-1, keepdim=True), (0.1, 0.5, 0.9)
     )
     stats["u_energy"] = _quantiles(base["U"].pow(2).sum(-1, keepdim=True), (0.1, 0.5, 0.9))
-    try:
-        stage = bundle.stage(0)
-        key = "Ehat_full" if "Ehat_full" in stage else "Ehat_w"
-        evidence = stage[key]
-        stats["raw_evidence_quantiles"] = _quantiles(evidence, (0.01, 0.5, 0.99))
-        tau = float(getattr(model.geometry.evidence, "tau", 4.0))
-        stats["saturated_fraction"] = float((evidence.abs() >= tau * 0.99).float().mean())
-    except Exception:  # the baseline has no evidence
-        stats["raw_evidence_quantiles"] = []
     if getattr(model.geometry, "uses_evidence", False):
         lengths = [model.geometry.evidence.lengths(i) for i in range(4)]
         stats["ell_quantiles"] = _quantiles(torch.cat(lengths), (0.1, 0.5, 0.9))
